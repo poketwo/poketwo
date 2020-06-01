@@ -10,19 +10,9 @@ from data import load_data
 
 # Setup
 
-if os.getenv("ENV", None) == "prod":
-    client = secretmanager.SecretManagerServiceClient()
-    parent = client.project_path("poketwo-279018")
-
-    bot_token = client.access_secret_version("bot-token")
-    bot_token = bot_token.payload.data.decode("utf-8")
-
-    database_uri = client.access_secret_version("bot-token")
-    database_uri = database_uri.payload.data.decode("utf-8")
-else:
-    load_dotenv()
-    bot_token = os.getenv("BOT_TOKEN")
-    database_uri = os.getenv("DATABASE_URI")
+load_dotenv()
+bot_token = os.getenv("BOT_TOKEN")
+database_uri = os.getenv("DATABASE_URI")
 
 mongoengine.connect(host=database_uri)
 
