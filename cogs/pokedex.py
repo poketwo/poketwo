@@ -25,6 +25,7 @@ class Pokedex(commands.Cog):
         embed.color = 0xF44336
         embed.title = f"#{species.id} — {species}"
         embed.description = species.evolution_text
+        embed.set_footer(text="This bot is in test mode. All data will be reset.")
         embed.set_image(url=GameData.get_image_url(species.id))
 
         base_stats = (

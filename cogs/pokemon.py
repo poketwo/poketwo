@@ -35,6 +35,7 @@ class Pokemon(commands.Cog):
         embed.color = 0xF44336
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = "To start, choose one of the starter pokémon using the `p!pick <pokemon>` command. "
+        embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         for gen, pokemon in STARTER_GENERATION.items():
             embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
@@ -91,6 +92,7 @@ class Pokemon(commands.Cog):
         embed.title = f"Level {pokemon.level} {pokemon.species}"
         embed.set_image(url=GameData.get_image_url(pokemon.species_id))
         embed.set_thumbnail(url=ctx.author.avatar_url)
+        embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         info = (
             f"**XP:** {pokemon.xp}",
@@ -126,5 +128,6 @@ class Pokemon(commands.Cog):
         embed.color = 0xF44336
         embed.title = f"Your pokémon"
         embed.description = "\n".join(pokemon)
+        embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         await ctx.send(embed=embed)

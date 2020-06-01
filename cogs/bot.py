@@ -25,6 +25,8 @@ class Bot(commands.Cog):
             await ctx.send_help(ctx.command)
 
         if isinstance(error, checks.MustHaveStarted):
-            await ctx.send(error)
+            await ctx.send(
+                "Please pick a starter pokémon by typing `p!start` before using this command!"
+            )
 
         raise error

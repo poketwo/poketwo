@@ -1,4 +1,5 @@
 from discord.ext import commands
+from mongoengine import DoesNotExist
 
 from . import mongo
 
@@ -18,7 +19,7 @@ def has_started():
         try:
             mongo.Member.objects.get(id=ctx.author.id)
             return True
-        except:
+        except DoesNotExist:
             raise MustHaveStarted(
                 "Please pick a starter pokémon by typing `p!start` before using this command!"
             )

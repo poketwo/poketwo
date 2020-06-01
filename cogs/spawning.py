@@ -14,6 +14,7 @@ class Spawning(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.pokemon = {}
 
     @property
     def db(self) -> Database:
@@ -35,6 +36,8 @@ class Spawning(commands.Cog):
         species = GameData.species_by_number(random.randint(1, 807))
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
+        self.pokemon[ctx.channel.id] = (species, level)
+
         with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
             image = discord.File(f, filename="pokemon.png")
 
@@ -45,18 +48,24 @@ class Spawning(commands.Cog):
             "Guess the pokémon and type `p!catch <pokémon>` to catch it!"
         )
         embed.set_image(url="attachment://pokemon.png")
-
-        def check(message):
-            return (
-                message.channel == ctx.channel
-                and message.content.lower() == f"p!catch {species}".lower()
-            )
+        embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         await ctx.send(file=image, embed=embed)
 
-        member = (await self.bot.wait_for("message", check=check)).author
+    @checks.has_started()
+    @commands.command()
+    async def catch(self, ctx: commands.Context, guess: str):
+        if ctx.channel.id not in self.pokemon:
+            return
 
-        member_data = self.db.fetch_member(member)
+        species, level = self.pokemon[ctx.channel.id]
+
+        if guess.lower() != species.name.lower():
+            return await ctx.send("That is the wrong pokémon!")
+
+        del self.pokemon[ctx.channel.id]
+
+        member_data = self.db.fetch_member(ctx.author)
         next_id = member_data.next_id
         member_data.update(inc__next_id=1)
 
@@ -64,13 +73,10 @@ class Spawning(commands.Cog):
             number=member_data.next_id,
             species_id=species.id,
             level=level,
-            owner_id=member.id,
+            owner_id=ctx.author.id,
         )
         member_data.save()
 
         await ctx.send(
-            f"Congratulations {member.mention}! You caught a level {level} {species}!"
+            f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
         )
-
-        # TODO: Make sure the member already started
-        # TODO: Convert into real command
