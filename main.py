@@ -3,7 +3,6 @@ import os
 import mongoengine
 from discord.ext import commands
 from dotenv import load_dotenv
-from google.cloud import secretmanager
 
 from cogs import *
 from data import load_data
