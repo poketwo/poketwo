@@ -35,7 +35,7 @@ def load_data():
             evo_from = Evolution.evolve_from(row["evo.from"], trigger)
 
         pokemon.append(
-            Pokemon(
+            Species(
                 row["id"],
                 row["name.en"],
                 base_stats=Stats(

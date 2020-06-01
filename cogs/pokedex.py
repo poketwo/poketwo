@@ -1,7 +1,7 @@
-from discord.ext import commands
 import discord
+from discord.ext import commands
 
-from .helpers.models import GameData
+from .helpers.models import GameData, SpeciesNotFoundError
 
 
 class Pokedex(commands.Cog):
@@ -11,28 +11,31 @@ class Pokedex(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=["dex"])
-    async def pokedex(self, ctx: commands.Context, species: str):
+    async def pokedex(self, ctx: commands.Context, search: str):
         try:
-            species = int(species)
-            pokemon = GameData.get_pokemon(species)
+            try:
+                search = int(search)
+                species = GameData.species_by_number(search)
+            except ValueError:
+                species = GameData.species_by_name(search)
+        except SpeciesNotFoundError:
+            return await ctx.send(f"Could not find a pokemon matching `{search}`.")
 
-            embed = discord.Embed()
-            embed.title = f"#{pokemon.id} – {pokemon}"
-            embed.description = pokemon.evolution_text
-            embed.set_image(url=GameData.get_image_url(species))
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"#{species.id} — {species}"
+        embed.description = species.evolution_text
+        embed.set_image(url=GameData.get_image_url(species.id))
 
-            base_stats = (
-                f"**HP:** {pokemon.base_stats.hp}",
-                f"**Attack:** {pokemon.base_stats.atk}",
-                f"**Defense:** {pokemon.base_stats.defn}",
-                f"**Sp. Atk:** {pokemon.base_stats.satk}",
-                f"**Sp. Def:** {pokemon.base_stats.sdef}",
-                f"**Speed:** {pokemon.base_stats.spd}",
-            )
+        base_stats = (
+            f"**HP:** {species.base_stats.hp}",
+            f"**Attack:** {species.base_stats.atk}",
+            f"**Defense:** {species.base_stats.defn}",
+            f"**Sp. Atk:** {species.base_stats.satk}",
+            f"**Sp. Def:** {species.base_stats.sdef}",
+            f"**Speed:** {species.base_stats.spd}",
+        )
 
-            embed.add_field(name="Base Stats", value="\n".join(base_stats))
+        embed.add_field(name="Base Stats", value="\n".join(base_stats))
 
-            await ctx.send(embed=embed)
-
-        except ValueError:
-            await ctx.send("no")
+        await ctx.send(embed=embed)

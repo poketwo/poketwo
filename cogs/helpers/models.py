@@ -2,7 +2,7 @@ import csv
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, List
+from typing import ClassVar, List, overload
 
 from PIL import Image
 
@@ -76,10 +76,10 @@ class Stats:
         self.spd = spd
 
 
-# Pokemon
+# Species
 
 
-class Pokemon:
+class Species:
     def __init__(
         self,
         id_: int,
@@ -121,15 +121,28 @@ def load_pokemon(pokemon):
     _Data.pokemon = pokemon
 
 
+class SpeciesNotFoundError(Exception):
+    pass
+
+
 class GameData:
     @classmethod
-    def all_pokemon(cls) -> List[Pokemon]:
+    def all_pokemon(cls) -> List[Species]:
         return _Data.pokemon
 
     @classmethod
-    def get_pokemon(cls, number: int) -> Pokemon:
+    def species_by_number(cls, number: int) -> Species:
         if 0 <= number < len(_Data.pokemon):
             return _Data.pokemon[number - 1]
+        else:
+            raise SpeciesNotFoundError
+
+    @classmethod
+    def species_by_name(cls, name: str) -> Species:
+        try:
+            return next(filter(lambda x: x.name.lower() == name.lower(), _Data.pokemon))
+        except StopIteration:
+            raise SpeciesNotFoundError
 
     @classmethod
     def get_image_url(cls, number: int) -> str:

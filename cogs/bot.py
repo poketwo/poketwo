@@ -1,5 +1,8 @@
-from discord.ext import commands
 import discord
+from discord.ext import commands
+
+from .database import Database
+from .helpers import checks
 
 
 class Bot(commands.Cog):
@@ -7,6 +10,10 @@ class Bot(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+    @property
+    def db(self) -> Database:
+        return self.bot.get_cog("Database")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -16,7 +23,8 @@ class Bot(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send_help(ctx.command)
-        elif not isinstance(error, commands.CommandNotFound):
-            await ctx.send(f"**Error:** {error}")
+
+        if isinstance(error, checks.MustHaveStarted):
+            await ctx.send(error)
 
         raise error

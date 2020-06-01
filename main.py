@@ -17,11 +17,15 @@ mongoengine.connect(host=os.getenv("DATABASE_URI"))
 load_data()
 
 bot = commands.Bot(
-    command_prefix=os.getenv("COMMAND_PREFIX"),
+    command_prefix=["p!", "P!"],
     help_command=commands.MinimalHelpCommand(),
+    case_insensitive=True
 )
 bot.add_cog(Bot(bot))
+bot.add_cog(Database(bot))
 bot.add_cog(Pokedex(bot))
+bot.add_cog(Pokemon(bot))
+bot.add_cog(Spawning(bot))
 
 # Run Discord Bot
 
