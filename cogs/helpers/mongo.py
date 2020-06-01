@@ -92,4 +92,5 @@ class Member(Document):
 
 class Guild(Document):
     id = LongField(primary_key=True)
-    counter = IntField(min_value=0, max_value=10, default=0, required=True)
+    counter = IntField(default=0, required=True)
+    channel = LongField()

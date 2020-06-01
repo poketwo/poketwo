@@ -28,15 +28,21 @@ class Spawning(commands.Cog):
         guild = self.db.fetch_guild(message.guild)
         guild.update(inc__counter=1)
 
-        if guild.counter >= 10:
+        if guild.counter >= 50:
             guild.update(counter=0)
-            await self.spawn_pokemon(await self.bot.get_context(message))
+            
+            if guild.channel is not None:
+                channel = message.guild.get_channel(guild.channel)
+            else:
+                channel = message.channel
 
-    async def spawn_pokemon(self, ctx: commands.Context):
+            await self.spawn_pokemon(channel)
+
+    async def spawn_pokemon(self, channel):
         species = GameData.species_by_number(random.randint(1, 807))
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
-        self.pokemon[ctx.channel.id] = (species, level)
+        self.pokemon[channel.id] = (species, level)
 
         with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
             image = discord.File(f, filename="pokemon.png")
@@ -50,7 +56,7 @@ class Spawning(commands.Cog):
         embed.set_image(url="attachment://pokemon.png")
         embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
-        await ctx.send(file=image, embed=embed)
+        await channel.send(file=image, embed=embed)
 
     @checks.has_started()
     @commands.command()
@@ -80,3 +86,11 @@ class Spawning(commands.Cog):
         await ctx.send(
             f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
         )
+
+    @checks.is_admin()
+    @commands.command()
+    async def redirect(self, ctx: commands.Context, channel: discord.TextChannel):
+        guild = self.db.fetch_guild(ctx.guild)
+        guild.update(channel=channel.id)
+
+        await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")

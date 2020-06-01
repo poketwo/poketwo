@@ -82,10 +82,24 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def info(self, ctx: commands.Context):
+    async def info(self, ctx: commands.Context, number: str = None):
         member = self.db.fetch_member(ctx.author)
 
-        pokemon = member.pokemon.get(number=member.selected)
+        if number is None:
+            pokemon = member.pokemon.get(number=member.selected)
+        elif number.isdigit():
+            try:
+                pokemon = member.pokemon.get(number=int(number))
+            except DoesNotExist:
+                return await ctx.send("Could not find a pokemon with that number.")
+        elif number == "latest":
+            pokemon = member.pokemon[member.pokemon.count() - 1]
+        else:
+            return await ctx.send(
+                "Please use `p!info` to view your selected pokémon, "
+                "`p!info <number>` to view another pokémon, "
+                "or `p!info latest` to view your latest pokémon."
+            )
 
         embed = discord.Embed()
         embed.color = 0xF44336
