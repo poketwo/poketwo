@@ -14,7 +14,6 @@ pymongo = {extras = ["tls"],version = "*"}
 python-dotenv = "*"
 dnspython = "*"
 requests = "*"
-google-cloud-secret-manager = "*"
 
 [requires]
 python_version = "3.8"
