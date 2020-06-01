@@ -10,9 +10,7 @@ from data import load_data
 
 # Setup
 
-load_dotenv()
-
-if os.getenv("ENV") == "prod":
+if os.getenv("ENV", None) == "prod":
     client = secretmanager.SecretManagerServiceClient()
     parent = client.project_path("poketwo-279018")
 
@@ -22,6 +20,7 @@ if os.getenv("ENV") == "prod":
     database_uri = client.access_secret_version("bot-token")
     database_uri = database_uri.payload.data.decode("utf-8")
 else:
+    load_dotenv()
     bot_token = os.getenv("BOT_TOKEN")
     database_uri = os.getenv("DATABASE_URI")
 

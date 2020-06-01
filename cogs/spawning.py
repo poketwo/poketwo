@@ -28,7 +28,7 @@ class Spawning(commands.Cog):
         guild = self.db.fetch_guild(message.guild)
         guild.update(inc__counter=1)
 
-        if guild.counter >= 50:
+        if guild.counter >= 30:
             guild.update(counter=0)
             
             if guild.channel is not None:
