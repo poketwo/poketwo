@@ -1,4 +1,5 @@
 import random
+import time
 from pathlib import Path
 
 import discord
@@ -15,6 +16,8 @@ class Spawning(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.pokemon = {}
+        self.users = {}
+        self.guilds = {}
 
     @property
     def db(self) -> Database:
@@ -25,12 +28,44 @@ class Spawning(commands.Cog):
         if message.author.bot:
             return
 
-        guild = self.db.fetch_guild(message.guild)
-        guild.update(inc__counter=1)
+        current = time.time()
 
-        if guild.counter >= 30:
-            guild.update(counter=0)
-            
+        # Spamcheck, every two seconds
+
+        if current - self.users.get(message.author.id, 0) < 2:
+            return
+
+        self.users[message.author.id] = current
+
+        # Increase XP on selected pokemon
+
+        member = self.db.fetch_member(message.author)
+        pokemon = member.selected_pokemon
+        pokemon.xp += random.randint(10, 40)
+        member.save()
+
+        if pokemon.xp > pokemon.max_xp:
+            pokemon.level += 1
+            pokemon.xp -= pokemon.max_xp
+            member.save()
+
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Congratulations {message.author.name}!"
+            embed.description = f"Your {pokemon.species} is now level {pokemon.level}!"
+            embed.set_footer(text="This bot is in test mode. All data will be reset.")
+
+            await message.channel.send(embed=embed)
+
+        # Increment guild activity counter
+
+        self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
+
+        if self.guilds[message.guild.id] >= 20:
+            self.guilds[message.guild.id] = 0
+
+            guild = self.db.fetch_guild(message.guild)
+
             if guild.channel is not None:
                 channel = message.guild.get_channel(guild.channel)
             else:
@@ -39,10 +74,14 @@ class Spawning(commands.Cog):
             await self.spawn_pokemon(channel)
 
     async def spawn_pokemon(self, channel):
+        # Get random species and level, add to tracker
+
         species = GameData.species_by_number(random.randint(1, 807))
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
         self.pokemon[channel.id] = (species, level)
+
+        # Fetch image and send embed
 
         with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
             image = discord.File(f, filename="pokemon.png")
@@ -61,6 +100,8 @@ class Spawning(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def catch(self, ctx: commands.Context, guess: str):
+        # Retrieve correct species and level from tracker
+
         if ctx.channel.id not in self.pokemon:
             return
 
@@ -68,6 +109,8 @@ class Spawning(commands.Cog):
 
         if guess.lower() != species.name.lower():
             return await ctx.send("That is the wrong pokémon!")
+
+        # Correct guess, add to database
 
         del self.pokemon[ctx.channel.id]
 

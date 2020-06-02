@@ -34,6 +34,10 @@ class Pokemon(EmbeddedDocument):
         return GameData.species_by_number(self.species_id)
 
     @property
+    def max_xp(self):
+        return 250 + 25 * self.level
+
+    @property
     def hp(self):
         return (
             (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100
@@ -88,6 +92,10 @@ class Member(Document):
     pokemon = EmbeddedDocumentListField(Pokemon, required=True)
     next_id = IntField(default=1, required=True)
     selected = IntField(default=1, required=True)
+
+    @property
+    def selected_pokemon(self):
+        return self.pokemon.get(number=self.selected)
 
 
 class Guild(Document):

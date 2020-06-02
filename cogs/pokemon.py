@@ -86,7 +86,7 @@ class Pokemon(commands.Cog):
         member = self.db.fetch_member(ctx.author)
 
         if number is None:
-            pokemon = member.pokemon.get(number=member.selected)
+            pokemon = member.selected_pokemon
         elif number.isdigit():
             try:
                 pokemon = member.pokemon.get(number=int(number))
@@ -109,7 +109,7 @@ class Pokemon(commands.Cog):
         embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         info = (
-            f"**XP:** {pokemon.xp}",
+            f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
             f"**Nature:** {pokemon.nature}",
         )
 
@@ -128,6 +128,21 @@ class Pokemon(commands.Cog):
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
         await ctx.send(embed=embed)
+
+    @checks.has_started()
+    @commands.command()
+    async def select(self, ctx: commands.Context, number: int):
+        member = self.db.fetch_member(ctx.author)
+
+        try:
+            pokemon = member.pokemon.get(number=number)
+        except DoesNotExist:
+            return await ctx.send("Could not find a pokemon with that number.")
+
+        member.update(selected=number)
+        await ctx.send(
+            f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
+        )
 
     @checks.has_started()
     @commands.command()
