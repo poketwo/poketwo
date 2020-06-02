@@ -146,16 +146,27 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def pokemon(self, ctx: commands.Context):
+    async def pokemon(self, ctx: commands.Context, page: int = 1):
         member = self.db.fetch_member(ctx.author)
+
+        pgstart = (page - 1) * 20
+
+        if pgstart >= member.pokemon.count():
+            return await ctx.send("You don't have that many pages.")
+
+        pgend = min(page * 20, member.pokemon.count())
+
         pokemon = [
             f"**{p.species}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
-            for p in member.pokemon
+            for p in member.pokemon[pgstart:pgend]
         ]
 
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Your pokémon"
         embed.description = "\n".join(pokemon)
+        embed.set_footer(
+            text=f"Showing {pgstart + 1}–{pgend} out of {member.pokemon.count()}."
+        )
 
         await ctx.send(embed=embed)
