@@ -12,6 +12,7 @@ from data import load_data
 load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
 database_uri = os.getenv("DATABASE_URI")
+env = os.getenv("ENV")
 
 mongoengine.connect(host=database_uri)
 
@@ -24,6 +25,7 @@ bot = commands.Bot(
     help_command=commands.MinimalHelpCommand(),
     case_insensitive=True,
 )
+bot.env = env
 bot.add_cog(Bot(bot))
 bot.add_cog(Database(bot))
 bot.add_cog(Pokedex(bot))

@@ -48,6 +48,9 @@ def load_data():
                 ),
                 evolution_from=evo_from,
                 evolution_to=evo_to,
+                mythical="mythical" in row,
+                legendary="legendary" in row,
+                ultra_beast="ultra_beast" in row,
             )
         )
 
@@ -55,3 +58,14 @@ def load_data():
 
 
 load_data()
+
+
+# spawns = []
+# for i in range(100000):
+#     spawns.append(GameData.random_spawn())
+
+# unique = set(spawns)
+# freq = [(spawns.count(k), k.id) for k in unique]
+
+# import pprint
+# pprint.pprint(sorted(freq))

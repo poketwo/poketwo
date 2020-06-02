@@ -1,4 +1,5 @@
 import csv
+import random
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import cached_property
@@ -81,15 +82,27 @@ class Stats:
 
 
 class Species:
+    id: int
+    name: str
+    base_stats: Stats
+    evolution_from: Evolution
+    evolution_to: Evolution
+    mythical: bool
+    legendary: bool
+    ultra_beast: bool
+
     def __init__(
         self,
-        id_: int,
+        id: int,
         name: str,
         base_stats: Stats,
         evolution_from: Evolution = None,
         evolution_to: Evolution = None,
+        mythical=False,
+        legendary=False,
+        ultra_beast=False,
     ):
-        self.id = id_
+        self.id = id
         self.name = name
         self.base_stats = base_stats
 
@@ -100,6 +113,10 @@ class Species:
 
         self.evolution_from = evolution_from
         self.evolution_to = evolution_to
+
+        self.mythical = mythical
+        self.legendary = legendary
+        self.ultra_beast = ultra_beast
 
     def __str__(self):
         return self.name
@@ -116,6 +133,19 @@ class Species:
             return f"{self.name} {self.evolution_to.text}."
         else:
             return f"{self.name} is not know to evolve from or into any Pokémon."
+
+    @cached_property
+    def abundance(self):
+        if self.ultra_beast:
+            return 1
+        if self.legendary:
+            return 2
+        if self.mythical:
+            return 4
+        if self.evolution_to is None:
+            return 128
+
+        return self.evolution_to.target.abundance * 4
 
 
 def load_pokemon(pokemon):
@@ -150,3 +180,13 @@ class GameData:
         return (
             f"https://assets.pokemon.com/assets/cms2/img/pokedex/full/{number:03}.png"
         )
+
+    @classmethod
+    def random_spawn(cls):
+        return random.choices(_Data.pokemon, weights=cls.spawn_weights(), k=1)[0]
+
+    @classmethod
+    def spawn_weights(cls):
+        if not hasattr(cls, "_spawn_weights"):
+            cls._spawn_weights = [p.abundance for p in _Data.pokemon]
+        return cls._spawn_weights

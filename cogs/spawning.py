@@ -33,8 +33,9 @@ class Spawning(commands.Cog):
 
         # Spamcheck, every two seconds
 
-        if current - self.users.get(message.author.id, 0) < 2:
-            return
+        if self.bot.env != "dev":
+            if current - self.users.get(message.author.id, 0) < 2:
+                return
 
         self.users[message.author.id] = current
 
@@ -62,7 +63,7 @@ class Spawning(commands.Cog):
 
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= 20:
+        if self.guilds[message.guild.id] >= 5 if self.bot.env == "dev" else 20:
             self.guilds[message.guild.id] = 0
 
             guild = self.db.fetch_guild(message.guild)
@@ -77,7 +78,7 @@ class Spawning(commands.Cog):
     async def spawn_pokemon(self, channel):
         # Get random species and level, add to tracker
 
-        species = GameData.species_by_number(random.randint(1, 807))
+        species = GameData.random_spawn()
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
         self.pokemon[channel.id] = (species, level)
