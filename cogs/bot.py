@@ -1,3 +1,5 @@
+from functools import cached_property
+
 import discord
 from discord.ext import commands
 
@@ -11,7 +13,7 @@ class Bot(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @property
+    @cached_property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 

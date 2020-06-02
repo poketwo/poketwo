@@ -1,6 +1,7 @@
 import csv
 from abc import ABC, abstractmethod
 from enum import Enum
+from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, List, overload
 
@@ -22,13 +23,13 @@ class LevelTrigger(EvolutionTrigger):
     def __init__(self, level: int):
         self.level = level
 
-    @property
+    @cached_property
     def text(self):
         return f"starting from level {self.level}"
 
 
 class OtherTrigger(EvolutionTrigger):
-    @property
+    @cached_property
     def text(self):
         return "somehow"
 
@@ -47,15 +48,15 @@ class Evolution:
     def evolve_to(cls, target: int, trigger: EvolutionTrigger):
         return cls(target, trigger, True)
 
-    @property
+    @cached_property
     def dir(self) -> str:
         return "to" if self.type == True else "from" if self.type == False else "??"
 
-    @property
+    @cached_property
     def target(self):
         return _Data.pokemon[self.target_id - 1]
 
-    @property
+    @cached_property
     def text(self):
         if (pevo := getattr(self.target, f"evolution_{self.dir}")) is not None:
             return f"evolves {self.dir} {self.target} {self.trigger.text}, which {pevo.text}"
@@ -103,7 +104,7 @@ class Species:
     def __str__(self):
         return self.name
 
-    @property
+    @cached_property
     def evolution_text(self):
         if self.evolution_from is not None and self.evolution_to is not None:
             return (

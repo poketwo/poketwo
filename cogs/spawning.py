@@ -1,5 +1,6 @@
 import random
 import time
+from functools import cached_property
 from pathlib import Path
 
 import discord
@@ -19,7 +20,7 @@ class Spawning(commands.Cog):
         self.users = {}
         self.guilds = {}
 
-    @property
+    @cached_property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
