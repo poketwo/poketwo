@@ -55,7 +55,6 @@ class Spawning(commands.Cog):
             embed.color = 0xF44336
             embed.title = f"Congratulations {message.author.name}!"
             embed.description = f"Your {pokemon.species} is now level {pokemon.level}!"
-            embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
             await message.channel.send(embed=embed)
 
@@ -95,7 +94,6 @@ class Spawning(commands.Cog):
             "Guess the pokémon and type `p!catch <pokémon>` to catch it!"
         )
         embed.set_image(url="attachment://pokemon.png")
-        embed.set_footer(text="This bot is in test mode. All data will be reset.")
 
         await channel.send(file=image, embed=embed)
 
