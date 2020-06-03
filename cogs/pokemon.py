@@ -22,8 +22,8 @@ STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in
 
 SORTING_FUNCTIONS = {
     "number": lambda p: p.number,
-    "iv": lambda p: p.iv_percentage,
-    "level": lambda p: p.level,
+    "iv": lambda p: -p.iv_percentage,
+    "level": lambda p: -p.level,
     "abc": lambda p: p.species.name,
 }
 
