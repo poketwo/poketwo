@@ -38,7 +38,7 @@ class Spawning(commands.Cog):
             if current - self.cooldown.get(message.guild.id, 0) < 2:
                 return
 
-        self.users[message.guild.id] = current
+        self.cooldown[message.guild.id] = current
 
         # Increase XP on selected pokemon
 
