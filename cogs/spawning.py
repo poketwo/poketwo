@@ -68,7 +68,7 @@ class Spawning(commands.Cog):
 
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 30):
+        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
             self.guilds[message.guild.id] = 0
 
             guild = self.db.fetch_guild(message.guild)
