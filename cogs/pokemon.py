@@ -220,8 +220,6 @@ class Pokemon(commands.Cog):
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
 
-        print(flags)
-
         member = self.db.fetch_member(ctx.author)
         pokemon = member.pokemon
 

@@ -18,6 +18,7 @@ class Spawning(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.pokemon = {}
+        self.users = {}
         self.cooldown = {}
         self.guilds = {}
 
@@ -35,10 +36,10 @@ class Spawning(commands.Cog):
         # Spamcheck, every two seconds
 
         if self.bot.env != "dev":
-            if current - self.cooldown.get(message.guild.id, 0) < 2:
+            if current - self.users.get(message.author.id, 0) < 2:
                 return
 
-        self.cooldown[message.guild.id] = current
+        self.users[message.author.id] = current
 
         # Increase XP on selected pokemon
 
@@ -65,6 +66,12 @@ class Spawning(commands.Cog):
             pass
 
         # Increment guild activity counter
+
+        if self.bot.env != "dev":
+            if current - self.cooldown.get(message.guild.id, 0) < 1:
+                return
+
+        self.cooldown[message.guild.id] = current
 
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
