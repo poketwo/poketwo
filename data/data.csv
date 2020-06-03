@@ -27,10 +27,10 @@ id,slug,name.jp,name.en,type.0,type.1,mythical,legendary,ultra_beast,height,weig
 26,raichu,ライチュウ,Raichu,Electric,,,,,8,300,25,,,,,60,90,55,90,80,110,485
 27,sandshrew,サンド,Sandshrew,Ground,,,,,6,120,,28,1,,22,50,75,85,20,30,40,300
 28,sandslash,サンドパン,Sandslash,Ground,,,,,10,295,27,,,,,75,100,110,45,55,65,450
-29,nidoran-f,ニドラン♀,Nidoran♀,Poison,,,,,4,70,,30,1,,16,55,47,52,40,40,41,275
+29,nidoran-f,ニドラン♀,NidoranF,Poison,,,,,4,70,,30,1,,16,55,47,52,40,40,41,275
 30,nidorina,ニドリーナ,Nidorina,Poison,,,,,8,200,29,31,3,81,,70,62,67,55,55,56,365
 31,nidoqueen,フシギバナ,Nidoqueen,Poison,Ground,,,,13,600,30,,,,,90,92,87,75,85,76,505
-32,nidoran-m,ニドラン♂,Nidoran♂,Poison,,,,,5,90,,33,1,,16,46,57,40,40,40,50,273
+32,nidoran-m,ニドラン♂,NidoranM,Poison,,,,,5,90,,33,1,,16,46,57,40,40,40,50,273
 33,nidorino,ニドリーノ,Nidorino,Poison,,,,,9,195,32,34,3,81,,61,72,57,55,55,65,365
 34,nidoking,ニドキング,Nidoking,Poison,Ground,,,,14,620,33,,,,,81,102,77,85,75,85,505
 35,clefairy,ピッピ,Clefairy,Fairy,,,,,6,75,173,36,3,81,,70,45,48,60,65,35,323
