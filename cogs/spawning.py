@@ -9,7 +9,7 @@ from mongoengine import DoesNotExist
 
 from .database import Database
 from .helpers import checks
-from .helpers.models import GameData
+from .helpers.models import GameData, LevelTrigger
 
 
 class Spawning(commands.Cog):
@@ -46,10 +46,11 @@ class Spawning(commands.Cog):
         try:
             member = self.db.fetch_member(message.author)
             pokemon = member.selected_pokemon
-            pokemon.xp += random.randint(10, 40)
+            if pokemon.level < 100 and pokemon.xp < pokemon.max_xp:
+                pokemon.xp += random.randint(10, 40)
             member.save()
 
-            if pokemon.xp > pokemon.max_xp:
+            if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
                 pokemon.level += 1
                 pokemon.xp -= pokemon.max_xp
                 member.save()
@@ -61,7 +62,23 @@ class Spawning(commands.Cog):
                     f"Your {pokemon.species} is now level {pokemon.level}!"
                 )
 
+                if pokemon.species.evolution_to is not None:
+                    if (
+                        isinstance(pokemon.species.evolution_to.trigger, LevelTrigger)
+                        and pokemon.level >= pokemon.species.evolution_to.trigger.level
+                    ):
+                        embed.add_field(
+                            name=f"Your {pokemon.species} is evolving!",
+                            value=f"Your {pokemon.species} has turned into a {pokemon.species.evolution_to.target}!",
+                        )
+                        pokemon.species_id = pokemon.species.evolution_to.target_id
+                        member.save()
+
                 await message.channel.send(embed=embed)
+            elif pokemon.level == 100:
+                pokemon.xp = pokemon.max_xp
+                member.save()
+
         except DoesNotExist:
             pass
 
