@@ -1,7 +1,7 @@
 from functools import cached_property
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, flags
 from mongoengine import DoesNotExist
 
 from .database import Database
@@ -25,6 +25,22 @@ SORTING_FUNCTIONS = {
     "iv": lambda p: -p.iv_percentage,
     "level": lambda p: -p.level,
     "abc": lambda p: p.species.name,
+}
+
+FILTER_BY_NUMERICAL = {
+    "iv": lambda p: p.iv_percentage * 100,
+    "hp": lambda p: p.hp,
+    "atk": lambda p: p.atk,
+    "def": lambda p: p.defn,
+    "spatk": lambda p: p.satk,
+    "spdef": lambda p: p.sdef,
+    "spd": lambda p: p.spd,
+    "hpiv": lambda p: p.iv_hp,
+    "atkiv": lambda p: p.iv_atk,
+    "defiv": lambda p: p.iv_defn,
+    "spatkiv": lambda p: p.iv_satk,
+    "spdefiv": lambda p: p.iv_sdef,
+    "spdiv": lambda p: p.iv_spd,
 }
 
 
@@ -163,24 +179,126 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
 
+    # Filter
+    @flags.add_flag("page", nargs="?", default=1, type=int)
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--name")
+    @flags.add_flag("--level", type=int)
+
+    # Stats
+    @flags.add_flag("--hp", nargs="+")
+    @flags.add_flag("--atk", nargs="+")
+    @flags.add_flag("--def", nargs="+")
+    @flags.add_flag("--spatk", nargs="+")
+    @flags.add_flag("--spdef", nargs="+")
+    @flags.add_flag("--spd", nargs="+")
+
+    # IV
+    @flags.add_flag("--hpiv", nargs="+")
+    @flags.add_flag("--atkiv", nargs="+")
+    @flags.add_flag("--defiv", nargs="+")
+    @flags.add_flag("--spatkiv", nargs="+")
+    @flags.add_flag("--spdefiv", nargs="+")
+    @flags.add_flag("--spdiv", nargs="+")
+    @flags.add_flag("--iv", nargs="+")
+
+    # Pokemon
     @checks.has_started()
-    @commands.command()
-    async def pokemon(self, ctx: commands.Context, *, page: int = 1):
+    @flags.command()
+    async def pokemon(self, ctx: commands.Context, **flags):
+
+        print(flags)
+
         member = self.db.fetch_member(ctx.author)
+        pokemon = member.pokemon
 
-        pokemon = sorted(member.pokemon, key=SORTING_FUNCTIONS[member.order_by])
+        # Filter pokemon
 
-        pgstart = (page - 1) * 20
+        if flags["mythical"]:
+            pokemon = [p for p in pokemon if p.species.mythical]
+
+        if flags["legendary"]:
+            pokemon = [p for p in pokemon if p.species.legendary]
+
+        if flags["ub"]:
+            pokemon = [p for p in pokemon if p.species.ultra_beast]
+
+        if flags["name"] is not None:
+            pokemon = [
+                p for p in pokemon if p.species.name.lower() == flags["name"].lower()
+            ]
+
+        if flags["level"] is not None:
+            pokemon = [p for p in pokemon if p.level == flags["level"].lower()]
+
+        # Numerical flags
+
+        for flag in FILTER_BY_NUMERICAL:
+            if (text := flags[flag]) is not None:
+
+                if len(text) == 0:
+                    return await ctx.send(
+                        f"Please specify a numerical value for `--{flag}`"
+                    )
+
+                if len(text) > 2:
+                    return await ctx.send(
+                        f"Received too many arguments for `--{flag} {' '.join(text)}`"
+                    )
+
+                ops = text
+
+                # Entered just a number
+                if len(text) == 1 and text[0].isdigit():
+                    ops = ["=", text[0]]
+
+                elif len(text) == 1 and not text[0][0].isdigit():
+                    ops = [text[0][0], text[0][1:]]
+
+                if ops[0] not in ("<", "=", ">") or not ops[1].isdigit():
+                    return await ctx.send(f"couldn't parse `--{flag} {' '.join(text)}`")
+
+                if ops[0] == "<":
+                    pokemon = [
+                        p for p in pokemon if FILTER_BY_NUMERICAL[flag](p) < int(ops[1])
+                    ]
+                elif ops[0] == "=":
+                    pokemon = [
+                        p
+                        for p in pokemon
+                        if FILTER_BY_NUMERICAL[flag](p) == int(ops[1])
+                    ]
+                elif ops[0] == ">":
+                    pokemon = [
+                        p for p in pokemon if FILTER_BY_NUMERICAL[flag](p) > int(ops[1])
+                    ]
+
+        # Sort pokemon
+
+        pokemon = sorted(pokemon, key=SORTING_FUNCTIONS[member.order_by])
+
+        # If nothing matches
+
+        if len(pokemon) == 0:
+            return await ctx.send("Found no pokémon matching those parameters.")
+
+        # Pagination
+
+        pgstart = (flags["page"] - 1) * 20
 
         if pgstart >= len(pokemon) or pgstart < 0:
-            return await ctx.send("You don't have that many pages.")
+            return await ctx.send("There are no pokémon on this page.")
 
-        pgend = min(page * 20, len(pokemon))
+        pgend = min(flags["page"] * 20, len(pokemon))
 
         page = [
             f"**{p.species}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
             for p in pokemon[pgstart:pgend]
         ]
+
+        # Send embed
 
         embed = discord.Embed()
         embed.color = 0xF44336
