@@ -20,6 +20,13 @@ STARTER_GENERATION = {
 
 STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in l]
 
+SORTING_FUNCTIONS = {
+    "number": lambda p: p.number,
+    "iv": lambda p: p.iv_percentage,
+    "level": lambda p: p.level,
+    "abc": lambda p: p.species.name,
+}
+
 
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
@@ -44,7 +51,7 @@ class Pokemon(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def pick(self, ctx: commands.Context, name: str):
+    async def pick(self, ctx: commands.Context, *, name: str):
         try:
             self.db.fetch_member(ctx.author)
 
@@ -83,7 +90,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def info(self, ctx: commands.Context, number: str = None):
+    async def info(self, ctx: commands.Context, *, number: str = None):
         member = self.db.fetch_member(ctx.author)
 
         if number is None:
@@ -131,7 +138,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def select(self, ctx: commands.Context, number: int):
+    async def select(self, ctx: commands.Context, *, number: int):
         member = self.db.fetch_member(ctx.author)
 
         try:
@@ -146,27 +153,39 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def pokemon(self, ctx: commands.Context, page: int = 1):
+    async def order(self, ctx: commands.Context, *, sort: str):
+        if (s := sort.lower()) not in ("number", "iv", "level", "abc"):
+            return await ctx.send(
+                "Please specify either `number`, `IV`, `level`, or `abc`."
+            )
+
+        self.db.update_member(ctx.author, order_by=s)
+
+        await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
+
+    @checks.has_started()
+    @commands.command()
+    async def pokemon(self, ctx: commands.Context, *, page: int = 1):
         member = self.db.fetch_member(ctx.author)
+
+        pokemon = sorted(member.pokemon, key=SORTING_FUNCTIONS[member.order_by])
 
         pgstart = (page - 1) * 20
 
-        if pgstart >= member.pokemon.count():
+        if pgstart >= len(pokemon) or pgstart < 0:
             return await ctx.send("You don't have that many pages.")
 
-        pgend = min(page * 20, member.pokemon.count())
+        pgend = min(page * 20, len(pokemon))
 
-        pokemon = [
+        page = [
             f"**{p.species}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
-            for p in member.pokemon[pgstart:pgend]
+            for p in pokemon[pgstart:pgend]
         ]
 
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Your pokémon"
-        embed.description = "\n".join(pokemon)
-        embed.set_footer(
-            text=f"Showing {pgstart + 1}–{pgend} out of {member.pokemon.count()}."
-        )
+        embed.description = "\n".join(page)
+        embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokemon)}.")
 
         await ctx.send(embed=embed)

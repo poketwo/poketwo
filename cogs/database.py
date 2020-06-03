@@ -23,4 +23,4 @@ class Database(commands.Cog):
             return mongo.Guild.objects.create(id=guild.id)
 
     def update_member(self, member: discord.Member, **kwargs):
-        mongo.Member.objects(id=member.id).update_one(upsert=True, **kwargs)
+        mongo.Member.objects(id=member.id).update_one(**kwargs)

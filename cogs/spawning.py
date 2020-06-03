@@ -99,7 +99,7 @@ class Spawning(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def catch(self, ctx: commands.Context, guess: str):
+    async def catch(self, ctx: commands.Context, *, guess: str):
         # Retrieve correct species and level from tracker
 
         if ctx.channel.id not in self.pokemon:
@@ -132,7 +132,7 @@ class Spawning(commands.Cog):
 
     @checks.is_admin()
     @commands.command()
-    async def redirect(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def redirect(self, ctx: commands.Context, *, channel: discord.TextChannel):
         guild = self.db.fetch_guild(ctx.guild)
         guild.update(channel=channel.id)
 

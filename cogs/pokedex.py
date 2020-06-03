@@ -11,7 +11,7 @@ class Pokedex(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=["dex"])
-    async def pokedex(self, ctx: commands.Context, search: str):
+    async def pokedex(self, ctx: commands.Context, *, search: str):
         try:
             try:
                 search = int(search)

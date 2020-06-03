@@ -20,14 +20,14 @@ class Pokemon(EmbeddedDocument):
     level = IntField(min_value=1, max_value=100, required=True)
     xp = IntField(min_value=0, default=0, required=True)
 
-    nature = StringField(default=random_nature, required=True)
+    nature = StringField(default=random_nature)
 
-    iv_hp = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_atk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_defn = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_satk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_sdef = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_spd = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_hp = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_atk = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_defn = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_satk = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_sdef = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_spd = IntField(min_value=0, max_value=31, default=random_iv)
 
     @property
     def species(self):
@@ -92,6 +92,7 @@ class Member(Document):
     pokemon = EmbeddedDocumentListField(Pokemon, required=True)
     next_id = IntField(default=1, required=True)
     selected = IntField(default=1, required=True)
+    order_by = StringField(default="number")
 
     @property
     def selected_pokemon(self):
