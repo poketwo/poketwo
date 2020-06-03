@@ -5,6 +5,7 @@ from pathlib import Path
 
 import discord
 from discord.ext import commands
+from mongoengine import DoesNotExist
 
 from .database import Database
 from .helpers import checks
@@ -41,28 +42,33 @@ class Spawning(commands.Cog):
 
         # Increase XP on selected pokemon
 
-        member = self.db.fetch_member(message.author)
-        pokemon = member.selected_pokemon
-        pokemon.xp += random.randint(10, 40)
-        member.save()
-
-        if pokemon.xp > pokemon.max_xp:
-            pokemon.level += 1
-            pokemon.xp -= pokemon.max_xp
+        try:
+            member = self.db.fetch_member(message.author)
+            pokemon = member.selected_pokemon
+            pokemon.xp += random.randint(10, 40)
             member.save()
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"Congratulations {message.author.name}!"
-            embed.description = f"Your {pokemon.species} is now level {pokemon.level}!"
+            if pokemon.xp > pokemon.max_xp:
+                pokemon.level += 1
+                pokemon.xp -= pokemon.max_xp
+                member.save()
 
-            await message.channel.send(embed=embed)
+                embed = discord.Embed()
+                embed.color = 0xF44336
+                embed.title = f"Congratulations {message.author.name}!"
+                embed.description = (
+                    f"Your {pokemon.species} is now level {pokemon.level}!"
+                )
+
+                await message.channel.send(embed=embed)
+        except DoesNotExist:
+            pass
 
         # Increment guild activity counter
 
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 20):
+        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 30):
             self.guilds[message.guild.id] = 0
 
             guild = self.db.fetch_guild(message.guild)
