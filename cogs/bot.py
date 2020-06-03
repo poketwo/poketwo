@@ -35,3 +35,14 @@ class Bot(commands.Cog):
             await ctx.send(error)
 
         raise error
+
+    @commands.command()
+    async def invite(self, ctx: commands.Context):
+        """Get the invite link for the bot."""
+
+        await ctx.send(
+            "Want to add me to your server? Use the link below!\n\n"
+            "Invite Bot: https://discord.com/api/oauth2/authorize?client_id=716390085896962058&permissions=126016&scope=bot\n"
+            "Join Server: https://discord.gg/KZe4F4t\n\n"
+            "This bot is still in development and has limited functionality. Please report bugs to the server."
+        )

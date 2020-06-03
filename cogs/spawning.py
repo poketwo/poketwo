@@ -18,7 +18,7 @@ class Spawning(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.pokemon = {}
-        self.users = {}
+        self.cooldown = {}
         self.guilds = {}
 
     @cached_property
@@ -35,10 +35,10 @@ class Spawning(commands.Cog):
         # Spamcheck, every two seconds
 
         if self.bot.env != "dev":
-            if current - self.users.get(message.author.id, 0) < 2:
+            if current - self.cooldown.get(message.guild.id, 0) < 2:
                 return
 
-        self.users[message.author.id] = current
+        self.users[message.guild.id] = current
 
         # Increase XP on selected pokemon
 
@@ -106,6 +106,8 @@ class Spawning(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def catch(self, ctx: commands.Context, *, guess: str):
+        """Catch a wild pokémon."""
+
         # Retrieve correct species and level from tracker
 
         if ctx.channel.id not in self.pokemon:
@@ -139,6 +141,8 @@ class Spawning(commands.Cog):
     @checks.is_admin()
     @commands.command()
     async def redirect(self, ctx: commands.Context, *, channel: discord.TextChannel):
+        """Redirect pokémon catches to one channel."""
+
         guild = self.db.fetch_guild(ctx.guild)
         guild.update(channel=channel.id)
 

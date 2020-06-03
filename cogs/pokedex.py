@@ -12,6 +12,8 @@ class Pokedex(commands.Cog):
 
     @commands.command(aliases=["dex"])
     async def pokedex(self, ctx: commands.Context, *, search: str):
+        """Search for a pokémon in the pokédex."""
+
         try:
             try:
                 search = int(search)

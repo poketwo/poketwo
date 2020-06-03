@@ -56,6 +56,8 @@ class Pokemon(commands.Cog):
 
     @commands.command()
     async def start(self, ctx: commands.Context):
+        """View the starter pokémon."""
+
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = "Welcome to the world of Pokémon!"
@@ -68,6 +70,8 @@ class Pokemon(commands.Cog):
 
     @commands.command()
     async def pick(self, ctx: commands.Context, *, name: str):
+        """Choose a starter pokémon to get started."""
+
         try:
             self.db.fetch_member(ctx.author)
 
@@ -107,6 +111,8 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def info(self, ctx: commands.Context, *, number: str = None):
+        """View a specific pokémon from your collection."""
+
         member = self.db.fetch_member(ctx.author)
 
         if number is None:
@@ -155,6 +161,8 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def select(self, ctx: commands.Context, *, number: int):
+        """Select a specific pokémon from your collection."""
+
         member = self.db.fetch_member(ctx.author)
 
         try:
@@ -170,6 +178,8 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def order(self, ctx: commands.Context, *, sort: str):
+        """Change how your pokémon are ordered."""
+
         if (s := sort.lower()) not in ("number", "iv", "level", "abc"):
             return await ctx.send(
                 "Please specify either `number`, `IV`, `level`, or `abc`."
@@ -208,6 +218,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @flags.command()
     async def pokemon(self, ctx: commands.Context, **flags):
+        """List the pokémon in your collection."""
 
         print(flags)
 
