@@ -111,7 +111,12 @@ class Spawning(commands.Cog):
         species = GameData.random_spawn()
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
-        self.pokemon[channel.id] = (species, level)
+        inds = [i for i, x in enumerate(species.name) if x.isalpha()]
+        blanks = random.sample(inds, len(inds) // 2)
+
+        hint = "".join([x if i in blanks else "\_" for i, x in enumerate(species.name)])
+
+        self.pokemon[channel.id] = (species, level, hint)
 
         # Fetch image and send embed
 
@@ -130,6 +135,14 @@ class Spawning(commands.Cog):
 
     @checks.has_started()
     @commands.command()
+    async def hint(self, ctx: commands.Context):
+        """Get a hint for the wild pokémon."""
+
+        species, level, hint = self.pokemon[ctx.channel.id]
+        await ctx.send(f"The pokémon is {hint}.")
+
+    @checks.has_started()
+    @commands.command()
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
 
@@ -138,7 +151,7 @@ class Spawning(commands.Cog):
         if ctx.channel.id not in self.pokemon:
             return
 
-        species, level = self.pokemon[ctx.channel.id]
+        species, level, hint = self.pokemon[ctx.channel.id]
 
         if unidecode(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
