@@ -146,21 +146,31 @@ class Spawning(commands.Cog):
 
         del self.pokemon[ctx.channel.id]
 
-        member_data = self.db.fetch_member(ctx.author)
-        next_id = member_data.next_id
-        member_data.update(inc__next_id=1)
+        member = self.db.fetch_member(ctx.author)
+        next_id = member.next_id
+        member.update(inc__next_id=1)
 
-        member_data.pokemon.create(
-            number=member_data.next_id,
+        member.pokemon.create(
+            number=member.next_id,
             species_id=species.id,
             level=level,
             owner_id=ctx.author.id,
         )
-        member_data.save()
 
-        await ctx.send(
-            f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
-        )
+        print(member.pokedex)
+
+        if str(species.id) not in member.pokedex:
+            member.pokedex[str(species.id)] = 1
+            member.save()
+            await ctx.send(
+                f"Congratulations {ctx.author.mention}! You caught a level {level} {species}! Added to Pokédex."
+            )
+        else:
+            member.pokedex[str(species.id)] += 1
+            member.save()
+            await ctx.send(
+                f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
+            )
 
     @checks.is_admin()
     @commands.command()

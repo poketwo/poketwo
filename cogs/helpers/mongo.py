@@ -22,12 +22,12 @@ class Pokemon(EmbeddedDocument):
 
     nature = StringField(default=random_nature)
 
-    iv_hp = IntField(min_value=0, max_value=31, default=random_iv)
-    iv_atk = IntField(min_value=0, max_value=31, default=random_iv)
-    iv_defn = IntField(min_value=0, max_value=31, default=random_iv)
-    iv_satk = IntField(min_value=0, max_value=31, default=random_iv)
-    iv_sdef = IntField(min_value=0, max_value=31, default=random_iv)
-    iv_spd = IntField(min_value=0, max_value=31, default=random_iv)
+    iv_hp = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_atk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_defn = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_satk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_sdef = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_spd = IntField(min_value=0, max_value=31, default=random_iv, required=True)
 
     @property
     def species(self):
@@ -93,6 +93,7 @@ class Member(Document):
     next_id = IntField(default=1, required=True)
     selected = IntField(default=1, required=True)
     order_by = StringField(default="number")
+    pokedex = MapField(IntField(), default=dict)
 
     @property
     def selected_pokemon(self):
