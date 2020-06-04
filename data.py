@@ -36,8 +36,13 @@ def load_data():
 
         pokemon.append(
             Species(
-                row["id"],
-                row["name.en"],
+                id=row["id"],
+                names={
+                    "🇯🇵": row["name.ja"],
+                    "🇬🇧": row["name.en"],
+                    "🇩🇪": row["name.de"],
+                    "🇫🇷": row["name.fr"],
+                },
                 base_stats=Stats(
                     row["base.hp"],
                     row["base.atk"],
@@ -46,6 +51,8 @@ def load_data():
                     row["base.sdef"],
                     row["base.spd"],
                 ),
+                height=int(row["height"]) / 10,
+                weight=int(row["weight"]) / 10,
                 evolution_from=evo_from,
                 evolution_to=evo_to,
                 mythical="mythical" in row,

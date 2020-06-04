@@ -6,6 +6,7 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 from mongoengine import DoesNotExist
+from unidecode import unidecode
 
 from .database import Database
 from .helpers import checks
@@ -139,7 +140,7 @@ class Spawning(commands.Cog):
 
         species, level = self.pokemon[ctx.channel.id]
 
-        if guess.lower() != species.name.lower():
+        if unidecode(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database
@@ -156,8 +157,6 @@ class Spawning(commands.Cog):
             level=level,
             owner_id=ctx.author.id,
         )
-
-        print(member.pokedex)
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 

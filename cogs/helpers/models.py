@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import ClassVar, List, overload
 
 from PIL import Image
+from unidecode import unidecode
 
 
 class _Data:
@@ -84,18 +85,23 @@ class Stats:
 class Species:
     id: int
     name: str
+    names: dict
     base_stats: Stats
     evolution_from: Evolution
     evolution_to: Evolution
     mythical: bool
     legendary: bool
     ultra_beast: bool
+    height: int
+    weight: int
 
     def __init__(
         self,
         id: int,
-        name: str,
+        names: dict,
         base_stats: Stats,
+        height: int,
+        weight: int,
         evolution_from: Evolution = None,
         evolution_to: Evolution = None,
         mythical=False,
@@ -103,8 +109,12 @@ class Species:
         ultra_beast=False,
     ):
         self.id = id
-        self.name = name
+        self.names = names
+        self.name = names["🇬🇧"]
         self.base_stats = base_stats
+
+        self.height = height
+        self.weight = weight
 
         if evolution_from is not None and evolution_from.type != False:
             raise ValueError(Evolution)
@@ -120,6 +130,10 @@ class Species:
 
     def __str__(self):
         return self.name
+
+    @cached_property
+    def correct_guesses(self):
+        return [unidecode(x.lower()) for x in self.names.values()]
 
     @cached_property
     def evolution_text(self):

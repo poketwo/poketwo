@@ -90,5 +90,13 @@ class Pokedex(commands.Cog):
             )
 
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
+            embed.add_field(
+                name="Other Names",
+                value="\n".join(" ".join(n) for n in species.names.items()),
+            )
+            embed.add_field(
+                name="Appearance",
+                value=f"Height: {species.height} m\nWeight: {species.weight} kg",
+            )
 
             await ctx.send(embed=embed)

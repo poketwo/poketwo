@@ -15,6 +15,7 @@ python-dotenv = "*"
 dnspython = "*"
 requests = "*"
 discord-flags = "*"
+unidecode = "*"
 
 [requires]
 python_version = "3.8"
