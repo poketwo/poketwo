@@ -47,7 +47,7 @@ class Spawning(commands.Cog):
         try:
             member = self.db.fetch_member(message.author)
             pokemon = member.selected_pokemon
-            if pokemon.level < 100 and pokemon.xp < pokemon.max_xp:
+            if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                 pokemon.xp += random.randint(10, 40)
             member.save()
 
