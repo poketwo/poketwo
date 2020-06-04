@@ -155,6 +155,9 @@ class Pokemon(commands.Cog):
         )
 
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
+        embed.set_footer(
+            text=f"Displaying pokémon {pokemon.number} out of {member.pokemon.count()}."
+        )
 
         await ctx.send(embed=embed)
 
