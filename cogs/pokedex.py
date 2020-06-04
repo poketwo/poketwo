@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from .helpers.models import GameData, SpeciesNotFoundError
+from .helpers import checks
 
 
 class Pokedex(commands.Cog):
@@ -23,10 +24,12 @@ class Pokedex(commands.Cog):
     def remove_balance(self, member: discord.Member, amount: int):
         self.db.update_member(member, dec__balance=amount)
 
+    @checks.has_started()
     @commands.command(aliases=["balance"])
     async def bal(self, ctx: commands.Context):
         await ctx.send(f"You have {self.balance(ctx.author)} credits.")
 
+    @checks.has_started()
     @commands.command(aliases=["dex"])
     async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
         """View your pokédex, or search for a pokémon species."""
