@@ -6,11 +6,10 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 from mongoengine import DoesNotExist
-from unidecode import unidecode
 
 from .database import Database
 from .helpers import checks
-from .helpers.models import GameData, LevelTrigger
+from .helpers.models import GameData, LevelTrigger, deaccent
 
 
 class Spawning(commands.Cog):
@@ -153,7 +152,7 @@ class Spawning(commands.Cog):
 
         species, level, hint = self.pokemon[ctx.channel.id]
 
-        if unidecode(guess.lower()) not in species.correct_guesses:
+        if deaccent(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database

@@ -37,12 +37,14 @@ def load_data():
         pokemon.append(
             Species(
                 id=row["id"],
-                names={
-                    "🇯🇵": row["name.ja"],
-                    "🇬🇧": row["name.en"],
-                    "🇩🇪": row["name.de"],
-                    "🇫🇷": row["name.fr"],
-                },
+                names=(
+                    ("🇯🇵", row["name.ja"]),
+                    ("🇯🇵", row["name.ja_r"]),
+                    ("🇬🇧", row["name.en"]),
+                    ("🇩🇪", row["name.de"]),
+                    ("🇫🇷", row["name.fr"]),
+                ),
+                slug=row["slug"],
                 base_stats=Stats(
                     row["base.hp"],
                     row["base.atk"],

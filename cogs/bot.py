@@ -34,6 +34,9 @@ class Bot(commands.Cog):
         if isinstance(error, flags.ArgumentParsingError):
             await ctx.send(error)
 
+        if isinstance(error, commands.CheckAnyFailure):
+            await ctx.send(error)
+
         raise error
 
     @commands.command()

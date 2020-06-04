@@ -5,9 +5,15 @@ from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, List, overload
+import unicodedata
 
 from PIL import Image
-from unidecode import unidecode
+
+
+def deaccent(text):
+    norm = unicodedata.normalize("NFD", text)
+    result = "".join(ch for ch in norm if unicodedata.category(ch) != "Mn")
+    return unicodedata.normalize("NFC", result)
 
 
 class _Data:
@@ -85,6 +91,7 @@ class Stats:
 class Species:
     id: int
     name: str
+    slug: str
     names: dict
     base_stats: Stats
     evolution_from: Evolution
@@ -98,7 +105,8 @@ class Species:
     def __init__(
         self,
         id: int,
-        names: dict,
+        names: list,
+        slug: str,
         base_stats: Stats,
         height: int,
         weight: int,
@@ -110,7 +118,8 @@ class Species:
     ):
         self.id = id
         self.names = names
-        self.name = names["🇬🇧"]
+        self.slug = slug
+        self.name = next(filter(lambda x: x[0] == "🇬🇧", names))[1]
         self.base_stats = base_stats
 
         self.height = height
@@ -133,7 +142,7 @@ class Species:
 
     @cached_property
     def correct_guesses(self):
-        return [unidecode(x.lower()) for x in self.names.values()]
+        return [deaccent(x.lower()) for _, x in self.names] + [self.slug]
 
     @cached_property
     def evolution_text(self):
@@ -185,7 +194,12 @@ class GameData:
     @classmethod
     def species_by_name(cls, name: str) -> Species:
         try:
-            return next(filter(lambda x: unidecode(name.lower()) in x.correct_guesses, _Data.pokemon))
+            return next(
+                filter(
+                    lambda x: deaccent(name.lower()) in x.correct_guesses,
+                    _Data.pokemon,
+                )
+            )
         except StopIteration:
             raise SpeciesNotFoundError
 

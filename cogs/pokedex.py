@@ -92,7 +92,7 @@ class Pokedex(commands.Cog):
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
             embed.add_field(
                 name="Other Names",
-                value="\n".join(" ".join(n) for n in species.names.items()),
+                value="\n".join(f"{x} {y}" for x, y in species.names),
             )
             embed.add_field(
                 name="Appearance",
