@@ -185,7 +185,7 @@ class GameData:
     @classmethod
     def species_by_name(cls, name: str) -> Species:
         try:
-            return next(filter(lambda x: x.name.lower() == name.lower(), _Data.pokemon))
+            return next(filter(lambda x: unidecode(name.lower()) in x.correct_guesses, _Data.pokemon))
         except StopIteration:
             raise SpeciesNotFoundError
 
