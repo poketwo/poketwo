@@ -18,7 +18,7 @@ class Pokemon(EmbeddedDocument):
     owner_id = LongField(required=True)
 
     level = IntField(min_value=1, max_value=100, required=True)
-    xp = IntField(min_value=0, default=0, required=True)
+    xp = IntField(default=0, required=True)
 
     nature = StringField(default=random_nature)
 
