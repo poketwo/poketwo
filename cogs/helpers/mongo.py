@@ -14,7 +14,7 @@ random_nature = lambda: random.choice(NATURES)
 
 class Pokemon(EmbeddedDocument):
     number = IntField(required=True)
-    species_id = IntField(min_value=1, max_value=807, required=True)
+    species_id = IntField(required=True)
     owner_id = LongField(required=True)
 
     level = IntField(min_value=1, max_value=100, required=True)
@@ -94,6 +94,7 @@ class Member(Document):
     selected = IntField(default=1, required=True)
     order_by = StringField(default="number")
     pokedex = MapField(IntField(), default=dict)
+    balance = IntField(default=0)
 
     @property
     def selected_pokemon(self):

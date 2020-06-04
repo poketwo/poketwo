@@ -159,18 +159,33 @@ class Spawning(commands.Cog):
 
         print(member.pokedex)
 
+        message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
+
         if str(species.id) not in member.pokedex:
             member.pokedex[str(species.id)] = 1
             member.save()
-            await ctx.send(
-                f"Congratulations {ctx.author.mention}! You caught a level {level} {species}! Added to Pokédex."
-            )
+
+            message += " Added to Pokédex. You received 35 credits!"
+            member.update(inc__balance=35)
         else:
             member.pokedex[str(species.id)] += 1
             member.save()
-            await ctx.send(
-                f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
-            )
+
+            if member.pokedex[str(species.id)] == 10:
+                message += f" This is your 10th {species}! You received 350 credits."
+                member.update(inc__balance=350)
+
+            elif member.pokedex[str(species.id)] == 100:
+                message += f" This is your 100th {species}! You received 3500 credits."
+                member.update(inc__balance=3500)
+
+            elif member.pokedex[str(species.id)] == 1000:
+                message += (
+                    f" This is your 1000th {species}! You received 35000 credits."
+                )
+                member.update(inc__balance=35000)
+
+        await ctx.send(message)
 
     @checks.is_admin()
     @commands.command()
