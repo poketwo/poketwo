@@ -5,6 +5,7 @@ from discord.ext import commands, flags
 
 from .database import Database
 from .helpers import checks
+from .helpers.models import *
 
 
 class Bot(commands.Cog):
@@ -68,3 +69,9 @@ class Bot(commands.Cog):
         guild.update(prefix=prefix)
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
+
+    @commands.is_owner()
+    @commands.command()
+    async def eval(self, ctx: commands.Context, *, code: str):
+        result = eval(code)
+        await ctx.send(result)

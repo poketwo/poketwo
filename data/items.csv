@@ -11,6 +11,7 @@ id,name,description,cost,action,page
 85,Leaf Stone,Evolve certain pokémon.,150,evolve,2
 107,Shiny Stone,Evolve certain pokémon.,150,evolve,2
 108,Dusk Stone,Evolve certain pokémon.,150,evolve,2
+109,Dawn Stone,Evolve certain pokémon.,150,evolve,2
 10005,Adamant Nature,"+10% Attack
 -10% Sp. Atk",50,nature_0,3
 10006,Bashful Nature,"+10% Sp. Atk

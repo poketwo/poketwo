@@ -72,6 +72,8 @@ class ItemTrigger(EvolutionTrigger):
 
     @cached_property
     def text(self):
+        print(self.item_id)
+
         return f"using a {self.item}"
 
 

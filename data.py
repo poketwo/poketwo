@@ -22,7 +22,7 @@ def get_pokemon():
             elif row["evo.trigger"] == 3:
                 trigger = ItemTrigger(int(row["evo.item"]))
             else:
-                trigger = OtherTrigger
+                trigger = OtherTrigger()
 
             evo_from = Evolution.evolve_from(row["evo.from"], trigger)
 
@@ -40,6 +40,9 @@ def get_pokemon():
                     trigger = OtherTrigger()
 
                 evo_to.append(Evolution.evolve_to(int(s), trigger))
+
+        if evo_to and len(evo_to) == 0:
+            evo_to = None
 
         pokemon.append(
             Species(
