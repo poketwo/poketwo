@@ -18,6 +18,24 @@ def deaccent(text):
 
 class _Data:
     pokemon = []
+    items = {}
+
+
+# Items
+
+
+class Item:
+    id: int
+    name: str
+    cost: int
+
+    def __init__(self, id: int, name: str, cost: int):
+        self.id = id
+        self.name = name
+        self.cost = cost
+
+    def __str__(self):
+        return self.name
 
 
 # Evolution
@@ -34,6 +52,19 @@ class LevelTrigger(EvolutionTrigger):
     @cached_property
     def text(self):
         return f"starting from level {self.level}"
+
+
+class ItemTrigger(EvolutionTrigger):
+    def __init__(self, item: int):
+        self.item_id = item
+
+    @cached_property
+    def item(self):
+        return _Data.items[self.item_id]
+
+    @cached_property
+    def text(self):
+        return "somehow"
 
 
 class OtherTrigger(EvolutionTrigger):
@@ -173,6 +204,10 @@ class Species:
 
 def load_pokemon(pokemon):
     _Data.pokemon = pokemon
+
+
+def load_items(items):
+    _Data.items = items
 
 
 class SpeciesNotFoundError(Exception):

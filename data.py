@@ -1,8 +1,8 @@
 from cogs.helpers.models import *
 
 
-def load_data():
-    path = Path.cwd() / "data" / "data.csv"
+def get_pokemon():
+    path = Path.cwd() / "data" / "pokemon.csv"
 
     with open(path) as f:
         reader = csv.DictReader(f)
@@ -19,8 +19,10 @@ def load_data():
         if "evo.to" in row:
             if row["evo.trigger"] == 1 and "evo.level" in row:
                 trigger = LevelTrigger(int(row["evo.level"]))
+            elif row["evo.trigger"] == 3:
+                trigger = ItemTrigger(int(row["evo.item"]))
             else:
-                trigger = OtherTrigger()
+                trigger = OtherTrigger
 
             evo_to = Evolution.evolve_to(row["evo.to"], trigger)
 
@@ -29,6 +31,8 @@ def load_data():
 
             if pfrom["evo.trigger"] == 1 and "evo.level" in pfrom:
                 trigger = LevelTrigger(int(pfrom["evo.level"]))
+            elif row["evo.trigger"] == 3:
+                trigger = ItemTrigger(int(row["evo.item"]))
             else:
                 trigger = OtherTrigger()
 
@@ -66,8 +70,26 @@ def load_data():
     load_pokemon(pokemon)
 
 
-load_data()
+def get_items():
+    path = Path.cwd() / "data" / "pokemon.csv"
 
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        data = list(
+            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
+            for row in reader
+        )
+
+    items = []
+
+    for row in data:
+        items.append(Item(id=int(row["id"]), name=row["name"], cost=int(row["cost"])))
+
+    load_items(items)
+
+
+get_pokemon()
+get_items()
 
 # spawns = []
 # for i in range(100000):

@@ -15,20 +15,6 @@ class Pokedex(commands.Cog):
     def db(self):
         return self.bot.get_cog("Database")
 
-    def balance(self, member: discord.Member):
-        return self.db.fetch_member(member).balance
-
-    def add_balance(self, member: discord.Member, amount: int):
-        self.db.update_member(member, inc__balance=amount)
-
-    def remove_balance(self, member: discord.Member, amount: int):
-        self.db.update_member(member, dec__balance=amount)
-
-    @checks.has_started()
-    @commands.command(aliases=["balance"])
-    async def bal(self, ctx: commands.Context):
-        await ctx.send(f"You have {self.balance(ctx.author)} credits.")
-
     @checks.has_started()
     @commands.command(aliases=["dex"])
     async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
