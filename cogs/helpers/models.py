@@ -27,12 +27,20 @@ class _Data:
 class Item:
     id: int
     name: str
+    description: str
     cost: int
+    page: int
+    action: str
 
-    def __init__(self, id: int, name: str, cost: int):
+    def __init__(
+        self, id: int, name: str, description: str, cost: int, page: int, action: str
+    ):
         self.id = id
         self.name = name
+        self.description = description
         self.cost = cost
+        self.page = page
+        self.action = action
 
     def __str__(self):
         return self.name
@@ -113,7 +121,9 @@ class EvolutionList:
 
     @cached_property
     def text(self):
-        return " and ".join(e.text for e in self.items)
+        txt = " and ".join(e.text for e in self.items)
+        txt = txt.replace(" and ", ", ", txt.count(" and ") - 1)
+        return txt
 
 
 # Stats

@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 
 from mongoengine.connection import get_db
 from mongoengine.document import *
@@ -96,9 +97,15 @@ class Member(Document):
     pokedex = MapField(IntField(), default=dict)
     balance = IntField(default=0)
 
+    boost_expires = DateTimeField(default=datetime.min)
+
     @property
     def selected_pokemon(self):
         return self.pokemon.get(number=self.selected)
+
+    @property
+    def boost_active(self):
+        return datetime.now() < self.boost_expires
 
 
 class Guild(Document):

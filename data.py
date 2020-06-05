@@ -86,8 +86,13 @@ def get_items():
     items = {}
 
     for row in data:
-        items[int(row["id"])] = Item(
-            id=int(row["id"]), name=row["name"], cost=int(row["cost"])
+        items[row["id"]] = Item(
+            id=row["id"],
+            name=row["name"],
+            description=row["description"],
+            cost=row["cost"],
+            page=row["page"],
+            action=row["action"],
         )
 
     load_items(items)

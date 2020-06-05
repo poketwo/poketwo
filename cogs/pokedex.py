@@ -50,6 +50,8 @@ class Pokedex(commands.Cog):
                     text = f"{member.pokedex[str(p)]} caught! ✅"
                 embed.add_field(name=f"{species.name} #{species.id}", value=text)
 
+            embed.add_field(name="‎", value="‎")
+
             await ctx.send(embed=embed)
 
         else:
