@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import cached_property
 
 import discord
+import humanfriendly
 from discord.ext import commands, flags
 from mongoengine import DoesNotExist
 
@@ -9,8 +10,6 @@ from .database import Database
 from .helpers import checks, mongo
 from .helpers.constants import *
 from .helpers.models import GameData, ItemTrigger, SpeciesNotFoundError
-
-from datetime import datetime, timedelta
 
 
 class Shop(commands.Cog):
@@ -65,6 +64,15 @@ class Shop(commands.Cog):
 
             for i in range(-len(items) % 3):
                 embed.add_field(name="‎", value="‎")
+
+        member = self.db.fetch_member(ctx.author)
+
+        if member.boost_active:
+            timespan = member.boost_expires - datetime.now()
+            timespan = humanfriendly.format_timespan(timespan.total_seconds())
+            embed.set_footer(
+                text=f"You have an XP Booster active that expires in {timespan}."
+            )
 
         await ctx.send(embed=embed)
 

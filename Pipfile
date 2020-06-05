@@ -16,6 +16,7 @@ dnspython = "*"
 requests = "*"
 discord-flags = "*"
 unidecode = "*"
+humanfriendly = "*"
 
 [requires]
 python_version = "3.8"
