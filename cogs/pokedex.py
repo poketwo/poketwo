@@ -20,6 +20,8 @@ class Pokedex(commands.Cog):
     async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
         """View your pokédex, or search for a pokémon species."""
 
+        member = self.db.fetch_member(ctx.author)
+
         if search_or_page is None:
             search_or_page = "1"
 
@@ -38,7 +40,6 @@ class Pokedex(commands.Cog):
             embed.title = f"Your pokédex"
             embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
 
-            member = self.db.fetch_member(ctx.author)
             embed.description = (
                 f"You've caught {len(member.pokedex)} out of 809 pokémon!"
             )
@@ -86,5 +87,11 @@ class Pokedex(commands.Cog):
                 name="Appearance",
                 value=f"Height: {species.height} m\nWeight: {species.weight} kg",
             )
+
+            text = "You haven't caught this pokémon yet!"
+            if str(species.id) in member.pokedex:
+                text = f"You've caught {member.pokedex[str(species.id)]} of this pokémon!"
+
+            embed.set_footer(text=text)
 
             await ctx.send(embed=embed)
