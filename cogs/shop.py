@@ -10,8 +10,8 @@ from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.constants import *
 
 
-class Pokemon(commands.Cog):
-    """Pokémon-related commands."""
+class Shop(commands.Cog):
+    """Shop-related commands."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -40,9 +40,42 @@ class Pokemon(commands.Cog):
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Shop — Balance: {self.balance(ctx.author)}"
-        embed.description = (
-            "Browse the different pages in the shop using `p!shop <page>`."
-        )
+        embed.title = f"Pokétwo Shop — {self.balance(ctx.author)} credits"
+        embed.description = "Use `p!buy <item>` to buy an item!"
+
+        for item in GameData.all_items():
+            embed.add_field(name=item.name, value=f"{item.cost} credits")
 
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def buy(self, ctx: commands.Context, *, item: str):
+        """View the starter pokémon."""
+
+        try:
+            item = GameData.item_by_name(item)
+        except SpeciesNotFoundError:
+            return await ctx.send(f"Couldn't find an item called `{item}`.")
+
+        member = self.db.fetch_member(ctx.author)
+
+        if member.balance < item.cost:
+            return await ctx.send("You don't have enough credits for that!")
+
+        if (
+            member.selected_pokemon.species.evolution_to is None
+            or member.selected_pokemon.species.evolution_to.trigger.item != item
+        ):
+            return await ctx.send(
+                "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+            )
+
+        # embed = discord.Embed()
+        # embed.color = 0xF44336
+        # embed.title = f"Pokétwo Shop — {self.balance(ctx.author)} credits"
+        # embed.description = "Use `p!buy <item>` to buy an item!"
+
+        # for item in GameData.all_items():
+        #     embed.add_field(name=item.name, value=f"{item.cost} credits")
+
+        # await ctx.send(embed=embed)

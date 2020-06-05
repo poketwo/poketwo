@@ -1,11 +1,11 @@
 import csv
 import random
+import unicodedata
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar, List, overload
-import unicodedata
+from typing import ClassVar, List, Union, overload
 
 from PIL import Image
 
@@ -64,7 +64,7 @@ class ItemTrigger(EvolutionTrigger):
 
     @cached_property
     def text(self):
-        return "somehow"
+        return f"using a {self.item}"
 
 
 class OtherTrigger(EvolutionTrigger):
@@ -103,6 +103,19 @@ class Evolution:
         return f"evolves {self.dir} {self.target} {self.trigger.text}"
 
 
+class EvolutionList:
+    items: list
+
+    def __init__(self, evolutions: Union[list, Evolution]):
+        if type(evolutions) == Evolution:
+            evolutions = [evolutions]
+        self.items = evolutions
+
+    @cached_property
+    def text(self):
+        return " and ".join(e.text for e in self.items)
+
+
 # Stats
 
 
@@ -125,8 +138,8 @@ class Species:
     slug: str
     names: dict
     base_stats: Stats
-    evolution_from: Evolution
-    evolution_to: Evolution
+    evolution_from: EvolutionList
+    evolution_to: EvolutionList
     mythical: bool
     legendary: bool
     ultra_beast: bool
@@ -141,8 +154,8 @@ class Species:
         base_stats: Stats,
         height: int,
         weight: int,
-        evolution_from: Evolution = None,
-        evolution_to: Evolution = None,
+        evolution_from: List[Evolution] = None,
+        evolution_to: List[Evolution] = None,
         mythical=False,
         legendary=False,
         ultra_beast=False,
@@ -156,13 +169,15 @@ class Species:
         self.height = height
         self.weight = weight
 
-        if evolution_from is not None and evolution_from.type != False:
-            raise ValueError(Evolution)
-        if evolution_to is not None and evolution_to.type != True:
-            raise ValueError(Evolution)
+        if evolution_from is not None:
+            self.evolution_from = EvolutionList(evolution_from)
+        else:
+            self.evolution_from = None
 
-        self.evolution_from = evolution_from
-        self.evolution_to = evolution_to
+        if evolution_to is not None:
+            self.evolution_to = EvolutionList(evolution_to)
+        else:
+            self.evolution_to = None
 
         self.mythical = mythical
         self.legendary = legendary
@@ -174,6 +189,14 @@ class Species:
     @cached_property
     def correct_guesses(self):
         return [deaccent(x.lower()) for _, x in self.names] + [self.slug]
+
+    @cached_property
+    def primary_evolution(self):
+        for e in self.evolution_to.items:
+            if isinstance(e.trigger, LevelTrigger):
+                return e
+
+        return None
 
     @cached_property
     def evolution_text(self):
@@ -199,7 +222,7 @@ class Species:
         if self.evolution_to is None:
             return 128
 
-        return self.evolution_to.target.abundance * 4
+        return self.evolution_to.items[0].target.abundance * 4
 
 
 def load_pokemon(pokemon):
@@ -220,6 +243,10 @@ class GameData:
         return _Data.pokemon
 
     @classmethod
+    def all_items(cls) -> List[Item]:
+        return _Data.items.values()
+
+    @classmethod
     def species_by_number(cls, number: int) -> Species:
         if 0 <= number < len(_Data.pokemon):
             return _Data.pokemon[number - 1]
@@ -234,6 +261,22 @@ class GameData:
                     lambda x: deaccent(name.lower()) in x.correct_guesses,
                     _Data.pokemon,
                 )
+            )
+        except StopIteration:
+            raise SpeciesNotFoundError
+
+    @classmethod
+    def item_by_number(cls, number: int) -> Item:
+        try:
+            return _Data.items[number]
+        except KeyError:
+            raise SpeciesNotFoundError
+
+    @classmethod
+    def item_by_name(cls, name: str) -> Item:
+        try:
+            return next(
+                filter(lambda x: name.lower() == x.name.lower(), _Data.items.values())
             )
         except StopIteration:
             raise SpeciesNotFoundError

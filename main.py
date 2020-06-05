@@ -30,6 +30,7 @@ bot.add_cog(Bot(bot))
 bot.add_cog(Database(bot))
 bot.add_cog(Pokedex(bot))
 bot.add_cog(Pokemon(bot))
+bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
 
 # Run Discord Bot

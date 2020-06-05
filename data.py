@@ -16,7 +16,7 @@ def get_pokemon():
     for row in species[1:]:
         evo_from = evo_to = None
 
-        if "evo.to" in row:
+        if "evo.from" in row:
             if row["evo.trigger"] == 1 and "evo.level" in row:
                 trigger = LevelTrigger(int(row["evo.level"]))
             elif row["evo.trigger"] == 3:
@@ -24,19 +24,22 @@ def get_pokemon():
             else:
                 trigger = OtherTrigger
 
-            evo_to = Evolution.evolve_to(row["evo.to"], trigger)
-
-        if "evo.from" in row:
-            pfrom = species[row["evo.from"]]
-
-            if pfrom["evo.trigger"] == 1 and "evo.level" in pfrom:
-                trigger = LevelTrigger(int(pfrom["evo.level"]))
-            elif row["evo.trigger"] == 3:
-                trigger = ItemTrigger(int(row["evo.item"]))
-            else:
-                trigger = OtherTrigger()
-
             evo_from = Evolution.evolve_from(row["evo.from"], trigger)
+
+        if "evo.to" in row:
+            evo_to = []
+
+            for s in str(row["evo.to"]).split():
+                pto = species[int(s)]
+
+                if pto["evo.trigger"] == 1 and "evo.level" in pto:
+                    trigger = LevelTrigger(int(pto["evo.level"]))
+                elif pto["evo.trigger"] == 3:
+                    trigger = ItemTrigger(int(pto["evo.item"]))
+                else:
+                    trigger = OtherTrigger()
+
+                evo_to.append(Evolution.evolve_to(int(s), trigger))
 
         pokemon.append(
             Species(
@@ -71,7 +74,7 @@ def get_pokemon():
 
 
 def get_items():
-    path = Path.cwd() / "data" / "pokemon.csv"
+    path = Path.cwd() / "data" / "items.csv"
 
     with open(path) as f:
         reader = csv.DictReader(f)
@@ -80,16 +83,20 @@ def get_items():
             for row in reader
         )
 
-    items = []
+    items = {}
 
     for row in data:
-        items.append(Item(id=int(row["id"]), name=row["name"], cost=int(row["cost"])))
+        items[int(row["id"])] = Item(
+            id=int(row["id"]), name=row["name"], cost=int(row["cost"])
+        )
 
     load_items(items)
 
 
-get_pokemon()
-get_items()
+def load_data():
+    get_pokemon()
+    get_items()
+
 
 # spawns = []
 # for i in range(100000):

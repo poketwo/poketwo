@@ -62,16 +62,13 @@ class Spawning(commands.Cog):
                     f"Your {pokemon.species} is now level {pokemon.level}!"
                 )
 
-                if pokemon.species.evolution_to is not None:
-                    if (
-                        isinstance(pokemon.species.evolution_to.trigger, LevelTrigger)
-                        and pokemon.level >= pokemon.species.evolution_to.trigger.level
-                    ):
+                if pokemon.species.primary_evolution is not None:
+                    if pokemon.level >= pokemon.species.primary_evolution.trigger.level:
                         embed.add_field(
                             name=f"Your {pokemon.species} is evolving!",
-                            value=f"Your {pokemon.species} has turned into a {pokemon.species.evolution_to.target}!",
+                            value=f"Your {pokemon.species} has turned into a {pokemon.species.primary_evolution.target}!",
                         )
-                        pokemon.species_id = pokemon.species.evolution_to.target_id
+                        pokemon.species_id = pokemon.species.primary_evolution.target_id
                         member.save()
 
                 await message.channel.send(embed=embed)
