@@ -49,3 +49,22 @@ class Bot(commands.Cog):
             "Join Server: https://discord.gg/KZe4F4t\n\n"
             "This bot is still in development and has limited functionality. Please report bugs to the server."
         )
+
+    @checks.is_admin()
+    @commands.command()
+    async def prefix(self, ctx: commands.Context, *, prefix: str):
+        """Change the bot prefix."""
+
+        if prefix == "reset":
+            guild = self.db.fetch_guild(ctx.guild)
+            guild.update(unset__prefix=True)
+
+            return await ctx.send("Reset prefix to `p!` for this server.")
+
+        if len(prefix) > 100:
+            return await ctx.send("Prefix must not be longer than 100 characters.")
+
+        guild = self.db.fetch_guild(ctx.guild)
+        guild.update(prefix=prefix)
+
+        await ctx.send(f"Changed prefix to `{prefix}` for this server.")

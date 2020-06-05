@@ -59,7 +59,8 @@ class Shop(commands.Cog):
 
             for item in items:
                 embed.add_field(
-                    name=f"{item.name} – {item.cost}", value=f"{item.description}"
+                    name=f"{item.name} – {item.cost} credits",
+                    value=f"{item.description}",
                 )
 
             for i in range(-len(items) % 3):
@@ -144,13 +145,3 @@ class Shop(commands.Cog):
             await ctx.send(
                 f"You changed your selected pokémon's nature to {NATURES[idx]}!"
             )
-
-        # embed = discord.Embed()
-        # embed.color = 0xF44336
-        # embed.title = f"Pokétwo Shop — {self.balance(ctx.author)} credits"
-        # embed.description = "Use `p!buy <item>` to buy an item!"
-
-        # for item in GameData.all_items():
-        #     embed.add_field(name=item.name, value=f"{item.cost} credits")
-
-        # await ctx.send(embed=embed)

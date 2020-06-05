@@ -31,6 +31,13 @@ class Spawning(commands.Cog):
         if message.author.bot:
             return
 
+        guild = self.db.fetch_guild(message.guild)
+
+        if self.bot.user in message.mentions:
+            await message.channel.send(
+                f"My prefix is `{guild.prefix or 'p!'}` in this server."
+            )
+
         current = time.time()
 
         # Spamcheck, every two seconds
@@ -96,8 +103,6 @@ class Spawning(commands.Cog):
 
         if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
             self.guilds[message.guild.id] = 0
-
-            guild = self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
                 channel = message.guild.get_channel(guild.channel)

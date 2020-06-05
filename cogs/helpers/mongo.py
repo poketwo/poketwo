@@ -111,3 +111,4 @@ class Member(Document):
 class Guild(Document):
     id = LongField(primary_key=True)
     channel = LongField()
+    prefix = StringField(required=False)

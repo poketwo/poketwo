@@ -20,8 +20,21 @@ mongoengine.connect(host=database_uri)
 
 load_data()
 
+
+async def determine_prefix(bot, message):
+    if message.guild:
+        try:
+            guild = mongo.Guild.objects.get(id=message.guild.id)
+        except mongoengine.DoesNotExist:
+            guild = mongo.Guild.objects.create(id=message.guild.id)
+
+        return guild.prefix or ["p!", "P!"]
+    else:
+        return ["p!", "P!"]
+
+
 bot = commands.Bot(
-    command_prefix=["p!", "P!"],
+    command_prefix=determine_prefix,
     help_command=commands.MinimalHelpCommand(),
     case_insensitive=True,
 )

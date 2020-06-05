@@ -90,7 +90,9 @@ class Pokedex(commands.Cog):
 
             text = "You haven't caught this pokémon yet!"
             if str(species.id) in member.pokedex:
-                text = f"You've caught {member.pokedex[str(species.id)]} of this pokémon!"
+                text = (
+                    f"You've caught {member.pokedex[str(species.id)]} of this pokémon!"
+                )
 
             embed.set_footer(text=text)
 

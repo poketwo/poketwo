@@ -202,7 +202,7 @@ class Species:
 
     @cached_property
     def primary_evolution(self):
-        for e in self.evolution_to.items:
+        for e in self.evolution_to.items or []:
             if isinstance(e.trigger, LevelTrigger):
                 return e
 
