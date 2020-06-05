@@ -43,7 +43,7 @@ class Spawning(commands.Cog):
         # Spamcheck, every two seconds
 
         if self.bot.env != "dev":
-            if current - self.users.get(message.author.id, 0) < 2:
+            if current - self.users.get(message.author.id, 0) < 1:
                 return
 
         self.users[message.author.id] = current
