@@ -168,10 +168,10 @@ class Spawning(commands.Cog):
 
         member = self.db.fetch_member(ctx.author)
         next_id = member.next_id
-        member.update(inc__next_id=1)
+        member.modify(inc__next_id=1)
 
         member.pokemon.create(
-            number=member.next_id,
+            number=next_id,
             species_id=species.id,
             level=level,
             owner_id=ctx.author.id,
@@ -184,24 +184,24 @@ class Spawning(commands.Cog):
             member.save()
 
             message += " Added to Pokédex. You received 35 credits!"
-            member.update(inc__balance=35)
+            member.modify(inc__balance=35)
         else:
             member.pokedex[str(species.id)] += 1
             member.save()
 
             if member.pokedex[str(species.id)] == 10:
                 message += f" This is your 10th {species}! You received 350 credits."
-                member.update(inc__balance=350)
+                member.modify(inc__balance=350)
 
             elif member.pokedex[str(species.id)] == 100:
                 message += f" This is your 100th {species}! You received 3500 credits."
-                member.update(inc__balance=3500)
+                member.modify(inc__balance=3500)
 
             elif member.pokedex[str(species.id)] == 1000:
                 message += (
                     f" This is your 1000th {species}! You received 35000 credits."
                 )
-                member.update(inc__balance=35000)
+                member.modify(inc__balance=35000)
 
         await ctx.send(message)
 
@@ -211,6 +211,6 @@ class Spawning(commands.Cog):
         """Redirect pokémon catches to one channel."""
 
         guild = self.db.fetch_guild(ctx.guild)
-        guild.update(channel=channel.id)
+        guild.modify(channel=channel.id)
 
         await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")

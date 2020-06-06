@@ -20,6 +20,51 @@ class Pokemon(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @checks.has_started()
+    @commands.command()
+    async def redeem(self, ctx: commands.Context, *, species: str = None):
+        """Redeem a pokémon."""
+
+        member = self.db.fetch_member(ctx.author)
+
+        if species is None:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Your Redeems: {member.redeems}"
+            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+
+            embed.add_field(
+                name="p!redeem <pokémon>",
+                value="Use a redeem to receive a pokémon of your choice.",
+            )
+
+            return await ctx.send(embed=embed)
+
+        if member.redeems == 0:
+            return await ctx.send("You don't have any redeems!")
+
+        try:
+            species = GameData.species_by_name(species)
+        except SpeciesNotFoundError:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        next_id = member.next_id
+
+        member.modify(inc__redeems=-1, inc__next_id=1)
+
+        member.pokemon.create(
+            number=next_id,
+            species_id=species.id,
+            level=1,
+            xp=0,
+            owner_id=ctx.author.id,
+        )
+        member.save()
+
+        await ctx.send(
+            f"You used a redeem and received a {species}! View it with `p!info latest`."
+        )
+
     @commands.command()
     async def start(self, ctx: commands.Context):
         """View the starter pokémon."""
@@ -68,7 +113,7 @@ class Pokemon(commands.Cog):
             ],
         )
 
-        member.update(inc__next_id=1)
+        member.modify(inc__next_id=1)
 
         await ctx.send(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `p!info` to view it!"
@@ -139,7 +184,7 @@ class Pokemon(commands.Cog):
         except DoesNotExist:
             return await ctx.send("Could not find a pokemon with that number.")
 
-        member.update(selected=number)
+        member.modify(selected=number)
         await ctx.send(
             f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
         )

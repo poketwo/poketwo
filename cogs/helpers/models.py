@@ -72,8 +72,6 @@ class ItemTrigger(EvolutionTrigger):
 
     @cached_property
     def text(self):
-        print(self.item_id)
-
         return f"using a {self.item}"
 
 
@@ -204,7 +202,10 @@ class Species:
 
     @cached_property
     def primary_evolution(self):
-        for e in self.evolution_to.items or []:
+        if self.evolution_to is None:
+            return None
+
+        for e in self.evolution_to.items:
             if isinstance(e.trigger, LevelTrigger):
                 return e
 

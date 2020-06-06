@@ -96,6 +96,7 @@ class Member(Document):
     order_by = StringField(default="number")
     pokedex = MapField(IntField(), default=dict)
     balance = IntField(default=0)
+    redeems = IntField(default=0)
 
     boost_expires = DateTimeField(default=datetime.min)
 

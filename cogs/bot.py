@@ -58,7 +58,7 @@ class Bot(commands.Cog):
 
         if prefix == "reset":
             guild = self.db.fetch_guild(ctx.guild)
-            guild.update(unset__prefix=True)
+            guild.modify(unset__prefix=True)
 
             return await ctx.send("Reset prefix to `p!` for this server.")
 
@@ -66,7 +66,7 @@ class Bot(commands.Cog):
             return await ctx.send("Prefix must not be longer than 100 characters.")
 
         guild = self.db.fetch_guild(ctx.guild)
-        guild.update(prefix=prefix)
+        guild.modify(prefix=prefix)
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
 
