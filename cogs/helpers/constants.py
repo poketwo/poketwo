@@ -44,6 +44,7 @@ SORTING_FUNCTIONS = {
     "iv": lambda p: -p.iv_percentage,
     "level": lambda p: -p.level,
     "abc": lambda p: p.species.name,
+    "pokedex": lambda p: p.species.dex_number,
 }
 
 FILTER_BY_NUMERICAL = {

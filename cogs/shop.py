@@ -50,6 +50,7 @@ class Shop(commands.Cog):
             embed.add_field(name="Page 1", value="XP Boosters", inline=False)
             embed.add_field(name="Page 2", value="Evolution Candies", inline=False)
             embed.add_field(name="Page 3", value="Nature Mints", inline=False)
+            embed.add_field(name="Page 4", value="Mega Evolutions", inline=False)
 
         else:
             embed.description = "We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `p!buy <item>` to buy an item!"
@@ -60,6 +61,7 @@ class Shop(commands.Cog):
                 embed.add_field(
                     name=f"{item.name} – {item.cost} credits",
                     value=f"{item.description}",
+                    inline=item.inline,
                 )
 
             for i in range(-len(items) % 3):
@@ -90,7 +92,31 @@ class Shop(commands.Cog):
         if member.balance < item.cost:
             return await ctx.send("You don't have enough credits for that!")
 
-        if item.action == "evolve":
+        if item.action == "evolve_mega":
+            if member.selected_pokemon.species.mega is None:
+                return await ctx.send(
+                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                )
+
+            evoto = member.selected_pokemon.species.mega
+
+        if item.action == "evolve_megax":
+            if member.selected_pokemon.species.mega_x is None:
+                return await ctx.send(
+                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                )
+
+            evoto = member.selected_pokemon.species.mega_x
+
+        if item.action == "evolve_megay":
+            if member.selected_pokemon.species.mega_y is None:
+                return await ctx.send(
+                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                )
+
+            evoto = member.selected_pokemon.species.mega_y
+
+        if item.action == "evolve_normal":
 
             if member.selected_pokemon.species.evolution_to is not None:
                 try:
@@ -100,7 +126,7 @@ class Shop(commands.Cog):
                             and evo.trigger.item == item,
                             member.selected_pokemon.species.evolution_to.items,
                         )
-                    )
+                    ).target
                 except StopIteration:
                     return await ctx.send(
                         "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
@@ -125,16 +151,16 @@ class Shop(commands.Cog):
         member.balance -= item.cost
         member.save()
 
-        if item.action == "evolve":
+        if "evolve" in item.action:
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"Congratulations {ctx.author.name}!"
 
             embed.add_field(
                 name=f"Your {member.selected_pokemon.species} is evolving!",
-                value=f"Your {member.selected_pokemon.species} has turned into a {evoto.target}!",
+                value=f"Your {member.selected_pokemon.species} has turned into a {evoto}!",
             )
-            member.selected_pokemon.species_id = evoto.target_id
+            member.selected_pokemon.species_id = evoto.id
             member.save()
 
             await ctx.send(embed=embed)

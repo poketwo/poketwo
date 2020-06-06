@@ -65,9 +65,9 @@ class Pokedex(commands.Cog):
 
             embed = discord.Embed()
             embed.color = 0xF44336
-            embed.title = f"#{species.id} — {species}"
+            embed.title = f"#{species.dex_number} — {species}"
             embed.description = species.evolution_text
-            embed.set_image(url=GameData.get_image_url(species.id))
+            embed.set_image(url=species.image_url)
 
             base_stats = (
                 f"**HP:** {species.base_stats.hp}",

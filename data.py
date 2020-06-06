@@ -11,9 +11,12 @@ def get_pokemon():
             for row in reader
         )
 
-    pokemon = []
+    pokemon = {}
 
     for row in species[1:]:
+        if "enabled" not in row:
+            continue
+
         evo_from = evo_to = None
 
         if "evo.from" in row:
@@ -44,33 +47,36 @@ def get_pokemon():
         if evo_to and len(evo_to) == 0:
             evo_to = None
 
-        pokemon.append(
-            Species(
-                id=row["id"],
-                names=(
-                    ("🇯🇵", row["name.ja"]),
-                    ("🇯🇵", row["name.ja_r"]),
-                    ("🇬🇧", row["name.en"]),
-                    ("🇩🇪", row["name.de"]),
-                    ("🇫🇷", row["name.fr"]),
-                ),
-                slug=row["slug"],
-                base_stats=Stats(
-                    row["base.hp"],
-                    row["base.atk"],
-                    row["base.def"],
-                    row["base.satk"],
-                    row["base.sdef"],
-                    row["base.spd"],
-                ),
-                height=int(row["height"]) / 10,
-                weight=int(row["weight"]) / 10,
-                evolution_from=evo_from,
-                evolution_to=evo_to,
-                mythical="mythical" in row,
-                legendary="legendary" in row,
-                ultra_beast="ultra_beast" in row,
-            )
+        pokemon[row["id"]] = Species(
+            id=row["id"],
+            names=(
+                ("🇯🇵", row["name.ja"]),
+                ("🇯🇵", row["name.ja_r"]),
+                ("🇬🇧", row["name.en"]),
+                ("🇩🇪", row["name.de"]),
+                ("🇫🇷", row["name.fr"]),
+            ),
+            slug=row["slug"],
+            base_stats=Stats(
+                row["base.hp"],
+                row["base.atk"],
+                row["base.def"],
+                row["base.satk"],
+                row["base.sdef"],
+                row["base.spd"],
+            ),
+            height=int(row["height"]) / 10,
+            weight=int(row["weight"]) / 10,
+            mega_id=row["evo.mega"] if "evo.mega" in row else None,
+            mega_x_id=row["evo.mega_x"] if "evo.mega_x" in row else None,
+            mega_y_id=row["evo.mega_y"] if "evo.mega_y" in row else None,
+            catchable="catchable" in row,
+            dex_number=row["dex_number"],
+            evolution_from=evo_from,
+            evolution_to=evo_to,
+            mythical="mythical" in row,
+            legendary="legendary" in row,
+            ultra_beast="ultra_beast" in row,
         )
 
     load_pokemon(pokemon)
@@ -96,6 +102,7 @@ def get_items():
             cost=row["cost"],
             page=row["page"],
             action=row["action"],
+            inline=(not "separate" in row),
         )
 
     load_items(items)

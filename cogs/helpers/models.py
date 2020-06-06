@@ -17,7 +17,7 @@ def deaccent(text):
 
 
 class _Data:
-    pokemon = []
+    pokemon = {}
     items = {}
 
 
@@ -31,9 +31,17 @@ class Item:
     cost: int
     page: int
     action: str
+    inline: bool
 
     def __init__(
-        self, id: int, name: str, description: str, cost: int, page: int, action: str
+        self,
+        id: int,
+        name: str,
+        description: str,
+        cost: int,
+        page: int,
+        action: str,
+        inline: bool,
     ):
         self.id = id
         self.name = name
@@ -41,6 +49,7 @@ class Item:
         self.cost = cost
         self.page = page
         self.action = action
+        self.inline = inline
 
     def __str__(self):
         return self.name
@@ -101,7 +110,7 @@ class Evolution:
 
     @cached_property
     def target(self):
-        return _Data.pokemon[self.target_id - 1]
+        return _Data.pokemon[self.target_id]
 
     @cached_property
     def text(self):
@@ -153,8 +162,14 @@ class Species:
     mythical: bool
     legendary: bool
     ultra_beast: bool
+    dex_number: int
     height: int
     weight: int
+    catchable: bool
+
+    mega_id: int
+    mega_x_id: int
+    mega_y_id: int
 
     def __init__(
         self,
@@ -164,6 +179,11 @@ class Species:
         base_stats: Stats,
         height: int,
         weight: int,
+        dex_number: int,
+        catchable: bool,
+        mega_id: int = None,
+        mega_x_id: int = None,
+        mega_y_id: int = None,
         evolution_from: List[Evolution] = None,
         evolution_to: List[Evolution] = None,
         mythical=False,
@@ -175,9 +195,15 @@ class Species:
         self.slug = slug
         self.name = next(filter(lambda x: x[0] == "🇬🇧", names))[1]
         self.base_stats = base_stats
+        self.dex_number = dex_number
+        self.catchable = catchable
 
         self.height = height
         self.weight = weight
+
+        self.mega_id = mega_id
+        self.mega_x_id = mega_x_id
+        self.mega_y_id = mega_y_id
 
         if evolution_from is not None:
             self.evolution_from = EvolutionList(evolution_from)
@@ -195,6 +221,31 @@ class Species:
 
     def __str__(self):
         return self.name
+
+    @cached_property
+    def mega(self):
+        if self.mega_id is None:
+            return None
+
+        return _Data.pokemon[self.mega_id]
+
+    @cached_property
+    def mega_x(self):
+        if self.mega_x_id is None:
+            return None
+
+        return _Data.pokemon[self.mega_x_id]
+
+    @cached_property
+    def mega_y(self):
+        if self.mega_y_id is None:
+            return None
+
+        return _Data.pokemon[self.mega_y_id]
+
+    @cached_property
+    def image_url(self):
+        return f"https://oliverni.com/poketwo/{self.id}.png"
 
     @cached_property
     def correct_guesses(self):
@@ -222,7 +273,7 @@ class Species:
         elif self.evolution_to is not None:
             return f"{self.name} {self.evolution_to.text}."
         else:
-            return f"{self.name} is not know to evolve from or into any Pokémon."
+            return None
 
     @cached_property
     def abundance(self):
@@ -261,9 +312,9 @@ class GameData:
 
     @classmethod
     def species_by_number(cls, number: int) -> Species:
-        if 0 <= number < len(_Data.pokemon):
-            return _Data.pokemon[number - 1]
-        else:
+        try:
+            return _Data.pokemon[number]
+        except KeyError:
             raise SpeciesNotFoundError
 
     @classmethod
@@ -272,7 +323,7 @@ class GameData:
             return next(
                 filter(
                     lambda x: deaccent(name.lower()) in x.correct_guesses,
-                    _Data.pokemon,
+                    _Data.pokemon.values(),
                 )
             )
         except StopIteration:
@@ -295,17 +346,19 @@ class GameData:
             raise SpeciesNotFoundError
 
     @classmethod
-    def get_image_url(cls, number: int) -> str:
-        return (
-            f"https://assets.pokemon.com/assets/cms2/img/pokedex/full/{number:03}.png"
-        )
-
-    @classmethod
     def random_spawn(cls):
-        return random.choices(_Data.pokemon, weights=cls.spawn_weights(), k=1)[0]
+        x = random.choices(
+            list(_Data.pokemon.values()), weights=cls.spawn_weights(), k=1
+        )[0]
+        while not x.catchable:
+            x = random.choices(
+                _Data.pokemon.values(), weights=cls.spawn_weights(), k=1
+            )[0]
+
+        return x
 
     @classmethod
     def spawn_weights(cls):
         if not hasattr(cls, "_spawn_weights"):
-            cls._spawn_weights = [p.abundance for p in _Data.pokemon]
+            cls._spawn_weights = [p.abundance for p in _Data.pokemon.values()]
         return cls._spawn_weights

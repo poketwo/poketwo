@@ -145,7 +145,7 @@ class Pokemon(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species}"
-        embed.set_image(url=GameData.get_image_url(pokemon.species_id))
+        embed.set_image(url=pokemon.species.image_url)
         embed.set_thumbnail(url=ctx.author.avatar_url)
 
         info = (
@@ -194,9 +194,9 @@ class Pokemon(commands.Cog):
     async def order(self, ctx: commands.Context, *, sort: str):
         """Change how your pokémon are ordered."""
 
-        if (s := sort.lower()) not in ("number", "iv", "level", "abc"):
+        if (s := sort.lower()) not in ("number", "iv", "level", "abc", "pokedex"):
             return await ctx.send(
-                "Please specify either `number`, `IV`, `level`, or `abc`."
+                "Please specify either `number`, `IV`, `level`, `pokedex`, or `abc`."
             )
 
         self.db.update_member(ctx.author, order_by=s)
