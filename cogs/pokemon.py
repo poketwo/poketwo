@@ -25,7 +25,7 @@ class Pokemon(commands.Cog):
     async def redeem(self, ctx: commands.Context, *, species: str = None):
         """Redeem a pokémon."""
 
-        member = self.db.fetch_member(ctx.author)
+        member = self.db.fetch_member(ctx.author, pokemon=True)
 
         if species is None:
             embed = discord.Embed()
@@ -127,13 +127,14 @@ class Pokemon(commands.Cog):
         member = self.db.fetch_member(ctx.author)
 
         if number is None:
-            pokemon = member.selected_pokemon
+            pokemon = self.db.fetch_pokemon(ctx.author, member.selected)
         elif number.isdigit():
             try:
-                pokemon = member.pokemon.get(number=int(number))
+                pokemon = self.db.fetch_pokemon(ctx.author, int(number))
             except DoesNotExist:
                 return await ctx.send("Could not find a pokemon with that number.")
         elif number == "latest":
+            member.reload()
             pokemon = member.pokemon[member.pokemon.count() - 1]
         else:
             return await ctx.send(
@@ -178,13 +179,12 @@ class Pokemon(commands.Cog):
         """Select a specific pokémon from your collection."""
 
         member = self.db.fetch_member(ctx.author)
-
         try:
-            pokemon = member.pokemon.get(number=number)
-        except DoesNotExist:
+            pokemon = self.db.fetch_pokemon(ctx.author, number)
+        except IndexError:
             return await ctx.send("Could not find a pokemon with that number.")
 
-        member.modify(selected=number)
+        member.modify(selected=int(number))
         await ctx.send(
             f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
         )
@@ -234,7 +234,7 @@ class Pokemon(commands.Cog):
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
 
-        member = self.db.fetch_member(ctx.author)
+        member = self.db.fetch_member(ctx.author, pokemon=True)
         pokemon = member.pokemon
 
         # Filter pokemon

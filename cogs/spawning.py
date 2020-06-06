@@ -8,7 +8,7 @@ from discord.ext import commands
 from mongoengine import DoesNotExist
 
 from .database import Database
-from .helpers import checks
+from .helpers import checks, mongo
 from .helpers.models import GameData, LevelTrigger, deaccent
 
 
@@ -51,7 +51,7 @@ class Spawning(commands.Cog):
         # Increase XP on selected pokemon
 
         try:
-            member = self.db.fetch_member(message.author)
+            member = self.db.fetch_member(message.author, pokemon=True)
             pokemon = member.selected_pokemon
 
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
@@ -169,15 +169,12 @@ class Spawning(commands.Cog):
 
         del self.pokemon[ctx.channel.id]
 
-        member = self.db.fetch_member(ctx.author)
+        member = self.db.fetch_member(ctx.author, pokemon=True)
         next_id = member.next_id
         member.modify(inc__next_id=1)
 
         member.pokemon.create(
-            number=next_id,
-            species_id=species.id,
-            level=level,
-            owner_id=ctx.author.id,
+            number=next_id, species_id=species.id, level=level, owner_id=ctx.author.id,
         )
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"

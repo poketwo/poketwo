@@ -87,7 +87,7 @@ class Shop(commands.Cog):
         except SpeciesNotFoundError:
             return await ctx.send(f"Couldn't find an item called `{item}`.")
 
-        member = self.db.fetch_member(ctx.author)
+        member = self.db.fetch_member(ctx.author, pokemon=True)
 
         if member.balance < item.cost:
             return await ctx.send("You don't have enough credits for that!")

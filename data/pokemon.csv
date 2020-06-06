@@ -371,7 +371,7 @@ id,dex_number,slug,enabled,catchable,name.ja,name.ja_r,name.en,name.de,name.fr,t
 370,370,luvdisc,1,1,ラブカス,Rabukasu,Luvdisc,Liebiskus,Lovdisc,Water,,,,,6,87,,,,,,43,30,55,40,65,97,,,
 371,371,bagon,1,1,ロコン,Rokon,Bagon,Kindwurm,Draby,Dragon,,,,,6,421,372,,,,,45,75,60,40,30,50,,,
 372,372,shelgon,1,1,コモルー,Komoru,Shelgon,Draschel,Drackhaus,Dragon,,,,,11,1105,373,371,1,30,,65,95,100,60,50,50,,,
-373,373,salamence,1,1,ボーマンダ,Bomanda,Salamence,Brutalanda,Drattak,Dragon,Flying,,,,15,1026,,372,1,50,,95,135,80,110,80,100,,,
+373,373,salamence,1,1,ボーマンダ,Bomanda,Salamence,Brutalanda,Drattak,Dragon,Flying,,,,15,1026,,372,1,50,,95,135,80,110,80,100,10089,,
 374,374,beldum,1,1,ダンバル,Danbaru,Beldum,Tanhel,Terhal,Steel,Psychic,,,,6,952,375,,,,,40,55,80,35,60,30,,,
 375,375,metang,1,1,メタング,Metangu,Metang,Metang,Métang,Steel,Psychic,,,,12,2025,376,374,1,20,,60,75,100,55,80,50,,,
 376,376,metagross,1,1,メタグロス,Metagurosu,Metagross,Metagross,Métalosse,Steel,Psychic,,,,16,5500,,375,1,45,,80,135,130,95,90,70,10076,,

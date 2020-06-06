@@ -20,7 +20,7 @@ class Pokedex(commands.Cog):
     async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
         """View your pokédex, or search for a pokémon species."""
 
-        member = self.db.fetch_member(ctx.author)
+        member = self.db.fetch_member(ctx.author, pokedex=True)
 
         if search_or_page is None:
             search_or_page = "1"
