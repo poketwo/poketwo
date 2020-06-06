@@ -13,6 +13,7 @@ class Bot(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.prefixes = {}
 
     @cached_property
     def db(self) -> Database:
@@ -59,6 +60,7 @@ class Bot(commands.Cog):
         if prefix == "reset":
             guild = self.db.fetch_guild(ctx.guild)
             guild.modify(unset__prefix=True)
+            self.prefixes[ctx.guild.id] = None
 
             return await ctx.send("Reset prefix to `p!` for this server.")
 
@@ -67,6 +69,7 @@ class Bot(commands.Cog):
 
         guild = self.db.fetch_guild(ctx.guild)
         guild.modify(prefix=prefix)
+        self.prefixes[ctx.guild.id] = prefix
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
 

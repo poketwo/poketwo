@@ -144,6 +144,9 @@ class Spawning(commands.Cog):
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
+        if ctx.channel.id not in self.pokemon:
+            return
+
         species, level, hint = self.pokemon[ctx.channel.id]
         await ctx.send(f"The pokémon is {hint}.")
 

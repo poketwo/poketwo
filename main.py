@@ -22,15 +22,18 @@ load_data()
 
 
 async def determine_prefix(bot, message):
-    if message.guild:
+    cog = bot.get_cog("Bot")
+
+    if message.guild.id not in cog.prefixes:
+        print("query")
         try:
             guild = mongo.Guild.objects.get(id=message.guild.id)
         except mongoengine.DoesNotExist:
             guild = mongo.Guild.objects.create(id=message.guild.id)
 
-        return guild.prefix or ["p!", "P!"]
-    else:
-        return ["p!", "P!"]
+        cog.prefixes[message.guild.id] = guild.prefix
+
+    return cog.prefixes[message.guild.id] or ["p!", "P!"]
 
 
 bot = commands.Bot(
