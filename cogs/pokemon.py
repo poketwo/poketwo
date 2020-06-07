@@ -2,7 +2,6 @@ from functools import cached_property
 
 import discord
 from discord.ext import commands, flags
-from mongoengine import DoesNotExist
 
 from .database import Database
 from .helpers import checks, mongo
@@ -25,7 +24,7 @@ class Pokemon(commands.Cog):
     async def redeem(self, ctx: commands.Context, *, species: str = None):
         """Redeem a pokémon."""
 
-        member = self.db.fetch_member(ctx.author, pokemon=True)
+        member = await self.db.fetch_member(ctx.author)
 
         if species is None:
             embed = discord.Embed()
@@ -49,8 +48,10 @@ class Pokemon(commands.Cog):
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         next_id = member.next_id
+        member.next_id += 1
+        await member.commit()
 
-        member.modify(inc__redeems=-1, inc__next_id=1)
+        member.redeems -= 1
 
         member.pokemon.create(
             number=next_id,
@@ -59,8 +60,8 @@ class Pokemon(commands.Cog):
             xp=0,
             owner_id=ctx.author.id,
         )
-        member.save()
-
+        await member.commit()
+        
         await ctx.send(
             f"You used a redeem and received a {species}! View it with `p!info latest`."
         )
@@ -83,15 +84,12 @@ class Pokemon(commands.Cog):
     async def pick(self, ctx: commands.Context, *, name: str):
         """Choose a starter pokémon to get started."""
 
-        try:
-            self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member(ctx.author)
 
+        if member is not None:
             return await ctx.send(
                 "You have already chosen a starter pokémon! View your pokémon with `p!pokemon`."
             )
-
-        except DoesNotExist:
-            pass
 
         if name.lower() not in STARTER_POKEMON:
             return await ctx.send(
@@ -100,10 +98,10 @@ class Pokemon(commands.Cog):
 
         species = GameData.species_by_name(name)
 
-        member = mongo.Member.objects.create(
+        member = mongo.Member(
             id=ctx.author.id,
             pokemon=[
-                mongo.Pokemon(
+                mongo.Pokemon.random(
                     number=1,
                     species_id=species.id,
                     level=1,
@@ -111,9 +109,11 @@ class Pokemon(commands.Cog):
                     owner_id=ctx.author.id,
                 )
             ],
+            next_id=2,
+            selected=1,
         )
 
-        member.modify(inc__next_id=1)
+        await member.commit()
 
         await ctx.send(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `p!info` to view it!"
@@ -124,18 +124,22 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, number: str = None):
         """View a specific pokémon from your collection."""
 
-        member = self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member(ctx.author)
 
         if number is None:
-            pokemon = self.db.fetch_pokemon(ctx.author, member.selected)
+            pokemon = member.selected_pokemon
+
         elif number.isdigit():
             try:
-                pokemon = self.db.fetch_pokemon(ctx.author, int(number))
-            except DoesNotExist:
+                pokemon = next(
+                    filter(lambda x: x.number == int(number), member.pokemon)
+                )
+            except StopIteration:
                 return await ctx.send("Could not find a pokemon with that number.")
+
         elif number == "latest":
-            member.reload()
-            pokemon = member.pokemon[member.pokemon.count() - 1]
+            pokemon = member.pokemon[-1]
+
         else:
             return await ctx.send(
                 "Please use `p!info` to view your selected pokémon, "
@@ -168,7 +172,7 @@ class Pokemon(commands.Cog):
 
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
         embed.set_footer(
-            text=f"Displaying pokémon {pokemon.number} out of {member.pokemon.count()}."
+            text=f"Displaying pokémon {pokemon.number} out of {member.pokemon[-1].number}."
         )
 
         await ctx.send(embed=embed)
@@ -178,13 +182,15 @@ class Pokemon(commands.Cog):
     async def select(self, ctx: commands.Context, *, number: int):
         """Select a specific pokémon from your collection."""
 
-        member = self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member(ctx.author)
         try:
-            pokemon = self.db.fetch_pokemon(ctx.author, number)
-        except IndexError:
+            pokemon = next(filter(lambda x: x.number == number, member.pokemon))
+        except StopIteration:
             return await ctx.send("Could not find a pokemon with that number.")
 
-        member.modify(selected=int(number))
+        member.selected = number
+        await member.commit()
+
         await ctx.send(
             f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
         )
@@ -199,7 +205,9 @@ class Pokemon(commands.Cog):
                 "Please specify either `number`, `IV`, `level`, `pokedex`, or `abc`."
             )
 
-        self.db.update_member(ctx.author, order_by=s)
+        member = await self.db.fetch_member(ctx.author)
+        member.order_by = s
+        await member.commit()
 
         await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
 
@@ -234,7 +242,7 @@ class Pokemon(commands.Cog):
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
 
-        member = self.db.fetch_member(ctx.author, pokemon=True)
+        member = await self.db.fetch_member(ctx.author)
         pokemon = member.pokemon
 
         # Filter pokemon

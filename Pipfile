@@ -8,7 +8,6 @@ black = "*"
 
 [packages]
 discord-py = "*"
-mongoengine = "*"
 pillow = "*"
 pymongo = {extras = ["tls"],version = "*"}
 python-dotenv = "*"
@@ -17,6 +16,8 @@ requests = "*"
 discord-flags = "*"
 unidecode = "*"
 humanfriendly = "*"
+motor = "*"
+umongo = "*"
 
 [requires]
 python_version = "3.8"

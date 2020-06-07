@@ -1,10 +1,9 @@
+import os
 import random
 from datetime import datetime
 
-from mongoengine.connection import get_db
-from mongoengine.document import *
-from mongoengine.fields import *
-from pymongo import ReturnDocument
+from motor.motor_asyncio import AsyncIOMotorClient
+from umongo import Document, EmbeddedDocument, Instance, fields
 
 from .constants import NATURES
 from .models import GameData
@@ -12,23 +11,44 @@ from .models import GameData
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(NATURES)
 
+# Instance
 
+database_uri = os.getenv("DATABASE_URI")
+
+db = AsyncIOMotorClient(database_uri)["pokemon_dev"]
+instance = Instance(db)
+
+
+@instance.register
 class Pokemon(EmbeddedDocument):
-    number = IntField(required=True)
-    species_id = IntField(required=True)
-    owner_id = LongField(required=True)
+    number = fields.IntegerField(required=True)
+    species_id = fields.IntegerField(required=True)
+    owner_id = fields.IntegerField(required=True)
 
-    level = IntField(min_value=1, max_value=100, required=True)
-    xp = IntField(default=0, required=True)
+    level = fields.IntegerField(required=True)
+    xp = fields.IntegerField(required=True)
 
-    nature = StringField(default=random_nature)
+    nature = fields.StringField(required=True)
 
-    iv_hp = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_atk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_defn = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_satk = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_sdef = IntField(min_value=0, max_value=31, default=random_iv, required=True)
-    iv_spd = IntField(min_value=0, max_value=31, default=random_iv, required=True)
+    iv_hp = fields.IntegerField(required=True)
+    iv_atk = fields.IntegerField(required=True)
+    iv_defn = fields.IntegerField(required=True)
+    iv_satk = fields.IntegerField(required=True)
+    iv_sdef = fields.IntegerField(required=True)
+    iv_spd = fields.IntegerField(required=True)
+
+    @classmethod
+    def random(cls, **kwargs):
+        return cls(
+            iv_hp=random_iv(),
+            iv_atk=random_iv(),
+            iv_defn=random_iv(),
+            iv_satk=random_iv(),
+            iv_sdef=random_iv(),
+            iv_spd=random_iv(),
+            nature=random_nature(),
+            **kwargs
+        )
 
     @property
     def species(self):
@@ -88,28 +108,32 @@ class Pokemon(EmbeddedDocument):
         ) / 6
 
 
+@instance.register
 class Member(Document):
-    id = LongField(primary_key=True)
-    pokemon = EmbeddedDocumentListField(Pokemon, required=True)
-    next_id = IntField(default=1, required=True)
-    selected = IntField(default=1, required=True)
-    order_by = StringField(default="number")
-    pokedex = MapField(IntField(), default=dict)
-    balance = IntField(default=0)
-    redeems = IntField(default=0)
+    id = fields.IntegerField(attribute="_id")
+    pokemon = fields.ListField(fields.EmbeddedField(Pokemon), required=True)
+    next_id = fields.IntegerField(required=True)
+    selected = fields.IntegerField(required=True)
+    order_by = fields.StringField(default="number")
+    pokedex = fields.DictField(
+        fields.StringField(), fields.IntegerField(), default=dict
+    )
+    balance = fields.IntegerField(default=0)
+    redeems = fields.IntegerField(default=0)
 
-    boost_expires = DateTimeField(default=datetime.min)
+    boost_expires = fields.DateTimeField(default=datetime.min)
 
     @property
     def selected_pokemon(self):
-        return self.pokemon.get(number=self.selected)
+        return next(filter(lambda x: x.number == int(self.selected), self.pokemon))
 
     @property
     def boost_active(self):
         return datetime.now() < self.boost_expires
 
 
+@instance.register
 class Guild(Document):
-    id = LongField(primary_key=True)
-    channel = LongField()
-    prefix = StringField(required=False)
+    id = fields.IntegerField(attribute="_id")
+    channel = fields.IntegerField(default=None)
+    prefix = fields.StringField(default=None)

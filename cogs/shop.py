@@ -4,7 +4,6 @@ from functools import cached_property
 import discord
 import humanfriendly
 from discord.ext import commands, flags
-from mongoengine import DoesNotExist
 
 from .database import Database
 from .helpers import checks, mongo
@@ -22,27 +21,34 @@ class Shop(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    def balance(self, member: discord.Member):
-        return self.db.fetch_member(member).balance
+    async def balance(self, member: discord.Member):
+        member = await self.db.fetch_member(member)
+        return member.balance
 
-    def add_balance(self, member: discord.Member, amount: int):
-        self.db.update_member(member, inc__balance=amount)
+    async def add_balance(self, member: discord.Member, amount: int):
+        member = await self.db.fetch_member(member)
+        member.balance += amount
+        await member.commit()
 
-    def remove_balance(self, member: discord.Member, amount: int):
-        self.db.update_member(member, dec__balance=amount)
+    async def remove_balance(self, member: discord.Member, amount: int):
+        member = await self.db.fetch_member(member)
+        member.balance -= amount
+        await member.commit()
 
     @checks.has_started()
     @commands.command(aliases=["balance"])
     async def bal(self, ctx: commands.Context):
-        await ctx.send(f"You have {self.balance(ctx.author)} credits.")
+        await ctx.send(f"You have {await self.balance(ctx.author)} credits.")
 
     @commands.command()
     async def shop(self, ctx: commands.Context, *, page: int = 0):
         """View the Pokétwo item shop."""
 
+        member = await self.db.fetch_member(ctx.author)
+
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Pokétwo Shop — {self.balance(ctx.author)} credits"
+        embed.title = f"Pokétwo Shop — {member.balance} credits"
 
         if page == 0:
             embed.description = "Use `p!shop <page>` to view different pages."
@@ -67,8 +73,6 @@ class Shop(commands.Cog):
             for i in range(-len(items) % 3):
                 embed.add_field(name="‎", value="‎")
 
-        member = self.db.fetch_member(ctx.author)
-
         if member.boost_active:
             timespan = member.boost_expires - datetime.now()
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
@@ -87,7 +91,7 @@ class Shop(commands.Cog):
         except SpeciesNotFoundError:
             return await ctx.send(f"Couldn't find an item called `{item}`.")
 
-        member = self.db.fetch_member(ctx.author, pokemon=True)
+        member = await self.db.fetch_member(ctx.author)
 
         if member.balance < item.cost:
             return await ctx.send("You don't have enough credits for that!")
@@ -149,7 +153,7 @@ class Shop(commands.Cog):
             )
 
         member.balance -= item.cost
-        member.save()
+        await member.commit()
 
         if "evolve" in item.action:
             embed = discord.Embed()
@@ -161,20 +165,20 @@ class Shop(commands.Cog):
                 value=f"Your {member.selected_pokemon.species} has turned into a {evoto}!",
             )
             member.selected_pokemon.species_id = evoto.id
-            member.save()
+            await member.commit()
 
             await ctx.send(embed=embed)
 
         if "xpboost" in item.action:
             mins = int(item.action.split("_")[1])
             member.boost_expires = datetime.now() + timedelta(minutes=mins)
-            member.save()
+            await member.commit()
 
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
             member.selected_pokemon.nature = NATURES[idx]
-            member.save()
+            await member.commit()
 
             await ctx.send(
                 f"You changed your selected pokémon's nature to {NATURES[idx]}!"

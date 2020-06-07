@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks
+from .helpers import checks, mongo
 from .helpers.models import *
 
 
@@ -18,6 +18,17 @@ class Bot(commands.Cog):
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
+
+    async def determine_prefix(self, message):
+        if message.guild.id not in self.prefixes:
+            guild = await mongo.Guild.find_one({"id": message.guild.id})
+            if guild is None:
+                guild = mongo.Guild(id=message.guild.id)
+                await guild.commit()
+
+            self.prefixes[message.guild.id] = guild.prefix
+
+        return self.prefixes[message.guild.id] or ["p!", "P!"]
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -58,8 +69,9 @@ class Bot(commands.Cog):
         """Change the bot prefix."""
 
         if prefix == "reset":
-            guild = self.db.fetch_guild(ctx.guild)
-            guild.modify(unset__prefix=True)
+            guild = await self.db.fetch_guild(ctx.guild)
+            guild.prefix = None
+            await guild.commit()
             self.prefixes[ctx.guild.id] = None
 
             return await ctx.send("Reset prefix to `p!` for this server.")
@@ -67,8 +79,9 @@ class Bot(commands.Cog):
         if len(prefix) > 100:
             return await ctx.send("Prefix must not be longer than 100 characters.")
 
-        guild = self.db.fetch_guild(ctx.guild)
-        guild.modify(prefix=prefix)
+        guild = await self.db.fetch_guild(ctx.guild)
+        guild.prefix = prefix
+        await guild.commit()
         self.prefixes[ctx.guild.id] = prefix
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")

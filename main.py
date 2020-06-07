@@ -1,20 +1,15 @@
 import os
 
-import mongoengine
 from discord.ext import commands
 from dotenv import load_dotenv
-
 from cogs import *
 from data import load_data
 
 # Setup
 
-load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
-database_uri = os.getenv("DATABASE_URI")
 env = os.getenv("ENV")
 
-mongoengine.connect(host=database_uri)
 
 # Instantiate Discord Bot
 
@@ -23,17 +18,7 @@ load_data()
 
 async def determine_prefix(bot, message):
     cog = bot.get_cog("Bot")
-
-    if message.guild.id not in cog.prefixes:
-        print("query")
-        try:
-            guild = mongo.Guild.objects.get(id=message.guild.id)
-        except mongoengine.DoesNotExist:
-            guild = mongo.Guild.objects.create(id=message.guild.id)
-
-        cog.prefixes[message.guild.id] = guild.prefix
-
-    return cog.prefixes[message.guild.id] or ["p!", "P!"]
+    return await cog.determine_prefix(message)
 
 
 bot = commands.AutoShardedBot(

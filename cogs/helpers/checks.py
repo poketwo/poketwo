@@ -1,5 +1,4 @@
 from discord.ext import commands
-from mongoengine import DoesNotExist
 
 from . import mongo
 
@@ -16,12 +15,8 @@ def is_admin():
 
 def has_started():
     async def predicate(ctx: commands.Context):
-        try:
-            mongo.Member.objects.get(id=ctx.author.id)
-            return True
-        except DoesNotExist:
-            raise MustHaveStarted(
-                "Please pick a starter pokémon by typing `p!start` before using this command!"
-            )
+        member = await mongo.Member.find_one({"id": ctx.author.id})
+
+        return member is not None
 
     return commands.check(predicate)
