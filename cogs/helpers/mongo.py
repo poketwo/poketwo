@@ -14,8 +14,9 @@ random_nature = lambda: random.choice(NATURES)
 # Instance
 
 database_uri = os.getenv("DATABASE_URI")
+database_name = os.getenv("DATABASE_NAME")
 
-db = AsyncIOMotorClient(database_uri)["pokemon_dev"]
+db = AsyncIOMotorClient(database_uri)[database_name]
 instance = Instance(db)
 
 
