@@ -36,7 +36,7 @@ async def determine_prefix(bot, message):
     return cog.prefixes[message.guild.id] or ["p!", "P!"]
 
 
-bot = commands.Bot(
+bot = commands.AutoShardedBot(
     command_prefix=determine_prefix,
     help_command=commands.MinimalHelpCommand(),
     case_insensitive=True,
