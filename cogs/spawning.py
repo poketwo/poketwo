@@ -31,9 +31,8 @@ class Spawning(commands.Cog):
         if message.author.bot:
             return
 
-        guild = self.db.fetch_guild(message.guild)
-
         if self.bot.user in message.mentions:
+            guild = self.db.fetch_guild(message.guild)
             await message.channel.send(
                 f"My prefix is `{guild.prefix or 'p!'}` in this server."
             )
@@ -50,46 +49,46 @@ class Spawning(commands.Cog):
 
         # Increase XP on selected pokemon
 
-        try:
-            member = self.db.fetch_member(message.author, pokemon=True)
-            pokemon = member.selected_pokemon
+        # try:
+        #     member = self.db.fetch_member(message.author, pokemon=True)
+        #     pokemon = member.selected_pokemon
 
-            if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
-                pokemon.xp += random.randint(10, 40)
+        #     if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
+        #         pokemon.xp += random.randint(10, 40)
 
-                if member.boost_active:
-                    pokemon.xp += random.randint(10, 40)
+        #         if member.boost_active:
+        #             pokemon.xp += random.randint(10, 40)
 
-            member.save()
+        #     member.save()
 
-            if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
-                pokemon.level += 1
-                pokemon.xp -= pokemon.max_xp
-                member.save()
+        #     if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
+        #         pokemon.level += 1
+        #         pokemon.xp -= pokemon.max_xp
+        #         member.save()
 
-                embed = discord.Embed()
-                embed.color = 0xF44336
-                embed.title = f"Congratulations {message.author.name}!"
-                embed.description = (
-                    f"Your {pokemon.species} is now level {pokemon.level}!"
-                )
+        #         embed = discord.Embed()
+        #         embed.color = 0xF44336
+        #         embed.title = f"Congratulations {message.author.name}!"
+        #         embed.description = (
+        #             f"Your {pokemon.species} is now level {pokemon.level}!"
+        #         )
 
-                if pokemon.species.primary_evolution is not None:
-                    if pokemon.level >= pokemon.species.primary_evolution.trigger.level:
-                        embed.add_field(
-                            name=f"Your {pokemon.species} is evolving!",
-                            value=f"Your {pokemon.species} has turned into a {pokemon.species.primary_evolution.target}!",
-                        )
-                        pokemon.species_id = pokemon.species.primary_evolution.target_id
-                        member.save()
+        #         if pokemon.species.primary_evolution is not None:
+        #             if pokemon.level >= pokemon.species.primary_evolution.trigger.level:
+        #                 embed.add_field(
+        #                     name=f"Your {pokemon.species} is evolving!",
+        #                     value=f"Your {pokemon.species} has turned into a {pokemon.species.primary_evolution.target}!",
+        #                 )
+        #                 pokemon.species_id = pokemon.species.primary_evolution.target_id
+        #                 member.save()
 
-                await message.channel.send(embed=embed)
-            elif pokemon.level == 100:
-                pokemon.xp = pokemon.max_xp
-                member.save()
+        #         await message.channel.send(embed=embed)
+        #     elif pokemon.level == 100:
+        #         pokemon.xp = pokemon.max_xp
+        #         member.save()
 
-        except DoesNotExist:
-            pass
+        # except DoesNotExist:
+        #     pass
 
         # Increment guild activity counter
 
@@ -103,6 +102,7 @@ class Spawning(commands.Cog):
 
         if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
             self.guilds[message.guild.id] = 0
+            guild = self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
                 channel = message.guild.get_channel(guild.channel)
