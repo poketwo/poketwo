@@ -22,7 +22,7 @@ class Spawning(commands.Cog):
         self.cooldown = {}
         self.guilds = {}
 
-    @cached_property
+    @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 

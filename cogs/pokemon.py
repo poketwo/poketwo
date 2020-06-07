@@ -16,7 +16,7 @@ class Pokemon(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cached_property
+    @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 

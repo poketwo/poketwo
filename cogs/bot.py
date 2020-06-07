@@ -15,7 +15,7 @@ class Bot(commands.Cog):
         self.bot = bot
         self.prefixes = {}
 
-    @cached_property
+    @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
