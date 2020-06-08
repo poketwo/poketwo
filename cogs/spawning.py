@@ -54,35 +54,48 @@ class Spawning(commands.Cog):
             pokemon = member.selected_pokemon
 
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
-                pokemon.xp += random.randint(10, 40)
+                xp_inc = random.randint(10, 40)
 
                 if member.boost_active:
-                    pokemon.xp += random.randint(10, 40)
+                    xp_inc += random.randint(10, 40)
+
+                await self.db.update_pokemon(
+                    message.author,
+                    member.selected,
+                    {"$inc": {"pokemon.$.xp": xp_inc},},
+                )
 
             if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
-                pokemon.level += 1
-                pokemon.xp -= pokemon.max_xp
-
+                update = {"$inc": {"pokemon.$.level": 1}, "$set": {"pokemon.$.xp": 0}}
                 embed = discord.Embed()
                 embed.color = 0xF44336
                 embed.title = f"Congratulations {message.author.name}!"
                 embed.description = (
-                    f"Your {pokemon.species} is now level {pokemon.level}!"
+                    f"Your {pokemon.species} is now level {pokemon.level + 1}!"
                 )
 
                 if pokemon.species.primary_evolution is not None:
-                    if pokemon.level >= pokemon.species.primary_evolution.trigger.level:
+                    if (
+                        pokemon.level + 1
+                        >= pokemon.species.primary_evolution.trigger.level
+                    ):
                         embed.add_field(
                             name=f"Your {pokemon.species} is evolving!",
                             value=f"Your {pokemon.species} has turned into a {pokemon.species.primary_evolution.target}!",
                         )
-                        pokemon.species_id = pokemon.species.primary_evolution.target_id
+                        update["$set"][
+                            "pokemon.$.species_id"
+                        ] = pokemon.species.primary_evolution.target_id
+
+                await self.db.update_pokemon(message.author, member.selected, update)
 
                 await message.channel.send(embed=embed)
             elif pokemon.level == 100:
-                pokemon.xp = pokemon.max_xp
-
-            await member.commit()
+                await self.db.update_pokemon(
+                    message.author,
+                    member.selected,
+                    {"$set": {"pokemon.$.xp": pokemon.max_xp}},
+                )
 
         # Increment guild activity counter
 
@@ -163,45 +176,62 @@ class Spawning(commands.Cog):
         del self.pokemon[ctx.channel.id]
 
         member = await self.db.fetch_member(ctx.author)
-        next_id = member.next_id
-        member.next_id += 1
-        await member.commit()
 
-        member.pokemon.append(
-            mongo.Pokemon.random(
-                number=next_id,
-                species_id=species.id,
-                level=level,
-                xp=0,
-                owner_id=ctx.author.id,
-            )
+        await self.db.update_member(
+            ctx.author,
+            {
+                "$inc": {"next_id": 1,},
+                "$push": {
+                    "pokemon": {
+                        "number": member.next_id,
+                        "species_id": species.id,
+                        "level": level,
+                        "xp": 0,
+                        "owner_id": ctx.author.id,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": mongo.random_iv(),
+                        "iv_atk": mongo.random_iv(),
+                        "iv_defn": mongo.random_iv(),
+                        "iv_satk": mongo.random_iv(),
+                        "iv_sdef": mongo.random_iv(),
+                        "iv_spd": mongo.random_iv(),
+                    }
+                },
+            },
         )
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
         if str(species.id) not in member.pokedex:
-            member.pokedex[str(species.id)] = 1
-
             message += " Added to Pokédex. You received 35 credits!"
-            member.balance += 35
+
+            await self.db.update_member(
+                ctx.author,
+                {"$set": {f"pokedex.{species.id}": 1}, "$inc": {"balance": 35},},
+            )
+
         else:
-            member.pokedex[str(species.id)] += 1
+            inc_bal = 0
 
             if member.pokedex[str(species.id)] == 10:
                 message += f" This is your 10th {species}! You received 350 credits."
-                member.balance += 350
+                inc_bal = 350
 
             elif member.pokedex[str(species.id)] == 100:
                 message += f" This is your 100th {species}! You received 3500 credits."
-                member.balance += 3500
+                inc_bal = 3500
 
             elif member.pokedex[str(species.id)] == 1000:
                 message += (
                     f" This is your 1000th {species}! You received 35000 credits."
                 )
-                member.balance += 35000
+                inc_bal = 35000
 
-        await member.commit()
+            await self.db.update_member(
+                ctx.author,
+                {"$set": {f"pokedex.{species.id}": 1}, "$inc": {"balance": inc_bal},},
+            )
+
         await ctx.send(message)
 
     @checks.is_admin()
@@ -209,8 +239,6 @@ class Spawning(commands.Cog):
     async def redirect(self, ctx: commands.Context, *, channel: discord.TextChannel):
         """Redirect pokémon catches to one channel."""
 
-        guild = await self.db.fetch_guild(ctx.guild)
-        guild.channel = channel.id
-        await guild.commit()
+        await self.db.update_guild(ctx.guild, {"$set": {"channel": channel.id}})
 
         await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")

@@ -47,22 +47,28 @@ class Pokemon(commands.Cog):
         except SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
-        next_id = member.next_id
-        member.next_id += 1
-        await member.commit()
-
-        member.redeems -= 1
-
-        member.pokemon.append(
-            mongo.Pokemon.random(
-                number=next_id,
-                species_id=species.id,
-                level=1,
-                xp=0,
-                owner_id=ctx.author.id,
-            )
+        await self.db.update_member(
+            ctx.author,
+            {
+                "$inc": {"next_id": 1, "redeems": -1},
+                "$push": {
+                    "pokemon": {
+                        "number": member.next_id,
+                        "species_id": species.id,
+                        "level": 1,
+                        "xp": 0,
+                        "owner_id": ctx.author.id,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": mongo.random_iv(),
+                        "iv_atk": mongo.random_iv(),
+                        "iv_defn": mongo.random_iv(),
+                        "iv_satk": mongo.random_iv(),
+                        "iv_sdef": mongo.random_iv(),
+                        "iv_spd": mongo.random_iv(),
+                    }
+                },
+            },
         )
-        await member.commit()
 
         await ctx.send(
             f"You used a redeem and received a {species}! View it with `p!info latest`."
@@ -190,8 +196,9 @@ class Pokemon(commands.Cog):
         except StopIteration:
             return await ctx.send("Could not find a pokemon with that number.")
 
-        member.selected = number
-        await member.commit()
+        await self.db.update_member(
+            ctx.author, {"$set": {f"selected": number}},
+        )
 
         await ctx.send(
             f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
@@ -207,9 +214,9 @@ class Pokemon(commands.Cog):
                 "Please specify either `number`, `IV`, `level`, `pokedex`, or `abc`."
             )
 
-        member = await self.db.fetch_member(ctx.author)
-        member.order_by = s
-        await member.commit()
+        await self.db.update_member(
+            ctx.author, {"$set": {f"order_by": s}},
+        )
 
         await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
 

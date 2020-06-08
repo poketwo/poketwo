@@ -25,16 +25,6 @@ class Shop(commands.Cog):
         member = await self.db.fetch_member(member)
         return member.balance
 
-    async def add_balance(self, member: discord.Member, amount: int):
-        member = await self.db.fetch_member(member)
-        member.balance += amount
-        await member.commit()
-
-    async def remove_balance(self, member: discord.Member, amount: int):
-        member = await self.db.fetch_member(member)
-        member.balance -= amount
-        await member.commit()
-
     @checks.has_started()
     @commands.command(aliases=["balance"])
     async def bal(self, ctx: commands.Context):
@@ -152,8 +142,9 @@ class Shop(commands.Cog):
                 f"You purchased a {item.name} for your {member.selected_pokemon.species}!"
             )
 
-        member.balance -= item.cost
-        await member.commit()
+        await self.db.update_member(
+            ctx.author, {"$inc": {"balance": -item.cost},},
+        )
 
         if "evolve" in item.action:
             embed = discord.Embed()
@@ -164,21 +155,31 @@ class Shop(commands.Cog):
                 name=f"Your {member.selected_pokemon.species} is evolving!",
                 value=f"Your {member.selected_pokemon.species} has turned into a {evoto}!",
             )
-            member.selected_pokemon.species_id = evoto.id
-            await member.commit()
+
+            await self.db.update_pokemon(
+                ctx.author,
+                member.selected,
+                {"$set": {"pokemon.$.species_id": evoto.id}},
+            )
 
             await ctx.send(embed=embed)
 
         if "xpboost" in item.action:
             mins = int(item.action.split("_")[1])
-            member.boost_expires = datetime.now() + timedelta(minutes=mins)
-            await member.commit()
+
+            await self.db.update_member(
+                ctx.author,
+                {"$set": {"boost_expires": datetime.now() + timedelta(minutes=mins)},},
+            )
 
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
-            member.selected_pokemon.nature = NATURES[idx]
-            await member.commit()
+            await self.db.update_pokemon(
+                ctx.author,
+                member.selected,
+                {"$set": {"pokemon.$.nature": NATURES[idx]}},
+            )
 
             await ctx.send(
                 f"You changed your selected pokémon's nature to {NATURES[idx]}!"
