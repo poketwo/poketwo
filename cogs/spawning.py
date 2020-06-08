@@ -232,10 +232,7 @@ class Spawning(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {
-                    "$set": {f"pokedex.{species.dex_number}": 1},
-                    "$inc": {"balance": inc_bal},
-                },
+                {"$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},},
             )
 
         await ctx.send(message)
