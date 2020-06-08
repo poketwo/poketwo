@@ -46,6 +46,9 @@ class Pokemon(commands.Cog):
             species = GameData.species_by_name(species)
         except SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+        
+        if not species.catchable:
+            return await ctx.send("You can't redeem this pokémon!")
 
         await self.db.update_member(
             ctx.author,
