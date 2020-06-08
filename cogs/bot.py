@@ -79,6 +79,12 @@ class Bot(commands.Cog):
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
 
+    @commands.command()
+    async def ping(self, ctx: commands.Context):
+        message = await ctx.send("Pong!")
+        ms = (message.created_at - ctx.message.created_at).total_seconds() * 1000
+        await message.edit(content=f"Pong! **{int(ms)} ms**")
+
     @commands.is_owner()
     @commands.command()
     async def eval(self, ctx: commands.Context, *, code: str):

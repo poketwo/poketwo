@@ -190,7 +190,7 @@ class Species:
         mythical=False,
         legendary=False,
         ultra_beast=False,
-        is_form=False
+        is_form=False,
     ):
         self.id = id
         self.names = names
@@ -254,7 +254,9 @@ class Species:
     def correct_guesses(self):
         extra = []
         if self.is_form:
-            extra = _Data.pokemon[self.dex_number].correct_guesses
+            extra.extend(_Data.pokemon[self.dex_number].correct_guesses)
+        if "nidoran" in self.slug:
+            extra.append("nidoran")
         return extra + [deaccent(x.lower()) for _, x in self.names] + [self.slug]
 
     @cached_property

@@ -61,6 +61,8 @@ class Pokemon(EmbeddedDocument):
 
     @property
     def hp(self):
+        if self.species_id == 292:
+            return 1
         return (
             (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100
             + self.level
@@ -123,6 +125,8 @@ class Member(Document):
     redeems = fields.IntegerField(default=0)
 
     boost_expires = fields.DateTimeField(default=datetime.min)
+
+    silence = fields.BooleanField(default=False)
 
     @property
     def selected_pokemon(self):

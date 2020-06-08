@@ -87,9 +87,17 @@ class Spawning(commands.Cog):
                             "pokemon.$.species_id"
                         ] = pokemon.species.primary_evolution.target_id
 
+                        if member.silence and pokemon.level < 99:
+                            await message.author.send(embed=embed)
+
                 await self.db.update_pokemon(message.author, member.selected, update)
 
-                await message.channel.send(embed=embed)
+                if member.silence and pokemon.level == 99:
+                    await message.author.send(embed=embed)
+
+                if not member.silence:
+                    await message.channel.send(embed=embed)
+
             elif pokemon.level == 100:
                 await self.db.update_pokemon(
                     message.author,
@@ -236,6 +244,22 @@ class Spawning(commands.Cog):
             )
 
         await ctx.send(message)
+
+    @checks.is_admin()
+    @commands.command()
+    async def silence(self, ctx: commands.Context, *, boolean: bool = True):
+        """Silence level up messages."""
+
+        await self.db.update_member(ctx.author, {"$set": {"silence": boolean}})
+
+        if boolean:
+            await ctx.send(
+                f"I'll no longer send level up messages. You'll receive a DM when you pokémon evolves or reaches level 100."
+            )
+        else:
+            await ctx.send(
+                f"Reverting to normal level up behavior."
+            )
 
     @checks.is_admin()
     @commands.command()
