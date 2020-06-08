@@ -34,6 +34,13 @@ bot.add_cog(Pokemon(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
 
+
+@bot.event
+async def on_message(message):
+    message.content = message.content.replace("—", "--")
+    await bot.process_commands(message)
+
+
 # Run Discord Bot
 
 print("Starting bot...")

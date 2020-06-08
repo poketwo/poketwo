@@ -180,7 +180,7 @@ class Spawning(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
-                "$inc": {"next_id": 1,},
+                "$inc": {"next_id": 1},
                 "$push": {
                     "pokemon": {
                         "number": member.next_id,
@@ -216,15 +216,15 @@ class Spawning(commands.Cog):
         else:
             inc_bal = 0
 
-            if member.pokedex[str(species.dex_number)] == 10:
+            if member.pokedex[str(species.dex_number)] + 1 == 10:
                 message += f" This is your 10th {species}! You received 350 credits."
                 inc_bal = 350
 
-            elif member.pokedex[str(species.dex_number)] == 100:
+            elif member.pokedex[str(species.dex_number)] + 1 == 100:
                 message += f" This is your 100th {species}! You received 3500 credits."
                 inc_bal = 3500
 
-            elif member.pokedex[str(species.dex_number)] == 1000:
+            elif member.pokedex[str(species.dex_number)] + 1 == 1000:
                 message += (
                     f" This is your 1000th {species}! You received 35000 credits."
                 )
