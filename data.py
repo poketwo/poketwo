@@ -77,6 +77,7 @@ def get_pokemon():
             mythical="mythical" in row,
             legendary="legendary" in row,
             ultra_beast="ultra_beast" in row,
+            is_form="is_form" in row,
         )
 
     load_pokemon(pokemon)

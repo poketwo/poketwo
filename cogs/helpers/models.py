@@ -166,6 +166,7 @@ class Species:
     height: int
     weight: int
     catchable: bool
+    is_form: bool
 
     mega_id: int
     mega_x_id: int
@@ -189,6 +190,7 @@ class Species:
         mythical=False,
         legendary=False,
         ultra_beast=False,
+        is_form=False
     ):
         self.id = id
         self.names = names
@@ -197,6 +199,7 @@ class Species:
         self.base_stats = base_stats
         self.dex_number = dex_number
         self.catchable = catchable
+        self.is_form = is_form
 
         self.height = height
         self.weight = weight
@@ -249,7 +252,10 @@ class Species:
 
     @cached_property
     def correct_guesses(self):
-        return [deaccent(x.lower()) for _, x in self.names] + [self.slug]
+        extra = []
+        if self.is_form:
+            extra = _Data.pokemon[self.dex_number].correct_guesses
+        return extra + [deaccent(x.lower()) for _, x in self.names] + [self.slug]
 
     @cached_property
     def primary_evolution(self):
@@ -352,7 +358,7 @@ class GameData:
         )[0]
         while not x.catchable:
             x = random.choices(
-                _Data.pokemon.values(), weights=cls.spawn_weights(), k=1
+                list(_Data.pokemon.values()), weights=cls.spawn_weights(), k=1
             )[0]
 
         return x

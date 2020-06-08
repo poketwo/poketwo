@@ -267,11 +267,11 @@ class Pokemon(commands.Cog):
 
         if flags["name"] is not None:
             pokemon = [
-                p for p in pokemon if p.species.name.lower() == flags["name"].lower()
+                p for p in pokemon if flags["name"].lower() in p.species.correct_guesses
             ]
 
         if flags["level"] is not None:
-            pokemon = [p for p in pokemon if p.level == flags["level"].lower()]
+            pokemon = [p for p in pokemon if p.level == flags["level"]]
 
         # Numerical flags
 

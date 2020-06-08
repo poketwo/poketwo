@@ -202,26 +202,29 @@ class Spawning(commands.Cog):
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
-        if str(species.id) not in member.pokedex:
+        if str(species.dex_number) not in member.pokedex:
             message += " Added to Pokédex. You received 35 credits!"
 
             await self.db.update_member(
                 ctx.author,
-                {"$set": {f"pokedex.{species.id}": 1}, "$inc": {"balance": 35},},
+                {
+                    "$set": {f"pokedex.{species.dex_number}": 1},
+                    "$inc": {"balance": 35},
+                },
             )
 
         else:
             inc_bal = 0
 
-            if member.pokedex[str(species.id)] == 10:
+            if member.pokedex[str(species.dex_number)] == 10:
                 message += f" This is your 10th {species}! You received 350 credits."
                 inc_bal = 350
 
-            elif member.pokedex[str(species.id)] == 100:
+            elif member.pokedex[str(species.dex_number)] == 100:
                 message += f" This is your 100th {species}! You received 3500 credits."
                 inc_bal = 3500
 
-            elif member.pokedex[str(species.id)] == 1000:
+            elif member.pokedex[str(species.dex_number)] == 1000:
                 message += (
                     f" This is your 1000th {species}! You received 35000 credits."
                 )
@@ -229,7 +232,10 @@ class Spawning(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {"$set": {f"pokedex.{species.id}": 1}, "$inc": {"balance": inc_bal},},
+                {
+                    "$set": {f"pokedex.{species.dex_number}": 1},
+                    "$inc": {"balance": inc_bal},
+                },
             )
 
         await ctx.send(message)

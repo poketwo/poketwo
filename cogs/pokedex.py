@@ -47,8 +47,8 @@ class Pokedex(commands.Cog):
             for p in range(pgstart + 1, pgend + 1):
                 species = GameData.species_by_number(p)
                 text = "Not caught yet! ❌"
-                if str(p) in member.pokedex:
-                    text = f"{member.pokedex[str(p)]} caught! ✅"
+                if str(species.dex_number) in member.pokedex:
+                    text = f"{member.pokedex[str(species.dex_number)]} caught! ✅"
                 embed.add_field(name=f"{species.name} #{species.id}", value=text)
 
             embed.add_field(name="‎", value="‎")
@@ -89,10 +89,8 @@ class Pokedex(commands.Cog):
             )
 
             text = "You haven't caught this pokémon yet!"
-            if str(species.id) in member.pokedex:
-                text = (
-                    f"You've caught {member.pokedex[str(species.id)]} of this pokémon!"
-                )
+            if str(species.dex_number) in member.pokedex:
+                text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
 
             embed.set_footer(text=text)
 
