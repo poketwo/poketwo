@@ -53,15 +53,17 @@ class Pokemon(commands.Cog):
 
         member.redeems -= 1
 
-        member.pokemon.create(
-            number=next_id,
-            species_id=species.id,
-            level=1,
-            xp=0,
-            owner_id=ctx.author.id,
+        member.pokemon.append(
+            mongo.Pokemon.random(
+                number=next_id,
+                species_id=species.id,
+                level=1,
+                xp=0,
+                owner_id=ctx.author.id,
+            )
         )
         await member.commit()
-        
+
         await ctx.send(
             f"You used a redeem and received a {species}! View it with `p!info latest`."
         )
