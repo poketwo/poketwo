@@ -17,6 +17,9 @@ def has_started():
     async def predicate(ctx: commands.Context):
         member = await mongo.Member.find_one({"id": ctx.author.id})
 
-        return member is not None
+        if member is None:
+            raise MustHaveStarted
+
+        return True
 
     return commands.check(predicate)
