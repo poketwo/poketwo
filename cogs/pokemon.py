@@ -79,6 +79,8 @@ class Pokemon(commands.Cog):
 
     @commands.command(aliases=["nick"])
     async def nickname(self, ctx: commands.Context, *, nickname: str):
+        """Change the nickname for your pokémon."""
+
         if nickname == "reset":
             nickname = None
 
@@ -101,6 +103,7 @@ class Pokemon(commands.Cog):
 
     @commands.command(aliases=["fav"])
     async def favorite(self, ctx: commands.Context, number: str = None):
+        """Mark a pokémon as a favorite."""
 
         member = await self.db.fetch_member(ctx.author)
 
@@ -144,6 +147,8 @@ class Pokemon(commands.Cog):
 
     @commands.command(aliases=["unfav"])
     async def unfavorite(self, ctx: commands.Context, number: str = None):
+        """This command has been removed. Instead, use `p!favorite`, which will toggle favorite on a pokémon."""
+
         await ctx.send(
             f"This command has been removed. Instead, use `p!favorite`, which will toggle favorite on a pokémon."
         )

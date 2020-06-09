@@ -28,6 +28,8 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["balance"])
     async def bal(self, ctx: commands.Context):
+        """View your current balance."""
+
         await ctx.send(f"You have {await self.balance(ctx.author)} credits.")
 
     @commands.command()

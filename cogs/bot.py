@@ -22,6 +22,8 @@ class Bot(commands.Cog):
 
     @commands.command()
     async def help(self, ctx: commands.Context, *, page_or_cmd: str = "0"):
+        """View a list of commands for the bot."""
+
         embed = discord.Embed()
         embed.color = 0xF44336
 
@@ -104,6 +106,8 @@ class Bot(commands.Cog):
 
     @commands.command()
     async def stats(self, ctx: commands.Context):
+        """View some interesting statistics about the bot."""
+
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Pokétwo Statistics"
@@ -139,7 +143,7 @@ class Bot(commands.Cog):
     @checks.is_admin()
     @commands.command()
     async def prefix(self, ctx: commands.Context, *, prefix: str):
-        """Change the bot prefix."""
+        """Change the bot prefix. (Needs admin)"""
 
         if prefix == "reset":
             await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})

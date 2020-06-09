@@ -94,7 +94,7 @@ NATURE_MULTIPLIERS = {
 HELP = {
     "0": {
         "title": "Pokétwo Help",
-        "description": "Use `p!help <page>` to view different pages of the help command.",
+        "description": "Use `p!help <page>` to view different pages of the help command. You can also use `p!help <command>` to learn more about a specific command.",
         "fields": {
             "Page 1": "Getting Started",
             "Page 2": "Main Commands",
