@@ -32,7 +32,7 @@ class Bot(commands.Cog):
         if cmd is None:
 
             if page_or_cmd not in HELP:
-                return await ctx.send("Could not find that page in the help command.")
+                return await ctx.send("Could not find that page or command.")
 
             page = HELP[page_or_cmd]
 
