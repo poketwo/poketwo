@@ -262,7 +262,7 @@ class Spawning(commands.Cog):
 
         if boolean:
             await ctx.send(
-                f"I'll no longer send level up messages. You'll receive a DM when you pokémon evolves or reaches level 100."
+                f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
             )
         else:
             await ctx.send(

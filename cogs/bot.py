@@ -40,15 +40,18 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send_help(ctx.command)
+            return await ctx.send_help(ctx.command)
 
         if isinstance(error, checks.MustHaveStarted):
-            await ctx.send(
+            return await ctx.send(
                 "Please pick a starter pokémon by typing `p!start` before using this command!"
             )
 
         if isinstance(error, flags.ArgumentParsingError):
-            await ctx.send(error)
+            return await ctx.send(error)
+
+        if isinstance(error, commands.CommandNotFound):
+            return
 
         raise error
 
@@ -62,6 +65,40 @@ class Bot(commands.Cog):
             "Join Server: https://discord.gg/KZe4F4t\n\n"
             "This bot is still in development and has limited functionality. Please report bugs to the server."
         )
+
+    @commands.command()
+    async def stats(self, ctx: commands.Context):
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Pokétwo Statistics"
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+
+        total = await mongo.db.member.aggregate(
+            [
+                {"$project": {"pokemon_count": {"$size": "$pokemon"}},},
+                {"$group": {"_id": None, "total_count": {"$sum": "$pokemon_count"},},},
+            ]
+        ).to_list(1)
+
+        embed.add_field(
+            name="Servers", value=await mongo.db.guild.count_documents({}), inline=False
+        )
+        embed.add_field(name="Users", value=len(self.bot.users))
+        embed.add_field(
+            name="Real Users",
+            value=await mongo.db.member.count_documents({}),
+            inline=False,
+        )
+        embed.add_field(
+            name="Pokémon Caught", value=total[0]["total_count"], inline=False
+        )
+        embed.add_field(
+            name="Discord Latency",
+            value=f"{int(self.bot.latencies[0][1] * 1000)} ms",
+            inline=False,
+        )
+
+        await ctx.send(embed=embed)
 
     @checks.is_admin()
     @commands.command()
