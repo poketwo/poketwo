@@ -77,7 +77,7 @@ class Pokemon(commands.Cog):
             f"You used a redeem and received a {species}! View it with `p!info latest`."
         )
 
-    @commands.command()
+    @commands.command(aliases=["nick"])
     async def nickname(self, ctx: commands.Context, nickname: str):
         if nickname == "reset":
             nickname = None
@@ -98,6 +98,82 @@ class Pokemon(commands.Cog):
             await ctx.send(
                 f"Changed nickname to `{nickname}` for your level {member.selected_pokemon.level} {member.selected_pokemon.species}."
             )
+
+    @commands.command(aliases=["fav"])
+    async def favorite(self, ctx: commands.Context, number: str = None):
+
+        member = await self.db.fetch_member(ctx.author)
+
+        if number is None:
+            pokemon = member.selected_pokemon
+
+        elif number.isdigit():
+            try:
+                pokemon = next(
+                    filter(lambda x: x.number == int(number), member.pokemon)
+                )
+            except StopIteration:
+                return await ctx.send("Could not find a pokemon with that number.")
+
+        elif number == "latest":
+            pokemon = member.pokemon[-1]
+
+        else:
+            return await ctx.send(
+                "Please use `p!favorite` to favorite your selected pokémon, "
+                "`p!favorite <number>` to favorite another pokémon, "
+                "or `p!favorite latest` to favorite your latest pokémon."
+            )
+
+        member = await self.db.fetch_member(ctx.author)
+        await self.db.update_pokemon(
+            ctx.author, pokemon.number, {"$set": {"pokemon.$.favorite": True}},
+        )
+
+        name = str(pokemon.species)
+
+        if pokemon.nickname is not None:
+            name += f' "{pokemon.nickname}"'
+
+        await ctx.send(f"Favorited your level {pokemon.level} {name}.")
+
+    @commands.command(aliases=["unfav"])
+    async def unfavorite(self, ctx: commands.Context, number: str = None):
+
+        member = await self.db.fetch_member(ctx.author)
+
+        if number is None:
+            pokemon = member.selected_pokemon
+
+        elif number.isdigit():
+            try:
+                pokemon = next(
+                    filter(lambda x: x.number == int(number), member.pokemon)
+                )
+            except StopIteration:
+                return await ctx.send("Could not find a pokemon with that number.")
+
+        elif number == "latest":
+            pokemon = member.pokemon[-1]
+
+        else:
+            return await ctx.send(
+                "Please use `p!unfavorite` to unfavorite your selected pokémon, "
+                "`p!unfavorite <number>` to unfavorite another pokémon, "
+                "or `p!unfavorite latest` to unfavorite your latest pokémon."
+            )
+
+        member = await self.db.fetch_member(ctx.author)
+        await self.db.update_pokemon(
+            ctx.author, pokemon.number, {"$set": {"pokemon.$.favorite": False}},
+        )
+
+        name = str(pokemon.species)
+
+        if pokemon.nickname is not None:
+            name += f' "{pokemon.nickname}"'
+
+        await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
 
     @commands.command()
     async def start(self, ctx: commands.Context):
@@ -254,6 +330,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--name")
     @flags.add_flag("--level", type=int)
 
@@ -293,6 +370,9 @@ class Pokemon(commands.Cog):
 
         if flags["ub"]:
             pokemon = [p for p in pokemon if p.species.ultra_beast]
+
+        if flags["favorite"]:
+            pokemon = [p for p in pokemon if p.favorite]
 
         if flags["name"] is not None:
             pokemon = [
@@ -366,10 +446,12 @@ class Pokemon(commands.Cog):
         pgend = min(flags["page"] * 20, len(pokemon))
 
         def nick(p):
-            if p.nickname is None:
-                return str(p.species)
-            else:
-                return f'{p.species} "{p.nickname}"'
+            name = str(p.species)
+            if p.nickname is not None:
+                name += f' "{p.nickname}"'
+            if p.favorite:
+                name = "⭐ " + name
+            return name
 
         page = [
             f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
