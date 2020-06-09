@@ -450,7 +450,7 @@ class Pokemon(commands.Cog):
             if p.nickname is not None:
                 name += f' "{p.nickname}"'
             if p.favorite:
-                name = "⭐ " + name
+                name = "❤️ " + name
             return name
 
         page = [
