@@ -57,7 +57,10 @@ class Spawning(commands.Cog):
                 xp_inc = random.randint(10, 40)
 
                 if member.boost_active:
-                    xp_inc += random.randint(10, 40)
+                    xp_inc *= 2
+
+                if message.guild.id == 716390832034414685:
+                    xp_inc *= 2
 
                 await self.db.update_pokemon(
                     message.author,
@@ -121,7 +124,10 @@ class Spawning(commands.Cog):
         self.cooldown[message.guild.id] = current
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
+        if self.bot.env != "dev" and message.guild.id == 716390832034414685:
+            self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
+
+        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 16):
             self.guilds[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
 
@@ -129,6 +135,10 @@ class Spawning(commands.Cog):
                 channel = message.guild.get_channel(guild.channel)
             else:
                 channel = message.channel
+
+            if self.bot.env != "dev" and message.guild.id == 716390832034414685:
+                cid = random.choice((717095398476480562, 720020140401360917))
+                channel = self.bot.get_channel(cid)
 
             await self.spawn_pokemon(channel)
 
@@ -159,7 +169,9 @@ class Spawning(commands.Cog):
         embed.set_image(url="attachment://pokemon.png")
 
         if channel.guild.id != 716390832034414685:
-            embed.set_footer(text="We're giving out a Sky Shaymin! Join the official server using `p!invite` to enter.")
+            embed.set_footer(
+                text="We're giving out a Sky Shaymin! Join the official server using `p!invite` to enter."
+            )
 
         await channel.send(file=image, embed=embed)
 
