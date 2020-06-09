@@ -38,6 +38,8 @@ class Pokemon(EmbeddedDocument):
     iv_sdef = fields.IntegerField(required=True)
     iv_spd = fields.IntegerField(required=True)
 
+    nickname = fields.StringField(default=None)
+
     @classmethod
     def random(cls, **kwargs):
         return cls(

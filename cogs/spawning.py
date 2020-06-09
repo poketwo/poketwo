@@ -70,8 +70,14 @@ class Spawning(commands.Cog):
                 embed = discord.Embed()
                 embed.color = 0xF44336
                 embed.title = f"Congratulations {message.author.name}!"
+
+                name = str(pokemon.species)
+
+                if pokemon.nickname is not None:
+                    name += f' "{pokemon.nickname}"'
+
                 embed.description = (
-                    f"Your {pokemon.species} is now level {pokemon.level + 1}!"
+                    f"Your {name} is now level {pokemon.level + 1}!"
                 )
 
                 if pokemon.species.primary_evolution is not None:
@@ -80,8 +86,8 @@ class Spawning(commands.Cog):
                         >= pokemon.species.primary_evolution.trigger.level
                     ):
                         embed.add_field(
-                            name=f"Your {pokemon.species} is evolving!",
-                            value=f"Your {pokemon.species} has turned into a {pokemon.species.primary_evolution.target}!",
+                            name=f"Your {name} is evolving!",
+                            value=f"Your {name} has turned into a {pokemon.species.primary_evolution.target}!",
                         )
                         update["$set"][
                             "pokemon.$.species_id"

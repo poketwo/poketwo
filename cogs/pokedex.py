@@ -78,15 +78,14 @@ class Pokedex(commands.Cog):
                 f"**Speed:** {species.base_stats.spd}",
             )
 
+            embed.description = "\n".join(f"{x} {y}" for x, y in species.names)
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
-            embed.add_field(
-                name="Other Names",
-                value="\n".join(f"{x} {y}" for x, y in species.names),
-            )
             embed.add_field(
                 name="Appearance",
                 value=f"Height: {species.height} m\nWeight: {species.weight} kg",
             )
+            print(species.types)
+            embed.add_field(name="Types", value="\n".join(species.types))
 
             text = "You haven't caught this pokémon yet!"
             if str(species.dex_number) in member.pokedex:

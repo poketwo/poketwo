@@ -167,6 +167,7 @@ class Species:
     weight: int
     catchable: bool
     is_form: bool
+    types: List[str]
 
     mega_id: int
     mega_x_id: int
@@ -182,6 +183,7 @@ class Species:
         weight: int,
         dex_number: int,
         catchable: bool,
+        types: List[str],
         mega_id: int = None,
         mega_x_id: int = None,
         mega_y_id: int = None,
@@ -207,6 +209,8 @@ class Species:
         self.mega_id = mega_id
         self.mega_x_id = mega_x_id
         self.mega_y_id = mega_y_id
+
+        self.types = types
 
         if evolution_from is not None:
             self.evolution_from = EvolutionList(evolution_from)

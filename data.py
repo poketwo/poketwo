@@ -47,6 +47,12 @@ def get_pokemon():
         if evo_to and len(evo_to) == 0:
             evo_to = None
 
+        types = []
+        if "type.0" in row:
+            types.append(row["type.0"])
+        if "type.1" in row:
+            types.append(row["type.1"])
+
         pokemon[row["id"]] = Species(
             id=row["id"],
             names=(
@@ -65,6 +71,7 @@ def get_pokemon():
                 row["base.sdef"],
                 row["base.spd"],
             ),
+            types=types,
             height=int(row["height"]) / 10,
             weight=int(row["weight"]) / 10,
             mega_id=row["evo.mega"] if "evo.mega" in row else None,

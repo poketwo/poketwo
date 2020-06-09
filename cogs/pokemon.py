@@ -46,7 +46,7 @@ class Pokemon(commands.Cog):
             species = GameData.species_by_name(species)
         except SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
-        
+
         if not species.catchable:
             return await ctx.send("You can't redeem this pokémon!")
 
@@ -76,6 +76,28 @@ class Pokemon(commands.Cog):
         await ctx.send(
             f"You used a redeem and received a {species}! View it with `p!info latest`."
         )
+
+    @commands.command()
+    async def nickname(self, ctx: commands.Context, nickname: str):
+        if nickname == "reset":
+            nickname = None
+
+        if len(nickname) > 100:
+            return await ctx.send("That nickname is too long.")
+
+        member = await self.db.fetch_member(ctx.author)
+        await self.db.update_pokemon(
+            ctx.author, member.selected, {"$set": {"pokemon.$.nickname": nickname}},
+        )
+
+        if nickname == None:
+            await ctx.send(
+                f"Removed nickname for your level {member.selected_pokemon.level} {member.selected_pokemon.species}."
+            )
+        else:
+            await ctx.send(
+                f"Changed nickname to `{nickname}` for your level {member.selected_pokemon.level} {member.selected_pokemon.species}."
+            )
 
     @commands.command()
     async def start(self, ctx: commands.Context):
@@ -161,6 +183,10 @@ class Pokemon(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species}"
+
+        if pokemon.nickname is not None:
+            embed.title += f' "{pokemon.nickname}"'
+
         embed.set_image(url=pokemon.species.image_url)
         embed.set_thumbnail(url=ctx.author.avatar_url)
 
@@ -270,7 +296,10 @@ class Pokemon(commands.Cog):
 
         if flags["name"] is not None:
             pokemon = [
-                p for p in pokemon if flags["name"].lower() in p.species.correct_guesses
+                p
+                for p in pokemon
+                if flags["name"].lower() in p.species.correct_guesses
+                or flags["name"].lower() == (p.nickname or "").lower()
             ]
 
         if flags["level"] is not None:
@@ -336,8 +365,14 @@ class Pokemon(commands.Cog):
 
         pgend = min(flags["page"] * 20, len(pokemon))
 
+        def nick(p):
+            if p.nickname is None:
+                return str(p.species)
+            else:
+                return f'{p.species} "{p.nickname}"'
+
         page = [
-            f"**{p.species}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
+            f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
             for p in pokemon[pgstart:pgend]
         ]
 

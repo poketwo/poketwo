@@ -138,9 +138,12 @@ class Shop(commands.Cog):
 
             await ctx.send(f"You purchased {item.name}!")
         else:
-            await ctx.send(
-                f"You purchased a {item.name} for your {member.selected_pokemon.species}!"
-            )
+            name = str(member.selected_pokemon.species)
+
+            if member.selected_pokemon.nickname is not None:
+                name += f' "{member.selected_pokemon.nickname}"'
+
+            await ctx.send(f"You purchased a {item.name} for your {name}!")
 
         await self.db.update_member(
             ctx.author, {"$inc": {"balance": -item.cost},},
@@ -151,9 +154,14 @@ class Shop(commands.Cog):
             embed.color = 0xF44336
             embed.title = f"Congratulations {ctx.author.name}!"
 
+            name = str(member.selected_pokemon.species)
+
+            if member.selected_pokemon.nickname is not None:
+                name += f' "{member.selected_pokemon.nickname}"'
+
             embed.add_field(
-                name=f"Your {member.selected_pokemon.species} is evolving!",
-                value=f"Your {member.selected_pokemon.species} has turned into a {evoto}!",
+                name=f"Your {name} is evolving!",
+                value=f"Your {name} has turned into a {evoto}!",
             )
 
             await self.db.update_pokemon(
