@@ -27,7 +27,7 @@ class Bot(commands.Cog):
 
         if page not in HELP:
             return await ctx.send("Could not find that page in the help command.")
-        
+
         page = HELP[page]
 
         embed.title = page.get("title", "Help")
@@ -36,7 +36,10 @@ class Bot(commands.Cog):
         for key, field in page.get("fields", {}).items():
             embed.add_field(name=key, value=field, inline=False)
 
-        await ctx.send(embed=embed)
+        if isinstance(ctx.channel, discord.TextChannel):
+            await ctx.message.add_reaction("📬")
+
+        await ctx.author.send(embed=embed)
 
     async def determine_prefix(self, message):
         if message.guild:
