@@ -13,12 +13,18 @@ def is_admin():
     )
 
 
+users = set()
+
+
 def has_started():
     async def predicate(ctx: commands.Context):
-        member = await mongo.Member.find_one({"id": ctx.author.id})
+        if ctx.author.id not in users:
+            member = await mongo.Member.find_one({"id": ctx.author.id})
 
-        if member is None:
-            raise MustHaveStarted
+            if member is None:
+                raise MustHaveStarted
+
+        users.add(ctx.author.id)
 
         return True
 
