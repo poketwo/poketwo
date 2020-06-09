@@ -1,3 +1,5 @@
+import inspect
+import math
 import os
 import random
 from datetime import datetime
@@ -5,7 +7,7 @@ from datetime import datetime
 from motor.motor_asyncio import AsyncIOMotorClient
 from umongo import Document, EmbeddedDocument, Instance, fields
 
-from .constants import NATURES
+from .constants import NATURES, NATURE_MULTIPLIERS
 from .models import GameData
 
 random_iv = lambda: random.randint(0, 31)
@@ -74,33 +76,59 @@ class Pokemon(EmbeddedDocument):
 
     @property
     def atk(self):
-        return (
-            2 * self.species.base_stats.atk + self.iv_atk + 5
-        ) * self.level // 100 + 5
+        return math.floor(
+            (
+                (2 * self.species.base_stats.atk + self.iv_atk + 5) * self.level // 100
+                + 5
+            )
+            * NATURE_MULTIPLIERS[self.nature]["atk"]
+        )
 
     @property
     def defn(self):
-        return (
-            2 * self.species.base_stats.defn + self.iv_defn + 5
-        ) * self.level // 100 + 5
+        return math.floor(
+            (
+                (2 * self.species.base_stats.defn + self.iv_defn + 5)
+                * self.level
+                // 100
+                + 5
+            )
+            * NATURE_MULTIPLIERS[self.nature]["defn"]
+        )
 
     @property
     def satk(self):
-        return (
-            2 * self.species.base_stats.satk + self.iv_satk + 5
-        ) * self.level // 100 + 5
+        return math.floor(
+            (
+                (2 * self.species.base_stats.satk + self.iv_satk + 5)
+                * self.level
+                // 100
+                + 5
+            )
+            * NATURE_MULTIPLIERS[self.nature]["satk"]
+        )
 
     @property
     def sdef(self):
-        return (
-            2 * self.species.base_stats.sdef + self.iv_sdef + 5
-        ) * self.level // 100 + 5
+        return math.floor(
+            (
+                (2 * self.species.base_stats.sdef + self.iv_sdef + 5)
+                * self.level
+                // 100
+                + 5
+            )
+            * NATURE_MULTIPLIERS[self.nature]["sdef"]
+        )
 
     @property
     def spd(self):
-        return (
-            2 * self.species.base_stats.spd + self.iv_spd + 5
-        ) * self.level // 100 + 5
+        return math.floor(
+            (
+                (2 * self.species.base_stats.spd + self.iv_spd + 5) * self.level // 100
+                + 5
+            )
+            * NATURE_MULTIPLIERS[self.nature]["spd"]
+        )
 
     @property
     def iv_percentage(self):
