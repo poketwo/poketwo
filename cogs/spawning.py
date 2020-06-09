@@ -127,8 +127,8 @@ class Spawning(commands.Cog):
         if self.bot.env != "dev" and message.guild.id == 716390832034414685:
             self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 16):
-            self.guilds[message.guild.id] = 0
+        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
+            self.guilds[message.guild.id] %= 15
             guild = await self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
@@ -137,8 +137,10 @@ class Spawning(commands.Cog):
                 channel = message.channel
 
             if self.bot.env != "dev" and message.guild.id == 716390832034414685:
-                cid = random.choice((717095398476480562, 720020140401360917))
-                channel = self.bot.get_channel(cid)
+                if self.guilds[message.guild.id] % 2 == 0:
+                    channel = self.bot.get_channel(717095398476480562)
+                else:
+                    channel = self.bot.get_channel(720020140401360917)
 
             await self.spawn_pokemon(channel)
 
