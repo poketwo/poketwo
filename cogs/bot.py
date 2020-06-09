@@ -21,20 +21,34 @@ class Bot(commands.Cog):
         return self.bot.get_cog("Database")
 
     @commands.command()
-    async def help(self, ctx: commands.Context, *, page: str = "0"):
+    async def help(self, ctx: commands.Context, *, page_or_cmd: str = "0"):
         embed = discord.Embed()
         embed.color = 0xF44336
 
-        if page not in HELP:
-            return await ctx.send("Could not find that page in the help command.")
+        cmd = self.bot.all_commands.get(page_or_cmd, None)
 
-        page = HELP[page]
+        if cmd is None:
 
-        embed.title = page.get("title", "Help")
-        embed.description = page.get("description", None)
+            if page_or_cmd not in HELP:
+                return await ctx.send("Could not find that page in the help command.")
 
-        for key, field in page.get("fields", {}).items():
-            embed.add_field(name=key, value=field, inline=False)
+            page = HELP[page_or_cmd]
+
+            embed.title = page.get("title", "Help")
+            embed.description = page.get("description", None)
+
+            for key, field in page.get("fields", {}).items():
+                embed.add_field(name=key, value=field, inline=False)
+
+        else:
+            embed.title = f"p!{cmd.qualified_name}"
+
+            print(type(cmd.description))
+
+            if cmd.help:
+                embed.description = cmd.help
+
+            embed.set_footer(text=f"p!{cmd.qualified_name} {cmd.signature}",)
 
         if isinstance(ctx.channel, discord.TextChannel):
             await ctx.message.add_reaction("📬")

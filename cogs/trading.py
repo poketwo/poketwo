@@ -22,4 +22,4 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def trade(self, ctx: commands.Context, user: discord.User):
-        
+        pass

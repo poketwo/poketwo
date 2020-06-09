@@ -22,9 +22,7 @@ async def determine_prefix(bot, message):
 
 
 bot = commands.AutoShardedBot(
-    command_prefix=determine_prefix,
-    help_command=None,
-    case_insensitive=True,
+    command_prefix=determine_prefix, help_command=None, case_insensitive=True,
 )
 bot.env = env
 bot.add_cog(Bot(bot))
