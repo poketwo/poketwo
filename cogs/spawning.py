@@ -251,7 +251,6 @@ class Spawning(commands.Cog):
 
         await ctx.send(message)
 
-    @checks.is_admin()
     @commands.command()
     async def silence(self, ctx: commands.Context, *, boolean: bool = True):
         """Silence level up messages."""
