@@ -132,7 +132,7 @@ class Pokemon(commands.Cog):
         await self.db.update_pokemon(
             ctx.author,
             pokemon.number,
-            {"$set": {"pokemon.$.favorite": not member.selected_pokemon.favorite}},
+            {"$set": {"pokemon.$.favorite": not pokemon.favorite}},
         )
 
         name = str(pokemon.species)
@@ -140,7 +140,7 @@ class Pokemon(commands.Cog):
         if pokemon.nickname is not None:
             name += f' "{pokemon.nickname}"'
 
-        if member.selected_pokemon.favorite:
+        if pokemon.favorite:
             await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
         else:
             await ctx.send(f"Favorited your level {pokemon.level} {name}.")
