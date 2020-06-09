@@ -113,6 +113,9 @@ class Spawning(commands.Cog):
 
         # Increment guild activity counter
 
+        if not message.guild:
+            return
+
         if self.bot.env != "dev":
             if current - self.cooldown.get(message.guild.id, 0) < 1:
                 return

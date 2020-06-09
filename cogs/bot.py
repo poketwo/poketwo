@@ -20,15 +20,18 @@ class Bot(commands.Cog):
         return self.bot.get_cog("Database")
 
     async def determine_prefix(self, message):
-        if message.guild.id not in self.prefixes:
-            guild = await mongo.Guild.find_one({"id": message.guild.id})
-            if guild is None:
-                guild = mongo.Guild(id=message.guild.id)
-                await guild.commit()
+        if message.guild:
+            if message.guild.id not in self.prefixes:
+                guild = await mongo.Guild.find_one({"id": message.guild.id})
+                if guild is None:
+                    guild = mongo.Guild(id=message.guild.id)
+                    await guild.commit()
 
-            self.prefixes[message.guild.id] = guild.prefix
+                self.prefixes[message.guild.id] = guild.prefix
 
-        return self.prefixes[message.guild.id] or ["p!", "P!"]
+            return self.prefixes[message.guild.id] or ["p!", "P!"]
+
+        return ["p!", "P!"]
 
     @commands.Cog.listener()
     async def on_ready(self):
