@@ -88,6 +88,9 @@ class Bot(commands.Cog):
         if isinstance(error, flags.ArgumentParsingError):
             return await ctx.send(error)
 
+        if isinstance(error, commands.CheckFailure):
+            return await ctx.send(f"Check failed: {error}")
+
         if isinstance(error, commands.CommandNotFound):
             return
 
