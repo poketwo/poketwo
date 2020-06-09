@@ -53,15 +53,25 @@ class Shop(commands.Cog):
 
             items = [i for i in GameData.all_items() if i.page == page]
 
+            gguild = self.bot.get_guild(716390832034414685)
+
             for item in items:
+                emote = ""
+                if item.emote is not None:
+                    try:
+                        e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
+                        emote = f"{e} "
+                    except StopIteration:
+                        pass
                 embed.add_field(
-                    name=f"{item.name} – {item.cost} credits",
+                    name=f"{emote}{item.name} – {item.cost}c",
                     value=f"{item.description}",
                     inline=item.inline,
                 )
 
-            for i in range(-len(items) % 3):
-                embed.add_field(name="‎", value="‎")
+            if items[0].inline:
+                for i in range(-len(items) % 3):
+                    embed.add_field(name="‎", value="‎")
 
         if member.boost_active:
             timespan = member.boost_expires - datetime.now()

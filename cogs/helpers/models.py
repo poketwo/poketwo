@@ -32,6 +32,7 @@ class Item:
     page: int
     action: str
     inline: bool
+    emote: str
 
     def __init__(
         self,
@@ -42,6 +43,7 @@ class Item:
         page: int,
         action: str,
         inline: bool,
+        emote: str = None,
     ):
         self.id = id
         self.name = name
@@ -50,6 +52,7 @@ class Item:
         self.page = page
         self.action = action
         self.inline = inline
+        self.emote = emote
 
     def __str__(self):
         return self.name

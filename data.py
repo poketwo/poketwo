@@ -119,6 +119,7 @@ def get_items():
             page=row["page"],
             action=row["action"],
             inline=(not "separate" in row),
+            emote=row.get("emote", None),
         )
 
     load_items(items)

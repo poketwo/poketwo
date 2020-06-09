@@ -1,67 +1,67 @@
-id,name,description,cost,action,page,separate
-10001,XP Booster 0,Double your XP for 30 minutes!,20,xpboost_30,1,1
-10002,XP Booster 1,Double your XP for 1 hour!,40,xpboost_60,1,1
-10003,XP Booster 2,Double your XP for 2 hours!,70,xpboost_120,1,1
-10004,XP Booster 3,Double your XP for 3 hours!,100,xpboost_180,1,1
-80,Sun Stone,Evolve certain pokémon.,150,evolve_normal,2,
-81,Moon Stone,Evolve certain pokémon.,150,evolve_normal,2,
-82,Fire Stone,Evolve certain pokémon.,150,evolve_normal,2,
-83,Thunder Stone,Evolve certain pokémon.,150,evolve_normal,2,
-84,Water Stone,Evolve certain pokémon.,150,evolve_normal,2,
-85,Leaf Stone,Evolve certain pokémon.,150,evolve_normal,2,
-107,Shiny Stone,Evolve certain pokémon.,150,evolve_normal,2,
-108,Dusk Stone,Evolve certain pokémon.,150,evolve_normal,2,
-109,Dawn Stone,Evolve certain pokémon.,150,evolve_normal,2,
-10005,Adamant Nature,"+10% Attack
--10% Sp. Atk",50,nature_0,3,
-10006,Bashful Nature,"+10% Sp. Atk
--10% Sp. Atk",50,nature_1,3,
-10007,Bold Nature,"+10% Defense
--10% Attack",50,nature_2,3,
-10008,Brave Nature,"+10% Attack
--10% Speed",50,nature_3,3,
-10009,Calm Nature,"+10% Sp. Def
--10% Attack",50,nature_4,3,
-10010,Careful Nature,"+10% Sp. Def
--10% Sp. Atk",50,nature_5,3,
-10011,Docile Nature,"+10% Defense
--10% Defense",50,nature_6,3,
-10012,Gentle Nature,"+10% Sp. Def
--10% Defense",50,nature_7,3,
-10013,Hardy Nature,"+10% Attack
--10% Attack",50,nature_8,3,
-10014,Hasty Nature,"+10% Speed
--10% Defense",50,nature_9,3,
-10015,Impish Nature,"+10% Defense
--10% Sp. Atk",50,nature_10,3,
-10016,Jolly Nature,"+10% Speed
--10% Sp. Atk",50,nature_11,3,
-10017,Lax Nature,"+10% Defense
--10% Sp. Def",50,nature_12,3,
-10018,Lonely Nature,"+10% Attack
--10% Defense",50,nature_13,3,
-10019,Mild Nature,"+10% Sp. Atk
--10% Defense",50,nature_14,3,
-10020,Modest Nature,"+10% Sp. Atk
--10% Attack",50,nature_15,3,
-10021,Naive Nature,"+10% Speed
--10% Sp. Def",50,nature_16,3,
-10022,Naughty Nature,"+10% Attack
--10% Sp. Def",50,nature_17,3,
-10023,Quiet Nature,"+10% Sp. Atk
--10% Speed",50,nature_18,3,
-10024,Quirky Nature,"+10% Sp. Def
--10% Sp. Def",50,nature_19,3,
-10025,Rash Nature,"+10% Sp. Atk
--10% Sp. Def",50,nature_20,3,
-10026,Relaxed Nature,"+10% Defense
--10% Speed",50,nature_21,3,
-10027,Sassy Nature,"+10% Sp. Def
--10% Speed",50,nature_22,3,
-10028,Serious Nature,"+10% Speed
--10% Speed",50,nature_23,3,
-10029,Timid Nature,"+10% Speed
--10% Attack",50,nature_24,3,
-10030,Mega Evolution,Transform your pokémon into its mega form!,1000,evolve_mega,4,1
-10031,X Mega Evolution,Transform your pokémon into its X mega form!,1000,evolve_megax,4,1
-10032,Y Mega Evolution,Transform your pokémon into its Y mega form!,1000,evolve_megay,4,1
+id,name,description,cost,action,page,separate,emote
+10001,XP Booster 0,Double your XP for 30 minutes!,20,xpboost_30,1,1,
+10002,XP Booster 1,Double your XP for 1 hour!,40,xpboost_60,1,1,
+10003,XP Booster 2,Double your XP for 2 hours!,70,xpboost_120,1,1,
+10004,XP Booster 3,Double your XP for 3 hours!,100,xpboost_180,1,1,
+80,Sun Stone,Evolve certain pokémon.,150,evolve_normal,2,,sun_stone
+81,Moon Stone,Evolve certain pokémon.,150,evolve_normal,2,,moon_stone
+82,Fire Stone,Evolve certain pokémon.,150,evolve_normal,2,,fire_stone
+83,Thunder Stone,Evolve certain pokémon.,150,evolve_normal,2,,thunder_stone
+84,Water Stone,Evolve certain pokémon.,150,evolve_normal,2,,water_stone
+85,Leaf Stone,Evolve certain pokémon.,150,evolve_normal,2,,leaf_stone
+107,Shiny Stone,Evolve certain pokémon.,150,evolve_normal,2,,shiny_stone
+108,Dusk Stone,Evolve certain pokémon.,150,evolve_normal,2,,dusk_stone
+109,Dawn Stone,Evolve certain pokémon.,150,evolve_normal,2,,dawn_stone
+10005,Adamant Mint,"+10% Attack
+-10% Sp. Atk",50,nature_0,3,,atk_mint
+10006,Bashful Mint,"+10% Sp. Atk
+-10% Sp. Atk",50,nature_1,3,,serious_mint
+10007,Bold Mint,"+10% Defense
+-10% Attack",50,nature_2,3,,def_mint
+10008,Brave Mint,"+10% Attack
+-10% Speed",50,nature_3,3,,atk_mint
+10009,Calm Mint,"+10% Sp. Def
+-10% Attack",50,nature_4,3,,spdef_mint
+10010,Careful Mint,"+10% Sp. Def
+-10% Sp. Atk",50,nature_5,3,,spdef_mint
+10011,Docile Mint,"+10% Defense
+-10% Defense",50,nature_6,3,,serious_mint
+10012,Gentle Mint,"+10% Sp. Def
+-10% Defense",50,nature_7,3,,spdef_mint
+10013,Hardy Mint,"+10% Attack
+-10% Attack",50,nature_8,3,,serious_mint
+10014,Hasty Mint,"+10% Speed
+-10% Defense",50,nature_9,3,,spd_mint
+10015,Impish Mint,"+10% Defense
+-10% Sp. Atk",50,nature_10,3,,def_mint
+10016,Jolly Mint,"+10% Speed
+-10% Sp. Atk",50,nature_11,3,,spd_mint
+10017,Lax Mint,"+10% Defense
+-10% Sp. Def",50,nature_12,3,,def_mint
+10018,Lonely Mint,"+10% Attack
+-10% Defense",50,nature_13,3,,atk_mint
+10019,Mild Mint,"+10% Sp. Atk
+-10% Defense",50,nature_14,3,,spatk_mint
+10020,Modest Mint,"+10% Sp. Atk
+-10% Attack",50,nature_15,3,,spatk_mint
+10021,Naive Mint,"+10% Speed
+-10% Sp. Def",50,nature_16,3,,spd_mint
+10022,Naughty Mint,"+10% Attack
+-10% Sp. Def",50,nature_17,3,,atk_mint
+10023,Quiet Mint,"+10% Sp. Atk
+-10% Speed",50,nature_18,3,,spatk_mint
+10024,Quirky Mint,"+10% Sp. Def
+-10% Sp. Def",50,nature_19,3,,serious_mint
+10025,Rash Mint,"+10% Sp. Atk
+-10% Sp. Def",50,nature_20,3,,spatk_mint
+10026,Relaxed Mint,"+10% Defense
+-10% Speed",50,nature_21,3,,def_mint
+10027,Sassy Mint,"+10% Sp. Def
+-10% Speed",50,nature_22,3,,spdef_mint
+10028,Serious Mint,"+10% Speed
+-10% Speed",50,nature_23,3,,serious_mint
+10029,Timid Mint,"+10% Speed
+-10% Attack",50,nature_24,3,,spd_mint
+10030,Mega Evolution,Transform your pokémon into its mega form!,1000,evolve_mega,4,1,
+10031,X Mega Evolution,Transform your pokémon into its X mega form!,1000,evolve_megax,4,1,
+10032,Y Mega Evolution,Transform your pokémon into its Y mega form!,1000,evolve_megay,4,1,
