@@ -23,7 +23,7 @@ async def determine_prefix(bot, message):
 
 bot = commands.AutoShardedBot(
     command_prefix=determine_prefix,
-    help_command=commands.MinimalHelpCommand(),
+    help_command=None,
     case_insensitive=True,
 )
 bot.env = env

@@ -88,7 +88,6 @@ class Pokedex(commands.Cog):
                 name="Appearance",
                 value=f"Height: {species.height} m\nWeight: {species.weight} kg",
             )
-            print(species.types)
             embed.add_field(name="Types", value="\n".join(species.types))
 
             text = "You haven't caught this pokémon yet!"

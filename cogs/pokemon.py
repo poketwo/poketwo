@@ -127,7 +127,9 @@ class Pokemon(commands.Cog):
 
         member = await self.db.fetch_member(ctx.author)
         await self.db.update_pokemon(
-            ctx.author, pokemon.number, {"$set": {"pokemon.$.favorite": True}},
+            ctx.author,
+            pokemon.number,
+            {"$set": {"pokemon.$.favorite": not member.selected_pokemon.favorite}},
         )
 
         name = str(pokemon.species)
@@ -135,45 +137,16 @@ class Pokemon(commands.Cog):
         if pokemon.nickname is not None:
             name += f' "{pokemon.nickname}"'
 
-        await ctx.send(f"Favorited your level {pokemon.level} {name}.")
+        if member.selected_pokemon.favorite:
+            await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
+        else:
+            await ctx.send(f"Favorited your level {pokemon.level} {name}.")
 
     @commands.command(aliases=["unfav"])
     async def unfavorite(self, ctx: commands.Context, number: str = None):
-
-        member = await self.db.fetch_member(ctx.author)
-
-        if number is None:
-            pokemon = member.selected_pokemon
-
-        elif number.isdigit():
-            try:
-                pokemon = next(
-                    filter(lambda x: x.number == int(number), member.pokemon)
-                )
-            except StopIteration:
-                return await ctx.send("Could not find a pokemon with that number.")
-
-        elif number == "latest":
-            pokemon = member.pokemon[-1]
-
-        else:
-            return await ctx.send(
-                "Please use `p!unfavorite` to unfavorite your selected pokémon, "
-                "`p!unfavorite <number>` to unfavorite another pokémon, "
-                "or `p!unfavorite latest` to unfavorite your latest pokémon."
-            )
-
-        member = await self.db.fetch_member(ctx.author)
-        await self.db.update_pokemon(
-            ctx.author, pokemon.number, {"$set": {"pokemon.$.favorite": False}},
+        await ctx.send(
+            f"This command has been removed. Instead, use `p!favorite`, which will toggle favorite on a pokémon."
         )
-
-        name = str(pokemon.species)
-
-        if pokemon.nickname is not None:
-            name += f' "{pokemon.nickname}"'
-
-        await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
 
     @commands.command()
     async def start(self, ctx: commands.Context):

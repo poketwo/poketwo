@@ -76,9 +76,7 @@ class Spawning(commands.Cog):
                 if pokemon.nickname is not None:
                     name += f' "{pokemon.nickname}"'
 
-                embed.description = (
-                    f"Your {name} is now level {pokemon.level + 1}!"
-                )
+                embed.description = f"Your {name} is now level {pokemon.level + 1}!"
 
                 if pokemon.species.primary_evolution is not None:
                     if (
@@ -255,18 +253,20 @@ class Spawning(commands.Cog):
         await ctx.send(message)
 
     @commands.command()
-    async def silence(self, ctx: commands.Context, *, boolean: bool = True):
+    async def silence(self, ctx: commands.Context):
         """Silence level up messages."""
 
-        await self.db.update_member(ctx.author, {"$set": {"silence": boolean}})
+        member = await self.db.fetch_member(ctx.author)
 
-        if boolean:
-            await ctx.send(
-                f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
-            )
+        await self.db.update_member(
+            ctx.author, {"$set": {"silence": not member.silence}}
+        )
+
+        if member.silence:
+            await ctx.send(f"Reverting to normal level up behavior.")
         else:
             await ctx.send(
-                f"Reverting to normal level up behavior."
+                f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
             )
 
     @checks.is_admin()

@@ -6,6 +6,7 @@ from discord.ext import commands, flags
 from .database import Database
 from .helpers import checks, mongo
 from .helpers.models import *
+from .helpers.constants import HELP
 
 
 class Bot(commands.Cog):
@@ -18,6 +19,24 @@ class Bot(commands.Cog):
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
+
+    @commands.command()
+    async def help(self, ctx: commands.Context, *, page: str = "0"):
+        embed = discord.Embed()
+        embed.color = 0xF44336
+
+        if page not in HELP:
+            return await ctx.send("Could not find that page in the help command.")
+        
+        page = HELP[page]
+
+        embed.title = page.get("title", "Help")
+        embed.description = page.get("description", None)
+
+        for key, field in page.get("fields", {}).items():
+            embed.add_field(name=key, value=field, inline=False)
+
+        await ctx.send(embed=embed)
 
     async def determine_prefix(self, message):
         if message.guild:

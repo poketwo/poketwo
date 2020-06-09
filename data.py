@@ -53,15 +53,23 @@ def get_pokemon():
         if "type.1" in row:
             types.append(row["type.1"])
 
+        names = [
+            ("🇯🇵", row["name.ja"]),
+            ("🇯🇵", row["name.ja_r"]),
+        ]
+
+        if "name.ja_t" in row and row["name.ja_t"] != row["name.ja_r"]:
+            names.append(("🇯🇵", row["name.ja_t"]))
+
+        names += [
+            ("🇬🇧", row["name.en"]),
+            ("🇩🇪", row["name.de"]),
+            ("🇫🇷", row["name.fr"]),
+        ]
+
         pokemon[row["id"]] = Species(
             id=row["id"],
-            names=(
-                ("🇯🇵", row["name.ja"]),
-                ("🇯🇵", row["name.ja_r"]),
-                ("🇬🇧", row["name.en"]),
-                ("🇩🇪", row["name.de"]),
-                ("🇫🇷", row["name.fr"]),
-            ),
+            names=names,
             slug=row["slug"],
             base_stats=Stats(
                 row["base.hp"],
