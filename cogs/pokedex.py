@@ -78,7 +78,11 @@ class Pokedex(commands.Cog):
                 f"**Speed:** {species.base_stats.spd}",
             )
 
-            embed.description = "\n".join(f"{x} {y}" for x, y in species.names)
+            embed.add_field(
+                name="Names",
+                value="\n".join(f"{x} {y}" for x, y in species.names),
+                inline=False,
+            )
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
             embed.add_field(
                 name="Appearance",
