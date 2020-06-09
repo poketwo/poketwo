@@ -78,7 +78,7 @@ class Pokemon(commands.Cog):
         )
 
     @commands.command(aliases=["nick"])
-    async def nickname(self, ctx: commands.Context, nickname: str):
+    async def nickname(self, ctx: commands.Context, *, nickname: str):
         if nickname == "reset":
             nickname = None
 
