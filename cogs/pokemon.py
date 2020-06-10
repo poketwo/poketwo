@@ -24,7 +24,7 @@ class Pokemon(commands.Cog):
     async def redeem(self, ctx: commands.Context, *, species: str = None):
         """Redeem a pokémon."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         if species is None:
             embed = discord.Embed()
@@ -87,10 +87,9 @@ class Pokemon(commands.Cog):
         if nickname == "reset":
             nickname = None
 
-        member = await self.db.fetch_member(ctx.author)
-
-        if member.selected_pokemon is None:
-            return await ctx.send("You do not have a pokémon selected!")
+        member = await self.db.fetch_member_info(ctx.author)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+        pokemon = pokemon.pokemon[0]
 
         await self.db.update_pokemon(
             ctx.author, member.selected, {"$set": {"pokemon.$.nickname": nickname}},
@@ -98,35 +97,25 @@ class Pokemon(commands.Cog):
 
         if nickname == None:
             await ctx.send(
-                f"Removed nickname for your level {member.selected_pokemon.level} {member.selected_pokemon.species}."
+                f"Removed nickname for your level {pokemon.level} {pokemon.species}."
             )
         else:
             await ctx.send(
-                f"Changed nickname to `{nickname}` for your level {member.selected_pokemon.level} {member.selected_pokemon.species}."
+                f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
     @commands.command(aliases=["fav"])
     async def favorite(self, ctx: commands.Context, number: str = None):
         """Mark a pokémon as a favorite."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         if number is None:
-            pokemon = member.selected_pokemon
-
-            if member.selected_pokemon is None:
-                return await ctx.send("You do not have a pokémon selected!")
-
+            pokemon = member.selected
         elif number.isdigit():
-            try:
-                pokemon = next(
-                    filter(lambda x: x.number == int(number), member.pokemon)
-                )
-            except StopIteration:
-                return await ctx.send("Could not find a pokemon with that number.")
-
+            pokemon = int(number)
         elif number == "latest":
-            pokemon = member.pokemon[-1]
+            pokemon = -1
 
         else:
             return await ctx.send(
@@ -135,7 +124,13 @@ class Pokemon(commands.Cog):
                 "or `p!favorite latest` to favorite your latest pokémon."
             )
 
-        member = await self.db.fetch_member(ctx.author)
+        pokemon = await self.db.fetch_pokemon(ctx.author, pokemon)
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        pokemon = pokemon.pokemon[0]
+
         await self.db.update_pokemon(
             ctx.author,
             pokemon.number,
@@ -178,7 +173,7 @@ class Pokemon(commands.Cog):
     async def pick(self, ctx: commands.Context, *, name: str):
         """Choose a starter pokémon to get started."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         if member is not None:
             return await ctx.send(
@@ -218,24 +213,14 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, number: str = None):
         """View a specific pokémon from your collection."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         if number is None:
-            pokemon = member.selected_pokemon
-
-            if member.selected_pokemon is None:
-                return await ctx.send("You do not have a pokémon selected!")
-
+            pokemon = member.selected
         elif number.isdigit():
-            try:
-                pokemon = next(
-                    filter(lambda x: x.number == int(number), member.pokemon)
-                )
-            except StopIteration:
-                return await ctx.send("Could not find a pokemon with that number.")
-
+            pokemon = int(number)
         elif number == "latest":
-            pokemon = member.pokemon[-1]
+            pokemon = -1
 
         else:
             return await ctx.send(
@@ -243,6 +228,13 @@ class Pokemon(commands.Cog):
                 "`p!info <number>` to view another pokémon, "
                 "or `p!info latest` to view your latest pokémon."
             )
+
+        pokemon = await self.db.fetch_pokemon(ctx.author, pokemon)
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        pokemon = pokemon.pokemon[0]
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -272,22 +264,34 @@ class Pokemon(commands.Cog):
         )
 
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-        embed.set_footer(
-            text=f"Displaying pokémon {pokemon.number} out of {member.pokemon[-1].number}."
-        )
+        embed.set_footer(text=f"Displaying pokémon number {pokemon.number}.")
 
         await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command()
-    async def select(self, ctx: commands.Context, *, number: int):
+    async def select(self, ctx: commands.Context, *, number: str = ""):
         """Select a specific pokémon from your collection."""
 
-        member = await self.db.fetch_member(ctx.author)
-        try:
-            pokemon = next(filter(lambda x: x.number == number, member.pokemon))
-        except StopIteration:
-            return await ctx.send("Could not find a pokemon with that number.")
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if number.isdigit():
+            number = int(number)
+        elif number == "latest":
+            number = -1
+
+        else:
+            return await ctx.send(
+                "`p!select <number>` to select a pokémon "
+                "or `p!select latest` to select your latest pokémon."
+            )
+
+        pokemon = await self.db.fetch_pokemon(ctx.author, number)
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        pokemon = pokemon.pokemon[0]
 
         await self.db.update_member(
             ctx.author, {"$set": {f"selected": number}},

@@ -48,10 +48,11 @@ class Spawning(commands.Cog):
 
         # Increase XP on selected pokemon
 
-        member = await self.db.fetch_member(message.author)
+        member = await self.db.fetch_member_info(message.author)
 
-        if member is not None and member.selected_pokemon is not None:
-            pokemon = member.selected_pokemon
+        if member is not None:
+            pokemon = await self.db.fetch_pokemon(message.author, member.selected)
+            pokemon = pokemon.pokemon[0]
 
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                 xp_inc = random.randint(10, 40)
@@ -205,7 +206,7 @@ class Spawning(commands.Cog):
 
         del self.pokemon[ctx.channel.id]
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         await self.db.update_member(
             ctx.author,
@@ -273,7 +274,7 @@ class Spawning(commands.Cog):
     async def silence(self, ctx: commands.Context):
         """Silence level up messages."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         await self.db.update_member(
             ctx.author, {"$set": {"silence": not member.silence}}

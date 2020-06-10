@@ -22,7 +22,7 @@ class Shop(commands.Cog):
         return self.bot.get_cog("Database")
 
     async def balance(self, member: discord.Member):
-        member = await self.db.fetch_member(member)
+        member = await self.db.fetch_member_info(member)
         return member.balance
 
     @checks.has_started()
@@ -36,7 +36,7 @@ class Shop(commands.Cog):
     async def shop(self, ctx: commands.Context, *, page: int = 0):
         """View the Pokétwo item shop."""
 
-        member = await self.db.fetch_member(ctx.author)
+        member = await self.db.fetch_member_info(ctx.author)
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -93,47 +93,46 @@ class Shop(commands.Cog):
         except SpeciesNotFoundError:
             return await ctx.send(f"Couldn't find an item called `{item}`.")
 
-        member = await self.db.fetch_member(ctx.author)
-
-        if member.selected_pokemon is None:
-            return await ctx.send("You do not have a pokémon selected!")
+        member = await self.db.fetch_member_info(ctx.author)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+        pokemon = pokemon.pokemon[0]
 
         if member.balance < item.cost:
             return await ctx.send("You don't have enough Poképoints for that!")
 
         if item.action == "evolve_mega":
-            if member.selected_pokemon.species.mega is None:
+            if pokemon.species.mega is None:
                 return await ctx.send(
                     "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
                 )
 
-            evoto = member.selected_pokemon.species.mega
+            evoto = pokemon.species.mega
 
         if item.action == "evolve_megax":
-            if member.selected_pokemon.species.mega_x is None:
+            if pokemon.species.mega_x is None:
                 return await ctx.send(
                     "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
                 )
 
-            evoto = member.selected_pokemon.species.mega_x
+            evoto = pokemon.species.mega_x
 
         if item.action == "evolve_megay":
-            if member.selected_pokemon.species.mega_y is None:
+            if pokemon.species.mega_y is None:
                 return await ctx.send(
                     "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
                 )
 
-            evoto = member.selected_pokemon.species.mega_y
+            evoto = pokemon.species.mega_y
 
         if item.action == "evolve_normal":
 
-            if member.selected_pokemon.species.evolution_to is not None:
+            if pokemon.species.evolution_to is not None:
                 try:
                     evoto = next(
                         filter(
                             lambda evo: isinstance(evo.trigger, ItemTrigger)
                             and evo.trigger.item == item,
-                            member.selected_pokemon.species.evolution_to.items,
+                            pokemon.species.evolution_to.items,
                         )
                     ).target
                 except StopIteration:
@@ -153,10 +152,10 @@ class Shop(commands.Cog):
 
             await ctx.send(f"You purchased {item.name}!")
         else:
-            name = str(member.selected_pokemon.species)
+            name = str(pokemon.species)
 
-            if member.selected_pokemon.nickname is not None:
-                name += f' "{member.selected_pokemon.nickname}"'
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
 
             await ctx.send(f"You purchased a {item.name} for your {name}!")
 
@@ -169,10 +168,10 @@ class Shop(commands.Cog):
             embed.color = 0xF44336
             embed.title = f"Congratulations {ctx.author.name}!"
 
-            name = str(member.selected_pokemon.species)
+            name = str(pokemon.species)
 
-            if member.selected_pokemon.nickname is not None:
-                name += f' "{member.selected_pokemon.nickname}"'
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
 
             embed.add_field(
                 name=f"Your {name} is evolving!",
