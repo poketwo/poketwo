@@ -214,7 +214,7 @@ class Trading(commands.Cog):
 
             self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
                 ctx.author.id
-            ].append()
+            ].append(pokemon)
 
         elif what.lower().endswith("pp"):
             num = what.replace("pp", "").strip()
