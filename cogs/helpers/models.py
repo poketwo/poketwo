@@ -318,11 +318,23 @@ class SpeciesNotFoundError(Exception):
 
 class GameData:
     @classmethod
-    def all_pokemon(cls) -> List[Species]:
+    def all_pokemon(cls):
         return _Data.pokemon
 
     @classmethod
-    def all_items(cls) -> List[Item]:
+    def list_mythical(cls):
+        return [k for k, v in _Data.pokemon.items() if v.mythical]
+
+    @classmethod
+    def list_legendary(cls):
+        return [k for k, v in _Data.pokemon.items() if v.mythical]
+
+    @classmethod
+    def list_ub(cls):
+        return [k for k, v in _Data.pokemon.items() if v.mythical]
+
+    @classmethod
+    def all_items(cls):
         return _Data.items.values()
 
     @classmethod

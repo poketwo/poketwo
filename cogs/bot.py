@@ -184,7 +184,7 @@ class Bot(commands.Cog):
     ):
         """Redeem a pokémon."""
 
-        member = await self.db.fetch_member(user)
+        member = await self.db.fetch_member_info(user)
 
         try:
             species = GameData.species_by_name(species)
@@ -192,7 +192,7 @@ class Bot(commands.Cog):
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         await self.db.update_member(
-            member,
+            user,
             {
                 "$inc": {"next_id": 1},
                 "$push": {

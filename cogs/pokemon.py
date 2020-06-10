@@ -299,7 +299,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def order(self, ctx: commands.Context, *, sort: str):
+    async def order(self, ctx: commands.Context, *, sort: str = ""):
         """Change how your pokémon are ordered."""
 
         if (s := sort.lower()) not in ("number", "iv", "level", "abc", "pokedex"):
@@ -312,6 +312,23 @@ class Pokemon(commands.Cog):
         )
 
         await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
+
+    def parse_numerical_flag(self, text):
+        if not (1 <= len(text) <= 2):
+            return None
+
+        ops = text
+
+        if len(text) == 1 and text[0].isdigit():
+            ops = ["=", text[0]]
+
+        elif len(text) == 1 and not text[0][0].isdigit():
+            ops = [text[0][0], text[0][1:]]
+
+        if ops[0] not in ("<", "=", ">") or not ops[1].isdigit():
+            return None
+
+        return ops
 
     # Filter
     @flags.add_flag("page", nargs="?", default=1, type=int)
@@ -345,93 +362,98 @@ class Pokemon(commands.Cog):
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
 
-        member = await self.db.fetch_member(ctx.author)
-        pokemon = member.pokemon
+        aggregations = []
 
-        # Filter pokemon
+        # # Filter pokemon
 
         if flags["mythical"]:
-            pokemon = [p for p in pokemon if p.species.mythical]
+            aggregations.append(
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_mythical}}}
+            )
 
         if flags["legendary"]:
-            pokemon = [p for p in pokemon if p.species.legendary]
+            aggregations.append(
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_legendary}}}
+            )
 
         if flags["ub"]:
-            pokemon = [p for p in pokemon if p.species.ultra_beast]
+            aggregations.append(
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_ub}}}
+            )
 
         if flags["favorite"]:
-            pokemon = [p for p in pokemon if p.favorite]
+            aggregations.append({"$match": {"pokemon.favorite": True}})
 
         if flags["name"] is not None:
-            pokemon = [
-                p
-                for p in pokemon
-                if flags["name"].lower() in p.species.correct_guesses
-                or flags["name"].lower() == (p.nickname or "").lower()
-            ]
+            try:
+                species = GameData.species_by_name(flags["name"])
+            except SpeciesNotFoundError:
+                return await ctx.send("Couldn't find a pokémon species with that name.")
+
+            aggregations.append({"$match": {"pokemon.species_id": species.id}})
 
         if flags["level"] is not None:
-            pokemon = [p for p in pokemon if p.level == flags["level"]]
+            aggregations.append({"$match": {"pokemon.level": flags["level"]}})
 
         # Numerical flags
 
-        for flag in FILTER_BY_NUMERICAL:
+        for flag, expr in FILTER_BY_NUMERICAL.items():
             if (text := flags[flag]) is not None:
+                ops = self.parse_numerical_flag(text)
 
-                if len(text) == 0:
-                    return await ctx.send(
-                        f"Please specify a numerical value for `--{flag}`"
-                    )
-
-                if len(text) > 2:
-                    return await ctx.send(
-                        f"Received too many arguments for `--{flag} {' '.join(text)}`"
-                    )
-
-                ops = text
-
-                # Entered just a number
-                if len(text) == 1 and text[0].isdigit():
-                    ops = ["=", text[0]]
-
-                elif len(text) == 1 and not text[0][0].isdigit():
-                    ops = [text[0][0], text[0][1:]]
-
-                if ops[0] not in ("<", "=", ">") or not ops[1].isdigit():
-                    return await ctx.send(f"couldn't parse `--{flag} {' '.join(text)}`")
+                if ops is None:
+                    return await ctx.send(f"Couldn't parse `--{flag} {' '.join(text)}`")
 
                 if ops[0] == "<":
-                    pokemon = [
-                        p for p in pokemon if FILTER_BY_NUMERICAL[flag](p) < int(ops[1])
-                    ]
+                    aggregations.extend(
+                        [
+                            {"$addFields": {flag: expr}},
+                            {"$match": {flag: {"$lt": int(ops[1])}}},
+                        ]
+                    )
                 elif ops[0] == "=":
-                    pokemon = [
-                        p
-                        for p in pokemon
-                        if FILTER_BY_NUMERICAL[flag](p) == int(ops[1])
-                    ]
+                    aggregations.extend(
+                        [
+                            {"$addFields": {flag: expr}},
+                            {"$match": {flag: {"$eq": int(ops[1])}}},
+                        ]
+                    )
                 elif ops[0] == ">":
-                    pokemon = [
-                        p for p in pokemon if FILTER_BY_NUMERICAL[flag](p) > int(ops[1])
-                    ]
+                    aggregations.extend(
+                        [
+                            {"$addFields": {flag: expr}},
+                            {"$match": {flag: {"$gt": int(ops[1])}}},
+                        ]
+                    )
 
-        # Sort pokemon
+        # Pagination
 
-        pokemon = sorted(pokemon, key=SORTING_FUNCTIONS[member.order_by])
+        member = await self.db.fetch_member_info(ctx.author)
+
+        aggregations.extend(
+            [
+                {"$addFields": {"sorting": SORTING_FUNCTIONS[member.order_by]}},
+                {"$sort": {"sorting": 1}},
+            ]
+        )
+
+        pgstart = (flags["page"] - 1) * 20
+        pokemon = await self.db.fetch_pokemon_list(
+            ctx.author, pgstart, 20, aggregations=aggregations
+        )
+
+        if len(pokemon[0]["count"]) == 0:
+            return await ctx.send("Found no pokémon matching this search.")
+
+        num = pokemon[0]["count"][0]["num_matches"]
+        pokemon = [
+            mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon[0]["items"]
+        ]
 
         # If nothing matches
 
         if len(pokemon) == 0:
-            return await ctx.send("Found no pokémon matching those parameters.")
-
-        # Pagination
-
-        pgstart = (flags["page"] - 1) * 20
-
-        if pgstart >= len(pokemon) or pgstart < 0:
-            return await ctx.send("There are no pokémon on this page.")
-
-        pgend = min(flags["page"] * 20, len(pokemon))
+            return await ctx.send("There are no pokémon on this page!")
 
         def nick(p):
             name = str(p.species)
@@ -443,7 +465,7 @@ class Pokemon(commands.Cog):
 
         page = [
             f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
-            for p in pokemon[pgstart:pgend]
+            for p in pokemon
         ]
 
         # Send embed
@@ -452,6 +474,8 @@ class Pokemon(commands.Cog):
         embed.color = 0xF44336
         embed.title = f"Your pokémon"
         embed.description = "\n".join(page)
-        embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokemon)}.")
+        embed.set_footer(
+            text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
+        )
 
         await ctx.send(embed=embed)

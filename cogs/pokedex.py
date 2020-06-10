@@ -4,6 +4,8 @@ from discord.ext import commands
 from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers import checks
 
+from .database import Database
+
 
 class Pokedex(commands.Cog):
     """Pokédex-related commands."""
@@ -12,15 +14,13 @@ class Pokedex(commands.Cog):
         self.bot = bot
 
     @property
-    def db(self):
+    def db(self) -> Database:
         return self.bot.get_cog("Database")
 
     @checks.has_started()
     @commands.command(aliases=["dex"])
     async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
         """View your pokédex, or search for a pokémon species."""
-
-        member = await self.db.fetch_member(ctx.author)
 
         if search_or_page is None:
             search_or_page = "1"
@@ -33,6 +33,10 @@ class Pokedex(commands.Cog):
 
             pgend = min(int(search_or_page) * 20, 809)
 
+            member = await self.db.fetch_pokedex(ctx.author, pgstart, pgend)
+
+            print(member.pokedex)
+
             # Send embed
 
             embed = discord.Embed()
@@ -40,9 +44,9 @@ class Pokedex(commands.Cog):
             embed.title = f"Your pokédex"
             embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
 
-            embed.description = (
-                f"You've caught {len(member.pokedex)} out of 809 pokémon!"
-            )
+            # embed.description = (
+            #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
+            # )
 
             for p in range(pgstart + 1, pgend + 1):
                 species = GameData.species_by_number(p)

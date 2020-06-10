@@ -20,6 +20,37 @@ class Database(commands.Cog):
             {"id": member.id}, {"pokemon": 0, "pokedex": 0}
         )
 
+    async def fetch_pokedex(
+        self, member: discord.Member, start: int, end: int
+    ) -> mongo.Member:
+
+        filter_obj = {}
+
+        for i in range(start, end):
+            filter_obj[f"pokedex.{i}"] = 1
+
+        print(filter_obj)
+
+        return await mongo.Member.find_one({"id": member.id}, filter_obj)
+
+    async def fetch_pokemon_list(
+        self, member: discord.Member, skip: int, limit: int, aggregations=[]
+    ) -> mongo.Member:
+
+        return await mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$unwind": "$pokemon"},
+                *aggregations,
+                {
+                    "$facet": {
+                        "count": [{"$count": "num_matches"}],
+                        "items": [{"$skip": skip}, {"$limit": limit}],
+                    }
+                },
+            ]
+        ).to_list(None)
+
     async def update_member(self, member: discord.Member, update):
         return await mongo.db.member.update_one({"_id": member.id}, update)
 
