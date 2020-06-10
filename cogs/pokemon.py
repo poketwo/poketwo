@@ -306,9 +306,9 @@ class Pokemon(commands.Cog):
     async def order(self, ctx: commands.Context, *, sort: str = ""):
         """Change how your pokémon are ordered."""
 
-        if (s := sort.lower()) not in ("number", "iv", "level", "abc", "pokedex"):
+        if (s := sort.lower()) not in ("number", "iv", "level", "pokedex"):
             return await ctx.send(
-                "Please specify either `number`, `IV`, `level`, `pokedex`, or `abc`."
+                "Please specify either `number`, `IV`, `level`, or `pokedex`."
             )
 
         await self.db.update_member(
