@@ -44,7 +44,7 @@ class Trading(commands.Cog):
             )
 
         embed.set_footer(
-            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pp` to add Poképoints, or `p!trade confirm` to confirm."
+            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pp` to add Poképoints, `p!trade confirm` to confirm, or `p!trade cancel` to cancel."
         )
 
         for i, side in trade["items"].items():
@@ -168,7 +168,7 @@ class Trading(commands.Cog):
             await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
-    @trade.command()
+    @trade.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
         if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
             return await ctx.send("You're not in a trade!")
@@ -180,7 +180,7 @@ class Trading(commands.Cog):
         await ctx.send("The trade has been canceled.")
 
     @checks.has_started()
-    @trade.command()
+    @trade.command(aliases=["c"])
     async def confirm(self, ctx: commands.Context):
         if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
             return await ctx.send("You're not in a trade!")
@@ -192,20 +192,29 @@ class Trading(commands.Cog):
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
-    @trade.command()
+    @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *, what: str):
         if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
             return await ctx.send("You're not in a trade!")
 
         if what.isdigit():
+            member = await self.db.fetch_member_info(ctx.author)
             t = await self.db.fetch_pokemon(ctx.author, int(what))
 
             if t is None:
                 return await ctx.send("Couldn't find a pokémon with that number!")
 
+            pokemon = t.pokemon[0]
+
+            if member.selected == pokemon.number:
+                return await ctx.send("You can't trade your selected pokémon!")
+
+            if pokemon.favorite:
+                return await ctx.send("You can't trade favorited pokémon!")
+
             self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
                 ctx.author.id
-            ].append(t.pokemon[0])
+            ].append()
 
         elif what.lower().endswith("pp"):
             num = what.replace("pp", "").strip()
