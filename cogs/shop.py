@@ -30,7 +30,7 @@ class Shop(commands.Cog):
     async def bal(self, ctx: commands.Context):
         """View your current balance."""
 
-        await ctx.send(f"You have {await self.balance(ctx.author)} credits.")
+        await ctx.send(f"You have {await self.balance(ctx.author)} Poképoints.")
 
     @commands.command()
     async def shop(self, ctx: commands.Context, *, page: int = 0):
@@ -40,7 +40,7 @@ class Shop(commands.Cog):
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Pokétwo Shop — {member.balance} credits"
+        embed.title = f"Pokétwo Shop — {member.balance} Poképoints"
 
         if page == 0:
             embed.description = "Use `p!shop <page>` to view different pages."
@@ -66,7 +66,7 @@ class Shop(commands.Cog):
                     except StopIteration:
                         pass
                 embed.add_field(
-                    name=f"{emote}{item.name} – {item.cost}c",
+                    name=f"{emote}{item.name} – {item.cost} pp",
                     value=f"{item.description}",
                     inline=item.inline,
                 )
@@ -95,8 +95,11 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member(ctx.author)
 
+        if member.selected_pokemon is None:
+            return await ctx.send("You do not have a pokémon selected!")
+
         if member.balance < item.cost:
-            return await ctx.send("You don't have enough credits for that!")
+            return await ctx.send("You don't have enough Poképoints for that!")
 
         if item.action == "evolve_mega":
             if member.selected_pokemon.species.mega is None:

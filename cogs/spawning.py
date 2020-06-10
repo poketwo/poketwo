@@ -50,7 +50,7 @@ class Spawning(commands.Cog):
 
         member = await self.db.fetch_member(message.author)
 
-        if member is not None:
+        if member is not None and member.selected_pokemon is not None:
             pokemon = member.selected_pokemon
 
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
@@ -232,7 +232,7 @@ class Spawning(commands.Cog):
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
         if str(species.dex_number) not in member.pokedex:
-            message += " Added to Pokédex. You received 35 credits!"
+            message += " Added to Pokédex. You received 35 Poképoints!"
 
             await self.db.update_member(
                 ctx.author,
@@ -246,16 +246,16 @@ class Spawning(commands.Cog):
             inc_bal = 0
 
             if member.pokedex[str(species.dex_number)] + 1 == 10:
-                message += f" This is your 10th {species}! You received 350 credits."
+                message += f" This is your 10th {species}! You received 350 Poképoints."
                 inc_bal = 350
 
             elif member.pokedex[str(species.dex_number)] + 1 == 100:
-                message += f" This is your 100th {species}! You received 3500 credits."
+                message += f" This is your 100th {species}! You received 3500 Poképoints."
                 inc_bal = 3500
 
             elif member.pokedex[str(species.dex_number)] + 1 == 1000:
                 message += (
-                    f" This is your 1000th {species}! You received 35000 credits."
+                    f" This is your 1000th {species}! You received 35000 Poképoints."
                 )
                 inc_bal = 35000
 

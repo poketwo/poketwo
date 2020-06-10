@@ -88,6 +88,10 @@ class Pokemon(commands.Cog):
             nickname = None
 
         member = await self.db.fetch_member(ctx.author)
+
+        if member.selected_pokemon is None:
+            return await ctx.send("You do not have a pokémon selected!")
+
         await self.db.update_pokemon(
             ctx.author, member.selected, {"$set": {"pokemon.$.nickname": nickname}},
         )
@@ -109,6 +113,9 @@ class Pokemon(commands.Cog):
 
         if number is None:
             pokemon = member.selected_pokemon
+
+            if member.selected_pokemon is None:
+                return await ctx.send("You do not have a pokémon selected!")
 
         elif number.isdigit():
             try:
@@ -215,6 +222,9 @@ class Pokemon(commands.Cog):
 
         if number is None:
             pokemon = member.selected_pokemon
+
+            if member.selected_pokemon is None:
+                return await ctx.send("You do not have a pokémon selected!")
 
         elif number.isdigit():
             try:

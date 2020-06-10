@@ -161,7 +161,10 @@ class Member(Document):
 
     @property
     def selected_pokemon(self):
-        return next(filter(lambda x: x.number == int(self.selected), self.pokemon))
+        try:
+            return next(filter(lambda x: x.number == int(self.selected), self.pokemon))
+        except StopIteration:
+            return None
 
     @property
     def boost_active(self):

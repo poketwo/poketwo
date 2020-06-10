@@ -15,8 +15,19 @@ class Database(commands.Cog):
     async def fetch_member(self, member: discord.Member) -> mongo.Member:
         return await mongo.Member.find_one({"id": member.id})
 
+    async def fetch_member_info(self, member: discord.Member) -> mongo.Member:
+        return await mongo.Member.find_one(
+            {"id": member.id}, {"pokemon": 0, "pokedex": 0}
+        )
+
     async def update_member(self, member: discord.Member, update):
         return await mongo.db.member.update_one({"_id": member.id}, update)
+
+    async def fetch_pokemon(self, member: discord.Member, number: int):
+        return await mongo.Member.find_one(
+            {"_id": member.id, "pokemon.number": number},
+            projection={"pokemon": {"$elemMatch": {"number": number}}},
+        )
 
     async def update_pokemon(self, member: discord.Member, number: int, update):
         return await mongo.db.member.update_one(

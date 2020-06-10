@@ -31,6 +31,7 @@ bot.add_cog(Pokedex(bot))
 bot.add_cog(Pokemon(bot))
 bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
+bot.add_cog(Trading(bot))
 
 
 @bot.event
