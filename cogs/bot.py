@@ -173,3 +173,42 @@ class Bot(commands.Cog):
     async def eval(self, ctx: commands.Context, *, code: str):
         result = eval(code)
         await ctx.send(result)
+
+    @commands.is_owner()
+    @commands.command()
+    async def admingive(
+        self, ctx: commands.Context, user: discord.Member, *, species: str
+    ):
+        """Redeem a pokémon."""
+
+        member = await self.db.fetch_member(user)
+
+        try:
+            species = GameData.species_by_name(species)
+        except SpeciesNotFoundError:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        await self.db.update_member(
+            member,
+            {
+                "$inc": {"next_id": 1},
+                "$push": {
+                    "pokemon": {
+                        "number": member.next_id,
+                        "species_id": species.id,
+                        "level": 1,
+                        "xp": 0,
+                        "owner_id": ctx.author.id,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": mongo.random_iv(),
+                        "iv_atk": mongo.random_iv(),
+                        "iv_defn": mongo.random_iv(),
+                        "iv_satk": mongo.random_iv(),
+                        "iv_sdef": mongo.random_iv(),
+                        "iv_spd": mongo.random_iv(),
+                    }
+                },
+            },
+        )
+
+        await ctx.send(f"Gave {user.mention} a {species}.")
