@@ -131,7 +131,7 @@ class Spawning(commands.Cog):
             self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
         if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
-            self.guilds[message.guild.id] %= 15
+            self.guilds[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
@@ -233,7 +233,7 @@ class Spawning(commands.Cog):
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
-        memberp = await self.db.fetch_pokedex(message.author, species.id, species.id + 1)
+        memberp = await self.db.fetch_pokedex(ctx.author, species.id, species.id + 1)
 
         if str(species.dex_number) not in memberp.pokedex:
             message += " Added to Pokédex. You received 35 Poképoints!"
