@@ -198,6 +198,16 @@ class Trading(commands.Cog):
             return await ctx.send("You're not in a trade!")
 
         if what.isdigit():
+
+            for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][ctx.author.id]:
+                if type(x) == int:
+                    continue
+
+                print(x)
+
+                if x.number == int(what):
+                    return await ctx.send("Nice try...")
+
             member = await self.db.fetch_member_info(ctx.author)
             t = await self.db.fetch_pokemon(ctx.author, int(what))
 
