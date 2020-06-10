@@ -343,14 +343,6 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name")
     @flags.add_flag("--level", type=int)
 
-    # Stats
-    @flags.add_flag("--hp", nargs="+")
-    @flags.add_flag("--atk", nargs="+")
-    @flags.add_flag("--def", nargs="+")
-    @flags.add_flag("--spatk", nargs="+")
-    @flags.add_flag("--spdef", nargs="+")
-    @flags.add_flag("--spd", nargs="+")
-
     # IV
     @flags.add_flag("--hpiv", nargs="+")
     @flags.add_flag("--atkiv", nargs="+")
