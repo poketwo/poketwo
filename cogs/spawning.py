@@ -139,10 +139,11 @@ class Spawning(commands.Cog):
                 channel = message.channel
 
             if self.bot.env != "dev" and message.guild.id == 716390832034414685:
-                if self.guilds[message.guild.id] % 2 == 0:
-                    channel = self.bot.get_channel(717095398476480562)
-                else:
-                    channel = self.bot.get_channel(720020140401360917)
+                channel = self.bot.get_channel(
+                    random.choice(
+                        [717095398476480562, 720020140401360917, 720231680564264971]
+                    )
+                )
 
             await self.spawn_pokemon(channel)
 
@@ -250,7 +251,9 @@ class Spawning(commands.Cog):
                 inc_bal = 350
 
             elif member.pokedex[str(species.dex_number)] + 1 == 100:
-                message += f" This is your 100th {species}! You received 3500 Poképoints."
+                message += (
+                    f" This is your 100th {species}! You received 3500 Poképoints."
+                )
                 inc_bal = 3500
 
             elif member.pokedex[str(species.dex_number)] + 1 == 1000:
