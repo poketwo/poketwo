@@ -81,11 +81,11 @@ class Pokemon(commands.Cog):
     async def nickname(self, ctx: commands.Context, *, nickname: str):
         """Change the nickname for your pokémon."""
 
-        if nickname == "reset":
-            nickname = None
-
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
+
+        if nickname == "reset":
+            nickname = None
 
         member = await self.db.fetch_member(ctx.author)
         await self.db.update_pokemon(
