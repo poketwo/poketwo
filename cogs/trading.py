@@ -43,7 +43,9 @@ class Trading(commands.Cog):
                 f"✅ Completed trade between {a.display_name} and {b.display_name}."
             )
 
-        embed.description = "Type **p!trade add <number>** to add a pokémon, **p!trade add <number> pp** to add Poképoints, or **p!trade confirm** to confirm."
+        embed.set_footer(
+            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pp` to add Poképoints, or `p!trade confirm` to confirm."
+        )
 
         for i, side in trade["items"].items():
             mem = ctx.guild.get_member(i)
