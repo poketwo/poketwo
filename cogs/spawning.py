@@ -69,7 +69,9 @@ class Spawning(commands.Cog):
                 )
 
             if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
-                update = {"$inc": {"pokemon.$.level": 1}, "$set": {"pokemon.$.xp": 0}}
+                update = {
+                    "$set": {"pokemon.$.xp": 0, "pokemon.$.level": pokemon.level + 1}
+                }
                 embed = discord.Embed()
                 embed.color = 0xF44336
                 embed.title = f"Congratulations {message.author.name}!"
