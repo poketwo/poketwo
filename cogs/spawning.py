@@ -172,11 +172,6 @@ class Spawning(commands.Cog):
         )
         embed.set_image(url="attachment://pokemon.png")
 
-        if channel.guild.id != 716390832034414685:
-            embed.set_footer(
-                text="We're giving out a Sky Shaymin! Join the official server using `p!invite` to enter."
-            )
-
         await channel.send(file=image, embed=embed)
 
     @checks.has_started()
