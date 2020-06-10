@@ -364,17 +364,17 @@ class Pokemon(commands.Cog):
 
         if flags["mythical"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_mythical}}}
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_mythical()}}}
             )
 
         if flags["legendary"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_legendary}}}
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_legendary()}}}
             )
 
         if flags["ub"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_ub}}}
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_ub()}}}
             )
 
         if flags["favorite"]:

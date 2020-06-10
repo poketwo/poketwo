@@ -323,15 +323,21 @@ class GameData:
 
     @classmethod
     def list_mythical(cls):
-        return [k for k, v in _Data.pokemon.items() if v.mythical]
+        if not hasattr(cls, "_mythical"):
+            cls._mythical = [v.id for v in _Data.pokemon.values() if v.mythical]
+        return cls._mythical
 
     @classmethod
     def list_legendary(cls):
-        return [k for k, v in _Data.pokemon.items() if v.mythical]
+        if not hasattr(cls, "_legendary"):
+            cls._legendary = [v.id for v in _Data.pokemon.values() if v.legendary]
+        return cls._legendary
 
     @classmethod
     def list_ub(cls):
-        return [k for k, v in _Data.pokemon.items() if v.mythical]
+        if not hasattr(cls, "_ultra_beast"):
+            cls._ultra_beast = [v.id for v in _Data.pokemon.values() if v.ultra_beast]
+        return cls._ultra_beast
 
     @classmethod
     def all_items(cls):
