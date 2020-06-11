@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers import checks
+from .helpers.pagination import Paginator
 
 from .database import Database
 
@@ -31,33 +32,41 @@ class Pokedex(commands.Cog):
             if pgstart >= 809 or pgstart < 0:
                 return await ctx.send("There are no pokémon on this page.")
 
-            pgend = min(int(search_or_page) * 20, 809)
+            num = await self.db.fetch_pokedex_count(ctx.author)
+            num = num[0]["count"]
 
-            member = await self.db.fetch_pokedex(ctx.author, pgstart, pgend)
+            async def get_page(pidx, clear):
+                pgstart = (pidx) * 20
+                pgend = min(pgstart + 20, 809)
 
-            print(member.pokedex)
+                member = await self.db.fetch_pokedex(ctx.author, pgstart, pgend)
 
-            # Send embed
+                # Send embed
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"Your pokédex"
-            embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
+                embed = discord.Embed()
+                embed.color = 0xF44336
+                embed.title = f"Your pokédex"
+                embed.description = f"You've caught {num} out of 809 pokémon!"
+                embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
 
-            # embed.description = (
-            #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
-            # )
+                # embed.description = (
+                #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
+                # )
 
-            for p in range(pgstart + 1, pgend + 1):
-                species = GameData.species_by_number(p)
-                text = "Not caught yet! ❌"
-                if str(species.dex_number) in member.pokedex:
-                    text = f"{member.pokedex[str(species.dex_number)]} caught! ✅"
-                embed.add_field(name=f"{species.name} #{species.id}", value=text)
+                for p in range(pgstart + 1, pgend + 1):
+                    species = GameData.species_by_number(p)
+                    text = "Not caught yet! ❌"
+                    if str(species.dex_number) in member.pokedex:
+                        text = f"{member.pokedex[str(species.dex_number)]} caught! ✅"
+                    embed.add_field(name=f"{species.name} #{species.id}", value=text)
 
-            embed.add_field(name="‎", value="‎")
+                if pgend != 809:
+                    embed.add_field(name="‎", value="‎")
 
-            await ctx.send(embed=embed)
+                return embed
+
+            paginator = Paginator(get_page, num_pages=41)
+            await paginator.send(self.bot, ctx, int(search_or_page) - 1)
 
         else:
             try:

@@ -39,12 +39,32 @@ class Database(commands.Cog):
                 {"$match": {"_id": member.id}},
                 {"$unwind": "$pokemon"},
                 *aggregations,
-                {
-                    "$facet": {
-                        "count": [{"$count": "num_matches"}],
-                        "items": [{"$skip": skip}, {"$limit": limit}],
-                    }
-                },
+                {"$skip": skip},
+                {"$limit": limit},
+            ]
+        ).to_list(None)
+
+    async def fetch_pokemon_count(
+        self, member: discord.Member, aggregations=[]
+    ) -> mongo.Member:
+
+        return await mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$unwind": "$pokemon"},
+                *aggregations,
+                {"$count": "num_matches"},
+            ]
+        ).to_list(None)
+
+    async def fetch_pokedex_count(
+        self, member: discord.Member, aggregations=[]
+    ) -> mongo.Member:
+
+        return await mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$addFields": {"count": {"$size": {"$objectToArray": "$pokedex"}}}},
             ]
         ).to_list(None)
 
@@ -59,6 +79,20 @@ class Database(commands.Cog):
         return await mongo.Member.find_one(
             {"_id": member.id, "pokemon.number": number},
             projection={"pokemon": {"$elemMatch": {"number": number}}},
+        )
+
+    async def fetch_pokemon_idx(self, member: discord.Member, number: int):
+        return await mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
+                {"$match": {"pokemon.number": number}},
+            ]
+        ).to_list(None)
+
+    async def fetch_pokemon_by_idx(self, member: discord.Member, idx: int):
+        return await mongo.Member.find_one(
+            {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
         )
 
     async def update_pokemon(self, member: discord.Member, number: int, update):

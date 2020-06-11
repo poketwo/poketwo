@@ -1,3 +1,4 @@
+import math
 from functools import cached_property
 
 import discord
@@ -5,8 +6,9 @@ from discord.ext import commands, flags
 
 from .database import Database
 from .helpers import checks, mongo
-from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.constants import *
+from .helpers.models import GameData, SpeciesNotFoundError
+from .helpers.pagination import Paginator
 
 
 class Pokemon(commands.Cog):
@@ -213,60 +215,71 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, number: str = None):
         """View a specific pokémon from your collection."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        num = num[0]["num_matches"]
 
-        if number is None:
-            pokemon = member.selected
-        elif number.isdigit():
-            pokemon = int(number)
-        elif number == "latest":
-            pokemon = -1
-
+        if number == "latest":
+            pidx = -1
         else:
-            return await ctx.send(
-                "Please use `p!info` to view your selected pokémon, "
-                "`p!info <number>` to view another pokémon, "
-                "or `p!info latest` to view your latest pokémon."
+            if number is None:
+                member = await self.db.fetch_member_info(ctx.author)
+                pidx = await self.db.fetch_pokemon_idx(ctx.author, member.selected)
+            elif number.isdigit():
+                pidx = await self.db.fetch_pokemon_idx(ctx.author, int(number))
+            else:
+                return await ctx.send(
+                    "Please use `p!info` to view your selected pokémon, "
+                    "`p!info <number>` to view another pokémon, "
+                    "or `p!info latest` to view your latest pokémon."
+                )
+
+            if len(pidx) == 0:
+                return await ctx.send("Couldn't find that pokémon!")
+
+            pidx = pidx[0]["idx"]
+
+        async def get_page(pidx, clear):
+            pokemon = await self.db.fetch_pokemon_by_idx(ctx.author, pidx)
+
+            if pokemon is None:
+                return await clear("Couldn't find that pokémon!")
+
+            pokemon = pokemon.pokemon[0]
+
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Level {pokemon.level} {pokemon.species}"
+
+            if pokemon.nickname is not None:
+                embed.title += f' "{pokemon.nickname}"'
+
+            embed.set_image(url=pokemon.species.image_url)
+            embed.set_thumbnail(url=ctx.author.avatar_url)
+
+            info = (
+                f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
+                f"**Nature:** {pokemon.nature}",
             )
 
-        pokemon = await self.db.fetch_pokemon(ctx.author, pokemon)
+            embed.add_field(name="Details", value="\n".join(info), inline=False)
 
-        if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            stats = (
+                f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
+                f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
+                f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
+                f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
+                f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
+                f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
+                f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
+            )
 
-        pokemon = pokemon.pokemon[0]
+            embed.add_field(name="Stats", value="\n".join(stats), inline=False)
+            embed.set_footer(text=f"Displaying pokémon number {pokemon.number}.")
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
-        embed.title = f"Level {pokemon.level} {pokemon.species}"
+            return embed
 
-        if pokemon.nickname is not None:
-            embed.title += f' "{pokemon.nickname}"'
-
-        embed.set_image(url=pokemon.species.image_url)
-        embed.set_thumbnail(url=ctx.author.avatar_url)
-
-        info = (
-            f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
-            f"**Nature:** {pokemon.nature}",
-        )
-
-        embed.add_field(name="Details", value="\n".join(info), inline=False)
-
-        stats = (
-            f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
-            f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
-            f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
-            f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
-            f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
-            f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
-            f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
-        )
-
-        embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-        embed.set_footer(text=f"Displaying pokémon number {pokemon.number}.")
-
-        await ctx.send(embed=embed)
+        paginator = Paginator(get_page, num_pages=num)
+        await paginator.send(self.bot, ctx, pidx)
 
     @checks.has_started()
     @commands.command()
@@ -335,7 +348,7 @@ class Pokemon(commands.Cog):
         return ops
 
     # Filter
-    @flags.add_flag("page", nargs="?", default=1, type=int)
+    @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -357,6 +370,9 @@ class Pokemon(commands.Cog):
     @flags.command()
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
+
+        if flags["page"] < 1:
+            return await ctx.send("Page must be positive!")
 
         aggregations = []
 
@@ -433,24 +449,6 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        pgstart = (flags["page"] - 1) * 20
-        pokemon = await self.db.fetch_pokemon_list(
-            ctx.author, pgstart, 20, aggregations=aggregations
-        )
-
-        if len(pokemon[0]["count"]) == 0:
-            return await ctx.send("Found no pokémon matching this search.")
-
-        num = pokemon[0]["count"][0]["num_matches"]
-        pokemon = [
-            mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon[0]["items"]
-        ]
-
-        # If nothing matches
-
-        if len(pokemon) == 0:
-            return await ctx.send("There are no pokémon on this page!")
-
         def nick(p):
             name = str(p.species)
             if p.nickname is not None:
@@ -459,19 +457,43 @@ class Pokemon(commands.Cog):
                 name = "❤️ " + name
             return name
 
-        page = [
-            f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
-            for p in pokemon
-        ]
-
-        # Send embed
-
-        embed = discord.Embed()
-        embed.color = 0xF44336
-        embed.title = f"Your pokémon"
-        embed.description = "\n".join(page)
-        embed.set_footer(
-            text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
+        pokemon = await self.db.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
         )
 
-        await ctx.send(embed=embed)
+        if len(pokemon) == 0:
+            return await ctx.send("Found no pokémon matching this search.")
+
+        num = pokemon[0]["num_matches"]
+
+        async def get_page(pidx, clear):
+
+            pgstart = pidx * 20
+            pokemon = await self.db.fetch_pokemon_list(
+                ctx.author, pgstart, 20, aggregations=aggregations
+            )
+
+            pokemon = [mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon]
+
+            if len(pokemon) == 0:
+                return await clear("There are no pokémon on this page!")
+
+            page = [
+                f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
+                for p in pokemon
+            ]
+
+            # Send embed
+
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Your pokémon"
+            embed.description = "\n".join(page)
+            embed.set_footer(
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
+            )
+
+            return embed
+
+        paginator = Paginator(get_page, num_pages=math.ceil(num / 20))
+        await paginator.send(self.bot, ctx, flags["page"] - 1)
