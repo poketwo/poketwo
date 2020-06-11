@@ -57,10 +57,7 @@ class Spawning(commands.Cog):
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                 xp_inc = random.randint(10, 40)
 
-                if member.boost_active:
-                    xp_inc *= 2
-
-                if message.guild.id == 716390832034414685:
+                if member.boost_active or message.guild.id == 716390832034414685:
                     xp_inc *= 2
 
                 await self.db.update_pokemon(
