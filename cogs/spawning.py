@@ -127,9 +127,6 @@ class Spawning(commands.Cog):
         self.cooldown[message.guild.id] = current
         self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
 
-        if self.bot.env != "dev" and message.guild.id == 716390832034414685:
-            self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
-
         if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
             self.guilds[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
