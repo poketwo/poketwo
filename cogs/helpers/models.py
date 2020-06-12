@@ -340,6 +340,10 @@ class GameData:
         return cls._ultra_beast
 
     @classmethod
+    def list_type(cls, typee: str):
+        return [v.id for v in _Data.pokemon.values() if typee.title() in v.types]
+
+    @classmethod
     def all_items(cls):
         return _Data.items.values()
 

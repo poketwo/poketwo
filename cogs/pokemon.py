@@ -1,3 +1,4 @@
+import asyncio
 import math
 from functools import cached_property
 
@@ -347,36 +348,8 @@ class Pokemon(commands.Cog):
 
         return ops
 
-    # Filter
-    @flags.add_flag("page", nargs="?", type=int, default=1)
-    @flags.add_flag("--mythical", action="store_true")
-    @flags.add_flag("--legendary", action="store_true")
-    @flags.add_flag("--ub", action="store_true")
-    @flags.add_flag("--favorite", action="store_true")
-    @flags.add_flag("--name")
-    @flags.add_flag("--level", type=int)
-
-    # IV
-    @flags.add_flag("--hpiv", nargs="+")
-    @flags.add_flag("--atkiv", nargs="+")
-    @flags.add_flag("--defiv", nargs="+")
-    @flags.add_flag("--spatkiv", nargs="+")
-    @flags.add_flag("--spdefiv", nargs="+")
-    @flags.add_flag("--spdiv", nargs="+")
-    @flags.add_flag("--iv", nargs="+")
-
-    # Pokemon
-    @checks.has_started()
-    @flags.command()
-    async def pokemon(self, ctx: commands.Context, **flags):
-        """List the pokémon in your collection."""
-
-        if flags["page"] < 1:
-            return await ctx.send("Page must be positive!")
-
+    async def create_filter(self, flags, ctx):
         aggregations = []
-
-        # # Filter pokemon
 
         if flags["mythical"]:
             aggregations.append(
@@ -393,6 +366,15 @@ class Pokemon(commands.Cog):
                 {"$match": {"pokemon.species_id": {"$in": GameData.list_ub()}}}
             )
 
+        if flags["type"]:
+            aggregations.append(
+                {
+                    "$match": {
+                        "pokemon.species_id": {"$in": GameData.list_type(flags["type"])}
+                    }
+                }
+            )
+
         if flags["favorite"]:
             aggregations.append({"$match": {"pokemon.favorite": True}})
 
@@ -400,7 +382,8 @@ class Pokemon(commands.Cog):
             try:
                 species = GameData.species_by_name(flags["name"])
             except SpeciesNotFoundError:
-                return await ctx.send("Couldn't find a pokémon species with that name.")
+                await ctx.send("Couldn't find a pokémon species with that name.")
+                return
 
             aggregations.append({"$match": {"pokemon.species_id": species.id}})
 
@@ -414,7 +397,8 @@ class Pokemon(commands.Cog):
                 ops = self.parse_numerical_flag(text)
 
                 if ops is None:
-                    return await ctx.send(f"Couldn't parse `--{flag} {' '.join(text)}`")
+                    await ctx.send(f"Couldn't parse `--{flag} {' '.join(text)}`")
+                    return
 
                 if ops[0] == "<":
                     aggregations.extend(
@@ -437,6 +421,98 @@ class Pokemon(commands.Cog):
                             {"$match": {flag: {"$gt": int(ops[1])}}},
                         ]
                     )
+
+        return aggregations
+
+    @checks.has_started()
+    @commands.command()
+    async def release(self, ctx: commands.Context, *, number: str = ""):
+        """Release a specific pokémon from your collection."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if number.isdigit():
+            number = int(number)
+        elif number.lower() == "latest":
+            number = -1
+
+        else:
+            return await ctx.send(
+                "`p!release <number>` to release a pokémon "
+                "or `p!release latest` to release your latest pokémon."
+            )
+
+        pokemon = await self.db.fetch_pokemon(ctx.author, number)
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        pokemon = pokemon.pokemon[0]
+
+        if member.selected == pokemon.number:
+            return await ctx.send(f"You can't release your selected pokémon!")
+
+        if pokemon.favorite:
+            return await ctx.send(f"You can't release favorited pokémon!")
+
+        await ctx.send(
+            f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=15, check=check)
+
+            if msg.content.lower() != "y":
+                return await ctx.send("Aborted.")
+
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        await self.db.update_member(
+            ctx.author, {"$pull": {"pokemon": {"number": number}}}
+        )
+
+        await ctx.send(
+            f"You released your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
+        )
+
+    # Filter
+    @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--favorite", action="store_true")
+    @flags.add_flag("--name")
+    @flags.add_flag("--level", type=int)
+    @flags.add_flag("--type", type=str)
+
+    # IV
+    @flags.add_flag("--hpiv", nargs="+")
+    @flags.add_flag("--atkiv", nargs="+")
+    @flags.add_flag("--defiv", nargs="+")
+    @flags.add_flag("--spatkiv", nargs="+")
+    @flags.add_flag("--spdefiv", nargs="+")
+    @flags.add_flag("--spdiv", nargs="+")
+    @flags.add_flag("--iv", nargs="+")
+
+    # Pokemon
+    @checks.has_started()
+    @flags.command()
+    async def pokemon(self, ctx: commands.Context, **flags):
+        """List the pokémon in your collection."""
+
+        if flags["page"] < 1:
+            return await ctx.send("Page must be positive!")
+
+        aggregations = await self.create_filter(flags, ctx)
+
+        if aggregations is None:
+            return
+
+        # # Filter pokemon
 
         # Pagination
 
