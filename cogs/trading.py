@@ -59,7 +59,9 @@ class Trading(commands.Cog):
                 continue
 
             val = "\n".join(
-                f"{x} Poképoints" if type(x) == int else f"Level {x.level} {x.species}"
+                f"{x} Poképoints"
+                if type(x) == int
+                else f"Level {x.level} {x.species} ({x.number})"
                 for x in side
             )
 
@@ -193,43 +195,15 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @trade.command(aliases=["a"])
-    async def add(self, ctx: commands.Context, *, what: str):
+    async def add(self, ctx: commands.Context, *args):
         if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
             return await ctx.send("You're not in a trade!")
 
-        if what.isdigit():
+        if len(args) <= 2 and args[-1].lower().endswith("pp"):
 
-            for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][ctx.author.id]:
-                if type(x) == int:
-                    continue
+            what = args[0].replace("pp", "").strip()
 
-                print(x)
-
-                if x.number == int(what):
-                    return await ctx.send("Nice try...")
-
-            member = await self.db.fetch_member_info(ctx.author)
-            t = await self.db.fetch_pokemon(ctx.author, int(what))
-
-            if t is None:
-                return await ctx.send("Couldn't find a pokémon with that number!")
-
-            pokemon = t.pokemon[0]
-
-            if member.selected == pokemon.number:
-                return await ctx.send("You can't trade your selected pokémon!")
-
-            if pokemon.favorite:
-                return await ctx.send("You can't trade favorited pokémon!")
-
-            self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
-                ctx.author.id
-            ].append(pokemon)
-
-        elif what.lower().endswith("pp"):
-            num = what.replace("pp", "").strip()
-
-            if num.isdigit():
+            if what.isdigit():
                 current = sum(
                     x
                     for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
@@ -240,17 +214,63 @@ class Trading(commands.Cog):
 
                 member = await self.db.fetch_member_info(ctx.author)
 
-                if current + int(num) > member.balance:
+                if current + int(what) > member.balance:
                     return await ctx.send("You don't have enough Poképoints for that!")
 
                 self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
                     ctx.author.id
-                ].append(int(num))
+                ].append(int(what))
 
             else:
                 return await ctx.send("That's not a valid item to add to the trade!")
 
         else:
-            return await ctx.send("That's not a valid item to add to the trade!")
+
+            for what in args:
+
+                if what.isdigit():
+
+                    for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
+                        ctx.author.id
+                    ]:
+                        if type(x) == int:
+                            continue
+
+                        print(x)
+
+                        if x.number == int(what):
+                            await ctx.send(
+                                f"{what}: This item is already in the trade!"
+                            )
+                            continue
+
+                    member = await self.db.fetch_member_info(ctx.author)
+                    t = await self.db.fetch_pokemon(ctx.author, int(what))
+
+                    if t is None:
+                        await ctx.send(f"{what}: Couldn't find that pokémon!")
+                        continue
+
+                    pokemon = t.pokemon[0]
+
+                    if member.selected == pokemon.number:
+                        await ctx.send(
+                            f"{what}: You can't trade your selected pokémon!"
+                        )
+                        continue
+
+                    if pokemon.favorite:
+                        await ctx.send(f"{what}: You can't trade favorited pokémon!")
+                        continue
+
+                    self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
+                        ctx.author.id
+                    ].append(pokemon)
+
+                else:
+                    await ctx.send(
+                        f"{what}: That's not a valid item to add to the trade!"
+                    )
+                    continue
 
         await self.send_trade(ctx, ctx.author)
