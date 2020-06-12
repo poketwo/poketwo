@@ -219,7 +219,7 @@ class Pokemon(commands.Cog):
         num = await self.db.fetch_pokemon_count(ctx.author)
         num = num[0]["num_matches"]
 
-        if number.lower() == "latest":
+        if number is not None and number.lower() == "latest":
             pidx = -1
         else:
             if number is None:
