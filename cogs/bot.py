@@ -179,6 +179,19 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
+    async def admingiveredeem(
+        self, ctx: commands.Context, user: discord.Member, *, num: int = 1
+    ):
+        """Redeem a pokémon."""
+
+        await self.db.update_member(
+            user, {"$inc": {"redeems": num},},
+        )
+
+        await ctx.send(f"Gave {user.mention} {num} redeems.")
+
+    @commands.is_owner()
+    @commands.command()
     async def admingive(
         self, ctx: commands.Context, user: discord.Member, *, species: str
     ):

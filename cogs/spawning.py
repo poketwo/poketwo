@@ -154,7 +154,7 @@ class Spawning(commands.Cog):
 
         hint = "".join([x if i in blanks else "\_" for i, x in enumerate(species.name)])
 
-        self.pokemon[channel.id] = (species, level, hint)
+        self.pokemon[channel.id] = (species, level, hint, [])
 
         # Fetch image and send embed
 
@@ -179,7 +179,7 @@ class Spawning(commands.Cog):
         if ctx.channel.id not in self.pokemon:
             return
 
-        species, level, hint = self.pokemon[ctx.channel.id]
+        species, level, hint, _ = self.pokemon[ctx.channel.id]
         await ctx.send(f"The pokémon is {hint}.")
 
     @checks.has_started()
@@ -192,14 +192,20 @@ class Spawning(commands.Cog):
         if ctx.channel.id not in self.pokemon:
             return
 
-        species, level, hint = self.pokemon[ctx.channel.id]
+        species, level, hint, users = self.pokemon[ctx.channel.id]
 
         if deaccent(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database
 
-        del self.pokemon[ctx.channel.id]
+        if ctx.channel.id == 720944005856100452:
+            if ctx.author.id in users:
+                return await ctx.send("You have already caught this pokémon!")
+
+            users.append(ctx.author.id)
+        else:
+            del self.pokemon[ctx.channel.id]
 
         member = await self.db.fetch_member_info(ctx.author)
 
