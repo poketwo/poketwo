@@ -139,9 +139,9 @@ class Spawning(commands.Cog):
                         [717095398476480562, 720020140401360917, 720231680564264971]
                     )
                 )
+                await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
 
             await self.spawn_pokemon(channel)
-            await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
 
     async def spawn_pokemon(self, channel):
         # Get random species and level, add to tracker
