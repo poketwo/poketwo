@@ -117,7 +117,7 @@ class Pokemon(commands.Cog):
             pokemon = member.selected
         elif number.isdigit():
             pokemon = int(number)
-        elif number == "latest":
+        elif number.lower() == "latest":
             pokemon = -1
 
         else:
@@ -219,12 +219,15 @@ class Pokemon(commands.Cog):
         num = await self.db.fetch_pokemon_count(ctx.author)
         num = num[0]["num_matches"]
 
-        if number == "latest":
+        if number.lower() == "latest":
             pidx = -1
         else:
             if number is None:
                 member = await self.db.fetch_member_info(ctx.author)
-                pidx = await self.db.fetch_pokemon_idx(ctx.author, member.selected)
+                if member.selected == -1:
+                    pidx = -1
+                else:
+                    pidx = await self.db.fetch_pokemon_idx(ctx.author, member.selected)
             elif number.isdigit():
                 pidx = await self.db.fetch_pokemon_idx(ctx.author, int(number))
             else:
@@ -234,10 +237,10 @@ class Pokemon(commands.Cog):
                     "or `p!info latest` to view your latest pokémon."
                 )
 
-            if len(pidx) == 0:
-                return await ctx.send("Couldn't find that pokémon!")
-
-            pidx = pidx[0]["idx"]
+            if type(pidx) != int:
+                if len(pidx) == 0:
+                    return await ctx.send("Couldn't find that pokémon!")
+                pidx = pidx[0]["idx"]
 
         async def get_page(pidx, clear):
             pokemon = await self.db.fetch_pokemon_by_idx(ctx.author, pidx)
@@ -289,15 +292,17 @@ class Pokemon(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
+        orig = number
+
         if number.isdigit():
             number = int(number)
-        elif number == "latest":
+        elif number.lower() == "latest":
             number = -1
 
         else:
             return await ctx.send(
                 "`p!select <number>` to select a pokémon "
-                "or `p!select latest` to select your latest pokémon."
+                "or `p!select latest` to autoselect your latest pokémon."
             )
 
         pokemon = await self.db.fetch_pokemon(ctx.author, number)
@@ -311,9 +316,14 @@ class Pokemon(commands.Cog):
             ctx.author, {"$set": {f"selected": number}},
         )
 
-        await ctx.send(
-            f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
-        )
+        if orig.lower() == "latest":
+            await ctx.send(
+                f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}. I'll automatically keep your latest pokémon selected."
+            )
+        else:
+            await ctx.send(
+                f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
+            )
 
     @checks.has_started()
     @commands.command()
