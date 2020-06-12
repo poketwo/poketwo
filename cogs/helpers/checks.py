@@ -29,3 +29,19 @@ def has_started():
         return True
 
     return commands.check(predicate)
+
+
+class ShuttingDown(commands.CheckFailure):
+    pass
+
+
+def not_shutting_down(bot):
+    async def predicate(ctx: commands.Context):
+        if bot.shutting_down:
+            raise ShuttingDown(
+                "The bot is currently restarting to apply updates. Sorry for the inconvenience."
+            )
+
+        return True
+
+    return predicate

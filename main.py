@@ -33,11 +33,23 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
 bot.add_cog(Trading(bot))
 
+bot.shutting_down = False
+
+
+@commands.is_owner()
+@bot.command()
+async def shutdown(ctx: commands.Context):
+    bot.shutting_down = True
+    await ctx.send("Shutting down bot...")
+
 
 @bot.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     message.content = message.content.replace("—", "--")
     await bot.process_commands(message)
+
+
+bot.add_check(checks.not_shutting_down(bot))
 
 
 # Run Discord Bot
