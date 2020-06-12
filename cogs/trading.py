@@ -226,6 +226,8 @@ class Trading(commands.Cog):
 
         else:
 
+            updated = False
+
             for what in args:
 
                 if what.isdigit():
@@ -235,8 +237,6 @@ class Trading(commands.Cog):
                     ]:
                         if type(x) == int:
                             continue
-
-                        print(x)
 
                         if x.number == int(what):
                             await ctx.send(
@@ -267,10 +267,74 @@ class Trading(commands.Cog):
                         ctx.author.id
                     ].append(pokemon)
 
+                    updated = True
+
                 else:
                     await ctx.send(
                         f"{what}: That's not a valid item to add to the trade!"
                     )
                     continue
+
+            if not updated:
+                return
+
+        await self.send_trade(ctx, ctx.author)
+
+    @checks.has_started()
+    @trade.command(aliases=["r"])
+    async def remove(self, ctx: commands.Context, *args):
+        if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
+            return await ctx.send("You're not in a trade!")
+
+        trade = self.users[f"{ctx.guild.id}-{ctx.author.id}"]
+
+        if len(args) <= 2 and args[-1].lower().endswith("pp"):
+
+            what = args[0].replace("pp", "").strip()
+
+            if what.isdigit():
+
+                for idx, x in enumerate(trade["items"][ctx.author.id]):
+                    if type(x) != int:
+                        continue
+
+                    if x == int(what):
+                        del trade["items"][ctx.author.id][idx]
+                        break
+                else:
+                    return await ctx.send("Couldn't find that item!")
+
+            else:
+                return await ctx.send(
+                    "That's not a valid item to remove from the trade!"
+                )
+
+        else:
+
+            updated = False
+
+            for what in args:
+
+                if what.isdigit():
+
+                    for idx, x in enumerate(trade["items"][ctx.author.id]):
+                        if type(x) == int:
+                            continue
+
+                        if x.number == int(what):
+                            del trade["items"][ctx.author.id][idx]
+                            updated = True
+                            break
+                    else:
+                        await ctx.send(f"{what}: Couldn't find that item!")
+
+                else:
+                    await ctx.send(
+                        f"{what}: That's not a valid item to remove from the trade!"
+                    )
+                    continue
+            
+            if not updated:
+                return
 
         await self.send_trade(ctx, ctx.author)
