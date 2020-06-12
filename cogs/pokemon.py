@@ -443,13 +443,10 @@ class Pokemon(commands.Cog):
 
         if number.isdigit():
             number = int(number)
-        elif number.lower() == "latest":
-            number = -1
 
         else:
             return await ctx.send(
-                "`p!release <number>` to release a pokémon, "
-                "`p!release latest` to release your latest pokémon, "
+                "`p!release <number>` to release a pokémon "
                 "or use `p!releaseall` to release multiple pokémon."
             )
 
