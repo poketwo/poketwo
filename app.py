@@ -3,22 +3,26 @@ import hmac
 import os
 
 from flask import Flask, abort, request
-
-from cogs import mongo
+from pymongo import MongoClient
 
 secret = os.getenv("PATREON_SECRET").encode("ascii")
+db = MongoClient(os.getenv("DATABASE_URI"))[os.getenv("DATABASE_NAME")]
 
 app = Flask(__name__)
 
 
 @app.route("/patreon", methods=["POST"])
 def webhook():
+    if "delete" in request.headers.get("X-Patreon-Event"):
+        return "", 200
+
     digest = hmac.new(secret, request.data, digestmod="md5").hexdigest()
     given = request.headers.get("X-Patreon-Signature")
 
     if not hmac.compare_digest(digest, given):
         abort(403)
 
+    data = request.json["data"]
     user = [x for x in request.json["included"] if x["type"] == "user"][0]
     rewards = [x for x in request.json["included"] if x["type"] == "reward"]
 
@@ -32,13 +36,12 @@ def webhook():
         if reward["id"] == "2611242":
             inc_redeems += 8
 
-    update = mongo.db.member.update_one(
+    res = db.member.update_one(
         {"_id": int(user["attributes"]["discord_id"])},
         {"$inc": {"redeems": inc_redeems}},
     )
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(update)
+    print("Giving " + user["attributes"]["discord_id"] + " " + str(inc_redeems) + " redeems.")
 
     return "", 200
 
