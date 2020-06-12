@@ -39,7 +39,7 @@ class Pokedex(commands.Cog):
                 pgstart = (pidx) * 20
                 pgend = min(pgstart + 20, 809)
 
-                member = await self.db.fetch_pokedex(ctx.author, pgstart, pgend)
+                member = await self.db.fetch_pokedex(ctx.author, pgstart + 1, pgend + 1)
 
                 # Send embed
 
