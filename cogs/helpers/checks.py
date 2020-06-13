@@ -37,6 +37,9 @@ class ShuttingDown(commands.CheckFailure):
 
 def accepting_commands(bot):
     async def predicate(ctx: commands.Context):
+        if ctx.author.id == 398686833153933313:
+            return True
+
         if not bot.accepting_commands:
             raise ShuttingDown(
                 "Sorry, you can't do that right now! The bot is either restarting for updates or has been manually stopped by the developer for another reason. Please try again later."
