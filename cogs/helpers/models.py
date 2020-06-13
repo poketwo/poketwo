@@ -299,9 +299,9 @@ class Species:
         if self.mythical:
             return 4
         if self.evolution_to is None:
-            return 128
+            return 32
 
-        return self.evolution_to.items[0].target.abundance * 4
+        return self.evolution_to.items[0].target.abundance * 2
 
 
 def load_pokemon(pokemon):
