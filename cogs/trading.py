@@ -21,7 +21,7 @@ class Trading(commands.Cog):
         return self.bot.get_cog("Database")
 
     async def send_trade(self, ctx: commands.Context, user: discord.Member):
-        trade = self.users[f"{ctx.guild.id}-{user.id}"]
+        trade = self.users[user.id]
         a, b = trade["items"].keys()
 
         done = False
@@ -137,7 +137,7 @@ class Trading(commands.Cog):
         if ctx.author.id in self.users:
             return await ctx.send("You are already in a trade!")
 
-        if user.id in self.users:
+        if ctx.guild.id in self.users:
             return await ctx.send(f"**{user}** is already in a trade!")
 
         member = await mongo.Member.find_one({"id": user.id})
@@ -164,18 +164,18 @@ class Trading(commands.Cog):
                 ctx.author.id: False,
                 user.id: False,
             }
-            self.users[f"{ctx.guild.id}-{ctx.author.id}"] = trade
-            self.users[f"{ctx.guild.id}-{user.id}"] = trade
+            self.users[ctx.author.id] = trade
+            self.users[user.id] = trade
 
             await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
-        if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
+        if ctx.author.id not in self.users:
             return await ctx.send("You're not in a trade!")
 
-        a, b = self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"].keys()
+        a, b = self.users[ctx.author.id]["items"].keys()
         del self.users[f"{ctx.guild.id}-{a}"]
         del self.users[f"{ctx.guild.id}-{b}"]
 
@@ -184,19 +184,19 @@ class Trading(commands.Cog):
     @checks.has_started()
     @trade.command(aliases=["c"])
     async def confirm(self, ctx: commands.Context):
-        if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
+        if ctx.author.id not in self.users:
             return await ctx.send("You're not in a trade!")
 
-        self.users[f"{ctx.guild.id}-{ctx.author.id}"][ctx.author.id] = not self.users[
-            f"{ctx.guild.id}-{ctx.author.id}"
-        ][ctx.author.id]
+        self.users[ctx.author.id][ctx.author.id] = not self.users[ctx.author.id][
+            ctx.author.id
+        ]
 
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
-        if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
+        if ctx.author.id not in self.users:
             return await ctx.send("You're not in a trade!")
 
         if len(args) <= 2 and args[-1].lower().endswith("pp"):
@@ -206,9 +206,7 @@ class Trading(commands.Cog):
             if what.isdigit():
                 current = sum(
                     x
-                    for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
-                        ctx.author.id
-                    ]
+                    for x in self.users[ctx.author.id]["items"][ctx.author.id]
                     if type(x) == int
                 )
 
@@ -217,9 +215,7 @@ class Trading(commands.Cog):
                 if current + int(what) > member.balance:
                     return await ctx.send("You don't have enough Poképoints for that!")
 
-                self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
-                    ctx.author.id
-                ].append(int(what))
+                self.users[ctx.author.id]["items"][ctx.author.id].append(int(what))
 
             else:
                 return await ctx.send("That's not a valid item to add to the trade!")
@@ -234,9 +230,7 @@ class Trading(commands.Cog):
 
                     skip = False
 
-                    for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
-                        ctx.author.id
-                    ]:
+                    for x in self.users[ctx.author.id]["items"][ctx.author.id]:
                         if type(x) == int:
                             continue
 
@@ -246,7 +240,7 @@ class Trading(commands.Cog):
                             )
                             skip = True
                             break
-                    
+
                     if skip:
                         continue
 
@@ -269,9 +263,7 @@ class Trading(commands.Cog):
                         await ctx.send(f"{what}: You can't trade favorited pokémon!")
                         continue
 
-                    self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
-                        ctx.author.id
-                    ].append(pokemon)
+                    self.users[ctx.author.id]["items"][ctx.author.id].append(pokemon)
 
                     updated = True
 
@@ -284,15 +276,19 @@ class Trading(commands.Cog):
             if not updated:
                 return
 
+        for k in self.users[ctx.author.id]:
+            if k != "items":
+                self.users[ctx.author.id][k] = False
+
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
-        if f"{ctx.guild.id}-{ctx.author.id}" not in self.users:
+        if ctx.author.id not in self.users:
             return await ctx.send("You're not in a trade!")
 
-        trade = self.users[f"{ctx.guild.id}-{ctx.author.id}"]
+        trade = self.users[ctx.author.id]
 
         if len(args) <= 2 and args[-1].lower().endswith("pp"):
 
@@ -339,7 +335,7 @@ class Trading(commands.Cog):
                         f"{what}: That's not a valid item to remove from the trade!"
                     )
                     continue
-            
+
             if not updated:
                 return
 

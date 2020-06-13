@@ -301,7 +301,7 @@ class Species:
         if self.evolution_to is None:
             return 32
 
-        return self.evolution_to.items[0].target.abundance * 2
+        return self.evolution_to.items[0].target.abundance * 4
 
 
 def load_pokemon(pokemon):

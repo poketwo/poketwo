@@ -129,6 +129,8 @@ def load_data():
     get_pokemon()
     get_items()
 
+    print(sum(x.abundance for x in GameData.all_pokemon().values()))
+
 
 # spawns = []
 # for i in range(100000):
