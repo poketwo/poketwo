@@ -27,6 +27,9 @@ class Spawning(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if not self.bot.allowing_commands:
+            return
+
         if message.author.bot:
             return
 

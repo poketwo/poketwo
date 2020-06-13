@@ -40,14 +40,14 @@ bot.accepting_commands = False
 
 @commands.is_owner()
 @bot.command()
-async def nocmd(ctx: commands.Context):
+async def admindisable(ctx: commands.Context):
     bot.accepting_commands = False
     await ctx.send("Disallowing commands...")
 
 
 @commands.is_owner()
 @bot.command()
-async def yescmd(ctx: commands.Context):
+async def adminenable(ctx: commands.Context):
     bot.accepting_commands = True
     await ctx.send("Allowing commands...")
 
