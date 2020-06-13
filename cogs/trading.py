@@ -232,6 +232,8 @@ class Trading(commands.Cog):
 
                 if what.isdigit():
 
+                    skip = False
+
                     for x in self.users[f"{ctx.guild.id}-{ctx.author.id}"]["items"][
                         ctx.author.id
                     ]:
@@ -242,7 +244,11 @@ class Trading(commands.Cog):
                             await ctx.send(
                                 f"{what}: This item is already in the trade!"
                             )
-                            continue
+                            skip = True
+                            break
+                    
+                    if skip:
+                        continue
 
                     member = await self.db.fetch_member_info(ctx.author)
                     t = await self.db.fetch_pokemon(ctx.author, int(what))
