@@ -4,6 +4,7 @@ from discord.ext import commands
 from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers import checks
 from .helpers.pagination import Paginator
+from .helpers.constants import *
 
 from .database import Database
 
@@ -55,10 +56,17 @@ class Pokedex(commands.Cog):
 
                 for p in range(pgstart + 1, pgend + 1):
                     species = GameData.species_by_number(p)
-                    text = "Not caught yet! ❌"
+
+                    text = "❌ Not caught yet!"
+
                     if str(species.dex_number) in member.pokedex:
-                        text = f"{member.pokedex[str(species.dex_number)]} caught! ✅"
-                    embed.add_field(name=f"{species.name} #{species.id}", value=text)
+                        text = f"✅ {member.pokedex[str(species.dex_number)]} caught!"
+
+                    emoji = str(EMOJIS[p]).replace("pokemon_sprite_", "")
+
+                    embed.add_field(
+                        name=f"{emoji} {species.name} #{species.id}", value=text
+                    )
 
                 if pgend != 809:
                     embed.add_field(name="‎", value="‎")
