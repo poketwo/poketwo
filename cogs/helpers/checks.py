@@ -35,11 +35,11 @@ class ShuttingDown(commands.CheckFailure):
     pass
 
 
-def not_shutting_down(bot):
+def accepting_commands(bot):
     async def predicate(ctx: commands.Context):
-        if bot.shutting_down:
+        if not bot.accepting_commands:
             raise ShuttingDown(
-                "The bot is currently restarting to apply updates. Sorry for the inconvenience."
+                "Sorry, you can't do that right now! The bot is either restarting for updates or has been manually stopped by the developer for another reason. Please try again later."
             )
 
         return True

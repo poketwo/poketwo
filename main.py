@@ -3,7 +3,9 @@ import os
 from discord.ext import commands
 from dotenv import load_dotenv
 from cogs import *
+from cogs.helpers import constants
 from data import load_data
+import asyncio
 
 # Setup
 
@@ -33,14 +35,21 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
 bot.add_cog(Trading(bot))
 
-bot.shutting_down = False
+bot.accepting_commands = False
 
 
 @commands.is_owner()
 @bot.command()
-async def shutdown(ctx: commands.Context):
-    bot.shutting_down = True
-    await ctx.send("Shutting down bot...")
+async def nocmd(ctx: commands.Context):
+    bot.accepting_commands = False
+    await ctx.send("Disallowing commands...")
+
+
+@commands.is_owner()
+@bot.command()
+async def yescmd(ctx: commands.Context):
+    bot.accepting_commands = True
+    await ctx.send("Allowing commands...")
 
 
 @bot.event
@@ -49,7 +58,14 @@ async def on_message(message: discord.Message):
     await bot.process_commands(message)
 
 
-bot.add_check(checks.not_shutting_down(bot))
+@bot.event
+async def on_ready():
+    constants.EMOJIS.init_emojis(bot)
+    print(f"Logged in as {bot.user}")
+    bot.accepting_commands = True
+
+
+bot.add_check(checks.accepting_commands(bot))
 
 
 # Run Discord Bot

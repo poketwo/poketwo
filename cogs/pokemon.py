@@ -629,11 +629,16 @@ class Pokemon(commands.Cog):
         )
 
         def nick(p):
-            name = str(p.species)
+            name = str(EMOJIS[p.species.dex_number])
+
+            name += " " + str(p.species)
+
             if p.nickname is not None:
-                name += f' "{p.nickname}"'
+                name += " " + p.nickname
+
             if p.favorite:
-                name = "❤️ " + name
+                name += " ❤️ "
+
             return name
 
         pokemon = await self.db.fetch_pokemon_count(

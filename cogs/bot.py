@@ -72,10 +72,6 @@ class Bot(commands.Cog):
         return ["p!", "P!"]
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        print(f"Logged in as {self.bot.user}")
-
-    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send_help(ctx.command)
