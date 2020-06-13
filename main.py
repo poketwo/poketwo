@@ -35,21 +35,21 @@ bot.add_cog(Shop(bot))
 bot.add_cog(Spawning(bot))
 bot.add_cog(Trading(bot))
 
-bot.accepting_commands = False
+bot.enabled = False
 
 
 @commands.is_owner()
 @bot.command()
 async def admindisable(ctx: commands.Context):
-    bot.accepting_commands = False
-    await ctx.send("Disallowing commands...")
+    bot.enabled = False
+    await ctx.send("Disabling bot...")
 
 
 @commands.is_owner()
 @bot.command()
 async def adminenable(ctx: commands.Context):
-    bot.accepting_commands = True
-    await ctx.send("Allowing commands...")
+    bot.enabled = True
+    await ctx.send("Enabling bot...")
 
 
 @bot.event
@@ -62,10 +62,10 @@ async def on_message(message: discord.Message):
 async def on_ready():
     constants.EMOJIS.init_emojis(bot)
     print(f"Logged in as {bot.user}")
-    bot.accepting_commands = True
+    bot.enabled = True
 
 
-bot.add_check(checks.accepting_commands(bot))
+bot.add_check(checks.enabled(bot))
 
 
 # Run Discord Bot

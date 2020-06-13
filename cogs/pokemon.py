@@ -634,7 +634,7 @@ class Pokemon(commands.Cog):
             name += " " + str(p.species)
 
             if p.nickname is not None:
-                name += " " + p.nickname
+                name += ' "' + p.nickname + '"'
 
             if p.favorite:
                 name += " ❤️ "
