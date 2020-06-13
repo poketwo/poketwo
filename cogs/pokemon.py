@@ -629,7 +629,7 @@ class Pokemon(commands.Cog):
         )
 
         def nick(p):
-            name = str(EMOJIS[p.species.dex_number])
+            name = str(EMOJIS[p.species.dex_number]).replace("pokemon_sprite_", "")
 
             name += " " + str(p.species)
 
@@ -640,6 +640,9 @@ class Pokemon(commands.Cog):
                 name += " ❤️ "
 
             return name
+
+        def padn(p, n):
+            return str(p.number) + " " * (len(str(n)) - len(str(p.number)))
 
         pokemon = await self.db.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
@@ -662,8 +665,10 @@ class Pokemon(commands.Cog):
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
 
+            maxn = max(x.number for x in pokemon)
+
             page = [
-                f"**{nick(p)}** | Level: {p.level} | Number: {p.number} | IV: {p.iv_percentage * 100:.2f}%"
+                f"{padn(p, maxn)}   **{nick(p)}**   |   Lvl. {p.level}   |   {p.iv_percentage * 100:.2f}%"
                 for p in pokemon
             ]
 
@@ -672,7 +677,7 @@ class Pokemon(commands.Cog):
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"Your pokémon"
-            embed.description = "\n".join(page)
+            embed.description = "\n".join(page)[:2048]
             embed.set_footer(
                 text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
             )
