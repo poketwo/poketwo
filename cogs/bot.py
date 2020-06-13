@@ -45,8 +45,6 @@ class Bot(commands.Cog):
         else:
             embed.title = f"p!{cmd.qualified_name}"
 
-            print(type(cmd.description))
-
             if cmd.help:
                 embed.description = cmd.help
 

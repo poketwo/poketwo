@@ -536,8 +536,6 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        print(aggregations)
-
         pokemon = await self.db.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
         )

@@ -26,8 +26,6 @@ class Database(commands.Cog):
         for i in range(start, end):
             filter_obj[f"pokedex.{i}"] = 1
 
-        print(filter_obj)
-
         return await mongo.Member.find_one({"id": member.id}, filter_obj)
 
     async def fetch_pokemon_list(

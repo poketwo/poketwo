@@ -84,8 +84,6 @@ class Trading(commands.Cog):
                 mem = ctx.guild.get_member(i)
                 omem = ctx.guild.get_member(oi)
 
-                print(i, oi)
-
                 for x in side:
                     if type(x) == int:
                         await self.db.update_member(mem, {"$inc": {"balance": -x}})
