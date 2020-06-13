@@ -436,62 +436,77 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def release(self, ctx: commands.Context, *, number: str = ""):
-        """Release a specific pokémon from your collection."""
+    async def release(self, ctx: commands.Context, *args):
+        """Release pokémon from your collection."""
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        if number.isdigit():
-            number = int(number)
+        rall = False
 
-        else:
-            return await ctx.send(
-                "`p!release <number>` to release a pokémon "
-                "or use `p!releaseall` to release multiple pokémon."
+        for number in args:
+
+            if number.isdigit():
+                number = int(number)
+
+            else:
+                return await ctx.send(f"{number}: not a valid pokémon")
+
+            pokemon = await self.db.fetch_pokemon(ctx.author, number)
+
+            if pokemon is None:
+                return await ctx.send(f"{number}: Couldn't find that pokémon!")
+
+            pokemon = pokemon.pokemon[0]
+
+            # can't release selected/fav
+
+            if member.selected == pokemon.number:
+                return await ctx.send(
+                    f"{number}: You can't release your selected pokémon!"
+                )
+
+            if pokemon.favorite:
+                return await ctx.send(f"{number}: You can't release favorited pokémon!")
+
+            # confirm
+
+            if not rall:
+
+                if len(args) > 1:
+                    await ctx.send(
+                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N] [type `all` for yes to all]"
+                    )
+                else:
+                    await ctx.send(
+                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N]"
+                    )
+
+                def check(m):
+                    return (
+                        m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+                    )
+
+                try:
+                    msg = await self.bot.wait_for("message", timeout=15, check=check)
+
+                    if msg.content.lower() == "all":
+                        rall = True
+
+                    if msg.content.lower() != "y" and not rall:
+                        return await ctx.send("Aborted.")
+
+                except asyncio.TimeoutError:
+                    return await ctx.send("Time's up. Aborted.")
+
+            # confirmed, release
+
+            await self.db.update_member(
+                ctx.author, {"$pull": {"pokemon": {"number": number}}}
             )
 
-        pokemon = await self.db.fetch_pokemon(ctx.author, number)
-
-        if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
-
-        pokemon = pokemon.pokemon[0]
-
-        # can't release selected/fav
-
-        if member.selected == pokemon.number:
-            return await ctx.send(f"You can't release your selected pokémon!")
-
-        if pokemon.favorite:
-            return await ctx.send(f"You can't release favorited pokémon!")
-
-        # confirm
-
-        await ctx.send(
-            f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N]"
-        )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=15, check=check)
-
-            if msg.content.lower() != "y":
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
-            return await ctx.send("Time's up. Aborted.")
-
-        # confirmed, release
-
-        await self.db.update_member(
-            ctx.author, {"$pull": {"pokemon": {"number": number}}}
-        )
-
-        await ctx.send(
-            f"You released your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
-        )
+            await ctx.send(
+                f"You released your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
+            )
 
     @flags.add_flag("--name")
     @flags.add_flag("--type", type=str)
