@@ -28,8 +28,8 @@ class Trading(commands.Cog):
 
         if trade[a] and trade[b]:
             done = True
-            del self.users[f"{ctx.guild.id}-{a}"]
-            del self.users[f"{ctx.guild.id}-{b}"]
+            del self.users[a]
+            del self.users[b]
 
         a = ctx.guild.get_member(a)
         b = ctx.guild.get_member(b)
@@ -54,9 +54,6 @@ class Trading(commands.Cog):
                 return await ctx.send(
                     "The trade has been canceled because a user has left the server."
                 )
-
-            if i == "prev":
-                continue
 
             val = "\n".join(
                 f"{x} Poképoints"
@@ -176,8 +173,8 @@ class Trading(commands.Cog):
             return await ctx.send("You're not in a trade!")
 
         a, b = self.users[ctx.author.id]["items"].keys()
-        del self.users[f"{ctx.guild.id}-{a}"]
-        del self.users[f"{ctx.guild.id}-{b}"]
+        del self.users[a]
+        del self.users[b]
 
         await ctx.send("The trade has been canceled.")
 
@@ -277,7 +274,7 @@ class Trading(commands.Cog):
                 return
 
         for k in self.users[ctx.author.id]:
-            if k != "items":
+            if type(k) == int:
                 self.users[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)
