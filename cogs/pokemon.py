@@ -405,6 +405,9 @@ class Pokemon(commands.Cog):
     async def release(self, ctx: commands.Context, *args):
         """Release pokémon from your collection."""
 
+        if ctx.author.id in self.bot.get_cog("Trading").users:
+            return await ctx.send("You can't do that in a trade!")
+
         member = await self.db.fetch_member_info(ctx.author)
 
         rall = False
@@ -500,6 +503,9 @@ class Pokemon(commands.Cog):
     @flags.command()
     async def releaseall(self, ctx: commands.Context, **flags):
         """Release the pokémon in your collection."""
+
+        if ctx.author.id in self.bot.get_cog("Trading").users:
+            return await ctx.send("You can't do that in a trade!")
 
         aggregations = await self.create_filter(flags, ctx)
 
