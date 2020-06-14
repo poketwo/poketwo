@@ -675,9 +675,15 @@ class Pokemon(commands.Cog):
             embed.color = 0xF44336
             embed.title = f"Your pokémon"
             embed.description = "\n".join(page)[:2048]
-            embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
-            )
+
+            if do_emojis:
+                embed.set_footer(
+                    text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
+                )
+            else:
+                embed.set_footer(
+                    text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. Please give me permission to Use External Emojis! It'll make this menu look a lot better."
+                )
 
             return embed
 

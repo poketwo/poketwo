@@ -52,7 +52,11 @@ class Pokedex(commands.Cog):
                 embed.color = 0xF44336
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
-                embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
+
+                if do_emojis:
+                    embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
+                else:
+                    embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809. Please give me permission to Use External Emojis! It'll make this menu look a lot better.")
 
                 # embed.description = (
                 #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
