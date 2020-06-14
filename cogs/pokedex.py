@@ -36,6 +36,10 @@ class Pokedex(commands.Cog):
             num = await self.db.fetch_pokedex_count(ctx.author)
             num = num[0]["count"]
 
+            do_emojis = ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+
             async def get_page(pidx, clear):
                 pgstart = (pidx) * 20
                 pgend = min(pgstart + 20, 809)
@@ -57,16 +61,23 @@ class Pokedex(commands.Cog):
                 for p in range(pgstart + 1, pgend + 1):
                     species = GameData.species_by_number(p)
 
-                    text = f"{EMOJIS.cross} Not caught yet!"
+                    if do_emojis:
+                        text = f"{EMOJIS.cross} Not caught yet!"
+                    else:
+                        text = "Not caught yet!"
 
                     if str(species.dex_number) in member.pokedex:
-                        text = f"{EMOJIS.check} {member.pokedex[str(species.dex_number)]} caught!"
+                        if do_emojis:
+                            text = f"{EMOJIS.check} {member.pokedex[str(species.dex_number)]} caught!"
+                        else:
+                            text = f"{member.pokedex[str(species.dex_number)]} caught!"
 
-                    emoji = str(EMOJIS[p]).replace("pokemon_sprite_", "")
+                    if do_emojis:
+                        emoji = str(EMOJIS[p]).replace("pokemon_sprite_", "") + " "
+                    else:
+                        emoji = ""
 
-                    embed.add_field(
-                        name=f"{emoji} {species.name} #{species.id}", value=text
-                    )
+                    embed.add_field(name=f"{species.name} #{species.id}", value=text)
 
                 if pgend != 809:
                     embed.add_field(name="‎", value="‎")
