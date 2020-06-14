@@ -24,9 +24,11 @@ instance = Instance(db)
 
 @instance.register
 class Pokemon(EmbeddedDocument):
-    number = fields.IntegerField(required=True)
+    class Meta:
+        strict = False
+
+    id = fields.ObjectIdField(attribute="_id")
     species_id = fields.IntegerField(required=True)
-    owner_id = fields.IntegerField(required=True)
 
     level = fields.IntegerField(required=True)
     xp = fields.IntegerField(required=True)
@@ -146,8 +148,9 @@ class Pokemon(EmbeddedDocument):
 class Member(Document):
     id = fields.IntegerField(attribute="_id")
     pokemon = fields.ListField(fields.EmbeddedField(Pokemon), required=True)
-    next_id = fields.IntegerField(required=True)
+
     selected = fields.IntegerField(required=True)
+
     order_by = fields.StringField(default="number")
     pokedex = fields.DictField(
         fields.StringField(), fields.IntegerField(), default=dict

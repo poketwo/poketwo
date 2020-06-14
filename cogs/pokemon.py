@@ -56,14 +56,12 @@ class Pokemon(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
-                "$inc": {"next_id": 1, "redeems": -1},
+                "$inc": {"redeems": -1},
                 "$push": {
                     "pokemon": {
-                        "number": member.next_id,
                         "species_id": species.id,
                         "level": 1,
                         "xp": 0,
-                        "owner_id": ctx.author.id,
                         "nature": mongo.random_nature(),
                         "iv_hp": mongo.random_iv(),
                         "iv_atk": mongo.random_iv(),
@@ -94,8 +92,8 @@ class Pokemon(commands.Cog):
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
         pokemon = pokemon.pokemon[0]
 
-        await self.db.update_pokemon(
-            ctx.author, member.selected, {"$set": {"pokemon.$.nickname": nickname}},
+        await self.db.update_member(
+            ctx.author, {"$set": {f"pokemon.{member.selected}.nickname": nickname}},
         )
 
         if nickname == None:
@@ -114,11 +112,11 @@ class Pokemon(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         if number is None:
-            pokemon = member.selected
+            number = member.selected
         elif number.isdigit():
-            pokemon = int(number)
+            number = int(number) - 1
         elif number.lower() == "latest":
-            pokemon = -1
+            number = -1
 
         else:
             return await ctx.send(
@@ -127,17 +125,15 @@ class Pokemon(commands.Cog):
                 "or `p!favorite latest` to favorite your latest pokémon."
             )
 
-        pokemon = await self.db.fetch_pokemon(ctx.author, pokemon)
+        pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
         pokemon = pokemon.pokemon[0]
 
-        await self.db.update_pokemon(
-            ctx.author,
-            pokemon.number,
-            {"$set": {"pokemon.$.favorite": not pokemon.favorite}},
+        await self.db.update_member(
+            ctx.author, {"$set": {f"pokemon.{number}.favorite": not pokemon.favorite}},
         )
 
         name = str(pokemon.species)
@@ -149,14 +145,6 @@ class Pokemon(commands.Cog):
             await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
         else:
             await ctx.send(f"Favorited your level {pokemon.level} {name}.")
-
-    @commands.command(aliases=["unfav"])
-    async def unfavorite(self, ctx: commands.Context, number: str = None):
-        """This command has been removed. Instead, use `p!favorite`, which will toggle favorite on a pokémon."""
-
-        await ctx.send(
-            f"This command has been removed. Instead, use `p!favorite`, which will toggle favorite on a pokémon."
-        )
 
     @commands.command()
     async def start(self, ctx: commands.Context):
@@ -190,20 +178,9 @@ class Pokemon(commands.Cog):
 
         species = GameData.species_by_name(name)
 
-        member = mongo.Member(
-            id=ctx.author.id,
-            pokemon=[
-                mongo.Pokemon.random(
-                    number=1,
-                    species_id=species.id,
-                    level=1,
-                    xp=0,
-                    owner_id=ctx.author.id,
-                )
-            ],
-            next_id=2,
-            selected=1,
-        )
+        starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
+
+        member = mongo.Member(id=ctx.author.id, pokemon=[starter], selected=0)
 
         await member.commit()
 
@@ -220,16 +197,13 @@ class Pokemon(commands.Cog):
         num = num[0]["num_matches"]
 
         if number is not None and number.lower() == "latest":
-            pidx = -1
+            pidx = num - 1
         else:
             if number is None:
                 member = await self.db.fetch_member_info(ctx.author)
-                if member.selected == -1:
-                    pidx = -1
-                else:
-                    pidx = await self.db.fetch_pokemon_idx(ctx.author, member.selected)
+                pidx = member.selected % num
             elif number.isdigit():
-                pidx = await self.db.fetch_pokemon_idx(ctx.author, int(number))
+                pidx = int(number) - 1
             else:
                 return await ctx.send(
                     "Please use `p!info` to view your selected pokémon, "
@@ -237,15 +211,10 @@ class Pokemon(commands.Cog):
                     "or `p!info latest` to view your latest pokémon."
                 )
 
-            if type(pidx) != int:
-                if len(pidx) == 0:
-                    return await ctx.send("Couldn't find that pokémon!")
-                pidx = pidx[0]["idx"]
-
         async def get_page(pidx, clear):
-            pokemon = await self.db.fetch_pokemon_by_idx(ctx.author, pidx)
+            pokemon = await self.db.fetch_pokemon(ctx.author, pidx)
 
-            if pokemon is None:
+            if len(pokemon.pokemon) == 0:
                 return await clear("Couldn't find that pokémon!")
 
             pokemon = pokemon.pokemon[0]
@@ -278,7 +247,7 @@ class Pokemon(commands.Cog):
             )
 
             embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-            embed.set_footer(text=f"Displaying pokémon number {pokemon.number}.")
+            embed.set_footer(text=f"Displaying pokémon number {pidx + 1}.")
 
             return embed
 
@@ -295,9 +264,11 @@ class Pokemon(commands.Cog):
         orig = number
 
         if number.isdigit():
-            number = int(number)
+            number = int(number) - 1
         elif number.lower() == "latest":
-            number = -1
+            num = await self.db.fetch_pokemon_count(ctx.author)
+            num = num[0]["num_matches"]
+            number = num - 1
 
         else:
             return await ctx.send(
@@ -307,7 +278,7 @@ class Pokemon(commands.Cog):
 
         pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
-        if pokemon is None:
+        if len(pokemon.pokemon) == 0:
             return await ctx.send("Couldn't find that pokémon!")
 
         pokemon = pokemon.pokemon[0]
@@ -316,14 +287,9 @@ class Pokemon(commands.Cog):
             ctx.author, {"$set": {f"selected": number}},
         )
 
-        if orig.lower() == "latest":
-            await ctx.send(
-                f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}. I'll automatically keep your latest pokémon selected."
-            )
-        else:
-            await ctx.send(
-                f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
-            )
+        await ctx.send(
+            f"You selected your level {pokemon.level} {pokemon.species}. No. {number + 1}."
+        )
 
     @checks.has_started()
     @commands.command()
@@ -446,27 +412,28 @@ class Pokemon(commands.Cog):
         for number in args:
 
             if number.isdigit():
-                number = int(number)
-
+                number = int(number) - 1
             else:
                 return await ctx.send(f"{number}: not a valid pokémon")
 
             pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
-            if pokemon is None:
-                return await ctx.send(f"{number}: Couldn't find that pokémon!")
+            if len(pokemon.pokemon) == 0:
+                return await ctx.send(f"{number + 1}: Couldn't find that pokémon!")
 
             pokemon = pokemon.pokemon[0]
 
             # can't release selected/fav
 
-            if member.selected == pokemon.number:
+            if member.selected == number:
                 return await ctx.send(
-                    f"{number}: You can't release your selected pokémon!"
+                    f"{number + 1}: You can't release your selected pokémon!"
                 )
 
             if pokemon.favorite:
-                return await ctx.send(f"{number}: You can't release favorited pokémon!")
+                return await ctx.send(
+                    f"{number + 1}: You can't release favorited pokémon!"
+                )
 
             # confirm
 
@@ -474,11 +441,11 @@ class Pokemon(commands.Cog):
 
                 if len(args) > 1:
                     await ctx.send(
-                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N] [type `all` for yes to all]"
+                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {number + 1}? This action is irreversible! [y/N] [type `all` for yes to all]"
                     )
                 else:
                     await ctx.send(
-                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.number}? This action is irreversible! [y/N]"
+                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {number + 1}? This action is irreversible! [y/N]"
                     )
 
                 def check(m):
@@ -501,11 +468,18 @@ class Pokemon(commands.Cog):
             # confirmed, release
 
             await self.db.update_member(
-                ctx.author, {"$pull": {"pokemon": {"number": number}}}
+                ctx.author, {"$unset": {f"pokemon.{number}": 1}}
             )
 
+            if number < member.selected:
+                await self.db.update_member(
+                    ctx.author, {"$inc": {f"selected": -1}, "$pull": {f"pokemon": None}}
+                )
+            else:
+                await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+
             await ctx.send(
-                f"You released your level {pokemon.level} {pokemon.species}. No. {pokemon.number}."
+                f"You released your level {pokemon.level} {pokemon.species}. No. {number + 1}."
             )
 
     @flags.add_flag("--name")
@@ -520,7 +494,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @flags.command()
     async def releaseall(self, ctx: commands.Context, **flags):
-        """List the pokémon in your collection."""
+        """Release the pokémon in your collection."""
 
         aggregations = await self.create_filter(flags, ctx)
 
@@ -531,7 +505,7 @@ class Pokemon(commands.Cog):
 
         aggregations.extend(
             [
-                {"$match": {"pokemon.number": {"$not": {"$eq": member.selected}}}},
+                {"$match": {"idx": {"$not": {"$eq": member.selected}}}},
                 {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
             ]
         )
@@ -572,10 +546,14 @@ class Pokemon(commands.Cog):
         pokemon = await self.db.fetch_pokemon_list(
             ctx.author, 0, num, aggregations=aggregations
         )
-        pokemon = [x["pokemon"]["number"] for x in pokemon]
 
+        dec = len([x for x in pokemon if x["idx"] < member.selected])
+
+        pokemon = {f'pokemon.{x["idx"]}': 1 for x in pokemon}
+
+        await self.db.update_member(ctx.author, {"$unset": pokemon})
         await self.db.update_member(
-            ctx.author, {"$pull": {"pokemon": {"number": {"$in": pokemon}}}}
+            ctx.author, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}}
         )
 
         await ctx.send(f"You have released {num} pokémon.")
@@ -639,8 +617,8 @@ class Pokemon(commands.Cog):
 
             return name
 
-        def padn(p, n):
-            return " " * (len(str(n)) - len(str(p.number))) + str(p.number)
+        def padn(p, idx, n):
+            return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
         pokemon = await self.db.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
@@ -658,16 +636,19 @@ class Pokemon(commands.Cog):
                 ctx.author, pgstart, 20, aggregations=aggregations
             )
 
-            pokemon = [mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon]
+            pokemon = [
+                (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"] + 1)
+                for x in pokemon
+            ]
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
 
-            maxn = max(x.number for x in pokemon)
+            maxn = max(idx for x, idx in pokemon)
 
             page = [
-                f"`{padn(p, maxn)}`   **{nick(p)}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
-                for p in pokemon
+                f"`{padn(p, idx, maxn)}`   **{nick(p)}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
+                for p, idx in pokemon
             ]
 
             # Send embed

@@ -178,10 +178,9 @@ class Shop(commands.Cog):
                 value=f"Your {name} has turned into a {evoto}!",
             )
 
-            await self.db.update_pokemon(
+            await self.db.update_member(
                 ctx.author,
-                member.selected,
-                {"$set": {"pokemon.$.species_id": evoto.id}},
+                {"$set": {f"pokemon.{member.selected}.species_id": evoto.id}},
             )
 
             await ctx.send(embed=embed)
@@ -197,10 +196,9 @@ class Shop(commands.Cog):
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
-            await self.db.update_pokemon(
+            await self.db.update_member(
                 ctx.author,
-                member.selected,
-                {"$set": {"pokemon.$.nature": NATURES[idx]}},
+                {"$set": {f"pokemon.{member.selected}.nature": NATURES[idx]}},
             )
 
             await ctx.send(

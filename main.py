@@ -60,7 +60,7 @@ async def on_message(message: discord.Message):
 
 @bot.event
 async def on_ready():
-    constants.EMOJIS.init_emojis(bot)
+    await constants.EMOJIS.init_emojis(bot)
     print(f"Logged in as {bot.user}")
     bot.enabled = True
 

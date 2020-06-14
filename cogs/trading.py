@@ -58,7 +58,7 @@ class Trading(commands.Cog):
             val = "\n".join(
                 f"{x} Poképoints"
                 if type(x) == int
-                else f"Level {x.level} {x.species} ({x.number})"
+                else f"Level {x[0].level} {x[0].species} ({x[1] + 1})"
                 for x in side
             )
 
@@ -84,39 +84,47 @@ class Trading(commands.Cog):
                 mem = ctx.guild.get_member(i)
                 omem = ctx.guild.get_member(oi)
 
+                dec = 0
+
+                member = await self.db.fetch_member_info(mem)
+                omember = await self.db.fetch_member_info(omem)
+
                 for x in side:
                     if type(x) == int:
                         await self.db.update_member(mem, {"$inc": {"balance": -x}})
                         await self.db.update_member(omem, {"$inc": {"balance": x}})
                     else:
-                        omember = await self.db.fetch_member_info(omem)
+
+                        if x[1] < member.selected:
+                            dec += 1
 
                         await self.db.update_member(
-                            mem, {"$pull": {"pokemon": {"number": x.number}}}
+                            mem, {"$unset": {f"pokemon.{x[1]}": 1}}
                         )
 
                         await self.db.update_member(
                             omem,
                             {
-                                "$inc": {"next_id": 1},
                                 "$push": {
                                     "pokemon": {
-                                        "number": omember.next_id,
-                                        "species_id": x.species.id,
-                                        "level": x.level,
-                                        "xp": x.xp,
-                                        "owner_id": omem.id,
-                                        "nature": x.nature,
-                                        "iv_hp": x.iv_hp,
-                                        "iv_atk": x.iv_atk,
-                                        "iv_defn": x.iv_defn,
-                                        "iv_satk": x.iv_satk,
-                                        "iv_sdef": x.iv_sdef,
-                                        "iv_spd": x.iv_spd,
+                                        "species_id": x[0].species.id,
+                                        "level": x[0].level,
+                                        "xp": x[0].xp,
+                                        "nature": x[0].nature,
+                                        "iv_hp": x[0].iv_hp,
+                                        "iv_atk": x[0].iv_atk,
+                                        "iv_defn": x[0].iv_defn,
+                                        "iv_satk": x[0].iv_satk,
+                                        "iv_sdef": x[0].iv_sdef,
+                                        "iv_spd": x[0].iv_spd,
                                     }
                                 },
                             },
                         )
+
+                await self.db.update_member(
+                    mem, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}},
+                )
 
         # Send msg
 
@@ -229,7 +237,7 @@ class Trading(commands.Cog):
                         if type(x) == int:
                             continue
 
-                        if x.number == int(what):
+                        if x[1] + 1 == int(what):
                             await ctx.send(
                                 f"{what}: This item is already in the trade!"
                             )
@@ -239,16 +247,18 @@ class Trading(commands.Cog):
                     if skip:
                         continue
 
-                    member = await self.db.fetch_member_info(ctx.author)
-                    t = await self.db.fetch_pokemon(ctx.author, int(what))
+                    number = int(what) - 1
 
-                    if t is None:
+                    member = await self.db.fetch_member_info(ctx.author)
+                    t = await self.db.fetch_pokemon(ctx.author, number)
+
+                    if len(t.pokemon) == 0:
                         await ctx.send(f"{what}: Couldn't find that pokémon!")
                         continue
 
                     pokemon = t.pokemon[0]
 
-                    if member.selected == pokemon.number:
+                    if member.selected == number:
                         await ctx.send(
                             f"{what}: You can't trade your selected pokémon!"
                         )
@@ -258,7 +268,9 @@ class Trading(commands.Cog):
                         await ctx.send(f"{what}: You can't trade favorited pokémon!")
                         continue
 
-                    self.users[ctx.author.id]["items"][ctx.author.id].append(pokemon)
+                    self.users[ctx.author.id]["items"][ctx.author.id].append(
+                        (pokemon, number)
+                    )
 
                     updated = True
 
@@ -318,7 +330,7 @@ class Trading(commands.Cog):
                         if type(x) == int:
                             continue
 
-                        if x.number == int(what):
+                        if x[1] + 1 == int(what):
                             del trade["items"][ctx.author.id][idx]
                             updated = True
                             break

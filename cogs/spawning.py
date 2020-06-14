@@ -63,15 +63,17 @@ class Spawning(commands.Cog):
                 if member.boost_active or message.guild.id == 716390832034414685:
                     xp_inc *= 2
 
-                await self.db.update_pokemon(
+                await self.db.update_member(
                     message.author,
-                    member.selected,
-                    {"$inc": {"pokemon.$.xp": xp_inc},},
+                    {"$inc": {f"pokemon.{member.selected}.xp": xp_inc},},
                 )
 
             if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
                 update = {
-                    "$set": {"pokemon.$.xp": 0, "pokemon.$.level": pokemon.level + 1}
+                    "$set": {
+                        f"pokemon.{member.selected}.xp": 0,
+                        f"pokemon.{member.selected}.level": pokemon.level + 1,
+                    }
                 }
                 embed = discord.Embed()
                 embed.color = 0xF44336
@@ -94,13 +96,13 @@ class Spawning(commands.Cog):
                             value=f"Your {name} has turned into a {pokemon.species.primary_evolution.target}!",
                         )
                         update["$set"][
-                            "pokemon.$.species_id"
+                            f"pokemon.{member.selected}.species_id"
                         ] = pokemon.species.primary_evolution.target_id
 
                         if member.silence and pokemon.level < 99:
                             await message.author.send(embed=embed)
 
-                await self.db.update_pokemon(message.author, member.selected, update)
+                await self.db.update_member(message.author, update)
 
                 if member.silence and pokemon.level == 99:
                     await message.author.send(embed=embed)
@@ -109,10 +111,9 @@ class Spawning(commands.Cog):
                     await message.channel.send(embed=embed)
 
             elif pokemon.level == 100:
-                await self.db.update_pokemon(
+                await self.db.update_member(
                     message.author,
-                    member.selected,
-                    {"$set": {"pokemon.$.xp": pokemon.max_xp}},
+                    {"$set": {f"pokemon.{member.selected}.xp": pokemon.max_xp}},
                 )
 
         # Increment guild activity counter
@@ -215,14 +216,11 @@ class Spawning(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
-                "$inc": {"next_id": 1},
                 "$push": {
                     "pokemon": {
-                        "number": member.next_id,
                         "species_id": species.id,
                         "level": level,
                         "xp": 0,
-                        "owner_id": ctx.author.id,
                         "nature": mongo.random_nature(),
                         "iv_hp": mongo.random_iv(),
                         "iv_atk": mongo.random_iv(),

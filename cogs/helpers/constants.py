@@ -40,7 +40,7 @@ STARTER_GENERATION = {
 STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in l]
 
 SORTING_FUNCTIONS = {
-    "number": "$pokemon.number",
+    "number": "$idx",
     "iv": {
         "$divide": [
             {
@@ -1020,10 +1020,10 @@ class EmojiManager:
     def __init(self):
         self._emojis = []
 
-    def init_emojis(self, bot):
+    async def init_emojis(self, bot):
         self._emojis = [None] + [bot.get_emoji(x) for x in EMOJI_IDS[1:]]
 
-        gguild = bot.get_guild(716390832034414685)
+        gguild = await bot.fetch_guild(716390832034414685)
         self.blank = next(filter(lambda x: x.name == "blank", gguild.emojis))
         self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
         self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))

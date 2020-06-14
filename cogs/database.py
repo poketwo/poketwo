@@ -35,7 +35,7 @@ class Database(commands.Cog):
         return await mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
-                {"$unwind": "$pokemon"},
+                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$skip": skip},
                 {"$limit": limit},
@@ -49,7 +49,7 @@ class Database(commands.Cog):
         return await mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
-                {"$unwind": "$pokemon"},
+                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ]
@@ -69,33 +69,13 @@ class Database(commands.Cog):
     async def update_member(self, member: discord.Member, update):
         return await mongo.db.member.update_one({"_id": member.id}, update)
 
-    async def fetch_pokemon(self, member: discord.Member, number: int):
-        if number == -1:
+    async def fetch_pokemon(self, member: discord.Member, idx: int):
+        if idx == -1:
             return await mongo.Member.find_one(
                 {"_id": member.id}, projection={"pokemon": {"$slice": -1}},
             )
         return await mongo.Member.find_one(
-            {"_id": member.id, "pokemon.number": number},
-            projection={"pokemon": {"$elemMatch": {"number": number}}},
-        )
-
-    async def fetch_pokemon_idx(self, member: discord.Member, number: int):
-        return await mongo.db.member.aggregate(
-            [
-                {"$match": {"_id": member.id}},
-                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
-                {"$match": {"pokemon.number": number}},
-            ]
-        ).to_list(None)
-
-    async def fetch_pokemon_by_idx(self, member: discord.Member, idx: int):
-        return await mongo.Member.find_one(
             {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
-        )
-
-    async def update_pokemon(self, member: discord.Member, number: int, update):
-        return await mongo.db.member.update_one(
-            {"_id": member.id, "pokemon.number": number}, update
         )
 
     async def fetch_guild(self, guild: discord.Guild) -> mongo.Guild:
