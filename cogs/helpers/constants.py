@@ -1015,14 +1015,21 @@ EMOJI_IDS = [
     721476617003728968,
 ]
 
+
 class EmojiManager:
     def __init(self):
         self._emojis = []
 
     def init_emojis(self, bot):
         self._emojis = [None] + [bot.get_emoji(x) for x in EMOJI_IDS[1:]]
-        
+
+        gguild = bot.get_guild(716390832034414685)
+        self.blank = next(filter(lambda x: x.name == "blank", gguild.emojis))
+        self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
+        self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))
+
     def __getitem__(self, floor_number):
-          return self._emojis[floor_number]
-    
+        return self._emojis[floor_number]
+
+
 EMOJIS = EmojiManager()

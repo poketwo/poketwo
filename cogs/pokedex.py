@@ -57,15 +57,15 @@ class Pokedex(commands.Cog):
                 for p in range(pgstart + 1, pgend + 1):
                     species = GameData.species_by_number(p)
 
-                    text = "❌ Not caught yet!"
+                    text = f"{EMOJIS.cross} Not caught yet!"
 
                     if str(species.dex_number) in member.pokedex:
-                        text = f"✅ {member.pokedex[str(species.dex_number)]} caught!"
+                        text = f"{EMOJIS.check} {member.pokedex[str(species.dex_number)]} caught!"
 
                     emoji = str(EMOJIS[p]).replace("pokemon_sprite_", "")
 
                     embed.add_field(
-                        name=f"{emoji} {species.name} #{species.id}", value=text
+                        name=f"{emoji} {species.name} #{species.id}", value=text
                     )
 
                 if pgend != 809:
