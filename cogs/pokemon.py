@@ -40,6 +40,11 @@ class Pokemon(commands.Cog):
                 value="Use a redeem to receive a pokémon of your choice.",
             )
 
+            embed.add_field(
+                name="p!redeemspawn <pokémon>",
+                value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
+            )
+
             return await ctx.send(embed=embed)
 
         if member.redeems == 0:
@@ -77,6 +82,51 @@ class Pokemon(commands.Cog):
         await ctx.send(
             f"You used a redeem and received a {species}! View it with `p!info latest`."
         )
+
+    @checks.has_started()
+    @commands.command()
+    async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
+        """Redeem spawn a pokémon."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if species is None:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Your Redeems: {member.redeems}"
+            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+
+            embed.add_field(
+                name="p!redeem <pokémon>",
+                value="Use a redeem to receive a pokémon of your choice.",
+            )
+
+            embed.add_field(
+                name="p!redeemspawn <pokémon>",
+                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overrided)*.",
+            )
+
+            return await ctx.send(embed=embed)
+
+        if member.redeems == 0:
+            return await ctx.send("You don't have any redeems!")
+
+        try:
+            species = GameData.species_by_name(species)
+        except SpeciesNotFoundError:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        if not species.catchable:
+            return await ctx.send("You can't redeem this pokémon!")
+
+        if ctx.channel.id == 720944005856100452:
+            return await ctx.send("You can't redeemspawn a pokémon here!")
+
+        await self.db.update_member(
+            ctx.author, {"$inc": {"redeems": -1}},
+        )
+
+        await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
     @commands.command(aliases=["nick"])
     async def nickname(self, ctx: commands.Context, *, nickname: str):

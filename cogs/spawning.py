@@ -147,10 +147,12 @@ class Spawning(commands.Cog):
 
             await self.spawn_pokemon(channel)
 
-    async def spawn_pokemon(self, channel):
+    async def spawn_pokemon(self, channel, species=None):
         # Get random species and level, add to tracker
 
-        species = GameData.random_spawn()
+        if species is None:
+            species = GameData.random_spawn()
+
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
