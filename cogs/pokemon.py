@@ -635,7 +635,7 @@ class Pokemon(commands.Cog):
                 name += ' "' + p.nickname + '"'
 
             if p.favorite:
-                name += " ❤️ "
+                name += f" {EMOJIS.heart}"
 
             return name
 
