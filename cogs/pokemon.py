@@ -273,7 +273,7 @@ class Pokemon(commands.Cog):
         else:
             return await ctx.send(
                 "`p!select <number>` to select a pokémon "
-                "or `p!select latest` to autoselect your latest pokémon."
+                "or `p!select latest` to select your latest pokémon."
             )
 
         pokemon = await self.db.fetch_pokemon(ctx.author, number)
