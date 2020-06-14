@@ -640,7 +640,7 @@ class Pokemon(commands.Cog):
             return name
 
         def padn(p, n):
-            return " " * (len(str(n)) - len(str(p.number))) + str(p.number)
+            return " " * (len(str(n)) - len(str(p.number))) + str(p.number)
 
         pokemon = await self.db.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
@@ -666,7 +666,7 @@ class Pokemon(commands.Cog):
             maxn = max(x.number for x in pokemon)
 
             page = [
-                f"`{padn(p, maxn)}`   **{nick(p)}**   |   Lvl. {p.level}   |   {p.iv_percentage * 100:.2f}%"
+                f"`{padn(p, maxn)}`   **{nick(p)}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
                 for p in pokemon
             ]
 
