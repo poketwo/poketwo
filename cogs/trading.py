@@ -140,7 +140,7 @@ class Trading(commands.Cog):
         if ctx.author.id in self.users:
             return await ctx.send("You are already in a trade!")
 
-        if ctx.guild.id in self.users:
+        if user.id in self.users:
             return await ctx.send(f"**{user}** is already in a trade!")
 
         member = await mongo.Member.find_one({"id": user.id})
@@ -162,6 +162,16 @@ class Trading(commands.Cog):
             await message.add_reaction("❌")
             await ctx.send("The request to trade has timed out.")
         else:
+            if ctx.author.id in self.users:
+                return await ctx.send(
+                    "Sorry, the user who sent the request is already in another trade."
+                )
+
+            if user.id in self.users:
+                return await ctx.send(
+                    "Sorry, you can't accept a trade while you're already in one!"
+                )
+
             trade = {
                 "items": {ctx.author.id: [], user.id: []},
                 ctx.author.id: False,
