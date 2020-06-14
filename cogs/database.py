@@ -39,7 +39,8 @@ class Database(commands.Cog):
                 *aggregations,
                 {"$skip": skip},
                 {"$limit": limit},
-            ]
+            ],
+            {"allowDiskUse": True},
         ).to_list(None)
 
     async def fetch_pokemon_count(
