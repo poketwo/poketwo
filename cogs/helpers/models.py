@@ -255,7 +255,7 @@ class Species:
 
     @cached_property
     def image_url(self):
-        return f"https://oliverni.com/poketwo/{self.id}.png"
+        return f"https://assets.poketwo.net/{self.id}.png"
 
     @cached_property
     def correct_guesses(self):
