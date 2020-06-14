@@ -409,6 +409,11 @@ class Pokemon(commands.Cog):
 
         rall = False
 
+        if len(args) > 1:
+            return await ctx.send(
+                "Due to a bug, you can only release one pokémon at a time for now."
+            )
+
         for number in args:
 
             if number.isdigit():
