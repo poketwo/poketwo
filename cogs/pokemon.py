@@ -609,16 +609,29 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        def nick(p):
-            name = str(EMOJIS[p.species.dex_number]).replace("pokemon_sprite_", "")
+        do_emojis = ctx.channel.permissions_for(
+            ctx.guild.get_member(self.bot.user.id)
+        ).external_emojis
 
-            name += " " + str(p.species)
+        def nick(p):
+            if do_emojis:
+                name = (
+                    str(EMOJIS[p.species.dex_number]).replace("pokemon_sprite_", "")
+                    + " "
+                )
+            else:
+                name = ""
+
+            name += str(p.species)
 
             if p.nickname is not None:
                 name += ' "' + p.nickname + '"'
 
             if p.favorite:
-                name += f" {EMOJIS.heart}"
+                if do_emojis:
+                    name += f" {EMOJIS.heart}"
+                else:
+                    name += " ❤️"
 
             return name
 

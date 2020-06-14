@@ -99,7 +99,7 @@ class Bot(commands.Cog):
 
         await ctx.send(
             "Want to add me to your server? Use the link below!\n\n"
-            "Invite Bot: https://invite.poketwo.net/"
+            "Invite Bot: https://invite.poketwo.net/\n"
             "Join Server: https://discord.gg/QyEWy4C\n\n"
             "This bot is still in development and has limited functionality. Please report bugs to the server."
         )
