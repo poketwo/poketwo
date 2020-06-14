@@ -84,7 +84,9 @@ class Pokedex(commands.Cog):
                     f"Could not find a pokemon matching `{search_or_page}`."
                 )
 
-            member = await self.db.fetch_pokedex(ctx.author, species.id, species.id + 1)
+            member = await self.db.fetch_pokedex(
+                ctx.author, species.dex_number, species.dex_number + 1
+            )
 
             embed = discord.Embed()
             embed.color = 0xF44336
