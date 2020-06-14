@@ -233,6 +233,10 @@ class Trading(commands.Cog):
 
                     skip = False
 
+                    if not 1 <= int(what) <= 2 ** 31 - 1:
+                        await ctx.send(f"{what}: NO")
+                        continue
+
                     for x in self.users[ctx.author.id]["items"][ctx.author.id]:
                         if type(x) == int:
                             continue
