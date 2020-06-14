@@ -346,4 +346,8 @@ class Trading(commands.Cog):
             if not updated:
                 return
 
+        for k in self.users[ctx.author.id]:
+            if type(k) == int:
+                self.users[ctx.author.id][k] = False
+
         await self.send_trade(ctx, ctx.author)
