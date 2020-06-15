@@ -144,7 +144,9 @@ class Pokedex(commands.Cog):
                     else:
                         emoji = ""
 
-                    embed.add_field(name=f"{species.name} #{species.id}", value=text)
+                    embed.add_field(
+                        name=f"{emoji}{species.name} #{species.id}", value=text
+                    )
 
                 if pgend != 809:
                     embed.add_field(name="‎", value="‎")
