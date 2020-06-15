@@ -6,6 +6,7 @@ from cogs import *
 from cogs.helpers import constants
 from data import load_data
 import asyncio
+import subprocess
 
 # Setup
 

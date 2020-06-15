@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo
+from .helpers import checks, mongo, converters
 from .helpers.constants import *
 from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.pagination import Paginator
@@ -154,33 +154,20 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
-    @commands.command(aliases=["fav"])
-    async def favorite(self, ctx: commands.Context, number: str = None):
+    @commands.command(aliases=["fav"], rest_is_raw=True)
+    async def favorite(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Mark a pokémon as a favorite."""
 
-        member = await self.db.fetch_member_info(ctx.author)
-
-        if number is None:
-            number = member.selected
-        elif number.isdigit():
-            number = int(number) - 1
-        elif number.lower() == "latest":
-            number = -1
-
-        else:
-            return await ctx.send(
-                "Please use `p!favorite` to favorite your selected pokémon, "
-                "`p!favorite <number>` to favorite another pokémon, "
-                "or `p!favorite latest` to favorite your latest pokémon."
-            )
-
-        pokemon = await self.db.fetch_pokemon(ctx.author, number)
+        pokemon, idx = pokemon
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        idx = idx % num
+
         await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{number}.favorite": not pokemon.favorite}},
+            ctx.author, {"$set": {f"pokemon.{idx}.favorite": not pokemon.favorite}},
         )
 
         name = str(pokemon.species)
@@ -236,26 +223,15 @@ class Pokemon(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command()
-    async def info(self, ctx: commands.Context, *, number: str = None):
+    @commands.command(rest_is_raw=True)
+    async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
+
+        pokemon, idx = pokemon
 
         num = await self.db.fetch_pokemon_count(ctx.author)
 
-        if number is not None and number.lower() == "latest":
-            pidx = num - 1
-        else:
-            if number is None:
-                member = await self.db.fetch_member_info(ctx.author)
-                pidx = member.selected % num
-            elif number.isdigit():
-                pidx = int(number) - 1
-            else:
-                return await ctx.send(
-                    "Please use `p!info` to view your selected pokémon, "
-                    "`p!info <number>` to view another pokémon, "
-                    "or `p!info latest` to view your latest pokémon."
-                )
+        pidx = idx % num
 
         async def get_page(pidx, clear):
             pokemon = await self.db.fetch_pokemon(ctx.author, pidx)
@@ -299,37 +275,26 @@ class Pokemon(commands.Cog):
         await paginator.send(self.bot, ctx, pidx)
 
     @checks.has_started()
-    @commands.command()
-    async def select(self, ctx: commands.Context, *, number: str = ""):
+    @commands.command(rest_is_raw=True)
+    async def select(
+        self, ctx: commands.Context, *, pokemon: converters.Pokemon(accept_blank=False)
+    ):
         """Select a specific pokémon from your collection."""
 
-        member = await self.db.fetch_member_info(ctx.author)
-
-        orig = number
-
-        if number.isdigit():
-            number = int(number) - 1
-        elif number.lower() == "latest":
-            num = await self.db.fetch_pokemon_count(ctx.author)
-            number = num - 1
-
-        else:
-            return await ctx.send(
-                "`p!select <number>` to select a pokémon "
-                "or `p!select latest` to select your latest pokémon."
-            )
-
-        pokemon = await self.db.fetch_pokemon(ctx.author, number)
+        pokemon, idx = pokemon
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        idx = idx % num
+
         await self.db.update_member(
-            ctx.author, {"$set": {f"selected": number}},
+            ctx.author, {"$set": {f"selected": idx}},
         )
 
         await ctx.send(
-            f"You selected your level {pokemon.level} {pokemon.species}. No. {number + 1}."
+            f"You selected your level {pokemon.level} {pokemon.species}. No. {idx + 1}."
         )
 
     @checks.has_started()
@@ -450,49 +415,52 @@ class Pokemon(commands.Cog):
             return await ctx.send("You can't do that in a trade!")
 
         member = await self.db.fetch_member_info(ctx.author)
+        num = await self.db.fetch_pokemon_count(ctx.author)
 
-        rall = False
+        accept = False
 
-        if len(args) > 1:
-            return await ctx.send(
-                "Due to a bug, you can only release one pokémon at a time for now."
-            )
+        converter = converters.Pokemon(accept_blank=False)
+
+        dec = 0
+
+        idxs = set()
 
         for number in args:
 
-            if number.isdigit():
-                number = int(number) - 1
-            else:
-                return await ctx.send(f"{number}: not a valid pokémon")
-
-            pokemon = await self.db.fetch_pokemon(ctx.author, number)
+            try:
+                pokemon, idx = await converter.convert(ctx, number)
+            except converters.PokemonConversionError:
+                await ctx.send(f"{number}: Not a valid pokémon!")
+                continue
 
             if pokemon is None:
-                return await ctx.send(f"{number + 1}: Couldn't find that pokémon!")
+                await ctx.send(f"{number}: Couldn't find that pokémon!")
+                continue
 
             # can't release selected/fav
 
-            if member.selected == number:
-                return await ctx.send(
-                    f"{number + 1}: You can't release your selected pokémon!"
-                )
+            if idx in idxs:
+                await ctx.send(f"{number}: This pokémon is already being released!")
+
+            if member.selected == idx:
+                await ctx.send(f"{number}: You can't release your selected pokémon!")
+                continue
 
             if pokemon.favorite:
-                return await ctx.send(
-                    f"{number + 1}: You can't release favorited pokémon!"
-                )
+                await ctx.send(f"{number}: You can't release favorited pokémon!")
+                continue
 
             # confirm
 
-            if not rall:
+            if not accept:
 
                 if len(args) > 1:
                     await ctx.send(
-                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {number + 1}? This action is irreversible! [y/N] [type `all` for yes to all]"
+                        f"Are you sure you want to release these pokémon? [y/N]"
                     )
                 else:
                     await ctx.send(
-                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {number + 1}? This action is irreversible! [y/N]"
+                        f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {idx + 1}? This action is irreversible! [y/N]"
                     )
 
                 def check(m):
@@ -503,31 +471,37 @@ class Pokemon(commands.Cog):
                 try:
                     msg = await self.bot.wait_for("message", timeout=15, check=check)
 
-                    if msg.content.lower() == "all":
-                        rall = True
-
-                    if msg.content.lower() != "y" and not rall:
+                    if msg.content.lower() != "y":
                         return await ctx.send("Aborted.")
 
                 except asyncio.TimeoutError:
                     return await ctx.send("Time's up. Aborted.")
 
+                accept = True
+
             # confirmed, release
 
-            await self.db.update_member(
-                ctx.author, {"$unset": {f"pokemon.{number}": 1}}
-            )
-
-            if number < member.selected:
-                await self.db.update_member(
-                    ctx.author, {"$inc": {f"selected": -1}, "$pull": {f"pokemon": None}}
-                )
-            else:
-                await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+            await self.db.update_member(ctx.author, {"$unset": {f"pokemon.{idx}": 1}})
 
             await ctx.send(
-                f"You released your level {pokemon.level} {pokemon.species}. No. {number + 1}."
+                f"Releasing your level {pokemon.level} {pokemon.species}. No. {idx + 1}."
             )
+
+            idxs.add(idx)
+
+            if (idx % num) < member.selected:
+                dec += 1
+
+        await self.db.update_member(
+            ctx.author, {"$inc": {f"selected": -dec}, "$pull": {f"pokemon": None}}
+        )
+
+        await ctx.send(f"Finished releasing all pokémon.")
+
+    @commands.command()
+    async def healschema(self, ctx: commands.Context):
+        await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+        await ctx.send("Trying to heal schema...")
 
     @flags.add_flag("--name")
     @flags.add_flag("--type", type=str)

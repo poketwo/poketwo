@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo
+from .helpers import checks, mongo, converters
 from .helpers.models import *
 from .helpers.constants import HELP
 
@@ -87,6 +87,10 @@ class Bot(commands.Cog):
 
         if isinstance(error, commands.BadArgument):
             return await ctx.send(f"Bad argument: {error}")
+
+        if isinstance(error, converters.PokemonConversionError):
+            print(error)
+            return await ctx.send(error)
 
         if isinstance(error, commands.CommandNotFound):
             return
@@ -247,6 +251,7 @@ class Bot(commands.Cog):
                             "iv_spd": mongo.random_iv(),
                         }
                     },
+                    "$inc": {f"pokedex.{spid}": 1},
                 },
             )
 

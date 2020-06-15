@@ -1,12 +1,14 @@
-import discord
-from discord.ext import commands
+import math
+from operator import itemgetter
 
-from .helpers.models import GameData, SpeciesNotFoundError
-from .helpers import checks
-from .helpers.pagination import Paginator
-from .helpers.constants import *
+import discord
+from discord.ext import commands, flags
 
 from .database import Database
+from .helpers import checks
+from .helpers.constants import *
+from .helpers.models import GameData, SpeciesNotFoundError
+from .helpers.pagination import Paginator
 
 
 class Pokedex(commands.Cog):
@@ -19,10 +21,34 @@ class Pokedex(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @flags.add_flag("page", nargs="?")
+    @flags.add_flag("--caught", action="store_true")
+    @flags.add_flag("--uncaught", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--orderd", action="store_true")
+    @flags.add_flag("--ordera", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--type", type=str)
     @checks.has_started()
-    @commands.command(aliases=["dex"])
-    async def pokedex(self, ctx: commands.Context, *, search_or_page: str = None):
+    @flags.command(aliases=["dex"])
+    async def pokedex(self, ctx: commands.Context, **flags):
         """View your pokédex, or search for a pokémon species."""
+
+        search_or_page = flags["page"]
+
+        if flags["orderd"] and flags["ordera"]:
+            return await ctx.send(
+                "You can use either --orderd or --ordera, but not both."
+            )
+
+        if flags["caught"] and flags["uncaught"]:
+            return await ctx.send(
+                "You can use either --caught or --uncaught, but not both."
+            )
+
+        if flags["mythical"] + flags["legendary"] + flags["ub"] > 1:
+            return await ctx.send("You can't use more than one rarity flag!")
 
         if search_or_page is None:
             search_or_page = "1"
@@ -39,11 +65,45 @@ class Pokedex(commands.Cog):
                 ctx.guild.get_member(self.bot.user.id)
             ).external_emojis
 
+            member = await self.db.fetch_pokedex(ctx.author, 0, 809)
+            pokedex = member.pokedex
+
+            if not flags["uncaught"] and not flags["caught"]:
+                for i in range(1, 810):
+                    if str(i) not in pokedex:
+                        pokedex[str(i)] = 0
+            elif flags["uncaught"]:
+                for i in range(1, 810):
+                    if str(i) not in pokedex:
+                        pokedex[str(i)] = 0
+                    else:
+                        del pokedex[str(i)]
+
+            def include(key):
+                if flags["legendary"] and key not in GameData.list_legendary():
+                    return False
+                if flags["mythical"] and key not in GameData.list_mythical():
+                    return False
+                if flags["ub"] and key not in GameData.list_ub():
+                    return False
+
+                if flags["type"] and key not in GameData.list_type(flags["type"]):
+                    return False
+
+                return True
+
+            pokedex = {int(k): v for k, v in pokedex.items() if include(int(k))}
+
+            if flags["ordera"]:
+                pokedex = sorted(pokedex.items(), key=itemgetter(1))
+            elif flags["orderd"]:
+                pokedex = sorted(pokedex.items(), key=itemgetter(1), reverse=True)
+            else:
+                pokedex = sorted(pokedex.items(), key=itemgetter(0))
+
             async def get_page(pidx, clear):
                 pgstart = (pidx) * 20
-                pgend = min(pgstart + 20, 809)
-
-                member = await self.db.fetch_pokedex(ctx.author, pgstart + 1, pgend + 1)
+                pgend = min(pgstart + 20, len(pokedex))
 
                 # Send embed
 
@@ -53,30 +113,34 @@ class Pokedex(commands.Cog):
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
                 if do_emojis:
-                    embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809.")
+                    embed.set_footer(
+                        text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}."
+                    )
                 else:
-                    embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of 809. Please give me permission to Use External Emojis! It'll make this menu look a lot better.")
+                    embed.set_footer(
+                        text=f"Showing {pgstart + 1}–{pgend} out of 809. Please give me permission to Use External Emojis! It'll make this menu look a lot better."
+                    )
 
                 # embed.description = (
                 #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
                 # )
 
-                for p in range(pgstart + 1, pgend + 1):
-                    species = GameData.species_by_number(p)
+                for k, v in pokedex[pgstart:pgend]:
+                    species = GameData.species_by_number(k)
 
                     if do_emojis:
                         text = f"{EMOJIS.cross} Not caught yet!"
                     else:
                         text = "Not caught yet!"
 
-                    if str(species.dex_number) in member.pokedex:
+                    if v > 0:
                         if do_emojis:
-                            text = f"{EMOJIS.check} {member.pokedex[str(species.dex_number)]} caught!"
+                            text = f"{EMOJIS.check} {v} caught!"
                         else:
-                            text = f"{member.pokedex[str(species.dex_number)]} caught!"
+                            text = f"{v} caught!"
 
                     if do_emojis:
-                        emoji = str(EMOJIS[p]).replace("pokemon_sprite_", "") + " "
+                        emoji = str(EMOJIS[k]).replace("pokemon_sprite_", "") + " "
                     else:
                         emoji = ""
 
@@ -87,7 +151,7 @@ class Pokedex(commands.Cog):
 
                 return embed
 
-            paginator = Paginator(get_page, num_pages=41)
+            paginator = Paginator(get_page, num_pages=math.ceil(len(pokedex) / 20))
             await paginator.send(self.bot, ctx, int(search_or_page) - 1)
 
         else:

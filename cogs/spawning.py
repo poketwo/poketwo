@@ -56,64 +56,66 @@ class Spawning(commands.Cog):
         if member is not None:
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
 
-            if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
-                xp_inc = random.randint(10, 40)
+            if pokemon is not None:
 
-                if member.boost_active or message.guild.id == 716390832034414685:
-                    xp_inc *= 2
+                if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
+                    xp_inc = random.randint(10, 40)
 
-                await self.db.update_member(
-                    message.author,
-                    {"$inc": {f"pokemon.{member.selected}.xp": xp_inc},},
-                )
+                    if member.boost_active or message.guild.id == 716390832034414685:
+                        xp_inc *= 2
 
-            if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
-                update = {
-                    "$set": {
-                        f"pokemon.{member.selected}.xp": 0,
-                        f"pokemon.{member.selected}.level": pokemon.level + 1,
+                    await self.db.update_member(
+                        message.author,
+                        {"$inc": {f"pokemon.{member.selected}.xp": xp_inc},},
+                    )
+
+                if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
+                    update = {
+                        "$set": {
+                            f"pokemon.{member.selected}.xp": 0,
+                            f"pokemon.{member.selected}.level": pokemon.level + 1,
+                        }
                     }
-                }
-                embed = discord.Embed()
-                embed.color = 0xF44336
-                embed.title = f"Congratulations {message.author.name}!"
+                    embed = discord.Embed()
+                    embed.color = 0xF44336
+                    embed.title = f"Congratulations {message.author.name}!"
 
-                name = str(pokemon.species)
+                    name = str(pokemon.species)
 
-                if pokemon.nickname is not None:
-                    name += f' "{pokemon.nickname}"'
+                    if pokemon.nickname is not None:
+                        name += f' "{pokemon.nickname}"'
 
-                embed.description = f"Your {name} is now level {pokemon.level + 1}!"
+                    embed.description = f"Your {name} is now level {pokemon.level + 1}!"
 
-                if pokemon.species.primary_evolution is not None:
-                    if (
-                        pokemon.level + 1
-                        >= pokemon.species.primary_evolution.trigger.level
-                    ):
-                        embed.add_field(
-                            name=f"Your {name} is evolving!",
-                            value=f"Your {name} has turned into a {pokemon.species.primary_evolution.target}!",
-                        )
-                        update["$set"][
-                            f"pokemon.{member.selected}.species_id"
-                        ] = pokemon.species.primary_evolution.target_id
+                    if pokemon.species.primary_evolution is not None:
+                        if (
+                            pokemon.level + 1
+                            >= pokemon.species.primary_evolution.trigger.level
+                        ):
+                            embed.add_field(
+                                name=f"Your {name} is evolving!",
+                                value=f"Your {name} has turned into a {pokemon.species.primary_evolution.target}!",
+                            )
+                            update["$set"][
+                                f"pokemon.{member.selected}.species_id"
+                            ] = pokemon.species.primary_evolution.target_id
 
-                        if member.silence and pokemon.level < 99:
-                            await message.author.send(embed=embed)
+                            if member.silence and pokemon.level < 99:
+                                await message.author.send(embed=embed)
 
-                await self.db.update_member(message.author, update)
+                    await self.db.update_member(message.author, update)
 
-                if member.silence and pokemon.level == 99:
-                    await message.author.send(embed=embed)
+                    if member.silence and pokemon.level == 99:
+                        await message.author.send(embed=embed)
 
-                if not member.silence:
-                    await message.channel.send(embed=embed)
+                    if not member.silence:
+                        await message.channel.send(embed=embed)
 
-            elif pokemon.level == 100:
-                await self.db.update_member(
-                    message.author,
-                    {"$set": {f"pokemon.{member.selected}.xp": pokemon.max_xp}},
-                )
+                elif pokemon.level == 100:
+                    await self.db.update_member(
+                        message.author,
+                        {"$set": {f"pokemon.{member.selected}.xp": pokemon.max_xp}},
+                    )
 
         # Increment guild activity counter
 
