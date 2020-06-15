@@ -47,7 +47,7 @@ class Database(commands.Cog):
         self, member: discord.Member, aggregations=[]
     ) -> mongo.Member:
 
-        return await mongo.db.member.aggregate(
+        result = await mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -56,28 +56,41 @@ class Database(commands.Cog):
             ]
         ).to_list(None)
 
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
     async def fetch_pokedex_count(
         self, member: discord.Member, aggregations=[]
     ) -> mongo.Member:
 
-        return await mongo.db.member.aggregate(
+        result = await mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$addFields": {"count": {"$size": {"$objectToArray": "$pokedex"}}}},
             ]
         ).to_list(None)
 
+        return result[0]["count"]
+
     async def update_member(self, member: discord.Member, update):
         return await mongo.db.member.update_one({"_id": member.id}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if idx == -1:
-            return await mongo.Member.find_one(
+            result = await mongo.Member.find_one(
                 {"_id": member.id}, projection={"pokemon": {"$slice": -1}},
             )
-        return await mongo.Member.find_one(
-            {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
-        )
+        else:
+            result = await mongo.Member.find_one(
+                {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
+            )
+
+        if len(result.pokemon) == 0:
+            return None
+
+        return result.pokemon[0]
 
     async def fetch_guild(self, guild: discord.Guild) -> mongo.Guild:
         guild = await mongo.Guild.find_one({"id": guild.id})

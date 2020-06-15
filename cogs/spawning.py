@@ -55,7 +55,6 @@ class Spawning(commands.Cog):
 
         if member is not None:
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
-            pokemon = pokemon.pokemon[0]
 
             if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                 xp_inc = random.randint(10, 40)

@@ -140,7 +140,6 @@ class Pokemon(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
-        pokemon = pokemon.pokemon[0]
 
         await self.db.update_member(
             ctx.author, {"$set": {f"pokemon.{member.selected}.nickname": nickname}},
@@ -179,8 +178,6 @@ class Pokemon(commands.Cog):
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
-
-        pokemon = pokemon.pokemon[0]
 
         await self.db.update_member(
             ctx.author, {"$set": {f"pokemon.{number}.favorite": not pokemon.favorite}},
@@ -244,7 +241,6 @@ class Pokemon(commands.Cog):
         """View a specific pokémon from your collection."""
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        num = num[0]["num_matches"]
 
         if number is not None and number.lower() == "latest":
             pidx = num - 1
@@ -264,10 +260,8 @@ class Pokemon(commands.Cog):
         async def get_page(pidx, clear):
             pokemon = await self.db.fetch_pokemon(ctx.author, pidx)
 
-            if len(pokemon.pokemon) == 0:
+            if pokemon is None:
                 return await clear("Couldn't find that pokémon!")
-
-            pokemon = pokemon.pokemon[0]
 
             embed = discord.Embed()
             embed.color = 0xF44336
@@ -317,7 +311,6 @@ class Pokemon(commands.Cog):
             number = int(number) - 1
         elif number.lower() == "latest":
             num = await self.db.fetch_pokemon_count(ctx.author)
-            num = num[0]["num_matches"]
             number = num - 1
 
         else:
@@ -328,10 +321,8 @@ class Pokemon(commands.Cog):
 
         pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
-        if len(pokemon.pokemon) == 0:
+        if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
-
-        pokemon = pokemon.pokemon[0]
 
         await self.db.update_member(
             ctx.author, {"$set": {f"selected": number}},
@@ -476,10 +467,8 @@ class Pokemon(commands.Cog):
 
             pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
-            if len(pokemon.pokemon) == 0:
+            if pokemon is None:
                 return await ctx.send(f"{number + 1}: Couldn't find that pokémon!")
-
-            pokemon = pokemon.pokemon[0]
 
             # can't release selected/fav
 
@@ -571,16 +560,12 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        pokemon = await self.db.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
-        if len(pokemon) == 0:
+        if num == 0:
             return await ctx.send(
                 "Found no pokémon matching this search (excluding favorited and selected pokémon)."
             )
-
-        num = pokemon[0]["num_matches"]
 
         # confirm
 
@@ -685,7 +670,7 @@ class Pokemon(commands.Cog):
 
             if p.favorite:
                 if do_emojis:
-                    name += f" {EMOJIS.heart}"
+                    name += f" {EMOJIS.heart}".replace("red_heart", "h")
                 else:
                     name += " ❤️"
 
@@ -694,14 +679,10 @@ class Pokemon(commands.Cog):
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
-        pokemon = await self.db.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
-        if len(pokemon) == 0:
+        if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
-
-        num = pokemon[0]["num_matches"]
 
         async def get_page(pidx, clear):
 

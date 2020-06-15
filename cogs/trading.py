@@ -264,13 +264,11 @@ class Trading(commands.Cog):
                     number = int(what) - 1
 
                     member = await self.db.fetch_member_info(ctx.author)
-                    t = await self.db.fetch_pokemon(ctx.author, number)
+                    pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
-                    if len(t.pokemon) == 0:
+                    if pokemon is None:
                         await ctx.send(f"{what}: Couldn't find that pokémon!")
                         continue
-
-                    pokemon = t.pokemon[0]
 
                     if member.selected == number:
                         await ctx.send(

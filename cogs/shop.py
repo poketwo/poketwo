@@ -95,7 +95,6 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
-        pokemon = pokemon.pokemon[0]
 
         if member.balance < item.cost:
             return await ctx.send("You don't have enough Poképoints for that!")

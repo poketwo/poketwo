@@ -34,7 +34,6 @@ class Pokedex(commands.Cog):
                 return await ctx.send("There are no pokémon on this page.")
 
             num = await self.db.fetch_pokedex_count(ctx.author)
-            num = num[0]["count"]
 
             do_emojis = ctx.channel.permissions_for(
                 ctx.guild.get_member(self.bot.user.id)
