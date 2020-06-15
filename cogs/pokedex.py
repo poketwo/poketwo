@@ -21,7 +21,7 @@ class Pokedex(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @flags.add_flag("page", nargs="+")
+    @flags.add_flag("page", nargs="*", type=str, default="1")
     @flags.add_flag("--caught", action="store_true")
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
