@@ -21,7 +21,7 @@ class Pokedex(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @flags.add_flag("page", nargs="?")
+    @flags.add_flag("page", nargs="+")
     @flags.add_flag("--caught", action="store_true")
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
@@ -35,7 +35,7 @@ class Pokedex(commands.Cog):
     async def pokedex(self, ctx: commands.Context, **flags):
         """View your pokédex, or search for a pokémon species."""
 
-        search_or_page = flags["page"]
+        search_or_page = " ".join(flags["page"])
 
         if flags["orderd"] and flags["ordera"]:
             return await ctx.send(
