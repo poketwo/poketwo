@@ -89,7 +89,6 @@ class Bot(commands.Cog):
             return await ctx.send(f"Bad argument: {error}")
 
         if isinstance(error, converters.PokemonConversionError):
-            print(error)
             return await ctx.send(error)
 
         if isinstance(error, commands.CommandNotFound):

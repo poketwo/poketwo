@@ -31,6 +31,4 @@ class Pokemon(commands.Converter):
                 f"Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
             )
 
-        print(number)
-
         return await db.fetch_pokemon(ctx.author, number), number
