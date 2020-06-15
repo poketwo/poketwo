@@ -40,7 +40,7 @@ class Database(commands.Cog):
                 {"$skip": skip},
                 {"$limit": limit},
             ],
-            {"allowDiskUse": True},
+            allowDiskUse=True,
         ).to_list(None)
 
     async def fetch_pokemon_count(
