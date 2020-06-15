@@ -321,7 +321,7 @@ id,dex_number,slug,enabled,catchable,is_form,name.ja,name.ja_r,name.ja_t,name.en
 320,320,wailmer,1,1,,ホエルコ,Hoeruko,Hoeruko,Wailmer,Wailmer,Wailmer,Water,,,,,20,1300,321,,,,,130,70,35,70,35,60,,,
 321,321,wailord,1,1,,ホエルオー,Hoeruō,Whaloh,Wailord,Wailord,Wailord,Water,,,,,145,3980,,320,1,40,,170,90,45,90,45,60,,,
 322,322,numel,1,1,,ドンメル,Donmeru,Donmel,Numel,Camaub,Chamallot,Fire,Ground,,,,7,240,323,,,,,60,60,40,65,45,35,,,
-323,323,camerupt,1,1,,バクーダ,Bakūda,Bakuuda,Camerupt,Camerupt,Camérupt,Fire,Ground,,,,19,2200,,322,1,33,,70,100,70,105,75,40,,,
+323,323,camerupt,1,1,,バクーダ,Bakūda,Bakuuda,Camerupt,Camerupt,Camérupt,Fire,Ground,,,,19,2200,,322,1,33,,70,100,70,105,75,40,10087,,
 324,324,torkoal,1,1,,コータス,Kōtasu,Cotoise,Torkoal,Qurtel,Chartor,Fire,,,,,5,804,,,,,,70,85,140,85,70,20,,,
 325,325,spoink,1,1,,バネブー,Banebū,Baneboo,Spoink,Spoink,Spoink,Psychic,,,,,7,306,326,,,,,60,25,35,70,80,60,,,
 326,326,grumpig,1,1,,ブーピッグ,Būpiggu,Boopig,Grumpig,Groink,Groret,Psychic,,,,,9,715,,325,1,32,,80,45,65,90,110,80,,,
