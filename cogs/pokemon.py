@@ -267,7 +267,7 @@ class Pokemon(commands.Cog):
             )
 
             embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-            embed.set_footer(text=f"Displaying pokémon number {pidx + 1}.")
+            embed.set_footer(text=f"Displaying pokémon {pidx + 1} out of {num}.")
 
             return embed
 
