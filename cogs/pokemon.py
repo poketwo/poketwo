@@ -368,9 +368,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"pokemon.favorite": True}})
 
         if "shiny" in flags and flags["shiny"]:
-            aggregations.append(
-                {"$match": {"pokemon.shiny": True, "pokemon.species_id": {"$lte": 20}}}
-            )
+            aggregations.append({"$match": {"pokemon.shiny": True}})
 
         if "name" in flags and flags["name"] is not None:
             try:
