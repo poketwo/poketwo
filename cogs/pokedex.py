@@ -180,7 +180,7 @@ class Pokedex(commands.Cog):
             embed.title = f"#{species.dex_number} — {species}"
             embed.description = species.evolution_text
 
-            if shiny:
+            if shiny and species.id <= 20:
                 embed.title += " ✨"
                 embed.set_image(url=species.shiny_image_url)
             else:
