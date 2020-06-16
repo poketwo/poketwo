@@ -246,7 +246,11 @@ class Pokemon(commands.Cog):
             if pokemon.nickname is not None:
                 embed.title += f' "{pokemon.nickname}"'
 
-            embed.set_image(url=pokemon.species.image_url)
+            if pokemon.shiny:
+                embed.set_image(url=pokemon.species.image_url)
+            else:
+                embed.set_image(url=pokemon.species.shiny_image_url)
+
             embed.set_thumbnail(url=ctx.author.avatar_url)
 
             info = (
@@ -359,6 +363,9 @@ class Pokemon(commands.Cog):
 
         if "favorite" in flags and flags["favorite"]:
             aggregations.append({"$match": {"pokemon.favorite": True}})
+
+        if "shiny" in flags and flags["shiny"]:
+            aggregations.append({"$match": {"pokemon.shiny": True}})
 
         if "name" in flags and flags["name"] is not None:
             try:
@@ -580,6 +587,7 @@ class Pokemon(commands.Cog):
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -638,6 +646,9 @@ class Pokemon(commands.Cog):
                 name = ""
 
             name += str(p.species)
+
+            if p.shiny:
+                name += " ✨"
 
             if p.nickname is not None:
                 name += ' "' + p.nickname + '"'

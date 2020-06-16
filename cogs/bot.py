@@ -225,33 +225,33 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def admintestsetup(self, ctx: commands.Context, user: discord.Member):
+    async def admintestsetup(
+        self, ctx: commands.Context, user: discord.Member, num: int = 100
+    ):
         """Test setup pokémon."""
 
         member = await self.db.fetch_member_info(user)
 
-        for i in range(100):
-            spid = random.randint(1, 809)
+        pokemon = []
 
-            await self.db.update_member(
-                user,
+        for i in range(num):
+            pokemon.append(
                 {
-                    "$push": {
-                        "pokemon": {
-                            "species_id": spid,
-                            "level": 1,
-                            "xp": 0,
-                            "nature": mongo.random_nature(),
-                            "iv_hp": mongo.random_iv(),
-                            "iv_atk": mongo.random_iv(),
-                            "iv_defn": mongo.random_iv(),
-                            "iv_satk": mongo.random_iv(),
-                            "iv_sdef": mongo.random_iv(),
-                            "iv_spd": mongo.random_iv(),
-                        }
-                    },
-                    "$inc": {f"pokedex.{spid}": 1},
-                },
+                    "species_id": random.randint(1, 809),
+                    "level": 1,
+                    "xp": 0,
+                    "nature": mongo.random_nature(),
+                    "iv_hp": mongo.random_iv(),
+                    "iv_atk": mongo.random_iv(),
+                    "iv_defn": mongo.random_iv(),
+                    "iv_satk": mongo.random_iv(),
+                    "iv_sdef": mongo.random_iv(),
+                    "iv_spd": mongo.random_iv(),
+                }
             )
 
-        await ctx.send(f"Gave {user.mention} a bunch of pokémon.")
+        await self.db.update_member(
+            user, {"$push": {"pokemon": {"$each": pokemon}},},
+        )
+
+        await ctx.send(f"Gave {user.mention} {num} pokémon.")
