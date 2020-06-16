@@ -117,6 +117,7 @@ class Trading(commands.Cog):
                                         "iv_satk": x[0].iv_satk,
                                         "iv_sdef": x[0].iv_sdef,
                                         "iv_spd": x[0].iv_spd,
+                                        "shiny": x[0].shiny,
                                     }
                                 },
                             },

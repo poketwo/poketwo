@@ -157,8 +157,15 @@ class Pokedex(commands.Cog):
             await paginator.send(self.bot, ctx, int(search_or_page) - 1)
 
         else:
+            shiny = False
+            search = search_or_page
+
+            if search_or_page.lower().startswith("shiny "):
+                shiny = True
+                search = search_or_page[6:]
+
             try:
-                species = GameData.species_by_name(search_or_page)
+                species = GameData.species_by_name(search)
             except SpeciesNotFoundError:
                 return await ctx.send(
                     f"Could not find a pokemon matching `{search_or_page}`."
@@ -172,7 +179,12 @@ class Pokedex(commands.Cog):
             embed.color = 0xF44336
             embed.title = f"#{species.dex_number} — {species}"
             embed.description = species.evolution_text
-            embed.set_image(url=species.image_url)
+
+            if shiny:
+                embed.title += " ✨"
+                embed.set_image(url=species.shiny_image_url)
+            else:
+                embed.set_image(url=species.image_url)
 
             base_stats = (
                 f"**HP:** {species.base_stats.hp}",

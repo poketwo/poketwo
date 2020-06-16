@@ -247,6 +247,7 @@ class Bot(commands.Cog):
                     "iv_satk": mongo.random_iv(),
                     "iv_sdef": mongo.random_iv(),
                     "iv_spd": mongo.random_iv(),
+                    "shiny": random.randint(1, 4096) == 1,
                 }
             )
 

@@ -1,12 +1,13 @@
 import asyncio
 import math
+import random
 from functools import cached_property
 
 import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo, converters
+from .helpers import checks, converters, mongo
 from .helpers.constants import *
 from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.pagination import Paginator
@@ -74,6 +75,7 @@ class Pokemon(commands.Cog):
                         "iv_satk": mongo.random_iv(),
                         "iv_sdef": mongo.random_iv(),
                         "iv_spd": mongo.random_iv(),
+                        "shiny": random.randint(1, 4096) == 1,
                     }
                 },
             },
@@ -246,7 +248,8 @@ class Pokemon(commands.Cog):
             if pokemon.nickname is not None:
                 embed.title += f' "{pokemon.nickname}"'
 
-            if pokemon.shiny:
+            if pokemon.shiny and pokemon.species_id <= 20:
+                embed.title += " ✨"
                 embed.set_image(url=pokemon.species.shiny_image_url)
             else:
                 embed.set_image(url=pokemon.species.image_url)
@@ -365,7 +368,9 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"pokemon.favorite": True}})
 
         if "shiny" in flags and flags["shiny"]:
-            aggregations.append({"$match": {"pokemon.shiny": True}})
+            aggregations.append(
+                {"$match": {"pokemon.shiny": True, "pokemon.species_id": {"$lte": 20}}}
+            )
 
         if "name" in flags and flags["name"] is not None:
             try:
@@ -647,7 +652,7 @@ class Pokemon(commands.Cog):
 
             name += str(p.species)
 
-            if p.shiny:
+            if p.shiny and p.species_id <= 20:
                 name += " ✨"
 
             if p.nickname is not None:

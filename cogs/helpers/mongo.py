@@ -57,7 +57,8 @@ class Pokemon(EmbeddedDocument):
             iv_sdef=random_iv(),
             iv_spd=random_iv(),
             nature=random_nature(),
-            **kwargs
+            shiny=random.randint(1, 4096) == 1,
+            **kwargs,
         )
 
     @property

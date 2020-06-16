@@ -216,6 +216,8 @@ class Spawning(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
+        shiny = random.randint(1, 4096) == 1
+
         await self.db.update_member(
             ctx.author,
             {
@@ -231,6 +233,7 @@ class Spawning(commands.Cog):
                         "iv_satk": mongo.random_iv(),
                         "iv_sdef": mongo.random_iv(),
                         "iv_spd": mongo.random_iv(),
+                        "shiny": shiny,
                     }
                 },
             },
@@ -276,6 +279,9 @@ class Spawning(commands.Cog):
                 ctx.author,
                 {"$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},},
             )
+
+        if shiny and species.id <= 20:
+            message += "\n\nThese colors seem unusual... ✨"
 
         await ctx.send(message)
 
