@@ -280,7 +280,7 @@ class Spawning(commands.Cog):
                 {"$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},},
             )
 
-        if shiny and species.id <= 20:
+        if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
         await ctx.send(message)

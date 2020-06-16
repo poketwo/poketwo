@@ -248,7 +248,7 @@ class Pokemon(commands.Cog):
             if pokemon.nickname is not None:
                 embed.title += f' "{pokemon.nickname}"'
 
-            if pokemon.shiny and pokemon.species_id <= 20:
+            if pokemon.shiny:
                 embed.title += " ✨"
                 embed.set_image(url=pokemon.species.shiny_image_url)
             else:
@@ -652,7 +652,7 @@ class Pokemon(commands.Cog):
 
             name += str(p.species)
 
-            if p.shiny and p.species_id <= 20:
+            if p.shiny:
                 name += " ✨"
 
             if p.nickname is not None:
