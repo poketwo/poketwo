@@ -426,7 +426,7 @@ id,dex_number,slug,enabled,catchable,is_form,name.ja,name.ja_r,name.ja_t,name.en
 425,425,drifloon,1,1,,フワンテ,Fuwante,Fuwante,Drifloon,Driftlon,Baudrive,Ghost,Flying,,,,4,12,426,,,,,90,50,34,60,44,70,,,
 426,426,drifblim,1,1,,フワライド,Fuwaraido,Fuwaride,Drifblim,Drifzepeli,Grodrive,Ghost,Flying,,,,12,150,,425,1,28,,150,80,44,90,54,80,,,
 427,427,buneary,1,1,,ミミロル,Mimiroru,Mimirol,Buneary,Haspiror,Laporeille,Normal,,,,,4,55,428,,,,,55,66,44,44,56,85,,,
-428,428,lopunny,1,1,,ミミロップ,Mimiroppu,Mimilop,Lopunny,Schlapor,Lockpin,Normal,,,,,12,333,,427,1,,,65,76,84,54,96,105,,,
+428,428,lopunny,1,1,,ミミロップ,Mimiroppu,Mimilop,Lopunny,Schlapor,Lockpin,Normal,,,,,12,333,,427,1,,,65,76,84,54,96,105,10088,,
 429,429,mismagius,1,1,,ムウマージ,Mūmāji,Mumargi,Mismagius,Traunmagil,Magirêve,Ghost,,,,,9,44,,200,3,,108,60,60,60,105,105,105,,,
 430,430,honchkrow,1,1,,ドンカラス,Donkarasu,Dongkarasu,Honchkrow,Kramshef,Corboss,Dark,Flying,,,,9,273,,198,3,,108,100,125,52,105,52,71,,,
 431,431,glameow,1,1,,ニャルマー,Nyarumā,Nyarmar,Glameow,Charmian,Chaglam,Normal,,,,,5,39,432,,,,,49,55,42,42,37,85,,,

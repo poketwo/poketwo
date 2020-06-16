@@ -12,13 +12,13 @@ pillow = "*"
 pymongo = {extras = ["tls"],version = "*"}
 python-dotenv = "*"
 dnspython = "*"
-requests = "*"
 discord-flags = "*"
 unidecode = "*"
 humanfriendly = "*"
 motor = "*"
 umongo = "*"
 flask = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
