@@ -226,6 +226,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(rest_is_raw=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
 
@@ -611,6 +612,7 @@ class Pokemon(commands.Cog):
     # Pokemon
     @checks.has_started()
     @flags.command()
+    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def pokemon(self, ctx: commands.Context, **flags):
         """List the pokémon in your collection."""
 

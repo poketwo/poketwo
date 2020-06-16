@@ -16,7 +16,7 @@ class Paginator:
 
         message = await ctx.send(embed=embed)
 
-        await message.add_reaction("⏮")
+        await message.add_reaction("⏮️")
         await message.add_reaction("◀")
         await message.add_reaction("▶")
         await message.add_reaction("⏭️")

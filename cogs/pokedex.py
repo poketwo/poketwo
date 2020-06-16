@@ -32,6 +32,7 @@ class Pokedex(commands.Cog):
     @flags.add_flag("--type", type=str)
     @checks.has_started()
     @flags.command(aliases=["dex"])
+    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def pokedex(self, ctx: commands.Context, **flags):
         """View your pokédex, or search for a pokémon species."""
 

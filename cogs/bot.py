@@ -6,7 +6,7 @@ from discord.ext import commands, flags
 from .database import Database
 from .helpers import checks, mongo, converters
 from .helpers.models import *
-from .helpers.constants import HELP
+from .helpers.constants import HELP, EMOJIS
 
 
 class Bot(commands.Cog):
@@ -82,13 +82,27 @@ class Bot(commands.Cog):
         if isinstance(error, flags.ArgumentParsingError):
             return await ctx.send(error)
 
-        if isinstance(error, commands.CheckFailure):
-            return await ctx.send(f"Check failed: {error}")
-
         if isinstance(error, commands.BadArgument):
             return await ctx.send(f"Bad argument: {error}")
 
         if isinstance(error, converters.PokemonConversionError):
+            return await ctx.send(error)
+
+        if isinstance(error, commands.BotMissingPermissions):
+            missing = [
+                "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
+                for perm in error.missing_perms
+            ]
+
+            if len(missing) > 2:
+                fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
+            else:
+                fmt = " and ".join(missing)
+
+            message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
+            return await ctx.send(message)
+
+        if isinstance(error, commands.CheckFailure):
             return await ctx.send(error)
 
         if isinstance(error, commands.CommandNotFound):
