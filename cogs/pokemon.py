@@ -247,9 +247,9 @@ class Pokemon(commands.Cog):
                 embed.title += f' "{pokemon.nickname}"'
 
             if pokemon.shiny:
-                embed.set_image(url=pokemon.species.image_url)
-            else:
                 embed.set_image(url=pokemon.species.shiny_image_url)
+            else:
+                embed.set_image(url=pokemon.species.image_url)
 
             embed.set_thumbnail(url=ctx.author.avatar_url)
 
