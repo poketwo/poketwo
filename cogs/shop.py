@@ -189,6 +189,11 @@ class Shop(commands.Cog):
 
             evoto = pokemon.species.mega
 
+            if pokemon.held_item == 13001:
+                return await ctx.send(
+                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
+                )
+
         if item.action == "evolve_megax":
             if pokemon.species.mega_x is None:
                 return await ctx.send(
@@ -197,6 +202,11 @@ class Shop(commands.Cog):
 
             evoto = pokemon.species.mega_x
 
+            if pokemon.held_item == 13001:
+                return await ctx.send(
+                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
+                )
+
         if item.action == "evolve_megay":
             if pokemon.species.mega_y is None:
                 return await ctx.send(
@@ -204,6 +214,11 @@ class Shop(commands.Cog):
                 )
 
             evoto = pokemon.species.mega_y
+
+            if pokemon.held_item == 13001:
+                return await ctx.send(
+                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
+                )
 
         if item.action == "evolve_normal":
 
@@ -223,6 +238,11 @@ class Shop(commands.Cog):
             else:
                 return await ctx.send(
                     "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                )
+
+            if pokemon.held_item == 13001:
+                return await ctx.send(
+                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
                 )
 
         if item.action == "form_item":
