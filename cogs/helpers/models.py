@@ -314,6 +314,11 @@ class Species:
 
     @cached_property
     def evolution_text(self):
+        if self.is_form and self.form_item is not None:
+            species = _Data.pokemon[self.dex_number]
+            item = _Data.items[self.form_item]
+            return f"{self.name} transforms from {species} when given a {item.name}."
+
         if self.evolution_from is not None and self.evolution_to is not None:
             return (
                 f"{self.name} {self.evolution_from.text} and {self.evolution_to.text}."

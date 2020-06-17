@@ -15,6 +15,7 @@ id,name,description,cost,action,page,emote,separate
 442,Griseous Orb,Causes certain pokémon to change form.,150,form_item,3,item_griseous_orb,
 444,Gracidea,Causes certain pokémon to change form.,150,form_item,3,item_gracidea,
 681,Reveal Glass,Causes certain pokémon to change form.,150,form_item,3,item_reveal_glass,
+806,Prison Bottle,Causes certain pokémon to change form.,150,form_item,3,item_prison_bottle,
 889,Red Nectar,Causes certain pokémon to change form.,150,form_item,3,item_red_nectar,
 890,Yellow Nectar,Causes certain pokémon to change form.,150,form_item,3,item_yellow_nectar,
 891,Pink Nectar,Causes certain pokémon to change form.,150,form_item,3,item_pink_nectar,
