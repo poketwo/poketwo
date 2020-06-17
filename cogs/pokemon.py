@@ -644,7 +644,9 @@ class Pokemon(commands.Cog):
         def nick(p):
             if do_emojis:
                 name = (
-                    str(EMOJIS[p.species.dex_number]).replace("pokemon_sprite_", "")
+                    str(EMOJIS.get(p.species.dex_number, shiny=p.shiny)).replace(
+                        "pokemon_sprite_", ""
+                    ).replace("_shiny", "")
                     + " "
                 )
             else:

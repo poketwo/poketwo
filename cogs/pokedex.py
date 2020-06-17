@@ -141,7 +141,7 @@ class Pokedex(commands.Cog):
                             text = f"{v} caught!"
 
                     if do_emojis:
-                        emoji = str(EMOJIS[k]).replace("pokemon_sprite_", "") + " "
+                        emoji = str(EMOJIS.get(k)).replace("pokemon_sprite_", "") + " "
                     else:
                         emoji = ""
 
