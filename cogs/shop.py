@@ -46,10 +46,11 @@ class Shop(commands.Cog):
             embed.description = "Use `p!shop <page>` to view different pages."
 
             embed.add_field(name="Page 1", value="XP Boosters", inline=False)
-            embed.add_field(name="Page 2", value="Evolution Candies", inline=False)
-            embed.add_field(name="Page 3", value="Held Items", inline=False)
-            embed.add_field(name="Page 4", value="Nature Mints", inline=False)
-            embed.add_field(name="Page 5", value="Mega Evolutions", inline=False)
+            embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
+            embed.add_field(name="Page 3", value="Form Change Items", inline=False)
+            embed.add_field(name="Page 4", value="Held Items", inline=False)
+            embed.add_field(name="Page 5", value="Nature Mints", inline=False)
+            embed.add_field(name="Page 6", value="Mega Evolutions", inline=False)
 
         else:
             embed.description = "We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `p!buy <item>` to buy an item!"
@@ -144,6 +145,20 @@ class Shop(commands.Cog):
                     "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
                 )
 
+        if item.action == "form_item":
+            forms = GameData.all_species_by_number(pokemon.species.dex_number)
+            for form in forms:
+                if (
+                    form.id != pokemon.species.id
+                    and form.form_item is not None
+                    and form.form_item == item.id
+                ):
+                    break
+            else:
+                return await ctx.send(
+                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                )
+
         if "xpboost" in item.action:
             if member.boost_active:
                 return await ctx.send(
@@ -209,4 +224,35 @@ class Shop(commands.Cog):
             await self.db.update_member(
                 ctx.author, {"$set": {f"pokemon.{member.selected}.held_item": item.id}},
             )
+
+        if item.action == "form_item":
+            forms = GameData.all_species_by_number(pokemon.species.dex_number)
+            for form in forms:
+                if (
+                    form.id != pokemon.species.id
+                    and form.form_item is not None
+                    and form.form_item == item.id
+                ):
+                    embed = discord.Embed()
+                    embed.color = 0xF44336
+                    embed.title = f"Congratulations {ctx.author.name}!"
+
+                    name = str(pokemon.species)
+
+                    if pokemon.nickname is not None:
+                        name += f' "{pokemon.nickname}"'
+
+                    embed.add_field(
+                        name=f"Your {name} is changing forms!",
+                        value=f"Your {name} has turned into a {form}!",
+                    )
+
+                    await self.db.update_member(
+                        ctx.author,
+                        {"$set": {f"pokemon.{member.selected}.species_id": form.id}},
+                    )
+
+                    await ctx.send(embed=embed)
+
+                    break
 

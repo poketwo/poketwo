@@ -188,6 +188,7 @@ class Species:
     catchable: bool
     is_form: bool
     types: List[str]
+    form_item: int
 
     mega_id: int
     mega_x_id: int
@@ -209,10 +210,11 @@ class Species:
         mega_y_id: int = None,
         evolution_from: List[Evolution] = None,
         evolution_to: List[Evolution] = None,
-        mythical=False,
-        legendary=False,
-        ultra_beast=False,
-        is_form=False,
+        mythical: bool = False,
+        legendary: bool = False,
+        ultra_beast: bool = False,
+        is_form: bool = False,
+        form_item: int = None,
     ):
         self.id = id
         self.names = names
@@ -222,6 +224,7 @@ class Species:
         self.dex_number = dex_number
         self.catchable = catchable
         self.is_form = is_form
+        self.form_item = form_item
 
         self.height = height
         self.weight = weight
@@ -378,6 +381,10 @@ class GameData:
     @classmethod
     def all_items(cls):
         return _Data.items.values()
+
+    @classmethod
+    def all_species_by_number(cls, number: int) -> Species:
+        return [x for x in _Data.pokemon.values() if x.dex_number == number]
 
     @classmethod
     def species_by_number(cls, number: int) -> Species:

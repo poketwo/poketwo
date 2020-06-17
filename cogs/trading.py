@@ -76,6 +76,8 @@ class Trading(commands.Cog):
 
         # Check if done
 
+        embeds = []
+
         if done:
             bothsides = list(enumerate(trade["items"].items()))
             for idx, tup in bothsides:
@@ -124,7 +126,7 @@ class Trading(commands.Cog):
 
                                 pokemon.species_id = evo.target.id
 
-                                await ctx.send(embed=evo_embed)
+                                embeds.append(evo_embed)
 
                         await self.db.update_member(
                             mem, {"$unset": {f"pokemon.{idx}": 1}}
@@ -159,6 +161,10 @@ class Trading(commands.Cog):
         # Send msg
 
         msg = await ctx.send(embed=embed)
+
+        for evo_embed in embeds:
+            await ctx.send(embed=evo_embed)
+
         trade["prev"] = msg
 
     @checks.has_started()

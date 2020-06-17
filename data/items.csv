@@ -1,75 +1,84 @@
 id,name,description,cost,action,page,emote,separate
-10001,XP Booster 0,Double your XP for 30 minutes!,20,xpboost_30,1,,1
-10002,XP Booster 1,Double your XP for 1 hour!,40,xpboost_60,1,,1
-10003,XP Booster 2,Double your XP for 2 hours!,70,xpboost_120,1,,1
-10004,XP Booster 3,Double your XP for 3 hours!,100,xpboost_180,1,,1
-80,Sun Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_sun,
-81,Moon Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_moon,
-82,Fire Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_fire,
-83,Thunder Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_thunder,
-84,Water Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_water,
-85,Leaf Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_leaf,
-107,Shiny Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_shiny,
-108,Dusk Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_dusk,
-109,Dawn Stone,Evolve certain pokémon.,150,evolve_normal,2,stone_dawn,
-198,King's Rock,Held item for your pokémon.,150,held_item,3,item_kings_rock,
-203,Deep Sea Tooth,Held item for your pokémon.,150,held_item,3,item_deep_sea_tooth,
-204,Deep Sea Scale,Held item for your pokémon.,150,held_item,3,item_deep_sea_scale,
-210,Metal Coat,Held item for your pokémon.,150,held_item,3,item_metal_coat,
-212,Dragon Scale,Held item for your pokémon.,150,held_item,3,item_dragon_scale,
-229,Upgrade,Held item for your pokémon.,150,held_item,3,item_upgrade,
-298,Protector,Held item for your pokémon.,150,held_item,3,item_protector,
-299,Electirizer,Held item for your pokémon.,150,held_item,3,item_electirizer,
-300,Magmarizer,Held item for your pokémon.,150,held_item,3,item_magmarizer,
-301,Dubious Disc,Held item for your pokémon.,150,held_item,3,item_dubious_disc,
-302,Reaper Cloth,Held item for your pokémon.,150,held_item,3,item_reaper_cloth,
-686,Whipped Dream,Held item for your pokémon.,150,held_item,3,item_whipped_dream,
-687,Sachet,Held item for your pokémon.,150,held_item,3,item_sachet,
-10005,Adamant Mint,"+10% Attack
--10% Sp. Atk",50,nature_0,4,mint_atk,
-10006,Bashful Mint,No effect,50,nature_1,4,mint_serious,
-10007,Bold Mint,"+10% Defense
--10% Attack",50,nature_2,4,mint_def,
-10008,Brave Mint,"+10% Attack
--10% Speed",50,nature_3,4,mint_atk,
-10009,Calm Mint,"+10% Sp. Def
--10% Attack",50,nature_4,4,mint_spdef,
-10010,Careful Mint,"+10% Sp. Def
--10% Sp. Atk",50,nature_5,4,mint_spdef,
-10011,Docile Mint,No effect,50,nature_6,4,mint_serious,
-10012,Gentle Mint,"+10% Sp. Def
--10% Defense",50,nature_7,4,mint_spdef,
-10013,Hardy Mint,No effect,50,nature_8,4,mint_serious,
-10014,Hasty Mint,"+10% Speed
--10% Defense",50,nature_9,4,mint_spd,
-10015,Impish Mint,"+10% Defense
--10% Sp. Atk",50,nature_10,4,mint_def,
-10016,Jolly Mint,"+10% Speed
--10% Sp. Atk",50,nature_11,4,mint_spd,
-10017,Lax Mint,"+10% Defense
--10% Sp. Def",50,nature_12,4,mint_def,
-10018,Lonely Mint,"+10% Attack
--10% Defense",50,nature_13,4,mint_atk,
-10019,Mild Mint,"+10% Sp. Atk
--10% Defense",50,nature_14,4,mint_spatk,
-10020,Modest Mint,"+10% Sp. Atk
--10% Attack",50,nature_15,4,mint_spatk,
-10021,Naive Mint,"+10% Speed
--10% Sp. Def",50,nature_16,4,mint_spd,
-10022,Naughty Mint,"+10% Attack
--10% Sp. Def",50,nature_17,4,mint_atk,
-10023,Quiet Mint,"+10% Sp. Atk
--10% Speed",50,nature_18,4,mint_spatk,
-10024,Quirky Mint,No effect,50,nature_19,4,mint_serious,
-10025,Rash Mint,"+10% Sp. Atk
--10% Sp. Def",50,nature_20,4,mint_spatk,
-10026,Relaxed Mint,"+10% Defense
--10% Speed",50,nature_21,4,mint_def,
-10027,Sassy Mint,"+10% Sp. Def
--10% Speed",50,nature_22,4,mint_spdef,
-10028,Serious Mint,No effect,50,nature_23,4,mint_serious,
-10029,Timid Mint,"+10% Speed
--10% Attack",50,nature_24,4,mint_spd,
-10030,Mega Evolution,Transform your pokémon into its mega form!,1000,evolve_mega,5,,1
-10031,X Mega Evolution,Transform your pokémon into its X mega form!,1000,evolve_megax,5,,1
-10032,Y Mega Evolution,Transform your pokémon into its Y mega form!,1000,evolve_megay,5,,1
+10001,XP Booster 0,Doubles your XP for 30 minutes!,20,xpboost_30,1,,1
+10002,XP Booster 1,Doubles your XP for 1 hour!,40,xpboost_60,1,,1
+10003,XP Booster 2,Doubles your XP for 2 hours!,70,xpboost_120,1,,1
+10004,XP Booster 3,Doubles your XP for 3 hours!,100,xpboost_180,1,,1
+80,Sun Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_sun,
+81,Moon Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_moon,
+82,Fire Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_fire,
+83,Thunder Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_thunder,
+84,Water Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_water,
+85,Leaf Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_leaf,
+107,Shiny Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_shiny,
+108,Dusk Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_dusk,
+109,Dawn Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_dawn,
+442,Griseous Orb,Causes certain pokémon to change form.,150,form_item,3,item_griseous_orb,
+444,Gracidea,Causes certain pokémon to change form.,150,form_item,3,item_gracidea,
+681,Reveal Glass,Causes certain pokémon to change form.,150,form_item,3,item_reveal_glass,
+889,Red Nectar,Causes certain pokémon to change form.,150,form_item,3,item_red_nectar,
+890,Yellow Nectar,Causes certain pokémon to change form.,150,form_item,3,item_yellow_nectar,
+891,Pink Nectar,Causes certain pokémon to change form.,150,form_item,3,item_pink_nectar,
+892,Purple Nectar,Causes certain pokémon to change form.,150,form_item,3,item_purple_nectar,
+198,King's Rock,Held item for your pokémon.,150,held_item,4,item_kings_rock,
+203,Deep Sea Tooth,Held item for your pokémon.,150,held_item,4,item_deep_sea_tooth,
+204,Deep Sea Scale,Held item for your pokémon.,150,held_item,4,item_deep_sea_scale,
+210,Metal Coat,Held item for your pokémon.,150,held_item,4,item_metal_coat,
+212,Dragon Scale,Held item for your pokémon.,150,held_item,4,item_dragon_scale,
+229,Upgrade,Held item for your pokémon.,150,held_item,4,item_upgrade,
+298,Protector,Held item for your pokémon.,150,held_item,4,item_protector,
+299,Electirizer,Held item for your pokémon.,150,held_item,4,item_electirizer,
+300,Magmarizer,Held item for your pokémon.,150,held_item,4,item_magmarizer,
+301,Dubious Disc,Held item for your pokémon.,150,held_item,4,item_dubious_disc,
+302,Reaper Cloth,Held item for your pokémon.,150,held_item,4,item_reaper_cloth,
+686,Whipped Dream,Held item for your pokémon.,150,held_item,4,item_whipped_dream,
+687,Sachet,Held item for your pokémon.,150,held_item,4,item_sachet,
+13001,Everstone,Prevents pokémon from evolving.,150,held_item,4,item_everstone,
+13002,XP Blocker,Prevents pokémon from gaining XP.,150,held_item,4,item_xpblocker,
+11001,Adamant Mint,"+10% Attack
+-10% Sp. Atk",50,nature_0,5,mint_atk,
+11002,Bashful Mint,No effect,50,nature_1,5,mint_serious,
+11003,Bold Mint,"+10% Defense
+-10% Attack",50,nature_2,5,mint_def,
+11004,Brave Mint,"+10% Attack
+-10% Speed",50,nature_3,5,mint_atk,
+11005,Calm Mint,"+10% Sp. Def
+-10% Attack",50,nature_4,5,mint_spdef,
+11006,Careful Mint,"+10% Sp. Def
+-10% Sp. Atk",50,nature_5,5,mint_spdef,
+11007,Docile Mint,No effect,50,nature_6,5,mint_serious,
+11008,Gentle Mint,"+10% Sp. Def
+-10% Defense",50,nature_7,5,mint_spdef,
+11009,Hardy Mint,No effect,50,nature_8,5,mint_serious,
+11010,Hasty Mint,"+10% Speed
+-10% Defense",50,nature_9,5,mint_spd,
+11011,Impish Mint,"+10% Defense
+-10% Sp. Atk",50,nature_10,5,mint_def,
+11012,Jolly Mint,"+10% Speed
+-10% Sp. Atk",50,nature_11,5,mint_spd,
+11013,Lax Mint,"+10% Defense
+-10% Sp. Def",50,nature_12,5,mint_def,
+11014,Lonely Mint,"+10% Attack
+-10% Defense",50,nature_13,5,mint_atk,
+11015,Mild Mint,"+10% Sp. Atk
+-10% Defense",50,nature_14,5,mint_spatk,
+11016,Modest Mint,"+10% Sp. Atk
+-10% Attack",50,nature_15,5,mint_spatk,
+11017,Naive Mint,"+10% Speed
+-10% Sp. Def",50,nature_16,5,mint_spd,
+11018,Naughty Mint,"+10% Attack
+-10% Sp. Def",50,nature_17,5,mint_atk,
+11019,Quiet Mint,"+10% Sp. Atk
+-10% Speed",50,nature_18,5,mint_spatk,
+11020,Quirky Mint,No effect,50,nature_19,5,mint_serious,
+11021,Rash Mint,"+10% Sp. Atk
+-10% Sp. Def",50,nature_20,5,mint_spatk,
+11022,Relaxed Mint,"+10% Defense
+-10% Speed",50,nature_21,5,mint_def,
+11023,Sassy Mint,"+10% Sp. Def
+-10% Speed",50,nature_22,5,mint_spdef,
+11024,Serious Mint,No effect,50,nature_23,5,mint_serious,
+11025,Timid Mint,"+10% Speed
+-10% Attack",50,nature_24,5,mint_spd,
+12001,Mega Evolution,Transforms your pokémon into its mega form!,1000,evolve_mega,6,,1
+12002,X Mega Evolution,Transforms your pokémon into its X mega form!,1000,evolve_megax,6,,1
+12003,Y Mega Evolution,Transforms your pokémon into its Y mega form!,1000,evolve_megay,6,,1

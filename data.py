@@ -103,6 +103,7 @@ def get_pokemon():
             legendary="legendary" in row,
             ultra_beast="ultra_beast" in row,
             is_form="is_form" in row,
+            form_item=row["form_item"] if "form_item" in row else None,
         )
 
     load_pokemon(pokemon)
