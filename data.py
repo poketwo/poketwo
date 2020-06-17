@@ -97,6 +97,7 @@ def get_pokemon():
             mega_y_id=row["evo.mega_y"] if "evo.mega_y" in row else None,
             catchable="catchable" in row,
             dex_number=row["dex_number"],
+            abundance=row["abundance"] if "abundance" in row else 0,
             evolution_from=evo_from,
             evolution_to=evo_to,
             mythical="mythical" in row,
@@ -139,6 +140,13 @@ def get_items():
 def load_data():
     get_pokemon()
     get_items()
+
+    print(
+        "\n".join(
+            str(2048 // x.abundance) if x.catchable else ""
+            for x in GameData.all_pokemon().values()
+        )
+    )
 
 
 # spawns = []

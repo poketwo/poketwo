@@ -524,6 +524,9 @@ class Pokemon(commands.Cog):
 
     @commands.command()
     async def healschema(self, ctx: commands.Context):
+        await self.db.update_member(
+            ctx.author, {"$pull": {f"pokemon": {"species_id": None}}}
+        )
         await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
         await ctx.send("Trying to heal schema...")
 

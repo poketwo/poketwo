@@ -189,6 +189,7 @@ class Species:
     is_form: bool
     types: List[str]
     form_item: int
+    abundance: int
 
     mega_id: int
     mega_x_id: int
@@ -205,6 +206,7 @@ class Species:
         dex_number: int,
         catchable: bool,
         types: List[str],
+        abundance: int,
         mega_id: int = None,
         mega_x_id: int = None,
         mega_y_id: int = None,
@@ -225,6 +227,7 @@ class Species:
         self.catchable = catchable
         self.is_form = is_form
         self.form_item = form_item
+        self.abundance = abundance
 
         self.height = height
         self.weight = weight
@@ -329,19 +332,6 @@ class Species:
             return f"{self.name} {self.evolution_to.text}."
         else:
             return None
-
-    @cached_property
-    def abundance(self):
-        if self.ultra_beast:
-            return 1
-        if self.legendary:
-            return 2
-        if self.mythical:
-            return 4
-        if self.evolution_to is None:
-            return 32
-
-        return self.evolution_to.items[0].target.abundance * 4
 
 
 def load_pokemon(pokemon):
