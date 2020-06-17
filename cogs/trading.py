@@ -105,7 +105,9 @@ class Trading(commands.Cog):
                         if idx < member.selected:
                             dec += 1
 
-                        if evo := pokemon.species.trade_evolution:
+                        if (
+                            evo := pokemon.species.trade_evolution
+                        ) and pokemon.held_item != 13001:
                             if (
                                 evo.trigger.item is None
                                 or evo.trigger.item.id == pokemon.held_item

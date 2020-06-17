@@ -6,7 +6,7 @@ import humanfriendly
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo
+from .helpers import checks, mongo, converters
 from .helpers.constants import *
 from .helpers.models import GameData, ItemTrigger, SpeciesNotFoundError
 
@@ -31,6 +31,86 @@ class Shop(commands.Cog):
         """View your current balance."""
 
         await ctx.send(f"You have {await self.balance(ctx.author)} Poképoints.")
+
+    @commands.command(rest_is_raw=True)
+    async def dropitem(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+        """Drop a pokémon's held item."""
+
+        pokemon, idx = pokemon
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        if pokemon.held_item is None:
+            return await ctx.send("That pokémon isn't holding an item!")
+
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        idx = idx % num
+
+        await self.db.update_member(
+            ctx.author, {"$set": {f"pokemon.{idx}.held_item": None}},
+        )
+
+        name = str(pokemon.species)
+
+        if pokemon.nickname is not None:
+            name += f' "{pokemon.nickname}"'
+
+        await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
+
+    @commands.command()
+    async def moveitem(
+        self,
+        ctx: commands.Context,
+        from_pokemon: converters.Pokemon,
+        to_pokemon: converters.Pokemon = None,
+    ):
+        """Move a pokémon's held item."""
+
+        if to_pokemon is None:
+            to_pokemon = from_pokemon
+            converter = converters.Pokemon()
+            from_pokemon = await converter.convert(ctx, "")
+
+        from_pokemon, from_idx = from_pokemon
+        to_pokemon, to_idx = to_pokemon
+
+        if from_pokemon is None or to_pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        if from_pokemon.held_item is None:
+            return await ctx.send("That pokémon isn't holding an item!")
+
+        if to_pokemon.held_item is not None:
+            return await ctx.send("That pokémon is already holding an item!")
+
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        from_idx = from_idx % num
+        to_idx = to_idx % num
+
+        await self.db.update_member(
+            ctx.author,
+            {
+                "$set": {
+                    f"pokemon.{from_idx}.held_item": None,
+                    f"pokemon.{to_idx}.held_item": from_pokemon.held_item,
+                }
+            },
+        )
+
+        from_name = str(from_pokemon.species)
+
+        if from_pokemon.nickname is not None:
+            from_name += f' "{from_pokemon.nickname}"'
+
+        to_name = str(to_pokemon.species)
+
+        if to_pokemon.nickname is not None:
+            to_name += f' "{to_pokemon.nickname}"'
+
+        await ctx.send(
+            f"Moved held item from your level {from_pokemon.level} {from_name} to your level {to_pokemon.level} {to_name}."
+        )
 
     @commands.command()
     async def shop(self, ctx: commands.Context, *, page: int = 0):

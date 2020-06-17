@@ -56,7 +56,7 @@ class Spawning(commands.Cog):
         if member is not None:
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
 
-            if pokemon is not None:
+            if pokemon is not None and pokemon.held_item != 13002:
 
                 if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                     xp_inc = random.randint(10, 40)
@@ -87,7 +87,10 @@ class Spawning(commands.Cog):
 
                     embed.description = f"Your {name} is now level {pokemon.level + 1}!"
 
-                    if pokemon.species.level_evolution is not None:
+                    if (
+                        pokemon.species.level_evolution is not None
+                        and pokemon.held_item != 13001
+                    ):
                         if (
                             pokemon.level + 1
                             >= pokemon.species.level_evolution.trigger.level
