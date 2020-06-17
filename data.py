@@ -22,6 +22,11 @@ def get_pokemon():
         if "evo.from" in row:
             if row["evo.trigger"] == 1 and "evo.level" in row:
                 trigger = LevelTrigger(int(row["evo.level"]))
+            elif row["evo.trigger"] == 2:
+                if "evo.item" in row:
+                    trigger = TradeTrigger(int(row["evo.item"]))
+                else:
+                    trigger = TradeTrigger()
             elif row["evo.trigger"] == 3:
                 trigger = ItemTrigger(int(row["evo.item"]))
             else:
@@ -37,6 +42,11 @@ def get_pokemon():
 
                 if pto["evo.trigger"] == 1 and "evo.level" in pto:
                     trigger = LevelTrigger(int(pto["evo.level"]))
+                elif pto["evo.trigger"] == 2:
+                    if "evo.item" in pto:
+                        trigger = TradeTrigger(int(pto["evo.item"]))
+                    else:
+                        trigger = TradeTrigger()
                 elif pto["evo.trigger"] == 3:
                     trigger = ItemTrigger(int(pto["evo.item"]))
                 else:

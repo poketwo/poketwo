@@ -275,6 +275,19 @@ class Pokemon(commands.Cog):
             )
 
             embed.add_field(name="Stats", value="\n".join(stats), inline=False)
+
+            if pokemon.held_item:
+                item = GameData.item_by_number(pokemon.held_item)
+                gguild = self.bot.get_guild(716390832034414685)
+                emote = ""
+                if item.emote is not None:
+                    try:
+                        e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
+                        emote = f"{e} "
+                    except StopIteration:
+                        pass
+                embed.add_field(name="Held Item", value=f"{emote}{item.name}")
+
             embed.set_footer(text=f"Displaying pokémon {pidx + 1} out of {num}.")
 
             return embed
@@ -644,9 +657,9 @@ class Pokemon(commands.Cog):
         def nick(p):
             if do_emojis:
                 name = (
-                    str(EMOJIS.get(p.species.dex_number, shiny=p.shiny)).replace(
-                        "pokemon_sprite_", ""
-                    ).replace("_shiny", "")
+                    str(EMOJIS.get(p.species.dex_number, shiny=p.shiny))
+                    .replace("pokemon_sprite_", "")
+                    .replace("_shiny", "")
                     + " "
                 )
             else:

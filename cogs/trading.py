@@ -69,7 +69,10 @@ class Trading(commands.Cog):
             )
 
         if "prev" in trade:
-            await trade["prev"].delete()
+            try:
+                await trade["prev"].delete()
+            except:
+                pass
 
         # Check if done
 
@@ -95,11 +98,36 @@ class Trading(commands.Cog):
                         await self.db.update_member(omem, {"$inc": {"balance": x}})
                     else:
 
-                        if x[1] < member.selected:
+                        pokemon, idx = x
+
+                        if idx < member.selected:
                             dec += 1
 
+                        if evo := pokemon.species.trade_evolution:
+                            if (
+                                evo.trigger.item is None
+                                or evo.trigger.item.id == pokemon.held_item
+                            ):
+                                evo_embed = discord.Embed()
+                                evo_embed.color = 0xF44336
+                                evo_embed.title = f"Congratulations {omem.name}!"
+
+                                name = str(pokemon.species)
+
+                                if pokemon.nickname is not None:
+                                    name += f' "{pokemon.nickname}"'
+
+                                evo_embed.add_field(
+                                    name=f"The {name} is evolving!",
+                                    value=f"The {name} has turned into a {evo.target}!",
+                                )
+
+                                pokemon.species_id = evo.target.id
+
+                                await ctx.send(embed=evo_embed)
+
                         await self.db.update_member(
-                            mem, {"$unset": {f"pokemon.{x[1]}": 1}}
+                            mem, {"$unset": {f"pokemon.{idx}": 1}}
                         )
 
                         await self.db.update_member(
@@ -107,17 +135,18 @@ class Trading(commands.Cog):
                             {
                                 "$push": {
                                     "pokemon": {
-                                        "species_id": x[0].species.id,
-                                        "level": x[0].level,
-                                        "xp": x[0].xp,
-                                        "nature": x[0].nature,
-                                        "iv_hp": x[0].iv_hp,
-                                        "iv_atk": x[0].iv_atk,
-                                        "iv_defn": x[0].iv_defn,
-                                        "iv_satk": x[0].iv_satk,
-                                        "iv_sdef": x[0].iv_sdef,
-                                        "iv_spd": x[0].iv_spd,
-                                        "shiny": x[0].shiny,
+                                        "species_id": pokemon.species.id,
+                                        "level": pokemon.level,
+                                        "xp": pokemon.xp,
+                                        "nature": pokemon.nature,
+                                        "iv_hp": pokemon.iv_hp,
+                                        "iv_atk": pokemon.iv_atk,
+                                        "iv_defn": pokemon.iv_defn,
+                                        "iv_satk": pokemon.iv_satk,
+                                        "iv_sdef": pokemon.iv_sdef,
+                                        "iv_spd": pokemon.iv_spd,
+                                        "shiny": pokemon.shiny,
+                                        "held_item": pokemon.held_item,
                                     }
                                 },
                             },

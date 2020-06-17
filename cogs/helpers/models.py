@@ -87,6 +87,23 @@ class ItemTrigger(EvolutionTrigger):
         return f"using a {self.item}"
 
 
+class TradeTrigger(EvolutionTrigger):
+    def __init__(self, item: int = None):
+        self.item_id = item
+
+    @cached_property
+    def item(self):
+        if self.item_id is None:
+            return None
+        return _Data.items[self.item_id]
+
+    @cached_property
+    def text(self):
+        if self.item_id is None:
+            return "when traded"
+        return f"when traded while holding a {self.item}"
+
+
 class OtherTrigger(EvolutionTrigger):
     @cached_property
     def text(self):
@@ -271,12 +288,23 @@ class Species:
         return extra + [deaccent(x.lower()) for _, x in self.names] + [self.slug]
 
     @cached_property
-    def primary_evolution(self):
+    def level_evolution(self):
         if self.evolution_to is None:
             return None
 
         for e in self.evolution_to.items:
             if isinstance(e.trigger, LevelTrigger):
+                return e
+
+        return None
+
+    @cached_property
+    def trade_evolution(self):
+        if self.evolution_to is None:
+            return None
+
+        for e in self.evolution_to.items:
+            if isinstance(e.trigger, TradeTrigger):
                 return e
 
         return None

@@ -47,8 +47,9 @@ class Shop(commands.Cog):
 
             embed.add_field(name="Page 1", value="XP Boosters", inline=False)
             embed.add_field(name="Page 2", value="Evolution Candies", inline=False)
-            embed.add_field(name="Page 3", value="Nature Mints", inline=False)
-            embed.add_field(name="Page 4", value="Mega Evolutions", inline=False)
+            embed.add_field(name="Page 3", value="Held Items", inline=False)
+            embed.add_field(name="Page 4", value="Nature Mints", inline=False)
+            embed.add_field(name="Page 5", value="Mega Evolutions", inline=False)
 
         else:
             embed.description = "We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `p!buy <item>` to buy an item!"
@@ -203,3 +204,9 @@ class Shop(commands.Cog):
             await ctx.send(
                 f"You changed your selected pokémon's nature to {NATURES[idx]}!"
             )
+
+        if item.action == "held_item":
+            await self.db.update_member(
+                ctx.author, {"$set": {f"pokemon.{member.selected}.held_item": item.id}},
+            )
+

@@ -46,6 +46,7 @@ class Pokemon(EmbeddedDocument):
     favorite = fields.BooleanField(default=False)
 
     shiny = fields.BooleanField(required=True)
+    held_item = fields.IntegerField(default=None)
 
     @classmethod
     def random(cls, **kwargs):

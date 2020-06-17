@@ -87,18 +87,18 @@ class Spawning(commands.Cog):
 
                     embed.description = f"Your {name} is now level {pokemon.level + 1}!"
 
-                    if pokemon.species.primary_evolution is not None:
+                    if pokemon.species.level_evolution is not None:
                         if (
                             pokemon.level + 1
-                            >= pokemon.species.primary_evolution.trigger.level
+                            >= pokemon.species.level_evolution.trigger.level
                         ):
                             embed.add_field(
                                 name=f"Your {name} is evolving!",
-                                value=f"Your {name} has turned into a {pokemon.species.primary_evolution.target}!",
+                                value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
                             )
                             update["$set"][
                                 f"pokemon.{member.selected}.species_id"
-                            ] = pokemon.species.primary_evolution.target_id
+                            ] = pokemon.species.level_evolution.target_id
 
                             if member.silence and pokemon.level < 99:
                                 await message.author.send(embed=embed)
