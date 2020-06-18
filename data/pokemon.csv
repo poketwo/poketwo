@@ -736,7 +736,7 @@ id,dex_number,slug,enabled,catchable,abundance,is_form,form_item,name.ja,name.ja
 735,735,gumshoos,1,1,96,,,デカグース,Dekagūsu,Dekagoose,Gumshoos,Manguspektor,Argouste,Normal,,,,,7,142,,734,1,20,,88,110,60,55,60,45,,,
 736,736,grubbin,1,1,1536,,,アゴジムシ,Agojimushi,Agojimushi,Grubbin,Mabula,Larvibule,Bug,,,,,4,44,737,,,,,47,62,45,55,45,46,,,
 737,737,charjabug,1,1,384,,,デンヂムシ,Denjimushi,Dendimushi,Charjabug,Akkup,Chrysapile,Bug,Electric,,,,5,105,738,736,1,20,,57,82,95,55,75,36,,,
-738,738,vikavolt,1,1,96,,,クワガノン,Kuwaganon,Kuwagannon,Vikavolt,Donarion,Lucanon,Bug,Electric,,,,15,450,,737,1,,,77,70,90,145,75,43,,,
+738,738,vikavolt,1,1,96,,,クワガノン,Kuwaganon,Kuwagannon,Vikavolt,Donarion,Lucanon,Bug,Electric,,,,15,450,,737,3,,83,77,70,90,145,75,43,,,
 739,739,crabrawler,1,1,384,,,マケンカニ,Makenkani,Makenkani,Crabrawler,Krabbox,Crabagarre,Fighting,,,,,6,70,740,,,,,47,82,57,42,47,63,,,
 740,740,crabominable,1,1,96,,,ケケンカニ,Kekenkani,Kekenkani,Crabominable,Krawell,Crabominable,Fighting,Ice,,,,17,1800,,739,1,,,97,132,77,62,67,43,,,
 741,741,oricorio,1,1,96,,889,オドリドリ,Odoridori,Odoridori,Oricorio,Choreogel,Plumeline,Fire,Flying,,,,6,34,,,,,,75,70,70,98,70,93,,,

@@ -523,12 +523,42 @@ class Pokemon(commands.Cog):
         await ctx.send(f"Finished releasing pokémon.")
 
     @commands.command()
-    async def healschema(self, ctx: commands.Context):
+    async def healschema(self, ctx: commands.Context, member: discord.User = None):
         await self.db.update_member(
-            ctx.author, {"$pull": {f"pokemon": {"species_id": None}}}
+            member or ctx.author,
+            {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
         )
-        await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+        await self.db.update_member(member or ctx.author, {"$pull": {f"pokemon": None}})
         await ctx.send("Trying to heal schema...")
+
+    @checks.has_started()
+    @commands.is_owner()
+    @commands.command()
+    async def adminrelease(self, ctx: commands.Context, user: discord.User, idx: int):
+        """Release pokémon from your collection."""
+
+        if user.id in self.bot.get_cog("Trading").users:
+            return await ctx.send("You can't do that in a trade!")
+
+        member = await self.db.fetch_member_info(user)
+        num = await self.db.fetch_pokemon_count(user)
+
+        converter = converters.Pokemon(accept_blank=False)
+
+        dec = 0
+
+        if (idx % num) < member.selected:
+            dec += 1
+
+        # confirmed, release
+
+        await self.db.update_member(user, {"$unset": {f"pokemon.{idx - 1}": 1}})
+
+        await self.db.update_member(
+            user, {"$inc": {f"selected": -dec}, "$pull": {f"pokemon": None}}
+        )
+
+        await ctx.send(f"Finished releasing pokémon.")
 
     @flags.add_flag("--name")
     @flags.add_flag("--type", type=str)

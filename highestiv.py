@@ -13,7 +13,7 @@ client = MongoClient(
 )
 result = client["pokemon"]["member"].aggregate(
     [
-        {"$unwind": {"path": "$pokemon"}},
+        {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
         {
             "$project": {
                 "iv": {
@@ -27,8 +27,10 @@ result = client["pokemon"]["member"].aggregate(
                     ]
                 },
                 "species": "$pokemon.species_id",
+                "idx": 1,
             }
         },
+        {"$match": {"species": {"$exists": True}}},
         {"$sort": {"iv": -1}},
         {"$limit": 100},
     ],
@@ -37,4 +39,6 @@ result = client["pokemon"]["member"].aggregate(
 
 for x in result:
     # print(x)
-    print("{:.02f}%".format(x["iv"] / 186 * 100), GameData.species_by_number(x["species"]))
+    print(
+        "{:.02f}%".format(x["iv"] / 186 * 100), GameData.species_by_number(x["species"])
+    )

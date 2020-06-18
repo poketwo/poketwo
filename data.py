@@ -141,13 +141,6 @@ def load_data():
     get_pokemon()
     get_items()
 
-    print(
-        "\n".join(
-            str(2048 // x.abundance) if x.catchable else ""
-            for x in GameData.all_pokemon().values()
-        )
-    )
-
 
 # spawns = []
 # for i in range(100000):

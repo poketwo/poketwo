@@ -1,6 +1,7 @@
 # Requires the PyMongo package.
 # https://api.mongodb.com/python/current
 
+import matplotlib.pyplot as plt
 from pymongo import MongoClient
 
 from cogs.helpers.models import GameData
@@ -20,9 +21,15 @@ result = client["pokemon"]["member"].aggregate(
         {"$project": {"dex": {"$objectToArray": "$pokedex"}}},
         {"$project": {"num": {"$sum": "$dex.v"}}},
         {"$sort": {"num": -1}},
-        {"$limit": 20},
+        {"$limit": 500},
     ]
 )
 
-for x in result:
-    print(x["_id"], x["num"])
+# for idx, x in enumerate(result):
+#     print(idx + 1, x["_id"], x["num"], sep="\t")
+
+# plt.axis("auto")
+plt.plot([x["num"] for x in result])
+plt.ylabel("# pokemon caught")
+# plt.yscale('log')
+plt.show()
