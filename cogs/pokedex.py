@@ -186,8 +186,7 @@ class Pokedex(commands.Cog):
             if shiny:
                 embed.title += " ✨"
                 embed.set_image(url=species.shiny_image_url)
-                if species.id > 71:
-                    extrafooter = " Note that we don't have artwork for this shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
+                extrafooter = " Note that we don't have artwork for all shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
             else:
                 embed.set_image(url=species.image_url)
 
