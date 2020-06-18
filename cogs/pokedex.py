@@ -181,9 +181,13 @@ class Pokedex(commands.Cog):
             embed.title = f"#{species.dex_number} — {species}"
             embed.description = species.evolution_text
 
+            extrafooter = ""
+
             if shiny:
                 embed.title += " ✨"
                 embed.set_image(url=species.shiny_image_url)
+                if species.id > 71:
+                    extrafooter = " Note that we don't have artwork for this shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
             else:
                 embed.set_image(url=species.image_url)
 
@@ -212,6 +216,6 @@ class Pokedex(commands.Cog):
             if str(species.dex_number) in member.pokedex:
                 text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
 
-            embed.set_footer(text=text)
+            embed.set_footer(text=text + extrafooter)
 
             await ctx.send(embed=embed)

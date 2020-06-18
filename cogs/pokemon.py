@@ -249,9 +249,13 @@ class Pokemon(commands.Cog):
             if pokemon.nickname is not None:
                 embed.title += f' "{pokemon.nickname}"'
 
+            extrafooter = ""
+
             if pokemon.shiny:
                 embed.title += " ✨"
                 embed.set_image(url=pokemon.species.shiny_image_url)
+                if pokemon.species_id > 71:
+                    extrafooter = " Note that we don't have artwork for this shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
             else:
                 embed.set_image(url=pokemon.species.image_url)
 
@@ -288,7 +292,9 @@ class Pokemon(commands.Cog):
                         pass
                 embed.add_field(name="Held Item", value=f"{emote}{item.name}")
 
-            embed.set_footer(text=f"Displaying pokémon {pidx + 1} out of {num}.")
+            embed.set_footer(
+                text=f"Displaying pokémon {pidx + 1} out of {num}." + extrafooter
+            )
 
             return embed
 
