@@ -370,6 +370,24 @@ class GameData:
         return cls._ultra_beast
 
     @classmethod
+    def list_mega(cls):
+        if not hasattr(cls, "_mega"):
+            cls._mega = (
+                [v.mega_id for v in _Data.pokemon.values() if v.mega_id is not None]
+                + [
+                    v.mega_x_id
+                    for v in _Data.pokemon.values()
+                    if v.mega_x_id is not None
+                ]
+                + [
+                    v.mega_y_id
+                    for v in _Data.pokemon.values()
+                    if v.mega_y_id is not None
+                ]
+            )
+        return cls._mega
+
+    @classmethod
     def list_type(cls, typee: str):
         return [v.id for v in _Data.pokemon.values() if typee.title() in v.types]
 
@@ -380,6 +398,22 @@ class GameData:
     @classmethod
     def all_species_by_number(cls, number: int) -> Species:
         return [x for x in _Data.pokemon.values() if x.dex_number == number]
+
+    @classmethod
+    def all_species_by_name(cls, name: str) -> Species:
+        return [
+            x
+            for x in _Data.pokemon.values()
+            if deaccent(name.lower().replace("’", "'")) in x.correct_guesses
+        ]
+
+    @classmethod
+    def find_all_matches(cls, name: str) -> Species:
+        return [
+            y.id
+            for x in cls.all_species_by_name(name)
+            for y in cls.all_species_by_number(x.id)
+        ]
 
     @classmethod
     def species_by_number(cls, number: int) -> Species:
@@ -393,7 +427,8 @@ class GameData:
         try:
             return next(
                 filter(
-                    lambda x: deaccent(name.lower()) in x.correct_guesses,
+                    lambda x: deaccent(name.lower().replace("’", "'"))
+                    in x.correct_guesses,
                     _Data.pokemon.values(),
                 )
             )

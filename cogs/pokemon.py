@@ -375,6 +375,11 @@ class Pokemon(commands.Cog):
                 {"$match": {"pokemon.species_id": {"$in": GameData.list_ub()}}}
             )
 
+        if "mega" in flags and flags["mega"]:
+            aggregations.append(
+                {"$match": {"pokemon.species_id": {"$in": GameData.list_mega()}}}
+            )
+
         if "type" in flags and flags["type"]:
             aggregations.append(
                 {
@@ -391,13 +396,11 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"pokemon.shiny": True}})
 
         if "name" in flags and flags["name"] is not None:
-            try:
-                species = GameData.species_by_name(flags["name"])
-            except SpeciesNotFoundError:
-                await ctx.send("Couldn't find a pokémon species with that name.")
-                return
+            all_species = GameData.find_all_matches(" ".join(flags["name"]))
 
-            aggregations.append({"$match": {"pokemon.species_id": species.id}})
+            aggregations.append(
+                {"$match": {"pokemon.species_id": {"$in": all_species}}}
+            )
 
         if "level" in flags and flags["level"] is not None:
             aggregations.append({"$match": {"pokemon.level": flags["level"]}})
@@ -566,7 +569,7 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"Finished releasing pokémon.")
 
-    @flags.add_flag("--name")
+    @flags.add_flag("--name", nargs="+")
     @flags.add_flag("--type", type=str)
     @flags.add_flag("--hpiv", nargs="+")
     @flags.add_flag("--atkiv", nargs="+")
@@ -647,8 +650,9 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
-    @flags.add_flag("--name")
+    @flags.add_flag("--name", nargs="+")
     @flags.add_flag("--level", type=int)
     @flags.add_flag("--type", type=str)
 

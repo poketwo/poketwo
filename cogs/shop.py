@@ -125,7 +125,7 @@ class Shop(commands.Cog):
         if page == 0:
             embed.description = "Use `p!shop <page>` to view different pages."
 
-            embed.add_field(name="Page 1", value="XP Boosters", inline=False)
+            embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
             embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
             embed.add_field(name="Page 3", value="Form Change Items", inline=False)
             embed.add_field(name="Page 4", value="Held Items", inline=False)
@@ -167,19 +167,36 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def buy(self, ctx: commands.Context, *, item: str):
+    async def buy(self, ctx: commands.Context, *args: str):
         """Buy an item from the shop."""
 
+        qty = 1
+
+        if args[-1].isdigit():
+            args, qty = args[:-1], int(args[-1])
+
+            if qty <= 0:
+                return await ctx.send("Nice try...")
+
         try:
-            item = GameData.item_by_name(item)
+            item = GameData.item_by_name(" ".join(args))
         except SpeciesNotFoundError:
-            return await ctx.send(f"Couldn't find an item called `{item}`.")
+            return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
 
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
 
-        if member.balance < item.cost:
+        if qty > 1 and item.action != "level":
+            return await ctx.send("You can't buy multiple of this item!")
+
+        if member.balance < item.cost * qty:
             return await ctx.send("You don't have enough Poképoints for that!")
+
+        if item.action == "level":
+            if pokemon.level + qty > 100:
+                return await ctx.send(
+                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `p!select` and try again."
+                )
 
         if item.action == "evolve_mega":
             if pokemon.species.mega is None:
@@ -272,10 +289,13 @@ class Shop(commands.Cog):
             if pokemon.nickname is not None:
                 name += f' "{pokemon.nickname}"'
 
-            await ctx.send(f"You purchased a {item.name} for your {name}!")
+            if qty > 1:
+                await ctx.send(f"You purchased {item.name} x {qty} for your {name}!")
+            else:
+                await ctx.send(f"You purchased a {item.name} for your {name}!")
 
         await self.db.update_member(
-            ctx.author, {"$inc": {"balance": -item.cost},},
+            ctx.author, {"$inc": {"balance": -item.cost * qty},},
         )
 
         if "evolve" in item.action:
@@ -307,6 +327,46 @@ class Shop(commands.Cog):
                 ctx.author,
                 {"$set": {"boost_expires": datetime.now() + timedelta(minutes=mins)},},
             )
+
+        if item.action == "level":
+            update = {
+                "$set": {f"pokemon.{member.selected}.xp": 0,},
+                "$inc": {f"pokemon.{member.selected}.level": qty,},
+            }
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Congratulations {ctx.author.name}!"
+
+            name = str(pokemon.species)
+
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
+
+            embed.description = f"Your {name} is now level {pokemon.level + qty}!"
+
+            if (
+                pokemon.species.level_evolution is not None
+                and pokemon.held_item != 13001
+            ):
+                if pokemon.level + qty >= pokemon.species.level_evolution.trigger.level:
+                    embed.add_field(
+                        name=f"Your {name} is evolving!",
+                        value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
+                    )
+                    update["$set"][
+                        f"pokemon.{member.selected}.species_id"
+                    ] = pokemon.species.level_evolution.target_id
+
+                    if member.silence and pokemon.level < 99:
+                        await ctx.author.send(embed=embed)
+
+            await self.db.update_member(ctx.author, update)
+
+            if member.silence and pokemon.level == 99:
+                await ctx.author.send(embed=embed)
+
+            if not member.silence:
+                await ctx.send(embed=embed)
 
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
