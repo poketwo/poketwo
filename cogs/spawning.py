@@ -151,7 +151,7 @@ class Spawning(commands.Cog):
 
             await self.spawn_pokemon(channel)
 
-    async def spawn_pokemon(self, channel, species=None):
+    async def spawn_pokemon(self, channel, species=None, shiny=None):
         # Get random species and level, add to tracker
 
         if species is None:
@@ -164,7 +164,7 @@ class Spawning(commands.Cog):
 
         hint = "".join([x if i in blanks else "\_" for i, x in enumerate(species.name)])
 
-        self.pokemon[channel.id] = (species, level, hint, [])
+        self.pokemon[channel.id] = (species, level, hint, shiny, [])
 
         # Fetch image and send embed
 
@@ -202,7 +202,7 @@ class Spawning(commands.Cog):
         if ctx.channel.id not in self.pokemon:
             return
 
-        species, level, hint, users = self.pokemon[ctx.channel.id]
+        species, level, hint, shiny, users = self.pokemon[ctx.channel.id]
 
         if deaccent(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
@@ -219,7 +219,8 @@ class Spawning(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        shiny = random.randint(1, 4096) == 1
+        if shiny is None:
+            shiny = random.randint(1, 4096) == 1
 
         await self.db.update_member(
             ctx.author,
