@@ -522,9 +522,11 @@ class Pokemon(commands.Cog):
 
         await self.db.update_member(ctx.author, {"$unset": unsets})
 
+        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
         await self.db.update_member(
-            ctx.author, {"$inc": {f"selected": -dec}, "$pull": {f"pokemon": None}}
+            ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
         )
+        await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
 
         await ctx.send(f"You released {len(mons)} pokémon.")
 
@@ -694,7 +696,26 @@ class Pokemon(commands.Cog):
             ctx.guild.get_member(self.bot.user.id)
         ).external_emojis
 
+        fixed_pokemon = False
+
+        async def fix_pokemon():
+            nonlocal fixed_pokemon
+
+            if fixed_pokemon:
+                return
+
+            await self.db.update_member(
+                ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
+            )
+            await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+
+            fixed_pokemon = True
+
         def nick(p):
+            if p.species is None:
+                asyncio.create_task(fix_pokemon())
+                return None
+
             if do_emojis:
                 name = (
                     str(EMOJIS.get(p.species.dex_number, shiny=p.shiny))
@@ -747,8 +768,9 @@ class Pokemon(commands.Cog):
             maxn = max(idx for x, idx in pokemon)
 
             page = [
-                f"`{padn(p, idx, maxn)}`   **{nick(p)}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
+                f"`{padn(p, idx, maxn)}`   **{txt}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
                 for p, idx in pokemon
+                if (txt := nick(p)) is not None
             ]
 
             # Send embed

@@ -8,7 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from umongo import Document, EmbeddedDocument, Instance, fields
 
 from .constants import NATURES, NATURE_MULTIPLIERS
-from .models import GameData
+from .models import GameData, SpeciesNotFoundError
 
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(NATURES)
@@ -64,7 +64,10 @@ class Pokemon(EmbeddedDocument):
 
     @property
     def species(self):
-        return GameData.species_by_number(self.species_id)
+        try:
+            return GameData.species_by_number(self.species_id)
+        except SpeciesNotFoundError:
+            return None
 
     @property
     def max_xp(self):

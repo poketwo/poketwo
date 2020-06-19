@@ -159,18 +159,23 @@ class Pokedex(commands.Cog):
 
         else:
             shiny = False
-            search = search_or_page
 
-            if search_or_page.lower().startswith("shiny "):
-                shiny = True
-                search = search_or_page[6:]
+            if search_or_page[0] in "N#" and search_or_page[1:].isdigit():
+                species = GameData.species_by_number(int(search_or_page[1:]))
 
-            try:
-                species = GameData.species_by_name(search)
-            except SpeciesNotFoundError:
-                return await ctx.send(
-                    f"Could not find a pokemon matching `{search_or_page}`."
-                )
+            else:
+                search = search_or_page
+
+                if search_or_page.lower().startswith("shiny "):
+                    shiny = True
+                    search = search_or_page[6:]
+
+                try:
+                    species = GameData.species_by_name(search)
+                except SpeciesNotFoundError:
+                    return await ctx.send(
+                        f"Could not find a pokemon matching `{search_or_page}`."
+                    )
 
             member = await self.db.fetch_pokedex(
                 ctx.author, species.dex_number, species.dex_number + 1
