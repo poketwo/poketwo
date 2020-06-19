@@ -162,7 +162,9 @@ class Spawning(commands.Cog):
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
         blanks = random.sample(inds, len(inds) // 2)
 
-        hint = "".join([x if i in blanks else "\_" for i, x in enumerate(species.name)])
+        main = GameData.species_by_number(species.dex_number)
+
+        hint = "".join(x if i in blanks else "\_" for i, x in enumerate(main.name))
 
         self.pokemon[channel.id] = (species, level, hint, shiny, [])
 
@@ -189,7 +191,8 @@ class Spawning(commands.Cog):
         if ctx.channel.id not in self.pokemon:
             return
 
-        species, level, hint, _ = self.pokemon[ctx.channel.id]
+        hint = self.pokemon[ctx.channel.id][2]
+
         await ctx.send(f"The pokémon is {hint}.")
 
     @checks.has_started()
