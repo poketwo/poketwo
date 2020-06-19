@@ -162,6 +162,7 @@ class Member(Document):
     pokedex = fields.DictField(
         fields.StringField(), fields.IntegerField(), default=dict
     )
+    shinies_caught = fields.IntegerField(default=0)
     balance = fields.IntegerField(default=0)
     redeems = fields.IntegerField(default=0)
 

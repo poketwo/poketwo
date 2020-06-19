@@ -134,9 +134,13 @@ class Spawning(commands.Cog):
                 return
 
         self.bot.cooldown_guilds[message.guild.id] = current
-        self.bot.guild_counter[message.guild.id] = self.bot.guild_counter.get(message.guild.id, 0) + 1
+        self.bot.guild_counter[message.guild.id] = (
+            self.bot.guild_counter.get(message.guild.id, 0) + 1
+        )
 
-        if self.bot.guild_counter[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
+        if self.bot.guild_counter[message.guild.id] >= (
+            5 if self.bot.env == "dev" else 15
+        ):
             self.bot.guild_counter[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
 
@@ -232,6 +236,7 @@ class Spawning(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
+                "$inc": {"shinies_caught": 1 if shiny else 0 },
                 "$push": {
                     "pokemon": {
                         "species_id": species.id,
