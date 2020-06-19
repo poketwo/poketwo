@@ -45,7 +45,6 @@ class Shop(commands.Cog):
             return await ctx.send("That pokémon isn't holding an item!")
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        idx = idx % num
 
         await self.db.update_member(
             ctx.author, {"$set": {f"pokemon.{idx}.held_item": None}},

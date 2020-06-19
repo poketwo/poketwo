@@ -166,7 +166,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find that pokémon!")
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        idx = idx % num
 
         await self.db.update_member(
             ctx.author, {"$set": {f"pokemon.{idx}.favorite": not pokemon.favorite}},
@@ -230,11 +229,9 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
 
-        pokemon, idx = pokemon
+        pokemon, pidx = pokemon
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-
-        pidx = idx % num
 
         async def get_page(pidx, clear):
             pokemon = await self.db.fetch_pokemon(ctx.author, pidx)
@@ -313,7 +310,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find that pokémon!")
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        idx = idx % num
 
         await self.db.update_member(
             ctx.author, {"$set": {f"selected": idx}},
