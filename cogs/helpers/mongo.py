@@ -164,6 +164,13 @@ class Member(Document):
 
     boost_expires = fields.DateTimeField(default=datetime.min)
 
+    last_voted = fields.DateTimeField(default=datetime.min)
+    vote_total = fields.IntegerField(default=0)
+    vote_streak = fields.IntegerField(default=0)
+    gifts_normal = fields.IntegerField(default=0)
+    gifts_great = fields.IntegerField(default=0)
+    gifts_ultra = fields.IntegerField(default=0)
+
     silence = fields.BooleanField(default=False)
 
     @property
