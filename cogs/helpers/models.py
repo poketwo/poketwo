@@ -349,7 +349,7 @@ class SpeciesNotFoundError(Exception):
 class GameData:
     @classmethod
     def all_pokemon(cls):
-        return _Data.pokemon
+        return _Data.pokemon.values()
 
     @classmethod
     def list_mythical(cls):
@@ -452,14 +452,18 @@ class GameData:
             raise SpeciesNotFoundError
 
     @classmethod
-    def random_spawn(cls):
-        x = random.choices(
-            list(_Data.pokemon.values()), weights=cls.spawn_weights(), k=1
-        )[0]
-        while not x.catchable:
-            x = random.choices(
-                list(_Data.pokemon.values()), weights=cls.spawn_weights(), k=1
-            )[0]
+    def random_spawn(cls, rarity="normal"):
+
+        if rarity == "mythical":
+            pool = [x for x in cls.all_pokemon() if x.catchable and x.mythical]
+        elif rarity == "legendary":
+            pool = [x for x in cls.all_pokemon() if x.catchable and x.legendary]
+        elif rarity == "ultra_beast":
+            pool = [x for x in cls.all_pokemon() if x.catchable and x.ultra_beast]
+        else:
+            pool = [x for x in cls.all_pokemon() if x.catchable]
+
+        x = random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]
 
         return x
 

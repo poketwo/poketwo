@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, timedelta
 from functools import cached_property
 
@@ -6,7 +7,7 @@ import humanfriendly
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo, converters
+from .helpers import checks, converters, mongo
 from .helpers.constants import *
 from .helpers.models import GameData, ItemTrigger, SpeciesNotFoundError
 
@@ -24,6 +25,126 @@ class Shop(commands.Cog):
     async def balance(self, member: discord.Member):
         member = await self.db.fetch_member_info(member)
         return member.balance
+
+    @checks.has_started()
+    @commands.command(aliases=["daily"])
+    async def vote(self, ctx: commands.Context):
+        """View voting rewards."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Voting Rewards"
+
+        embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
+
+        embed.add_field(
+            name="Voting Streak",
+            value=str(EMOJIS.check) * min(member.vote_streak, 14)
+            + str(EMOJIS.gray) * (14 - min(member.vote_streak, 14))
+            + f"\nCurrent Streak: {member.vote_streak} votes!",
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Your Rewards",
+            value=(
+                f"{EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
+                f"{EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
+                f"{EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+            ),
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Claiming Rewards",
+            value="Use `p!open <normal|great|ultra> [amt]` to open your boxes!",
+        )
+
+        embed.set_footer(
+            text="You will automatically receive your rewards when you vote."
+        )
+
+        await ctx.send(embed=embed)
+
+    @checks.has_started()
+    @commands.command()
+    async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
+        """Open mystery boxes."""
+
+        if type.lower() not in ("normal", "great", "ultra"):
+            return await ctx.send("Please type `normal`, `great`, or `ultra`!")
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if amt > getattr(member, f"gifts_{type.lower()}"):
+            return await ctx.send("You don't have enough boxes to do that!")
+
+        if amt > 20:
+            return await ctx.send("You can only open 20 boxes at once!")
+
+        await self.db.update_member(
+            ctx.author, {"$inc": {f"gifts_{type.lower()}": -amt}}
+        )
+
+        rewards = random.choices(REWARDS, REWARD_WEIGHTS[type.lower()], k=amt)
+
+        update = {
+            "$inc": {"balance": 0, "redeems": 0},
+            "$push": {"pokemon": {"$each": []}},
+        }
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = (
+            f" Opening {amt} {getattr(EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+            + ("" if amt == 1 else "es")
+            + "..."
+        )
+
+        text = []
+
+        for reward in rewards:
+            if reward["type"] == "pp":
+                update["$inc"]["balance"] += reward["value"]
+                text.append(f"{reward['value']} Poképoints")
+            elif reward["type"] == "redeem":
+                update["$inc"]["redeems"] += reward["value"]
+                text.append(
+                    f"{reward['value']} redeem" + ("" if reward["value"] == 1 else "s")
+                )
+            elif reward["type"] == "pokemon":
+                pokemon = GameData.random_spawn(rarity=reward["value"])
+                level = min(max(int(random.normalvariate(20, 10)), 1), 100)
+                shiny = reward["value"] == "shiny" or random.randint(1, 4096) == 1
+                text.append(
+                    f"{EMOJIS.get(pokemon.dex_number, shiny=shiny)} Level {level} {pokemon}"
+                    + (" ✨" if shiny else "")
+                )
+                update["$push"]["pokemon"]["$each"].append(
+                    {
+                        "species_id": pokemon.id,
+                        "level": level,
+                        "xp": 0,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": mongo.random_iv(),
+                        "iv_atk": mongo.random_iv(),
+                        "iv_defn": mongo.random_iv(),
+                        "iv_satk": mongo.random_iv(),
+                        "iv_sdef": mongo.random_iv(),
+                        "iv_spd": mongo.random_iv(),
+                        "shiny": shiny,
+                    }
+                )
+
+        print(rewards)
+        print(text)
+
+        embed.add_field(name="Rewards Received", value="\n".join(text))
+
+        await self.db.update_member(ctx.author, update)
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=["balance"])
@@ -414,4 +535,3 @@ class Shop(commands.Cog):
                     await ctx.send(embed=embed)
 
                     break
-

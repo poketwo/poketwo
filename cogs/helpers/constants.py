@@ -1,3 +1,22 @@
+REWARDS = [
+    {"type": "pp", "value": 50},
+    {"type": "pp", "value": 100},
+    {"type": "pp", "value": 200},
+    {"type": "pp", "value": 500},
+    {"type": "pokemon", "value": "normal"},
+    {"type": "pokemon", "value": "mythical"},
+    {"type": "pokemon", "value": "legendary"},
+    {"type": "pokemon", "value": "ultra_beast"},
+    {"type": "pokemon", "value": "shiny"},
+    {"type": "redeem", "value": 1},
+]
+
+REWARD_WEIGHTS = {
+    "normal": [3000, 1000, 300, 100, 3000, 0, 0, 0, 0, 0],
+    "great": [0, 1000, 500, 300, 800, 50, 20, 20, 10, 1],
+    "ultra": [0, 0, 800, 200, 500, 80, 20, 20, 10, 3],
+}
+
 NATURES = [
     "Adamant",
     "Bashful",
@@ -230,10 +249,18 @@ class EmojiManager:
             self._shiny.append(shiny)
 
         gguild = await bot.fetch_guild(716390832034414685)
+
         self.blank = next(filter(lambda x: x.name == "blank", gguild.emojis))
         self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
         self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))
+        self.gray = next(filter(lambda x: x.name == "gray_tick", gguild.emojis))
         self.heart = next(filter(lambda x: x.name == "red_heart", gguild.emojis))
+
+        self.gift_normal = next(
+            filter(lambda x: x.name == "gift_normal", gguild.emojis)
+        )
+        self.gift_great = next(filter(lambda x: x.name == "gift_great", gguild.emojis))
+        self.gift_ultra = next(filter(lambda x: x.name == "gift_ultra", gguild.emojis))
 
     def get(self, idx, shiny=False):
         if shiny:
