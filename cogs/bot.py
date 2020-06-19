@@ -11,14 +11,17 @@ from .helpers.constants import EMOJIS, HELP
 from .helpers.models import *
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Bot(bot))
+
+
 class Bot(commands.Cog):
     """For basic bot operation."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.prefixes = {}
-        self.token = os.getenv("DBL_TOKEN")
-        self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True)
+        self.bot.prefixes = {}
+        self.bot.dblpy = dbl.DBLClient(self.bot, os.getenv("DBL_TOKEN"), autopost=True)
 
     @property
     def db(self) -> Database:
@@ -61,25 +64,32 @@ class Bot(commands.Cog):
 
     async def determine_prefix(self, message):
         if message.guild:
-            if message.guild.id not in self.prefixes:
+            if message.guild.id not in self.bot.prefixes:
                 guild = await mongo.Guild.find_one({"id": message.guild.id})
                 if guild is None:
                     guild = mongo.Guild(id=message.guild.id)
                     await guild.commit()
 
-                self.prefixes[message.guild.id] = guild.prefix
+                self.bot.prefixes[message.guild.id] = guild.prefix
 
-            return self.prefixes[message.guild.id] or ["p!", "P!"]
+            return self.bot.prefixes[message.guild.id] or ["p!", "P!"]
 
         return ["p!", "P!"]
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            return await ctx.send_help(ctx.command)
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"p!{ctx.command.qualified_name}"
 
-        if isinstance(error, checks.ShuttingDown):
-            return
+            if ctx.command.help:
+                embed.description = ctx.command.help
+
+            embed.set_footer(
+                text=f"p!{ctx.command.qualified_name} {ctx.command.signature}",
+            )
+            return await ctx.send(embed=embed)
 
         if isinstance(error, checks.MustHaveStarted):
             return await ctx.send(
@@ -171,7 +181,7 @@ class Bot(commands.Cog):
 
         if prefix == "reset":
             await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})
-            self.prefixes[ctx.guild.id] = None
+            self.bot.prefixes[ctx.guild.id] = None
 
             return await ctx.send("Reset prefix to `p!` for this server.")
 
@@ -179,7 +189,7 @@ class Bot(commands.Cog):
             return await ctx.send("Prefix must not be longer than 100 characters.")
 
         await self.db.update_guild(ctx.guild, {"$set": {"prefix": prefix}})
-        self.prefixes[ctx.guild.id] = prefix
+        self.bot.prefixes[ctx.guild.id] = prefix
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
 
@@ -197,7 +207,7 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def admingiveredeem(
+    async def giveredeen(
         self, ctx: commands.Context, user: discord.Member, *, num: int = 1
     ):
         """Redeem a pokémon."""
@@ -210,9 +220,7 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def admingive(
-        self, ctx: commands.Context, user: discord.Member, *, species: str
-    ):
+    async def give(self, ctx: commands.Context, user: discord.Member, *, species: str):
         """Give a pokémon."""
 
         member = await self.db.fetch_member_info(user)
@@ -246,9 +254,7 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def admintestsetup(
-        self, ctx: commands.Context, user: discord.Member, num: int = 100
-    ):
+    async def setup(self, ctx: commands.Context, user: discord.Member, num: int = 100):
         """Test setup pokémon."""
 
         member = await self.db.fetch_member_info(user)

@@ -6,6 +6,10 @@ from discord.ext import commands
 from .helpers import mongo
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Database(bot))
+
+
 class Database(commands.Cog):
     """For database operations."""
 

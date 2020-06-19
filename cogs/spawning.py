@@ -11,15 +11,19 @@ from .helpers import checks, mongo
 from .helpers.models import GameData, LevelTrigger, deaccent
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Spawning(bot))
+
+
 class Spawning(commands.Cog):
     """For basic bot operation."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.pokemon = {}
-        self.users = {}
-        self.cooldown = {}
-        self.guilds = {}
+        self.bot.spawns = {}
+        self.bot.cooldown_users = {}
+        self.bot.cooldown_guilds = {}
+        self.bot.guild_counter = {}
 
     @property
     def db(self) -> Database:
@@ -44,10 +48,10 @@ class Spawning(commands.Cog):
         # Spamcheck, every two seconds
 
         if self.bot.env != "dev":
-            if current - self.users.get(message.author.id, 0) < 1:
+            if current - self.bot.cooldown_users.get(message.author.id, 0) < 1:
                 return
 
-        self.users[message.author.id] = current
+        self.bot.cooldown_users[message.author.id] = current
 
         # Increase XP on selected pokemon
 
@@ -126,14 +130,14 @@ class Spawning(commands.Cog):
             return
 
         if self.bot.env != "dev":
-            if current - self.cooldown.get(message.guild.id, 0) < 1:
+            if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1:
                 return
 
-        self.cooldown[message.guild.id] = current
-        self.guilds[message.guild.id] = self.guilds.get(message.guild.id, 0) + 1
+        self.bot.cooldown_guilds[message.guild.id] = current
+        self.bot.guild_counter[message.guild.id] = self.bot.guild_counter.get(message.guild.id, 0) + 1
 
-        if self.guilds[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
-            self.guilds[message.guild.id] = 0
+        if self.bot.guild_counter[message.guild.id] >= (5 if self.bot.env == "dev" else 15):
+            self.bot.guild_counter[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
@@ -166,7 +170,7 @@ class Spawning(commands.Cog):
 
         hint = "".join(x if i in blanks else "\_" for i, x in enumerate(main.name))
 
-        self.pokemon[channel.id] = (species, level, hint, shiny, [])
+        self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
         # Fetch image and send embed
 
@@ -188,10 +192,10 @@ class Spawning(commands.Cog):
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
-        if ctx.channel.id not in self.pokemon:
+        if ctx.channel.id not in self.bot.spawns:
             return
 
-        hint = self.pokemon[ctx.channel.id][2]
+        hint = self.bot.spawns[ctx.channel.id][2]
 
         await ctx.send(f"The pokémon is {hint}.")
 
@@ -202,10 +206,10 @@ class Spawning(commands.Cog):
 
         # Retrieve correct species and level from tracker
 
-        if ctx.channel.id not in self.pokemon:
+        if ctx.channel.id not in self.bot.spawns:
             return
 
-        species, level, hint, shiny, users = self.pokemon[ctx.channel.id]
+        species, level, hint, shiny, users = self.bot.spawns[ctx.channel.id]
 
         if deaccent(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
@@ -218,7 +222,7 @@ class Spawning(commands.Cog):
 
             users.append(ctx.author.id)
         else:
-            del self.pokemon[ctx.channel.id]
+            del self.bot.spawns[ctx.channel.id]
 
         member = await self.db.fetch_member_info(ctx.author)
 

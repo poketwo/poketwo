@@ -6,3 +6,6 @@ from .pokemon import *
 from .shop import *
 from .spawning import *
 from .trading import *
+
+ALL_COGS = ["bot", "database", "pokedex", "pokemon", "shop", "spawning", "trading"]
+

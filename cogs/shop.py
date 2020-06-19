@@ -12,6 +12,10 @@ from .helpers.constants import *
 from .helpers.models import GameData, ItemTrigger, SpeciesNotFoundError
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Shop(bot))
+
+
 class Shop(commands.Cog):
     """Shop-related commands."""
 

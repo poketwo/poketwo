@@ -11,6 +11,10 @@ from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.pagination import Paginator
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Pokedex(bot))
+
+
 class Pokedex(commands.Cog):
     """Pokédex-related commands."""
 

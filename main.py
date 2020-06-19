@@ -1,14 +1,18 @@
+import asyncio
+import logging
 import os
+import subprocess
 
 from discord.ext import commands
 from dotenv import load_dotenv
+
 from cogs import *
 from cogs.helpers import constants
 from data import load_data
-import asyncio
-import subprocess
 
 # Setup
+
+logging.basicConfig(level=logging.INFO)
 
 bot_token = os.getenv("BOT_TOKEN")
 env = os.getenv("ENV")
@@ -28,29 +32,40 @@ bot = commands.AutoShardedBot(
     command_prefix=determine_prefix, help_command=None, case_insensitive=True,
 )
 bot.env = env
-bot.add_cog(Bot(bot))
-bot.add_cog(Database(bot))
-bot.add_cog(Pokedex(bot))
-bot.add_cog(Pokemon(bot))
-bot.add_cog(Shop(bot))
-bot.add_cog(Spawning(bot))
-bot.add_cog(Trading(bot))
-
 bot.enabled = False
+
+for cog in ALL_COGS:
+    bot.load_extension(f"cogs.{cog}")
 
 
 @commands.is_owner()
 @bot.command()
-async def admindisable(ctx: commands.Context):
+async def disable(ctx: commands.Context):
     bot.enabled = False
     await ctx.send("Disabling bot...")
 
 
 @commands.is_owner()
 @bot.command()
-async def adminenable(ctx: commands.Context):
+async def enable(ctx: commands.Context):
     bot.enabled = True
     await ctx.send("Enabling bot...")
+
+
+@commands.is_owner()
+@bot.command()
+async def reloadcog(ctx: commands.Context, cog: str):
+    bot.reload_extension(f"cogs.{cog}")
+    await ctx.send("Disabling bot...")
+
+
+@commands.is_owner()
+@bot.command()
+async def reloadall(ctx: commands.Context):
+    message = await ctx.send("Reloading all cogs...")
+    for cog in ALL_COGS:
+        bot.reload_extension(f"cogs.{cog}")
+    await message.edit(content="All cogs have been reloaded.")
 
 
 @bot.event

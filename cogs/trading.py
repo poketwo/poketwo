@@ -9,27 +9,31 @@ from .helpers import checks, mongo
 from .helpers.models import *
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Trading(bot))
+
+
 class Trading(commands.Cog):
     """For trading."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.users = {}
+        self.bot.trades = {}
 
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
     async def send_trade(self, ctx: commands.Context, user: discord.Member):
-        trade = self.users[user.id]
+        trade = self.bot.trades[user.id]
         a, b = trade["items"].keys()
 
         done = False
 
         if trade[a] and trade[b]:
             done = True
-            del self.users[a]
-            del self.users[b]
+            del self.bot.trades[a]
+            del self.bot.trades[b]
 
         a = ctx.guild.get_member(a)
         b = ctx.guild.get_member(b)
@@ -175,10 +179,10 @@ class Trading(commands.Cog):
         if user == ctx.author:
             return await ctx.send("Nice try...")
 
-        if ctx.author.id in self.users:
+        if ctx.author.id in self.bot.trades:
             return await ctx.send("You are already in a trade!")
 
-        if user.id in self.users:
+        if user.id in self.bot.trades:
             return await ctx.send(f"**{user}** is already in a trade!")
 
         member = await mongo.Member.find_one({"id": user.id})
@@ -200,12 +204,12 @@ class Trading(commands.Cog):
             await message.add_reaction("❌")
             await ctx.send("The request to trade has timed out.")
         else:
-            if ctx.author.id in self.users:
+            if ctx.author.id in self.bot.trades:
                 return await ctx.send(
                     "Sorry, the user who sent the request is already in another trade."
                 )
 
-            if user.id in self.users:
+            if user.id in self.bot.trades:
                 return await ctx.send(
                     "Sorry, you can't accept a trade while you're already in one!"
                 )
@@ -215,39 +219,39 @@ class Trading(commands.Cog):
                 ctx.author.id: False,
                 user.id: False,
             }
-            self.users[ctx.author.id] = trade
-            self.users[user.id] = trade
+            self.bot.trades[ctx.author.id] = trade
+            self.bot.trades[user.id] = trade
 
             await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
-        if ctx.author.id not in self.users:
+        if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
-        a, b = self.users[ctx.author.id]["items"].keys()
-        del self.users[a]
-        del self.users[b]
+        a, b = self.bot.trades[ctx.author.id]["items"].keys()
+        del self.bot.trades[a]
+        del self.bot.trades[b]
 
         await ctx.send("The trade has been canceled.")
 
     @checks.has_started()
     @trade.command(aliases=["c"])
     async def confirm(self, ctx: commands.Context):
-        if ctx.author.id not in self.users:
+        if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
-        self.users[ctx.author.id][ctx.author.id] = not self.users[ctx.author.id][
+        self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[
             ctx.author.id
-        ]
+        ][ctx.author.id]
 
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
-        if ctx.author.id not in self.users:
+        if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
         if len(args) <= 2 and args[-1].lower().endswith("pp"):
@@ -257,7 +261,7 @@ class Trading(commands.Cog):
             if what.isdigit():
                 current = sum(
                     x
-                    for x in self.users[ctx.author.id]["items"][ctx.author.id]
+                    for x in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
                     if type(x) == int
                 )
 
@@ -266,7 +270,7 @@ class Trading(commands.Cog):
                 if current + int(what) > member.balance:
                     return await ctx.send("You don't have enough Poképoints for that!")
 
-                self.users[ctx.author.id]["items"][ctx.author.id].append(int(what))
+                self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(int(what))
 
             else:
                 return await ctx.send("That's not a valid item to add to the trade!")
@@ -285,7 +289,7 @@ class Trading(commands.Cog):
                         await ctx.send(f"{what}: NO")
                         continue
 
-                    for x in self.users[ctx.author.id]["items"][ctx.author.id]:
+                    for x in self.bot.trades[ctx.author.id]["items"][ctx.author.id]:
                         if type(x) == int:
                             continue
 
@@ -318,7 +322,7 @@ class Trading(commands.Cog):
                         await ctx.send(f"{what}: You can't trade favorited pokémon!")
                         continue
 
-                    self.users[ctx.author.id]["items"][ctx.author.id].append(
+                    self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(
                         (pokemon, number)
                     )
 
@@ -333,19 +337,19 @@ class Trading(commands.Cog):
             if not updated:
                 return
 
-        for k in self.users[ctx.author.id]:
+        for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
-                self.users[ctx.author.id][k] = False
+                self.bot.trades[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
-        if ctx.author.id not in self.users:
+        if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
-        trade = self.users[ctx.author.id]
+        trade = self.bot.trades[ctx.author.id]
 
         if len(args) <= 2 and args[-1].lower().endswith("pp"):
 
@@ -396,8 +400,8 @@ class Trading(commands.Cog):
             if not updated:
                 return
 
-        for k in self.users[ctx.author.id]:
+        for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
-                self.users[ctx.author.id][k] = False
+                self.bot.trades[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)

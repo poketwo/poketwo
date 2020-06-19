@@ -13,6 +13,10 @@ from .helpers.models import GameData, SpeciesNotFoundError
 from .helpers.pagination import Paginator
 
 
+def setup(bot: commands.Bot):
+    bot.add_cog(Pokemon(bot))
+
+
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
@@ -439,7 +443,7 @@ class Pokemon(commands.Cog):
     async def release(self, ctx: commands.Context, *args):
         """Release pokémon from your collection."""
 
-        if ctx.author.id in self.bot.get_cog("Trading").users:
+        if ctx.author.id in self.bot.trades:
             return await ctx.send("You can't do that in a trade!")
 
         member = await self.db.fetch_member_info(ctx.author)
@@ -542,10 +546,10 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.is_owner()
     @commands.command()
-    async def adminrelease(self, ctx: commands.Context, user: discord.User, idx: int):
+    async def arelease(self, ctx: commands.Context, user: discord.User, idx: int):
         """Release pokémon from your collection."""
 
-        if user.id in self.bot.get_cog("Trading").users:
+        if user.id in self.bot.trades:
             return await ctx.send("You can't do that in a trade!")
 
         member = await self.db.fetch_member_info(user)
@@ -582,7 +586,7 @@ class Pokemon(commands.Cog):
     async def releaseall(self, ctx: commands.Context, **flags):
         """Release the pokémon in your collection."""
 
-        if ctx.author.id in self.bot.get_cog("Trading").users:
+        if ctx.author.id in self.bot.trades:
             return await ctx.send("You can't do that in a trade!")
 
         aggregations = await self.create_filter(flags, ctx)

@@ -41,7 +41,9 @@ def enabled(bot):
             return True
 
         if not bot.enabled:
-            raise ShuttingDown
+            raise ShuttingDown(
+                "Sorry, you can't do that right now! The bot is either restarting for updates or has been manually stopped by the developer for another reason. Please try again later."
+            )
 
         return True
 
