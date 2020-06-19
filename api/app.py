@@ -11,8 +11,13 @@ db = MongoClient(os.getenv("DATABASE_URI"))[os.getenv("DATABASE_NAME")]
 app = Flask(__name__)
 
 
+@app.route("/dbl", methods=["POST"])
+def dbl():
+    print(request.json)
+
+
 @app.route("/patreon", methods=["POST"])
-def webhook():
+def patreon():
     if "delete" in request.headers.get("X-Patreon-Event"):
         return "", 200
 
@@ -41,7 +46,13 @@ def webhook():
         {"$inc": {"redeems": inc_redeems}},
     )
 
-    print("Giving " + user["attributes"]["discord_id"] + " " + str(inc_redeems) + " redeems.")
+    print(
+        "Giving "
+        + user["attributes"]["discord_id"]
+        + " "
+        + str(inc_redeems)
+        + " redeems."
+    )
 
     return "", 200
 
