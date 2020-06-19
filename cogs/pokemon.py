@@ -454,23 +454,12 @@ class Pokemon(commands.Cog):
         dec = 0
 
         idxs = set()
-
-        if len(args) > 1:
-            await ctx.send(f"Are you sure you want to release these pokémon? [y/N]")
-
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-            try:
-                msg = await self.bot.wait_for("message", timeout=15, check=check)
-
-                if msg.content.lower() != "y":
-                    return await ctx.send("Aborted.")
-            except asyncio.TimeoutError:
-                return await ctx.send("Time's up. Aborted.")
+        mons = list()
 
         if len(args) >= 10:
-            await ctx.send(f"Releasing {len(args)} pokémon, this might take a while...")
+            await ctx.send(
+                f"Querying for {len(args)} pokémon, this might take a while..."
+            )
 
         for number in args:
 
@@ -498,6 +487,7 @@ class Pokemon(commands.Cog):
                 continue
 
             idxs.add(idx)
+            mons.append((pokemon, idx))
 
             if (idx % num) < member.selected:
                 dec += 1
@@ -506,17 +496,29 @@ class Pokemon(commands.Cog):
             await ctx.send(
                 f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {idx + 1}? This action is irreversible! [y/N]"
             )
+        else:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = (
+                f"Are you sure you want to release the following pokémon? [y/N]"
+            )
 
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+            embed.description = "\n".join(
+                f"Level {x[0].level} {x[0].species} ({x[1] + 1})" for x in mons
+            )
 
-            try:
-                msg = await self.bot.wait_for("message", timeout=15, check=check)
+            await ctx.send(embed=embed)
 
-                if msg.content.lower() != "y":
-                    return await ctx.send("Aborted.")
-            except asyncio.TimeoutError:
-                return await ctx.send("Time's up. Aborted.")
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=15, check=check)
+
+            if msg.content.lower() != "y":
+                return await ctx.send("Aborted.")
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
 
         # confirmed, release
 
@@ -528,7 +530,7 @@ class Pokemon(commands.Cog):
             ctx.author, {"$inc": {f"selected": -dec}, "$pull": {f"pokemon": None}}
         )
 
-        await ctx.send(f"Finished releasing pokémon.")
+        await ctx.send(f"You released {len(mons)} pokémon.")
 
     @commands.command()
     async def healschema(self, ctx: commands.Context, member: discord.User = None):
