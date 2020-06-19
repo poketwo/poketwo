@@ -66,7 +66,7 @@ class Pokedex(commands.Cog):
                 ctx.guild.get_member(self.bot.user.id)
             ).external_emojis
 
-            member = await self.db.fetch_pokedex(ctx.author, 0, 809)
+            member = await self.db.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex
 
             if not flags["uncaught"] and not flags["caught"]:
