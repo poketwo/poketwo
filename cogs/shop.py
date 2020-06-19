@@ -172,7 +172,7 @@ class Shop(commands.Cog):
 
         qty = 1
 
-        if args[-1].isdigit():
+        if args[-1].isdigit() and args[0].lower() != "xp":
             args, qty = args[:-1], int(args[-1])
 
             if qty <= 0:
