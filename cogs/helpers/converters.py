@@ -31,7 +31,7 @@ class Pokemon(commands.Converter):
                 f"Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
             )
 
-        count = await self.db.fetch_pokemon_count(ctx.author)
-        number = number % number
+        count = await db.fetch_pokemon_count(ctx.author)
+        number = number % count
 
         return await db.fetch_pokemon(ctx.author, number), number
