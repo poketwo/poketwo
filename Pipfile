@@ -19,6 +19,7 @@ motor = "*"
 umongo = "*"
 flask = "*"
 requests = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.8"
