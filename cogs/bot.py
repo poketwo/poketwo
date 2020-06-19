@@ -78,6 +78,9 @@ class Bot(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send_help(ctx.command)
 
+        if isinstance(error, checks.ShuttingDown):
+            return
+
         if isinstance(error, checks.MustHaveStarted):
             return await ctx.send(
                 "Please pick a starter pokémon by typing `p!start` before using this command!"
