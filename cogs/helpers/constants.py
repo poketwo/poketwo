@@ -1,7 +1,8 @@
 REWARDS = [
     {"type": "pp", "value": 50},
     {"type": "pp", "value": 100},
-    {"type": "pp", "value": 200},
+    {"type": "pp", "value": 150},
+    {"type": "pp", "value": 250},
     {"type": "pp", "value": 500},
     {"type": "pokemon", "value": "normal"},
     {"type": "pokemon", "value": "mythical"},
@@ -12,9 +13,9 @@ REWARDS = [
 ]
 
 REWARD_WEIGHTS = {
-    "normal": [3000, 1000, 300, 100, 3000, 0, 0, 0, 0, 0],
-    "great": [0, 1000, 500, 300, 800, 50, 20, 20, 10, 1],
-    "ultra": [0, 0, 800, 200, 500, 80, 20, 20, 10, 3],
+    "normal": [200, 2000, 1000, 300, 100, 2000, 0, 0, 0, 0, 0],
+    "great": [0, 500, 1000, 500, 300, 800, 50, 20, 10, 10, 1],
+    "ultra": [0, 0, 300, 800, 200, 500, 80, 20, 10, 10, 3],
 }
 
 NATURES = [
