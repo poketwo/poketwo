@@ -27,7 +27,7 @@ class Shop(commands.Cog):
         return member.balance
 
     @checks.has_started()
-    @commands.command(aliases=["daily"])
+    @commands.command(aliases=["daily", "boxes"])
     async def vote(self, ctx: commands.Context):
         """View voting rewards."""
 
