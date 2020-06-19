@@ -55,7 +55,12 @@ async def adminenable(ctx: commands.Context):
 
 @bot.event
 async def on_message(message: discord.Message):
-    message.content = message.content.replace("—", "--").replace("'", "’")
+    message.content = (
+        message.content.replace("—", "--")
+        .replace("'", "′")
+        .replace("‘", "′")
+        .replace("’", "′")
+    )
     await bot.process_commands(message)
 
 

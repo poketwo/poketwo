@@ -404,7 +404,7 @@ class GameData:
         return [
             x
             for x in _Data.pokemon.values()
-            if deaccent(name.lower().replace("’", "'")) in x.correct_guesses
+            if deaccent(name.lower().replace("′", "'")) in x.correct_guesses
         ]
 
     @classmethod
@@ -427,7 +427,7 @@ class GameData:
         try:
             return next(
                 filter(
-                    lambda x: deaccent(name.lower().replace("’", "'"))
+                    lambda x: deaccent(name.lower().replace("′", "'"))
                     in x.correct_guesses,
                     _Data.pokemon.values(),
                 )
@@ -446,7 +446,11 @@ class GameData:
     def item_by_name(cls, name: str) -> Item:
         try:
             return next(
-                filter(lambda x: name.lower() == x.name.lower(), _Data.items.values())
+                filter(
+                    lambda x: deaccent(name.lower().replace("′", "'"))
+                    == x.name.lower(),
+                    _Data.items.values(),
+                )
             )
         except StopIteration:
             raise SpeciesNotFoundError
