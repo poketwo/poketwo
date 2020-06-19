@@ -20,6 +20,7 @@ umongo = "*"
 flask = "*"
 requests = "*"
 gunicorn = "*"
+dblpy = "*"
 
 [requires]
 python_version = "3.8"

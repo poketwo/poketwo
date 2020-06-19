@@ -1,12 +1,14 @@
+import os
 from functools import cached_property
 
+import dbl
 import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo, converters
+from .helpers import checks, converters, mongo
+from .helpers.constants import EMOJIS, HELP
 from .helpers.models import *
-from .helpers.constants import HELP, EMOJIS
 
 
 class Bot(commands.Cog):
@@ -15,6 +17,8 @@ class Bot(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.prefixes = {}
+        self.token = os.getenv("DBL_TOKEN")
+        self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True)
 
     @property
     def db(self) -> Database:
