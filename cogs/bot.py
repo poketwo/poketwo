@@ -206,7 +206,7 @@ class Bot(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def giveredeen(
+    async def giveredeem(
         self, ctx: commands.Context, user: discord.Member, *, num: int = 1
     ):
         """Redeem a pokémon."""
