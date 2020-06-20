@@ -1,6 +1,7 @@
 import asyncio
 import math
 import random
+from datetime import datetime
 from functools import cached_property
 
 import discord
@@ -216,7 +217,9 @@ class Pokemon(commands.Cog):
 
         starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
 
-        member = mongo.Member(id=ctx.author.id, pokemon=[starter], selected=0)
+        member = mongo.Member(
+            id=ctx.author.id, pokemon=[starter], selected=0, joined_at=datetime.now()
+        )
 
         await member.commit()
 

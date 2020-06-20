@@ -175,6 +175,7 @@ class Member(Document):
     gifts_ultra = fields.IntegerField(default=0)
 
     silence = fields.BooleanField(default=False)
+    joined_at = fields.DateTimeField(default=None)
 
     @property
     def selected_pokemon(self):
