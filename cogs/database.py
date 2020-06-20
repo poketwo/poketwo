@@ -3,7 +3,7 @@ import datetime
 import discord
 from discord.ext import commands
 
-from .helpers import mongo
+from .helpers import mongo, models
 
 
 def setup(bot: commands.Bot):
@@ -15,6 +15,35 @@ class Database(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+    @commands.command()
+    async def profile(self, ctx: commands.Context):
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"{ctx.author}"
+
+        member = await self.fetch_member_info(ctx.author)
+
+        embed.add_field(
+            name="Pokémon Caught", value=await self.fetch_pokemon_count(ctx.author)
+        )
+
+        for name, filt in (
+            ("Mythicals", models.GameData.list_mythical()),
+            ("Legendaries", models.GameData.list_legendary()),
+            ("Ultra Beast", models.GameData.list_ub()),
+        ):
+            embed.add_field(
+                name=f"{name} Caught",
+                value=await self.fetch_pokemon_count(
+                    ctx.author, [{"$match": {"pokemon.species_id": {"$in": filt}}}],
+                ),
+            )
+
+        embed.add_field(name="Shinies Caught", value=member.shinies_caught)
+
+        await ctx.send(embed=embed)
 
     async def fetch_member_info(self, member: discord.Member) -> mongo.Member:
         return await mongo.Member.find_one(
