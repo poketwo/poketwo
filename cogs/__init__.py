@@ -1,11 +1,1 @@
-from .bot import *
-from .database import *
-from .helpers import *
-from .pokedex import *
-from .pokemon import *
-from .shop import *
-from .spawning import *
-from .trading import *
-
 ALL_COGS = ["bot", "database", "pokedex", "pokemon", "shop", "spawning", "trading"]
-

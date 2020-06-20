@@ -5,10 +5,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks
-from .helpers.constants import *
-from .helpers.models import GameData, SpeciesNotFoundError
-from .helpers.pagination import Paginator
+from .helpers import checks, constants, models, pagination
 
 
 def setup(bot: commands.Bot):
@@ -85,14 +82,16 @@ class Pokedex(commands.Cog):
                         del pokedex[str(i)]
 
             def include(key):
-                if flags["legendary"] and key not in GameData.list_legendary():
+                if flags["legendary"] and key not in models.GameData.list_legendary():
                     return False
-                if flags["mythical"] and key not in GameData.list_mythical():
+                if flags["mythical"] and key not in models.GameData.list_mythical():
                     return False
-                if flags["ub"] and key not in GameData.list_ub():
+                if flags["ub"] and key not in models.GameData.list_ub():
                     return False
 
-                if flags["type"] and key not in GameData.list_type(flags["type"]):
+                if flags["type"] and key not in models.GameData.list_type(
+                    flags["type"]
+                ):
                     return False
 
                 return True
@@ -131,21 +130,24 @@ class Pokedex(commands.Cog):
                 # )
 
                 for k, v in pokedex[pgstart:pgend]:
-                    species = GameData.species_by_number(k)
+                    species = models.GameData.species_by_number(k)
 
                     if do_emojis:
-                        text = f"{EMOJIS.cross} Not caught yet!"
+                        text = f"{constants.EMOJIS.cross} Not caught yet!"
                     else:
                         text = "Not caught yet!"
 
                     if v > 0:
                         if do_emojis:
-                            text = f"{EMOJIS.check} {v} caught!"
+                            text = f"{constants.EMOJIS.check} {v} caught!"
                         else:
                             text = f"{v} caught!"
 
                     if do_emojis:
-                        emoji = str(EMOJIS.get(k)).replace("pokemon_sprite_", "") + " "
+                        emoji = (
+                            str(constants.EMOJIS.get(k)).replace("pokemon_sprite_", "")
+                            + " "
+                        )
                     else:
                         emoji = ""
 
@@ -158,14 +160,16 @@ class Pokedex(commands.Cog):
 
                 return embed
 
-            paginator = Paginator(get_page, num_pages=math.ceil(len(pokedex) / 20))
+            paginator = pagination.Paginator(
+                get_page, num_pages=math.ceil(len(pokedex) / 20)
+            )
             await paginator.send(self.bot, ctx, int(search_or_page) - 1)
 
         else:
             shiny = False
 
             if search_or_page[0] in "N#" and search_or_page[1:].isdigit():
-                species = GameData.species_by_number(int(search_or_page[1:]))
+                species = models.GameData.species_by_number(int(search_or_page[1:]))
 
             else:
                 search = search_or_page
@@ -175,8 +179,8 @@ class Pokedex(commands.Cog):
                     search = search_or_page[6:]
 
                 try:
-                    species = GameData.species_by_name(search)
-                except SpeciesNotFoundError:
+                    species = models.GameData.species_by_name(search)
+                except models.SpeciesNotFoundError:
                     return await ctx.send(
                         f"Could not find a pokemon matching `{search_or_page}`."
                     )

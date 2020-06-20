@@ -7,9 +7,7 @@ import humanfriendly
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, converters, mongo
-from .helpers.constants import *
-from .helpers.models import GameData, ItemTrigger, SpeciesNotFoundError
+from .helpers import checks, constants, converters, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -45,8 +43,8 @@ class Shop(commands.Cog):
 
         embed.add_field(
             name="Voting Streak",
-            value=str(EMOJIS.check) * min(member.vote_streak, 14)
-            + str(EMOJIS.gray) * (14 - min(member.vote_streak, 14))
+            value=str(constants.EMOJIS.check) * min(member.vote_streak, 14)
+            + str(constants.EMOJIS.gray) * (14 - min(member.vote_streak, 14))
             + f"\nCurrent Streak: {member.vote_streak} votes!",
             inline=False,
         )
@@ -54,9 +52,9 @@ class Shop(commands.Cog):
         embed.add_field(
             name="Your Rewards",
             value=(
-                f"{EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
-                f"{EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
-                f"{EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+                f"{constants.EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
+                f"{constants.EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
+                f"{constants.EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
             ),
             inline=False,
         )
@@ -92,7 +90,9 @@ class Shop(commands.Cog):
             ctx.author, {"$inc": {f"gifts_{type.lower()}": -amt}}
         )
 
-        rewards = random.choices(REWARDS, REWARD_WEIGHTS[type.lower()], k=amt)
+        rewards = random.choices(
+            constants.REWARDS, constants.REWARD_WEIGHTS[type.lower()], k=amt
+        )
 
         update = {
             "$inc": {"balance": 0, "redeems": 0},
@@ -102,7 +102,7 @@ class Shop(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = (
-            f" Opening {amt} {getattr(EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+            f" Opening {amt} {getattr(constants.EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
             + ("" if amt == 1 else "es")
             + "..."
         )
@@ -119,11 +119,11 @@ class Shop(commands.Cog):
                     f"{reward['value']} redeem" + ("" if reward["value"] == 1 else "s")
                 )
             elif reward["type"] == "pokemon":
-                pokemon = GameData.random_spawn(rarity=reward["value"])
+                pokemon = models.GameData.random_spawn(rarity=reward["value"])
                 level = min(max(int(random.normalvariate(20, 10)), 1), 100)
                 shiny = reward["value"] == "shiny" or random.randint(1, 4096) == 1
                 text.append(
-                    f"{EMOJIS.get(pokemon.dex_number, shiny=shiny)} Level {level} {pokemon}"
+                    f"{constants.EMOJIS.get(pokemon.dex_number, shiny=shiny)} Level {level} {pokemon}"
                     + (" ✨" if shiny else "")
                 )
                 update["$push"]["pokemon"]["$each"].append(
@@ -259,7 +259,7 @@ class Shop(commands.Cog):
         else:
             embed.description = "We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `p!buy <item>` to buy an item!"
 
-            items = [i for i in GameData.all_items() if i.page == page]
+            items = [i for i in models.GameData.all_items() if i.page == page]
 
             gguild = self.bot.get_guild(716390832034414685)
 
@@ -303,8 +303,8 @@ class Shop(commands.Cog):
                 return await ctx.send("Nice try...")
 
         try:
-            item = GameData.item_by_name(" ".join(args))
-        except SpeciesNotFoundError:
+            item = models.GameData.item_by_name(" ".join(args))
+        except models.SpeciesNotFoundError:
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
 
         member = await self.db.fetch_member_info(ctx.author)
@@ -367,7 +367,7 @@ class Shop(commands.Cog):
                 try:
                     evoto = next(
                         filter(
-                            lambda evo: isinstance(evo.trigger, ItemTrigger)
+                            lambda evo: isinstance(evo.trigger, models.ItemTrigger)
                             and evo.trigger.item == item,
                             pokemon.species.evolution_to.items,
                         )
@@ -387,7 +387,7 @@ class Shop(commands.Cog):
                 )
 
         if item.action == "form_item":
-            forms = GameData.all_species_by_number(pokemon.species.dex_number)
+            forms = models.GameData.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
                     form.id != pokemon.species.id
@@ -497,11 +497,11 @@ class Shop(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {"$set": {f"pokemon.{member.selected}.nature": NATURES[idx]}},
+                {"$set": {f"pokemon.{member.selected}.nature": constants.NATURES[idx]}},
             )
 
             await ctx.send(
-                f"You changed your selected pokémon's nature to {NATURES[idx]}!"
+                f"You changed your selected pokémon's nature to {constants.NATURES[idx]}!"
             )
 
         if item.action == "held_item":
@@ -510,7 +510,7 @@ class Shop(commands.Cog):
             )
 
         if item.action == "form_item":
-            forms = GameData.all_species_by_number(pokemon.species.dex_number)
+            forms = models.GameData.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
                     form.id != pokemon.species.id

@@ -7,10 +7,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, converters, mongo
-from .helpers.constants import *
-from .helpers.models import GameData, SpeciesNotFoundError
-from .helpers.pagination import Paginator
+from .helpers import checks, constants, converters, models, mongo, pagination
 
 
 def setup(bot: commands.Bot):
@@ -56,8 +53,8 @@ class Pokemon(commands.Cog):
             return await ctx.send("You don't have any redeems!")
 
         try:
-            species = GameData.species_by_name(species)
-        except SpeciesNotFoundError:
+            species = models.GameData.species_by_name(species)
+        except models.SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         if not species.catchable:
@@ -118,8 +115,8 @@ class Pokemon(commands.Cog):
             return await ctx.send("You don't have any redeems!")
 
         try:
-            species = GameData.species_by_name(species)
-        except SpeciesNotFoundError:
+            species = models.GameData.species_by_name(species)
+        except models.SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         if not species.catchable:
@@ -194,7 +191,7 @@ class Pokemon(commands.Cog):
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = "To start, choose one of the starter pokémon using the `p!pick <pokemon>` command. "
 
-        for gen, pokemon in STARTER_GENERATION.items():
+        for gen, pokemon in constants.STARTER_GENERATION.items():
             embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
 
         await ctx.send(embed=embed)
@@ -210,12 +207,12 @@ class Pokemon(commands.Cog):
                 "You have already chosen a starter pokémon! View your pokémon with `p!pokemon`."
             )
 
-        if name.lower() not in STARTER_POKEMON:
+        if name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(
                 "Please select one of the starter pokémon. To view them, type `p!start`."
             )
 
-        species = GameData.species_by_name(name)
+        species = models.GameData.species_by_name(name)
 
         starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
 
@@ -281,7 +278,7 @@ class Pokemon(commands.Cog):
             embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
             if pokemon.held_item:
-                item = GameData.item_by_number(pokemon.held_item)
+                item = models.GameData.item_by_number(pokemon.held_item)
                 gguild = self.bot.get_guild(716390832034414685)
                 emote = ""
                 if item.emote is not None:
@@ -298,7 +295,7 @@ class Pokemon(commands.Cog):
 
             return embed
 
-        paginator = Paginator(get_page, num_pages=num)
+        paginator = pagination.Paginator(get_page, num_pages=num)
         await paginator.send(self.bot, ctx, pidx)
 
     @checks.has_started()
@@ -361,29 +358,39 @@ class Pokemon(commands.Cog):
 
         if "mythical" in flags and flags["mythical"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_mythical()}}}
+                {
+                    "$match": {
+                        "pokemon.species_id": {"$in": models.GameData.list_mythical()}
+                    }
+                }
             )
 
         if "legendary" in flags and flags["legendary"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_legendary()}}}
+                {
+                    "$match": {
+                        "pokemon.species_id": {"$in": models.GameData.list_legendary()}
+                    }
+                }
             )
 
         if "ub" in flags and flags["ub"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_ub()}}}
+                {"$match": {"pokemon.species_id": {"$in": models.GameData.list_ub()}}}
             )
 
         if "mega" in flags and flags["mega"]:
             aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": GameData.list_mega()}}}
+                {"$match": {"pokemon.species_id": {"$in": models.GameData.list_mega()}}}
             )
 
         if "type" in flags and flags["type"]:
             aggregations.append(
                 {
                     "$match": {
-                        "pokemon.species_id": {"$in": GameData.list_type(flags["type"])}
+                        "pokemon.species_id": {
+                            "$in": models.GameData.list_type(flags["type"])
+                        }
                     }
                 }
             )
@@ -395,7 +402,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"pokemon.shiny": True}})
 
         if "name" in flags and flags["name"] is not None:
-            all_species = GameData.find_all_matches(" ".join(flags["name"]))
+            all_species = models.GameData.find_all_matches(" ".join(flags["name"]))
 
             aggregations.append(
                 {"$match": {"pokemon.species_id": {"$in": all_species}}}
@@ -406,7 +413,7 @@ class Pokemon(commands.Cog):
 
         # Numerical flags
 
-        for flag, expr in FILTER_BY_NUMERICAL.items():
+        for flag, expr in constants.FILTER_BY_NUMERICAL.items():
             if flag in flags and (text := flags[flag]) is not None:
                 ops = self.parse_numerical_flag(text)
 
@@ -691,7 +698,11 @@ class Pokemon(commands.Cog):
 
         aggregations.extend(
             [
-                {"$addFields": {"sorting": SORTING_FUNCTIONS[member.order_by]}},
+                {
+                    "$addFields": {
+                        "sorting": constants.SORTING_FUNCTIONS[member.order_by]
+                    }
+                },
                 {"$sort": {"sorting": 1}},
             ]
         )
@@ -722,7 +733,7 @@ class Pokemon(commands.Cog):
 
             if do_emojis:
                 name = (
-                    str(EMOJIS.get(p.species.dex_number, shiny=p.shiny))
+                    str(constants.EMOJIS.get(p.species.dex_number, shiny=p.shiny))
                     .replace("pokemon_sprite_", "")
                     .replace("_shiny", "")
                     + " "
@@ -740,7 +751,7 @@ class Pokemon(commands.Cog):
 
             if p.favorite:
                 if do_emojis:
-                    name += f" {EMOJIS.heart}".replace("red_heart", "h")
+                    name += f" {constants.EMOJIS.heart}".replace("red_heart", "h")
                 else:
                     name += " ❤️"
 
@@ -795,5 +806,5 @@ class Pokemon(commands.Cog):
 
             return embed
 
-        paginator = Paginator(get_page, num_pages=math.ceil(num / 20))
+        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
         await paginator.send(self.bot, ctx, flags["page"] - 1)

@@ -6,7 +6,6 @@ from discord.ext import commands, flags
 
 from .database import Database
 from .helpers import checks, mongo
-from .helpers.models import *
 
 
 def setup(bot: commands.Bot):

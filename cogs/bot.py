@@ -1,4 +1,5 @@
 import os
+import random
 from functools import cached_property
 
 import dbl
@@ -6,9 +7,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, converters, mongo
-from .helpers.constants import EMOJIS, HELP
-from .helpers.models import *
+from .helpers import checks, constants, converters, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -38,10 +37,10 @@ class Bot(commands.Cog):
 
         if cmd is None:
 
-            if page_or_cmd not in HELP:
+            if page_or_cmd not in constants.HELP:
                 return await ctx.send("Could not find that page or command.")
 
-            page = HELP[page_or_cmd]
+            page = constants.HELP[page_or_cmd]
 
             embed.title = page.get("title", "Help")
             embed.description = page.get("description", None)
@@ -226,8 +225,8 @@ class Bot(commands.Cog):
         member = await self.db.fetch_member_info(user)
 
         try:
-            species = GameData.species_by_name(species)
-        except SpeciesNotFoundError:
+            species = models.GameData.species_by_name(species)
+        except models.SpeciesNotFoundError:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         await self.db.update_member(

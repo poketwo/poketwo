@@ -7,11 +7,10 @@ from datetime import datetime
 from motor.motor_asyncio import AsyncIOMotorClient
 from umongo import Document, EmbeddedDocument, Instance, fields
 
-from .constants import NATURES, NATURE_MULTIPLIERS
-from .models import GameData, SpeciesNotFoundError
+from . import constants, models
 
 random_iv = lambda: random.randint(0, 31)
-random_nature = lambda: random.choice(NATURES)
+random_nature = lambda: random.choice(constants.NATURES)
 
 # Instance
 
@@ -65,8 +64,8 @@ class Pokemon(EmbeddedDocument):
     @property
     def species(self):
         try:
-            return GameData.species_by_number(self.species_id)
-        except SpeciesNotFoundError:
+            return models.GameData.species_by_number(self.species_id)
+        except models.SpeciesNotFoundError:
             return None
 
     @property
@@ -90,7 +89,7 @@ class Pokemon(EmbeddedDocument):
                 (2 * self.species.base_stats.atk + self.iv_atk + 5) * self.level // 100
                 + 5
             )
-            * NATURE_MULTIPLIERS[self.nature]["atk"]
+            * constants.NATURE_MULTIPLIERS[self.nature]["atk"]
         )
 
     @property
@@ -102,7 +101,7 @@ class Pokemon(EmbeddedDocument):
                 // 100
                 + 5
             )
-            * NATURE_MULTIPLIERS[self.nature]["defn"]
+            * constants.NATURE_MULTIPLIERS[self.nature]["defn"]
         )
 
     @property
@@ -114,7 +113,7 @@ class Pokemon(EmbeddedDocument):
                 // 100
                 + 5
             )
-            * NATURE_MULTIPLIERS[self.nature]["satk"]
+            * constants.NATURE_MULTIPLIERS[self.nature]["satk"]
         )
 
     @property
@@ -126,7 +125,7 @@ class Pokemon(EmbeddedDocument):
                 // 100
                 + 5
             )
-            * NATURE_MULTIPLIERS[self.nature]["sdef"]
+            * constants.NATURE_MULTIPLIERS[self.nature]["sdef"]
         )
 
     @property
@@ -136,7 +135,7 @@ class Pokemon(EmbeddedDocument):
                 (2 * self.species.base_stats.spd + self.iv_spd + 5) * self.level // 100
                 + 5
             )
-            * NATURE_MULTIPLIERS[self.nature]["spd"]
+            * constants.NATURE_MULTIPLIERS[self.nature]["spd"]
         )
 
     @property

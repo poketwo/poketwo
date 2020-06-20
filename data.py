@@ -1,4 +1,7 @@
-from cogs.helpers.models import *
+import csv
+from pathlib import Path
+
+from cogs.helpers import models
 
 
 def get_pokemon():
@@ -21,18 +24,18 @@ def get_pokemon():
 
         if "evo.from" in row:
             if row["evo.trigger"] == 1 and "evo.level" in row:
-                trigger = LevelTrigger(int(row["evo.level"]))
+                trigger = models.LevelTrigger(int(row["evo.level"]))
             elif row["evo.trigger"] == 2:
                 if "evo.item" in row:
-                    trigger = TradeTrigger(int(row["evo.item"]))
+                    trigger = models.TradeTrigger(int(row["evo.item"]))
                 else:
-                    trigger = TradeTrigger()
+                    trigger = models.TradeTrigger()
             elif row["evo.trigger"] == 3:
-                trigger = ItemTrigger(int(row["evo.item"]))
+                trigger = models.ItemTrigger(int(row["evo.item"]))
             else:
-                trigger = OtherTrigger()
+                trigger = models.OtherTrigger()
 
-            evo_from = Evolution.evolve_from(row["evo.from"], trigger)
+            evo_from = models.Evolution.evolve_from(row["evo.from"], trigger)
 
         if "evo.to" in row:
             evo_to = []
@@ -41,18 +44,18 @@ def get_pokemon():
                 pto = species[int(s)]
 
                 if pto["evo.trigger"] == 1 and "evo.level" in pto:
-                    trigger = LevelTrigger(int(pto["evo.level"]))
+                    trigger = models.LevelTrigger(int(pto["evo.level"]))
                 elif pto["evo.trigger"] == 2:
                     if "evo.item" in pto:
-                        trigger = TradeTrigger(int(pto["evo.item"]))
+                        trigger = models.TradeTrigger(int(pto["evo.item"]))
                     else:
-                        trigger = TradeTrigger()
+                        trigger = models.TradeTrigger()
                 elif pto["evo.trigger"] == 3:
-                    trigger = ItemTrigger(int(pto["evo.item"]))
+                    trigger = models.ItemTrigger(int(pto["evo.item"]))
                 else:
-                    trigger = OtherTrigger()
+                    trigger = models.OtherTrigger()
 
-                evo_to.append(Evolution.evolve_to(int(s), trigger))
+                evo_to.append(models.Evolution.evolve_to(int(s), trigger))
 
         if evo_to and len(evo_to) == 0:
             evo_to = None
@@ -77,11 +80,11 @@ def get_pokemon():
             ("🇫🇷", row["name.fr"]),
         ]
 
-        pokemon[row["id"]] = Species(
+        pokemon[row["id"]] = models.Species(
             id=row["id"],
             names=names,
             slug=row["slug"],
-            base_stats=Stats(
+            base_stats=models.Stats(
                 row["base.hp"],
                 row["base.atk"],
                 row["base.def"],
@@ -107,7 +110,7 @@ def get_pokemon():
             form_item=row["form_item"] if "form_item" in row else None,
         )
 
-    load_pokemon(pokemon)
+    models.load_pokemon(pokemon)
 
 
 def get_items():
@@ -123,7 +126,7 @@ def get_items():
     items = {}
 
     for row in data:
-        items[row["id"]] = Item(
+        items[row["id"]] = models.Item(
             id=row["id"],
             name=row["name"],
             description=row["description"],
@@ -134,7 +137,7 @@ def get_items():
             emote=row.get("emote", None),
         )
 
-    load_items(items)
+    models.load_items(items)
 
 
 def load_data():

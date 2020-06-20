@@ -7,8 +7,7 @@ import discord
 from discord.ext import commands
 
 from .database import Database
-from .helpers import checks, mongo
-from .helpers.models import GameData, LevelTrigger, deaccent
+from .helpers import checks, mongo, models
 
 
 def setup(bot: commands.Bot):
@@ -163,14 +162,14 @@ class Spawning(commands.Cog):
         # Get random species and level, add to tracker
 
         if species is None:
-            species = GameData.random_spawn()
+            species = models.GameData.random_spawn()
 
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
 
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
         blanks = random.sample(inds, len(inds) // 2)
 
-        main = GameData.species_by_number(species.dex_number)
+        main = models.GameData.species_by_number(species.dex_number)
 
         hint = "".join(x if i in blanks else "\_" for i, x in enumerate(main.name))
 
@@ -215,7 +214,7 @@ class Spawning(commands.Cog):
 
         species, level, hint, shiny, users = self.bot.spawns[ctx.channel.id]
 
-        if deaccent(guess.lower()) not in species.correct_guesses:
+        if models.deaccent(guess.lower()) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database
@@ -236,7 +235,7 @@ class Spawning(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
-                "$inc": {"shinies_caught": 1 if shiny else 0 },
+                "$inc": {"shinies_caught": 1 if shiny else 0},
                 "$push": {
                     "pokemon": {
                         "species_id": species.id,
