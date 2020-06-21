@@ -9,7 +9,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 import data
-from cogs import ALL_COGS
+import cogs
 from cogs.helpers import checks, constants, converters, models, mongo, pagination
 
 # Setup
@@ -36,7 +36,7 @@ client = commands.AutoShardedBot(
 client.env = env
 client.enabled = False
 
-for cog in ALL_COGS:
+for cog in cogs.ALL_COGS:
     client.load_extension(f"cogs.{cog}")
 
 
@@ -47,6 +47,7 @@ async def reload_modules():
     client.enabled = False
 
     for x in (
+        cogs,
         models,
         data,
         mongo,
@@ -59,7 +60,7 @@ async def reload_modules():
 
     data.load_data()
 
-    for cog in ALL_COGS:
+    for cog in cogs.ALL_COGS:
         client.reload_extension(f"cogs.{cog}")
 
     await constants.EMOJIS.init_emojis(client)
