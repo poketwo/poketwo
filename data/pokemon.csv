@@ -955,7 +955,7 @@ id,dex_number,slug,enabled,catchable,abundance,is_form,form_item,name.ja,name.ja
 10145,778,mimikyu-totem-busted,,,,,,,,,Totem Busted Mimikyu,,,Ghost,Fairy,,,,4,28,,,,,,55,90,80,50,105,96,,,
 10146,784,kommo-o-totem,,,,,,,,,Totem Kommo'o,,,Dragon,Fighting,,,,24,2075,,,,,,75,110,125,100,105,85,,,
 10147,801,magearna-original,,,,,,５００ねんまえのいろ,Nenmaenoiro,,Original Magearna,Originalfarbe,Couleur du Passé,Steel,Fairy,,,,10,805,,,,,,80,95,115,130,115,65,,,
-10148,25,pikachu-partner-cap,1,,,1,,キミにきめたキャップ,Kiminikimetakyappu,,,Partner-Kappe,Casquette Partenaire,Electric,,,,,4,60,,,,,,35,55,40,50,50,90,,,
+10148,25,pikachu-partner-cap,1,,,1,,キミにきめたキャップ,Kiminikimetakyappu,,Partner Cap Pikachu,Partner-Kappe,Casquette Partenaire,Electric,,,,,4,60,,,,,,35,55,40,50,50,90,,,
 10149,105,marowak-totem,,,,,,,,,,,,Fire,Ghost,,,,17,980,,,,,,60,80,110,50,80,45,,,
 10150,743,ribombee-totem,,,,,,,,,Totem Ribombee,,,Bug,Fairy,,,,4,20,,,,,,60,55,60,95,70,124,,,
 10151,744,rockruff-own-tempo,,,,,,,,,Own Tempo Rockruff,,,Rock,,,,,5,92,,,,,,45,65,40,30,40,60,,,

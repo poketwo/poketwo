@@ -66,19 +66,25 @@ def get_pokemon():
         if "type.1" in row:
             types.append(row["type.1"])
 
-        names = [
-            ("🇯🇵", row["name.ja"]),
-            ("🇯🇵", row["name.ja_r"]),
-        ]
+        names = []
+
+        if "name.ja" in row:
+            names.append(("🇯🇵", row["name.ja"]))
+
+        if "name.ja_r" in row:
+            names.append(("🇯🇵", row["name.ja_r"]))
 
         if "name.ja_t" in row and row["name.ja_t"] != row["name.ja_r"]:
             names.append(("🇯🇵", row["name.ja_t"]))
 
-        names += [
-            ("🇬🇧", row["name.en"]),
-            ("🇩🇪", row["name.de"]),
-            ("🇫🇷", row["name.fr"]),
-        ]
+        if "name.en" in row:
+            names.append(("🇬🇧", row["name.en"]))
+
+        if "name.de" in row:
+            names.append(("🇩🇪", row["name.de"]))
+
+        if "name.fr" in row:
+            names.append(("🇫🇷", row["name.fr"]))
 
         pokemon[row["id"]] = models.Species(
             id=row["id"],
