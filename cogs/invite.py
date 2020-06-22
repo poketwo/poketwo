@@ -52,8 +52,8 @@ class Invite(commands.Cog):
         newinvites = {x.code: x for x in await self.bot.guild.invites()}
         self.bot.invites = newinvites
 
-        # if member.id in self.bot.invited_ids:
-        #     return
+        if member.id in self.bot.invited_ids:
+            return
 
         if member.created_at > datetime(2020, 6, 14, 0, 0):
             return
@@ -83,8 +83,7 @@ class Invite(commands.Cog):
             msg = "You received **3,000 Pokécoins**!"
         elif data.invites == 5:
             species = random.randint(144, 146)
-            update["$inc"]["balance"] = 3000
-            msg = f"You received **{models.GameData.species_by_number(species)}** and **3,000 Pokécoins**!"
+            msg = f"You received **{models.GameData.species_by_number(species)}**!"
         elif data.invites == 8:
             species = 10094
             msg = f"You received **{models.GameData.species_by_number(species)}** and **6,000 Pokécoins**!"
