@@ -102,9 +102,7 @@ class Invite(commands.Cog):
             species = random.choice((151, 251, 385, 386))
             msg = f"You received **{models.GameData.species_by_number(species)}**!"
         elif data.invites == 24:
-            species = random.choice(
-                (793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806)
-            )
+            species = random.choice((10080, 10081, 10082, 10083, 10084))
             msg = f"You received **{models.GameData.species_by_number(species)}**!"
         elif data.invites == 29:
             update["$inc"]["balance"] = 15000
