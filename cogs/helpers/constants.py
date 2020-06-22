@@ -1,6 +1,4 @@
 REWARDS = [
-    {"type": "pp", "value": 50},
-    {"type": "pp", "value": 100},
     {"type": "pp", "value": 150},
     {"type": "pp", "value": 250},
     {"type": "pp", "value": 500},
@@ -13,9 +11,9 @@ REWARDS = [
 ]
 
 REWARD_WEIGHTS = {
-    "normal": [200, 2000, 1000, 300, 100, 2000, 0, 0, 0, 0, 0],
-    "great": [0, 500, 1000, 500, 300, 800, 50, 20, 10, 10, 1],
-    "ultra": [0, 0, 300, 800, 200, 500, 80, 20, 10, 10, 3],
+    "normal": [2000, 500, 100, 500, 0, 0, 0, 0, 0],
+    "great": [1000, 500, 300, 300, 50, 20, 10, 10, 1],
+    "ultra": [300, 800, 1000, 100, 80, 20, 10, 10, 3],
 }
 
 NATURES = [
@@ -250,7 +248,10 @@ class EmojiManager:
             guild = bot.get_guild(EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])])
             try:
                 shiny = next(
-                    i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}" or i.name == f"pokemon_sprite_{x + 1}_shiny"
+                    i
+                    for i in guild.emojis
+                    if i.name == f"pokemon_sprite_{x + 1}"
+                    or i.name == f"pokemon_sprite_{x + 1}_shiny"
                 )
             except StopIteration:
                 shiny = emoji

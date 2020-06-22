@@ -44,33 +44,8 @@ class Invite(commands.Cog):
         self.bot.invites = {x.code: x for x in await self.bot.guild.invites()}
         self.bot.invited_ids = set()
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        if member.guild.id != self.bot.guild.id:
-            return
-
-        oldinvites = self.bot.invites
-        newinvites = {x.code: x for x in await self.bot.guild.invites()}
-        self.bot.invites = newinvites
-
-        if member.id in self.bot.invited_ids:
-            return
-
-        if member.created_at > datetime(2020, 6, 14, 0, 0):
-            return
-
-        self.bot.invited_ids.add(member.id)
-
-        inv = next(
-            x
-            for x in newinvites.values()
-            if (x.code not in oldinvites and x.uses > 0)
-            or (x.code in oldinvites and x.uses - oldinvites[x.code].uses > 0)
-        )
-
-        logging.info(f"NEW INVITE: {inv.inviter.id} invited {member.id}")
-
-        data = await self.db.fetch_member_info(inv.inviter)
+    async def add_invites(self, member):
+        data = await self.db.fetch_member_info(member)
 
         update = {"$inc": {"invites": 1}}
 
@@ -125,9 +100,48 @@ class Invite(commands.Cog):
                 }
             }
 
-        await self.db.update_member(inv.inviter, update)
+        await self.db.update_member(member, update)
 
         if msg is not None:
-            await inv.inviter.send(
+            await member.send(
                 f"Thanks for inviting **{data.invites + 1} user{'' if data.invites == 0 else 's'}** to our official server! {msg}"
             )
+
+    @commands.is_owner()
+    @commands.command()
+    async def addinv(self, ctx: commands.Context, member: discord.Member, amt: int):
+        if amt > 10:
+            return await ctx.send("Too much!")
+
+        for i in range(amt):
+            await self.add_invites(member)
+
+        return await ctx.send("Done")
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if member.guild.id != self.bot.guild.id:
+            return
+
+        oldinvites = self.bot.invites
+        newinvites = {x.code: x for x in await self.bot.guild.invites()}
+        self.bot.invites = newinvites
+
+        if member.id in self.bot.invited_ids:
+            return
+
+        if member.created_at > datetime(2020, 6, 14, 0, 0):
+            return
+
+        self.bot.invited_ids.add(member.id)
+
+        inv = next(
+            x
+            for x in newinvites.values()
+            if (x.code not in oldinvites and x.uses > 0)
+            or (x.code in oldinvites and x.uses - oldinvites[x.code].uses > 0)
+        )
+
+        logging.info(f"NEW INVITE: {inv.inviter.id} invited {member.id}")
+
+        await self.add_invites(inv.inviter)
