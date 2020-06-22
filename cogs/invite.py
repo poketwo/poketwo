@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from datetime import datetime
@@ -66,6 +67,8 @@ class Invite(commands.Cog):
             if (x.code not in oldinvites and x.uses > 0)
             or (x.code in oldinvites and x.uses - oldinvites[x.code].uses > 0)
         )
+
+        logging.info(f"NEW INVITE: {inv.inviter.id} invited {member.id}")
 
         data = await self.db.fetch_member_info(inv.inviter)
 
