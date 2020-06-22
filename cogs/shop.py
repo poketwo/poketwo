@@ -49,6 +49,15 @@ class Shop(commands.Cog):
             inline=False,
         )
 
+        if (later := member.last_voted + timedelta(hours=12)) < datetime.now():
+            embed.add_field(name="Vote Timer", value="You can vote right now!")
+        else:
+            timespan = later - datetime.now()
+            formatted = humanfriendly.format_timespan(timespan.total_seconds())
+            embed.add_field(
+                name="Vote Timer", value=f"You can vote again in **{formatted}**."
+            )
+
         embed.add_field(
             name="Your Rewards",
             value=(
