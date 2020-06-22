@@ -32,7 +32,7 @@ class Paginator:
                 await reaction.remove(user)
 
                 pidx = {
-                    "⏮": 0,
+                    "⏮️": 0,
                     "◀": pidx - 1,
                     "▶": pidx + 1,
                     "⏭️": self.num_pages - 1,
