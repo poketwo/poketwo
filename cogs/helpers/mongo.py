@@ -176,6 +176,7 @@ class Member(Document):
 
     silence = fields.BooleanField(default=False)
     joined_at = fields.DateTimeField(default=None)
+    invites = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):

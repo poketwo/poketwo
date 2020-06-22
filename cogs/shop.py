@@ -112,7 +112,7 @@ class Shop(commands.Cog):
         for reward in rewards:
             if reward["type"] == "pp":
                 update["$inc"]["balance"] += reward["value"]
-                text.append(f"{reward['value']} Poképoints")
+                text.append(f"{reward['value']} Pokécoins")
             elif reward["type"] == "redeem":
                 update["$inc"]["redeems"] += reward["value"]
                 text.append(
@@ -155,7 +155,7 @@ class Shop(commands.Cog):
     async def bal(self, ctx: commands.Context):
         """View your current balance."""
 
-        await ctx.send(f"You have {await self.balance(ctx.author)} Poképoints.")
+        await ctx.send(f"You have {await self.balance(ctx.author)} Pokécoins.")
 
     @commands.command(rest_is_raw=True)
     async def dropitem(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
@@ -244,7 +244,7 @@ class Shop(commands.Cog):
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Pokétwo Shop — {member.balance} Poképoints"
+        embed.title = f"Pokétwo Shop — {member.balance} Pokécoins"
 
         if page == 0:
             embed.description = "Use `p!shop <page>` to view different pages."
@@ -272,7 +272,7 @@ class Shop(commands.Cog):
                     except StopIteration:
                         pass
                 embed.add_field(
-                    name=f"{emote}{item.name} – {item.cost} pp",
+                    name=f"{emote}{item.name} – {item.cost} pc",
                     value=f"{item.description}",
                     inline=item.inline,
                 )
@@ -314,7 +314,7 @@ class Shop(commands.Cog):
             return await ctx.send("You can't buy multiple of this item!")
 
         if member.balance < item.cost * qty:
-            return await ctx.send("You don't have enough Poképoints for that!")
+            return await ctx.send("You don't have enough Pokécoins for that!")
 
         if item.action == "level":
             if pokemon.level + qty > 100:

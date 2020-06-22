@@ -176,7 +176,7 @@ HELP = {
         "fields": {
             "p!shop": "View the Pokétwo shop.",
             "p!buy": "Buy an item from the shop.",
-            "p!balance": "View your current balance in Poképoints.",
+            "p!balance": "View your current balance in Pokécoins.",
             "p!trade": "*Coming soon*",
         },
     },

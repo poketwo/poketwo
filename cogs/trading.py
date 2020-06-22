@@ -47,7 +47,7 @@ class Trading(commands.Cog):
             )
 
         embed.set_footer(
-            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pp` to add Poképoints, `p!trade confirm` to confirm, or `p!trade cancel` to cancel."
+            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pc` to add Pokécoins, `p!trade confirm` to confirm, or `p!trade cancel` to cancel."
         )
 
         for i, side in trade["items"].items():
@@ -59,7 +59,7 @@ class Trading(commands.Cog):
                 )
 
             val = "\n".join(
-                f"{x} Poképoints"
+                f"{x} Pokécoins"
                 if type(x) == int
                 else f"Level {x[0].level} {x[0].species} ({x[1] + 1})"
                 for x in side
@@ -253,9 +253,11 @@ class Trading(commands.Cog):
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
-        if len(args) <= 2 and args[-1].lower().endswith("pp"):
+        if len(args) <= 2 and (
+            args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
+        ):
 
-            what = args[0].replace("pp", "").strip()
+            what = args[0].replace("pp", "").replace("pc", "").strip()
 
             if what.isdigit():
                 current = sum(
@@ -267,7 +269,7 @@ class Trading(commands.Cog):
                 member = await self.db.fetch_member_info(ctx.author)
 
                 if current + int(what) > member.balance:
-                    return await ctx.send("You don't have enough Poképoints for that!")
+                    return await ctx.send("You don't have enough Pokécoins for that!")
 
                 self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(int(what))
 
@@ -350,9 +352,11 @@ class Trading(commands.Cog):
 
         trade = self.bot.trades[ctx.author.id]
 
-        if len(args) <= 2 and args[-1].lower().endswith("pp"):
+        if len(args) <= 2 and (
+            args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
+        ):
 
-            what = args[0].replace("pp", "").strip()
+            what = args[0].replace("pp", "").replace("pc", "").strip()
 
             if what.isdigit():
 

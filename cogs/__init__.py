@@ -1,1 +1,10 @@
-ALL_COGS = ["bot", "database", "pokedex", "pokemon", "shop", "spawning", "trading"]
+ALL_COGS = [
+    "database",
+    "bot",
+    "invite",
+    "pokedex",
+    "pokemon",
+    "shop",
+    "spawning",
+    "trading",
+]
