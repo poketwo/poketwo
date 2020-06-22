@@ -148,13 +148,23 @@ class Spawning(commands.Cog):
             else:
                 channel = message.channel
 
-            if self.bot.env != "dev" and message.guild.id == 716390832034414685:
-                channel = self.bot.get_channel(
-                    random.choice(
-                        [717095398476480562, 720020140401360917, 720231680564264971]
+            if message.guild.id == 716390832034414685:
+                channel, channel2 = [
+                    self.bot.get_channel(x)
+                    for x in random.sample(
+                        [
+                            717095398476480562,
+                            720020140401360917,
+                            720231680564264971,
+                            724762012453961810,
+                            724762035094683718,
+                        ],
+                        2,
                     )
-                )
+                ]
+
                 await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
+                await self.spawn_pokemon(channel2)
 
             await self.spawn_pokemon(channel)
 
