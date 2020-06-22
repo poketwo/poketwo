@@ -133,7 +133,7 @@ class Bot(commands.Cog):
         if ctx.guild.id == self.bot.guild.id:
             member = await self.db.fetch_member_info(ctx.author)
             return await ctx.send(
-                f"You've invited **{member.invites}** people to this server! For more info on the invite event, check out <#724215559943880714>."
+                f"You've invited **{member.invites}** people to this server! For more info on the invite event, check out <#724215559943880714>.\n\nWhen inviting people, make sure to make your OWN invite link, so we know it's you!"
             )
 
         await ctx.send(
