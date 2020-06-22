@@ -98,6 +98,17 @@ class Invite(commands.Cog):
         elif data.invites == 14:
             update["$inc"]["redeems"] = 1
             msg = f"You received **1 redeem**! Type `p!redeem` for more information!"
+        elif data.invites == 19:
+            species = random.choice((151, 251, 385, 386))
+            msg = f"You received **{models.GameData.species_by_number(species)}**!"
+        elif data.invites == 24:
+            species = random.choice(
+                (793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806)
+            )
+            msg = f"You received **{models.GameData.species_by_number(species)}**!"
+        elif data.invites == 29:
+            update["$inc"]["balance"] = 15000
+            msg = "You received **15,000 Pokécoins**!"
 
         if species is not None:
             update["$push"] = {
