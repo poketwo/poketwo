@@ -86,6 +86,13 @@ def get_pokemon():
         if "name.fr" in row:
             names.append(("🇫🇷", row["name.fr"]))
 
+        moveset_ids = []
+        if "moves" in row:
+            if type(row["moves"]) == int:
+                moveset_ids = [row["moves"]]
+            else:
+                moveset_ids = [int(x) for x in row["moves"].split()]
+
         pokemon[row["id"]] = models.Species(
             id=row["id"],
             names=names,
@@ -114,9 +121,10 @@ def get_pokemon():
             ultra_beast="ultra_beast" in row,
             is_form="is_form" in row,
             form_item=row["form_item"] if "form_item" in row else None,
+            moveset_ids=moveset_ids,
         )
 
-    models.load_pokemon(pokemon)
+    return pokemon
 
 
 def get_items():
@@ -143,12 +151,68 @@ def get_items():
             emote=row.get("emote", None),
         )
 
-    models.load_items(items)
+    return items
+
+
+def get_effects():
+    path = Path.cwd() / "data" / "move_effects.csv"
+
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        data = list(
+            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
+            for row in reader
+        )
+
+    effects = {}
+
+    for row in data:
+        effects[row["id"]] = models.MoveEffect(id=row["id"], description=row["text"])
+
+    return effects
+
+
+def get_moves():
+    path = Path.cwd() / "data" / "moves.csv"
+
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        data = list(
+            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
+            for row in reader
+        )
+
+    moves = {}
+
+    for row in data:
+        if row["id"] > 10000:
+            continue
+
+        moves[row["id"]] = models.Move(
+            id=row["id"],
+            slug=row["slug"],
+            name=row["name"],
+            power=row.get("power", None),
+            pp=row["pp"],
+            accuracy=row.get("accuracy", None),
+            priority=row["priority"],
+            type_id=row["type"],
+            target_id=row["target"],
+            damage_class_id=row["damage_class"],
+            effect_id=row["effect"],
+            effect_chance=row.get("effect_chance", None),
+        )
+
+    return moves
 
 
 def load_data():
-    get_pokemon()
-    get_items()
+    models.load_data(
+        moves=get_moves(),
+        pokemon=get_pokemon(),
+        items=get_items(),
+        effects=get_effects(),
+    )
 
 
 # spawns = []

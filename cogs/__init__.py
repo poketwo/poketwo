@@ -7,4 +7,5 @@ ALL_COGS = [
     "shop",
     "spawning",
     "trading",
+    "battle",
 ]

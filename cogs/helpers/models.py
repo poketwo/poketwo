@@ -1,5 +1,6 @@
 import csv
 import random
+import re
 import unicodedata
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -8,6 +9,8 @@ from pathlib import Path
 from typing import ClassVar, List, Union, overload
 
 from PIL import Image
+
+from . import constants
 
 
 def deaccent(text):
@@ -19,6 +22,81 @@ def deaccent(text):
 class _Data:
     pokemon = {}
     items = {}
+    effects = {}
+    moves = {}
+
+
+# Moves
+
+
+class MoveEffect:
+    id: int
+    description: str
+
+    def __init__(self, id: int, description: str):
+        self.id = id
+        self.description = description
+
+
+class Move:
+    id: int
+    slug: str
+    name: str
+    power: int
+    pp: int
+    accuracy: int
+    priority: int
+    target_id: int
+    damage_class_id: int
+    effect_id: int
+    effect_chance: int
+
+    def __init__(
+        self,
+        id: int,
+        slug: str,
+        name: str,
+        power: int,
+        pp: int,
+        accuracy: int,
+        priority: int,
+        type_id: int,
+        target_id: int,
+        damage_class_id: int,
+        effect_id: int,
+        effect_chance: int,
+    ):
+        self.id = id
+        self.name = name
+        self.power = power
+        self.pp = pp
+        self.accuracy = accuracy
+        self.priority = priority
+        self.type_id = type_id
+        self.target_id = target_id
+        self.damage_class_id = damage_class_id
+        self.effect_id = effect_id
+        self.effect_chance = effect_chance
+
+    @cached_property
+    def type(self):
+        return constants.TYPES[self.type_id]
+
+    @cached_property
+    def target_text(self):
+        return constants.MOVE_TARGETS[self.target_id]
+
+    @cached_property
+    def damage_class(self):
+        return constants.DAMAGE_CLASSES[self.damage_class_id]
+
+    @cached_property
+    def effect(self):
+        return _Data.effects[self.effect_id]
+
+    @cached_property
+    def description(self):
+        return self.effect.description.format(effect_chance=self.effect_chance)
 
 
 # Items
@@ -191,6 +269,8 @@ class Species:
     form_item: int
     abundance: int
 
+    moveset_ids: List[int]
+
     mega_id: int
     mega_x_id: int
     mega_y_id: int
@@ -217,6 +297,7 @@ class Species:
         ultra_beast: bool = False,
         is_form: bool = False,
         form_item: int = None,
+        moveset_ids: list = [],
     ):
         self.id = id
         self.names = names
@@ -237,6 +318,7 @@ class Species:
         self.mega_y_id = mega_y_id
 
         self.types = types
+        self.moveset_ids = moveset_ids
 
         if evolution_from is not None:
             self.evolution_from = EvolutionList(evolution_from)
@@ -254,6 +336,10 @@ class Species:
 
     def __str__(self):
         return self.name
+    
+    @cached_property
+    def moveset(self):
+        return [_Data.moves[x] for x in self.moveset_ids]
 
     @cached_property
     def mega(self):
@@ -334,12 +420,11 @@ class Species:
             return None
 
 
-def load_pokemon(pokemon):
+def load_data(*, pokemon, items, effects, moves):
     _Data.pokemon = pokemon
-
-
-def load_items(items):
     _Data.items = items
+    _Data.effects = effects
+    _Data.moves = moves
 
 
 class SpeciesNotFoundError(Exception):
@@ -450,6 +535,19 @@ class GameData:
                     lambda x: deaccent(name.lower().replace("′", "'"))
                     == x.name.lower(),
                     _Data.items.values(),
+                )
+            )
+        except StopIteration:
+            raise SpeciesNotFoundError
+
+    @classmethod
+    def move_by_name(cls, name: str) -> Move:
+        try:
+            return next(
+                filter(
+                    lambda x: deaccent(name.lower().replace("′", "'"))
+                    == x.name.lower(),
+                    _Data.moves.values(),
                 )
             )
         except StopIteration:

@@ -77,6 +77,9 @@ class Bot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        if isinstance(error, discord.Forbidden):
+            return
+
         if isinstance(error, commands.MissingRequiredArgument):
             embed = discord.Embed()
             embed.color = 0xF44336

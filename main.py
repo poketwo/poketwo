@@ -99,6 +99,7 @@ async def reloadall(ctx: commands.Context):
 
 @client.event
 async def on_message(message: discord.Message):
+    await client.wait_until_ready()
     message.content = (
         message.content.replace("—", "--")
         .replace("'", "′")

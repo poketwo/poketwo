@@ -1,0 +1,747 @@
+id,slug,generation_id,name,type,power,pp,accuracy,priority,target,damage_class,effect,effect_chance,contest_type_id,contest_effect_id,super_contest_effect_id
+1,pound,1,Pound,1,40,35,100,0,10,2,1,,5,1,5
+2,karate-chop,1,Karate Chop,2,50,25,100,0,10,2,44,,5,2,5
+3,double-slap,1,Double Slap,1,15,10,85,0,10,2,30,,5,10,7
+4,comet-punch,1,Comet Punch,1,18,15,85,0,10,2,30,,5,12,7
+5,mega-punch,1,Mega Punch,1,80,20,85,0,10,2,1,,5,1,18
+6,pay-day,1,Pay Day,1,40,20,100,0,10,2,35,,4,11,23
+7,fire-punch,1,Fire Punch,10,75,15,100,0,10,2,5,10,2,1,17
+8,ice-punch,1,Ice Punch,15,75,15,100,0,10,2,6,10,2,1,17
+9,thunder-punch,1,Thunder Punch,13,75,15,100,0,10,2,7,10,1,1,17
+10,scratch,1,Scratch,1,40,35,100,0,10,2,1,,5,1,5
+11,vice-grip,1,Vice Grip,1,55,30,100,0,10,2,1,,5,1,5
+12,guillotine,1,Guillotine,1,,5,30,0,10,2,39,,1,14,9
+13,razor-wind,1,Razor Wind,1,80,10,100,0,11,3,40,,1,2,6
+14,swords-dance,1,Swords Dance,1,,20,,0,7,1,51,,2,32,11
+15,cut,1,Cut,1,50,30,95,0,10,2,1,,1,14,5
+16,gust,1,Gust,3,40,35,100,0,10,3,150,,4,21,5
+17,wing-attack,1,Wing Attack,3,60,35,100,0,10,2,1,,1,12,5
+18,whirlwind,1,Whirlwind,1,,20,,-6,10,1,29,,4,21,9
+19,fly,1,Fly,3,90,15,95,0,10,2,156,,4,15,6
+20,bind,1,Bind,1,15,20,85,0,10,2,43,100,5,24,21
+21,slam,1,Slam,1,80,20,75,0,10,2,1,,5,23,5
+22,vine-whip,1,Vine Whip,12,45,25,100,0,10,2,1,,1,1,5
+23,stomp,1,Stomp,1,65,20,100,0,10,2,151,30,5,4,5
+24,double-kick,1,Double Kick,2,30,30,100,0,10,2,45,,1,12,7
+25,mega-kick,1,Mega Kick,1,120,5,75,0,10,2,1,,1,1,18
+26,jump-kick,1,Jump Kick,2,100,10,95,0,10,2,46,,1,3,5
+27,rolling-kick,1,Rolling Kick,2,60,15,85,0,10,2,32,30,1,5,5
+28,sand-attack,1,Sand Attack,5,,15,100,0,10,1,24,,3,10,19
+29,headbutt,1,Headbutt,1,70,15,100,0,10,2,32,30,5,9,5
+30,horn-attack,1,Horn Attack,1,65,25,100,0,10,2,1,,1,1,5
+31,fury-attack,1,Fury Attack,1,15,20,85,0,10,2,30,,1,10,7
+32,horn-drill,1,Horn Drill,1,,5,30,0,10,2,39,,1,14,9
+33,tackle,1,Tackle,1,40,35,100,0,10,2,1,,5,1,5
+34,body-slam,1,Body Slam,1,85,15,100,0,10,2,7,30,5,4,5
+35,wrap,1,Wrap,1,15,20,90,0,10,2,43,100,5,24,21
+36,take-down,1,Take Down,1,90,20,85,0,10,2,49,,5,3,5
+37,thrash,1,Thrash,1,120,10,100,0,8,2,28,,5,6,7
+38,double-edge,1,Double-Edge,1,120,15,100,0,10,2,199,,5,3,9
+39,tail-whip,1,Tail Whip,1,,30,100,0,11,1,20,,3,28,19
+40,poison-sting,1,Poison Sting,4,15,35,100,0,10,2,3,30,4,9,19
+41,twineedle,1,Twineedle,7,25,20,100,0,10,2,78,20,1,9,7
+42,pin-missile,1,Pin Missile,7,25,20,95,0,10,2,30,,1,10,7
+43,leer,1,Leer,1,,30,100,0,11,1,20,100,1,24,19
+44,bite,1,Bite,17,60,25,100,0,10,2,32,30,5,5,5
+45,growl,1,Growl,1,,40,100,0,11,1,19,,3,28,19
+46,roar,1,Roar,1,,20,,-6,10,1,29,,1,21,19
+47,sing,1,Sing,1,,15,55,0,10,1,2,,3,18,19
+48,supersonic,1,Supersonic,1,,20,55,0,10,1,50,,4,21,19
+49,sonic-boom,1,Sonic Boom,1,,20,90,0,10,3,131,,1,12,5
+50,disable,1,Disable,1,,20,100,0,10,1,87,,4,18,19
+51,acid,1,Acid,4,40,30,100,0,11,3,73,10,4,4,5
+52,ember,1,Ember,10,40,25,100,0,10,3,5,10,2,1,5
+53,flamethrower,1,Flamethrower,10,90,15,100,0,10,3,5,10,2,1,17
+54,mist,1,Mist,15,,30,,0,4,1,47,,2,15,13
+55,water-gun,1,Water Gun,11,40,25,100,0,10,3,1,,3,1,5
+56,hydro-pump,1,Hydro Pump,11,110,5,80,0,10,3,1,,2,1,17
+57,surf,1,Surf,11,90,15,100,0,9,3,258,,2,2,17
+58,ice-beam,1,Ice Beam,15,90,10,100,0,10,3,6,10,2,23,17
+59,blizzard,1,Blizzard,15,110,5,70,0,11,3,261,10,2,1,17
+60,psybeam,1,Psybeam,14,65,20,100,0,10,3,77,10,2,21,17
+61,bubble-beam,1,Bubble Beam,11,65,20,100,0,10,3,71,10,2,5,2
+62,aurora-beam,1,Aurora Beam,15,65,20,100,0,10,3,69,10,2,23,17
+63,hyper-beam,1,Hyper Beam,1,150,5,90,0,10,3,81,,1,6,22
+64,peck,1,Peck,3,35,35,100,0,10,2,1,,1,1,5
+65,drill-peck,1,Drill Peck,3,80,20,100,0,10,2,1,,1,1,5
+66,submission,1,Submission,2,80,20,80,0,10,2,49,,1,3,5
+67,low-kick,1,Low Kick,2,,20,100,0,10,2,197,,5,4,5
+68,counter,1,Counter,2,,20,100,-5,1,2,90,,5,16,15
+69,seismic-toss,1,Seismic Toss,2,,20,100,0,10,2,88,,5,23,5
+70,strength,1,Strength,1,80,15,100,0,10,2,1,,5,23,5
+71,absorb,1,Absorb,12,20,25,100,0,10,3,4,,4,9,20
+72,mega-drain,1,Mega Drain,12,40,15,100,0,10,3,4,,4,4,20
+73,leech-seed,1,Leech Seed,12,,10,90,0,10,1,85,,4,8,21
+74,growth,1,Growth,1,,20,,0,7,1,317,,2,32,11
+75,razor-leaf,1,Razor Leaf,12,55,25,95,0,11,2,44,,1,2,5
+76,solar-beam,1,Solar Beam,12,120,10,100,0,10,3,152,,1,1,6
+77,poison-powder,1,Poison Powder,4,,35,75,0,10,1,67,,4,33,19
+78,stun-spore,1,Stun Spore,12,,30,75,0,10,1,68,,4,14,19
+79,sleep-powder,1,Sleep Powder,12,,15,75,0,10,1,2,,4,5,19
+80,petal-dance,1,Petal Dance,12,120,10,100,0,8,3,28,,2,6,21
+81,string-shot,1,String Shot,7,,40,95,0,11,1,61,,4,9,19
+82,dragon-rage,1,Dragon Rage,16,,10,100,0,10,3,42,,1,26,5
+83,fire-spin,1,Fire Spin,10,35,15,85,0,10,3,43,100,2,24,21
+84,thunder-shock,1,Thunder Shock,13,40,30,100,0,10,3,7,10,1,1,5
+85,thunderbolt,1,Thunderbolt,13,90,15,100,0,10,3,7,10,1,1,17
+86,thunder-wave,1,Thunder Wave,13,,20,90,0,10,1,68,,1,14,19
+87,thunder,1,Thunder,13,110,10,70,0,10,3,153,30,1,8,17
+88,rock-throw,1,Rock Throw,6,50,15,90,0,10,2,1,,5,12,5
+89,earthquake,1,Earthquake,5,100,10,100,0,9,2,148,,5,5,18
+90,fissure,1,Fissure,5,,5,30,0,10,2,39,,5,14,9
+91,dig,1,Dig,5,80,10,100,0,10,2,257,,4,15,6
+92,toxic,1,Toxic,4,,10,90,0,10,1,34,,4,33,19
+93,confusion,1,Confusion,14,50,25,100,0,10,3,77,10,4,9,5
+94,psychic,1,Psychic,14,90,10,100,0,10,3,73,10,4,5,17
+95,hypnosis,1,Hypnosis,14,,20,60,0,10,1,2,,4,5,19
+96,meditate,1,Meditate,14,,40,,0,7,1,11,,2,32,11
+97,agility,1,Agility,14,,30,,0,7,1,53,,1,30,1
+98,quick-attack,1,Quick Attack,1,40,30,100,1,10,2,104,,1,30,1
+99,rage,1,Rage,1,20,20,100,0,10,2,82,,1,17,11
+100,teleport,1,Teleport,14,,20,,0,7,1,154,,1,15,1
+101,night-shade,1,Night Shade,8,,15,100,0,10,3,88,,4,23,5
+102,mimic,1,Mimic,1,,10,,0,10,1,83,,3,19,12
+103,screech,1,Screech,1,,40,85,0,10,1,60,,4,5,10
+104,double-team,1,Double Team,1,,15,,0,7,1,17,,1,16,1
+105,recover,1,Recover,1,,10,,0,7,1,33,,4,23,8
+106,harden,1,Harden,1,,30,,0,7,1,12,,5,16,13
+107,minimize,1,Minimize,1,,10,,0,7,1,109,,3,16,13
+108,smokescreen,1,Smokescreen,1,,20,100,0,10,1,24,,4,22,10
+109,confuse-ray,1,Confuse Ray,8,,10,100,0,10,1,50,,4,21,10
+110,withdraw,1,Withdraw,11,,40,,0,7,1,12,,3,15,13
+111,defense-curl,1,Defense Curl,1,,40,,0,7,1,157,,3,16,13
+112,barrier,1,Barrier,14,,20,,0,7,1,52,,1,15,13
+113,light-screen,1,Light Screen,14,,30,,0,4,1,36,,2,15,13
+114,haze,1,Haze,15,,30,,0,12,1,26,,2,33,13
+115,reflect,1,Reflect,14,,20,,0,4,1,66,,4,15,13
+116,focus-energy,1,Focus Energy,1,,30,,0,7,1,48,,1,5,11
+117,bide,1,Bide,1,,10,,1,7,2,27,,5,15,15
+118,metronome,1,Metronome,1,,10,,0,7,1,84,,3,17,14
+119,mirror-move,1,Mirror Move,3,,20,,0,10,1,10,,4,19,15
+120,self-destruct,1,Self-Destruct,1,200,5,100,0,9,2,8,,2,7,9
+121,egg-bomb,1,Egg Bomb,1,100,10,75,0,10,2,1,,5,1,5
+122,lick,1,Lick,8,30,30,100,0,10,2,7,30,5,4,16
+123,smog,1,Smog,4,30,20,70,0,10,3,3,40,5,5,5
+124,sludge,1,Sludge,4,65,20,100,0,10,3,3,30,5,4,18
+125,bone-club,1,Bone Club,5,65,20,85,0,10,2,32,10,5,10,5
+126,fire-blast,1,Fire Blast,10,110,5,85,0,10,3,5,10,2,1,17
+127,waterfall,1,Waterfall,11,80,15,100,0,10,2,32,20,5,28,5
+128,clamp,1,Clamp,11,35,15,85,0,10,2,43,100,5,24,5
+129,swift,1,Swift,1,60,20,,0,11,3,18,,1,27,17
+130,skull-bash,1,Skull Bash,1,130,10,100,0,10,2,146,100,5,4,6
+131,spike-cannon,1,Spike Cannon,1,20,15,100,0,10,2,30,,1,10,7
+132,constrict,1,Constrict,1,10,35,100,0,10,2,71,10,5,9,21
+133,amnesia,1,Amnesia,14,,20,,0,7,1,55,,3,32,11
+134,kinesis,1,Kinesis,14,,15,80,0,10,1,24,,4,24,11
+135,soft-boiled,1,Soft-Boiled,1,,10,,0,7,1,33,,2,1,8
+136,high-jump-kick,1,High Jump Kick,2,130,10,90,0,10,2,46,,1,3,5
+137,glare,1,Glare,1,,30,100,0,10,1,68,,5,5,19
+138,dream-eater,1,Dream Eater,14,100,15,100,0,10,3,9,,4,8,20
+139,poison-gas,1,Poison Gas,4,,40,90,0,11,1,67,,4,33,5
+140,barrage,1,Barrage,1,15,20,85,0,10,2,30,,5,12,7
+141,leech-life,1,Leech Life,7,80,10,100,0,10,2,4,,4,9,20
+142,lovely-kiss,1,Lovely Kiss,1,,10,75,0,10,1,2,,2,5,19
+143,sky-attack,1,Sky Attack,3,140,5,90,0,10,2,76,30,1,2,6
+144,transform,1,Transform,1,,10,,0,10,1,58,,4,17,23
+145,bubble,1,Bubble,11,40,30,100,0,11,3,71,10,3,8,2
+146,dizzy-punch,1,Dizzy Punch,1,70,10,100,0,10,2,77,20,1,4,16
+147,spore,1,Spore,12,,15,100,0,10,1,2,,2,5,10
+148,flash,1,Flash,1,,20,100,0,10,1,24,,2,22,10
+149,psywave,1,Psywave,14,,15,100,0,10,3,89,,4,14,5
+150,splash,1,Splash,1,,40,,0,7,1,86,,3,28,16
+151,acid-armor,1,Acid Armor,4,,20,,0,7,1,52,,5,32,11
+152,crabhammer,1,Crabhammer,11,100,10,90,0,10,2,44,,5,2,18
+153,explosion,1,Explosion,1,250,5,100,0,9,2,8,,2,7,9
+154,fury-swipes,1,Fury Swipes,1,18,15,80,0,10,2,30,,5,10,7
+155,bonemerang,1,Bonemerang,5,50,10,90,0,10,2,45,,5,1,7
+156,rest,1,Rest,14,,10,,0,7,1,38,,3,16,8
+157,rock-slide,1,Rock Slide,6,75,10,90,0,11,2,32,30,5,5,5
+158,hyper-fang,1,Hyper Fang,1,80,15,90,0,10,2,32,10,1,4,18
+159,sharpen,1,Sharpen,1,,30,,0,7,1,11,,3,32,11
+160,conversion,1,Conversion,1,,30,,0,7,1,31,,2,12,23
+161,tri-attack,1,Tri Attack,1,80,10,100,0,10,3,37,20,2,8,5
+162,super-fang,1,Super Fang,1,,10,90,0,10,2,41,,5,14,5
+163,slash,1,Slash,1,70,20,100,0,10,2,44,,1,2,5
+164,substitute,1,Substitute,1,,10,,0,7,1,80,,4,16,23
+165,struggle,1,Struggle,1,50,1,,0,8,2,255,,1,1,5
+166,sketch,2,Sketch,1,,1,,0,10,1,96,,4,19,23
+167,triple-kick,2,Triple Kick,2,10,10,90,0,10,2,105,,1,1,7
+168,thief,2,Thief,17,60,25,100,0,10,2,106,,5,20,12
+169,spider-web,2,Spider Web,7,,10,,0,10,1,107,,4,18,13
+170,mind-reader,2,Mind Reader,1,,5,,0,10,1,95,,4,24,20
+171,nightmare,2,Nightmare,8,,15,100,0,10,1,108,,4,5,19
+172,flame-wheel,2,Flame Wheel,10,60,25,100,0,10,2,126,10,2,1,7
+173,snore,2,Snore,1,50,15,100,0,10,3,93,30,3,1,5
+174,curse,2,Curse,8,,10,,0,1,1,110,,5,31,21
+175,flail,2,Flail,1,,15,100,0,10,2,100,,3,26,15
+176,conversion-2,2,Conversion 2,1,,30,,0,10,1,94,,2,12,23
+177,aeroblast,2,Aeroblast,3,100,5,95,0,10,3,44,,1,2,22
+178,cotton-spore,2,Cotton Spore,12,,40,100,0,11,1,61,,2,10,1
+179,reversal,2,Reversal,2,,15,100,0,10,2,100,,1,28,15
+180,spite,2,Spite,8,,10,100,0,10,1,101,,5,26,19
+181,powder-snow,2,Powder Snow,15,40,25,100,0,11,3,6,10,2,1,5
+182,protect,2,Protect,1,,10,,4,7,1,112,,3,15,16
+183,mach-punch,2,Mach Punch,2,40,30,100,1,10,2,104,,1,30,1
+184,scary-face,2,Scary Face,1,,10,100,0,10,1,61,,5,10,2
+185,feint-attack,2,Feint Attack,17,60,20,,0,10,2,18,,4,27,18
+186,sweet-kiss,2,Sweet Kiss,18,,10,75,0,10,1,50,,3,18,19
+187,belly-drum,2,Belly Drum,1,,10,,0,7,1,143,,3,32,11
+188,sludge-bomb,2,Sludge Bomb,4,90,10,100,0,10,3,3,30,5,10,18
+189,mud-slap,2,Mud-Slap,5,20,10,100,0,10,3,74,100,3,10,5
+190,octazooka,2,Octazooka,11,65,10,85,0,10,3,74,50,5,10,4
+191,spikes,2,Spikes,5,,20,,0,6,1,113,,4,18,13
+192,zap-cannon,2,Zap Cannon,13,120,5,50,0,10,3,7,100,1,1,4
+193,foresight,2,Foresight,1,,40,,0,10,1,114,,4,33,20
+194,destiny-bond,2,Destiny Bond,8,,5,,0,7,1,99,,4,7,9
+195,perish-song,2,Perish Song,1,,5,,0,14,1,115,,2,14,10
+196,icy-wind,2,Icy Wind,15,55,15,95,0,11,3,71,100,2,5,2
+197,detect,2,Detect,2,,5,,4,7,1,112,,1,16,16
+198,bone-rush,2,Bone Rush,5,25,10,90,0,10,2,30,,5,1,7
+199,lock-on,2,Lock-On,1,,5,,0,10,1,95,,4,24,20
+200,outrage,2,Outrage,16,120,10,100,0,8,2,28,,1,6,7
+201,sandstorm,2,Sandstorm,6,,10,,0,12,1,116,,5,21,13
+202,giga-drain,2,Giga Drain,12,75,10,100,0,10,3,4,,4,10,20
+203,endure,2,Endure,1,,10,,4,7,1,117,,5,16,13
+204,charm,2,Charm,18,,20,100,0,10,1,59,,3,23,19
+205,rollout,2,Rollout,6,30,20,90,0,10,2,118,,5,24,7
+206,false-swipe,2,False Swipe,1,40,40,100,0,10,2,102,,1,5,16
+207,swagger,2,Swagger,1,,15,85,0,10,1,119,,3,27,19
+208,milk-drink,2,Milk Drink,1,,10,,0,7,1,33,,3,12,8
+209,spark,2,Spark,13,65,20,100,0,10,2,7,30,1,4,5
+210,fury-cutter,2,Fury Cutter,7,40,20,95,0,10,2,120,,1,17,7
+211,steel-wing,2,Steel Wing,9,70,25,90,0,10,2,139,10,1,12,5
+212,mean-look,2,Mean Look,1,,5,,0,10,1,107,,2,18,10
+213,attract,2,Attract,1,,15,100,0,10,1,121,,3,18,19
+214,sleep-talk,2,Sleep Talk,1,,10,,0,7,1,98,,3,17,5
+215,heal-bell,2,Heal Bell,1,,5,,0,13,1,103,,2,28,8
+216,return,2,Return,1,,20,100,0,10,2,122,,3,13,17
+217,present,2,Present,1,,15,90,0,10,2,123,,3,17,16
+218,frustration,2,Frustration,1,,20,100,0,10,2,124,,3,13,18
+219,safeguard,2,Safeguard,1,,25,,0,4,1,125,,2,15,13
+220,pain-split,2,Pain Split,1,,20,,0,10,1,92,,4,4,10
+221,sacred-fire,2,Sacred Fire,10,100,5,95,0,10,2,126,50,2,1,22
+222,magnitude,2,Magnitude,5,,30,100,0,9,2,127,,5,11,18
+223,dynamic-punch,2,Dynamic Punch,2,100,5,50,0,10,2,77,100,1,10,18
+224,megahorn,2,Megahorn,7,120,10,85,0,10,2,1,,1,12,18
+225,dragon-breath,2,Dragon Breath,16,60,20,100,0,10,3,7,30,1,5,17
+226,baton-pass,2,Baton Pass,1,,40,,0,7,1,128,,3,18,16
+227,encore,2,Encore,1,,5,100,0,10,1,91,,3,18,20
+228,pursuit,2,Pursuit,17,40,20,100,0,10,2,129,,4,14,20
+229,rapid-spin,2,Rapid Spin,1,20,40,100,0,10,2,130,,1,16,17
+230,sweet-scent,2,Sweet Scent,1,,20,100,0,11,1,25,,3,5,19
+231,iron-tail,2,Iron Tail,9,100,15,75,0,10,2,70,30,1,4,18
+232,metal-claw,2,Metal Claw,9,50,35,95,0,10,2,140,10,1,1,18
+233,vital-throw,2,Vital Throw,2,70,10,,-1,10,2,79,,1,31,2
+234,morning-sun,2,Morning Sun,1,,5,,0,7,1,133,,2,25,8
+235,synthesis,2,Synthesis,12,,5,,0,7,1,133,,4,25,8
+236,moonlight,2,Moonlight,18,,5,,0,7,1,133,,2,25,8
+237,hidden-power,2,Hidden Power,1,60,15,100,0,10,3,136,,4,17,23
+238,cross-chop,2,Cross Chop,2,100,5,80,0,10,2,44,,1,2,18
+239,twister,2,Twister,16,40,20,100,0,11,3,147,20,1,21,5
+240,rain-dance,2,Rain Dance,11,,5,,0,12,1,137,,5,11,13
+241,sunny-day,2,Sunny Day,10,,5,,0,12,1,138,,2,11,13
+242,crunch,2,Crunch,17,80,15,100,0,10,2,70,20,5,4,18
+243,mirror-coat,2,Mirror Coat,14,,20,100,-5,1,3,145,,2,16,15
+244,psych-up,2,Psych Up,1,,10,,0,10,1,144,,4,12,11
+245,extreme-speed,2,Extreme Speed,1,80,5,100,2,10,2,104,,1,30,1
+246,ancient-power,2,Ancient Power,6,60,5,100,0,10,3,141,10,5,32,18
+247,shadow-ball,2,Shadow Ball,8,80,15,100,0,10,3,73,20,4,22,17
+248,future-sight,2,Future Sight,14,120,10,100,0,10,3,149,,4,24,17
+249,rock-smash,2,Rock Smash,2,40,15,100,0,10,2,70,50,5,29,18
+250,whirlpool,2,Whirlpool,11,35,15,85,0,10,3,262,100,2,24,21
+251,beat-up,2,Beat Up,17,,10,100,0,10,2,155,,4,14,7
+252,fake-out,3,Fake Out,1,40,10,100,3,10,2,159,100,3,23,17
+253,uproar,3,Uproar,1,90,10,100,0,8,3,160,,3,21,10
+254,stockpile,3,Stockpile,1,,20,,0,7,1,161,,5,16,11
+255,spit-up,3,Spit Up,1,,10,100,0,10,3,162,,5,1,18
+256,swallow,3,Swallow,1,,10,,0,7,1,163,,5,32,8
+257,heat-wave,3,Heat Wave,10,95,10,90,0,11,3,5,10,2,1,17
+258,hail,3,Hail,15,,10,,0,12,1,165,,2,5,13
+259,torment,3,Torment,17,,15,100,0,10,1,166,,5,18,16
+260,flatter,3,Flatter,17,,15,100,0,10,1,167,,4,18,19
+261,will-o-wisp,3,Will-O-Wisp,10,,15,85,0,10,1,168,,2,4,17
+262,memento,3,Memento,17,,10,100,0,10,1,169,,5,7,9
+263,facade,3,Facade,1,70,20,100,0,10,2,170,,3,28,15
+264,focus-punch,3,Focus Punch,2,150,20,100,-3,10,2,171,,5,31,6
+265,smelling-salts,3,Smelling Salts,1,70,10,100,0,10,2,172,,4,9,16
+266,follow-me,3,Follow Me,1,,20,,2,7,1,173,,3,24,14
+267,nature-power,3,Nature Power,1,,20,,0,10,1,174,,2,11,14
+268,charge,3,Charge,13,,20,,0,7,1,175,,4,12,11
+269,taunt,3,Taunt,17,,20,100,0,10,1,176,,4,18,16
+270,helping-hand,3,Helping Hand,1,,20,,5,3,1,177,,4,18,20
+271,trick,3,Trick,14,,10,100,0,10,1,178,,4,12,12
+272,role-play,3,Role Play,14,,10,,0,10,1,179,,3,20,23
+273,wish,3,Wish,1,,10,,0,7,1,180,,3,24,8
+274,assist,3,Assist,1,,20,,0,7,1,181,,3,25,14
+275,ingrain,3,Ingrain,12,,20,,0,7,1,182,,4,15,21
+276,superpower,3,Superpower,2,120,5,100,0,10,2,183,100,5,3,18
+277,magic-coat,3,Magic Coat,14,,15,,4,7,1,184,,2,15,15
+278,recycle,3,Recycle,1,,10,,0,7,1,185,,4,17,12
+279,revenge,3,Revenge,2,60,10,100,-4,10,2,186,,5,31,15
+280,brick-break,3,Brick Break,2,75,15,100,0,10,2,187,,1,4,5
+281,yawn,3,Yawn,1,,10,,0,10,1,188,,3,18,19
+282,knock-off,3,Knock Off,17,65,20,100,0,10,2,189,,4,4,5
+283,endeavor,3,Endeavor,1,,5,100,0,10,2,190,,5,28,15
+284,eruption,3,Eruption,10,150,5,100,0,11,3,191,,2,26,18
+285,skill-swap,3,Skill Swap,14,,10,,0,10,1,192,,4,20,12
+286,imprison,3,Imprison,14,,10,,0,7,1,193,,4,33,20
+287,refresh,3,Refresh,1,,20,,0,7,1,194,,3,32,8
+288,grudge,3,Grudge,8,,5,,0,7,1,195,,5,26,10
+289,snatch,3,Snatch,17,,10,,4,7,1,196,,4,14,12
+290,secret-power,3,Secret Power,1,70,20,100,0,10,2,198,30,4,29,14
+291,dive,3,Dive,11,80,10,100,0,10,2,256,,2,16,6
+292,arm-thrust,3,Arm Thrust,2,15,20,100,0,10,2,30,,5,10,7
+293,camouflage,3,Camouflage,1,,20,,0,7,1,214,,4,2,13
+294,tail-glow,3,Tail Glow,7,,20,,0,7,1,322,,2,32,11
+295,luster-purge,3,Luster Purge,14,70,5,100,0,10,3,73,50,4,9,22
+296,mist-ball,3,Mist Ball,14,70,5,100,0,10,3,72,50,4,4,22
+297,feather-dance,3,Feather Dance,3,,15,100,0,10,1,59,,2,28,19
+298,teeter-dance,3,Teeter Dance,1,,20,100,0,9,1,200,,3,6,14
+299,blaze-kick,3,Blaze Kick,10,85,10,90,0,10,2,201,10,2,1,17
+300,mud-sport,3,Mud Sport,5,,15,,0,12,1,202,,3,1,13
+301,ice-ball,3,Ice Ball,15,30,20,90,0,10,2,118,,2,24,7
+302,needle-arm,3,Needle Arm,12,60,15,100,0,10,2,32,30,4,4,5
+303,slack-off,3,Slack Off,1,,10,,0,7,1,33,,3,26,8
+304,hyper-voice,3,Hyper Voice,1,90,10,100,0,11,3,1,,1,5,5
+305,poison-fang,3,Poison Fang,4,50,15,100,0,10,2,203,50,4,33,4
+306,crush-claw,3,Crush Claw,1,75,10,95,0,10,2,70,50,1,4,5
+307,blast-burn,3,Blast Burn,10,150,5,90,0,10,3,81,,2,6,22
+308,hydro-cannon,3,Hydro Cannon,11,150,5,90,0,10,3,81,,2,6,22
+309,meteor-mash,3,Meteor Mash,9,90,10,90,0,10,2,140,20,1,12,18
+310,astonish,3,Astonish,8,30,15,100,0,10,2,32,30,4,9,5
+311,weather-ball,3,Weather Ball,1,50,10,100,0,10,3,204,,4,1,4
+312,aromatherapy,3,Aromatherapy,12,,5,,0,13,1,103,,4,28,8
+313,fake-tears,3,Fake Tears,17,,20,100,0,10,1,63,,4,28,19
+314,air-cutter,3,Air Cutter,3,60,25,95,0,11,3,44,,1,23,5
+315,overheat,3,Overheat,10,130,5,90,0,10,3,205,100,2,3,22
+316,odor-sleuth,3,Odor Sleuth,1,,40,,0,10,1,114,,4,33,20
+317,rock-tomb,3,Rock Tomb,6,60,15,95,0,10,2,71,100,4,24,2
+318,silver-wind,3,Silver Wind,7,60,5,100,0,10,3,141,10,2,32,4
+319,metal-sound,3,Metal Sound,9,,40,85,0,10,1,63,,4,5,10
+320,grass-whistle,3,Grass Whistle,12,,15,55,0,10,1,2,,4,5,19
+321,tickle,3,Tickle,1,,20,100,0,10,1,206,,3,33,19
+322,cosmic-power,3,Cosmic Power,14,,20,,0,7,1,207,,1,32,11
+323,water-spout,3,Water Spout,11,150,5,100,0,11,3,191,,2,26,22
+324,signal-beam,3,Signal Beam,7,75,15,100,0,10,3,77,10,2,21,4
+325,shadow-punch,3,Shadow Punch,8,60,20,,0,10,2,18,,4,27,17
+326,extrasensory,3,Extrasensory,14,80,20,100,0,10,3,32,10,1,4,17
+327,sky-uppercut,3,Sky Uppercut,2,85,15,90,0,10,2,208,,1,23,17
+328,sand-tomb,3,Sand Tomb,5,35,15,85,0,10,2,43,100,4,24,21
+329,sheer-cold,3,Sheer Cold,15,,5,30,0,10,3,39,,2,14,9
+330,muddy-water,3,Muddy Water,11,90,10,85,0,11,3,74,30,5,10,18
+331,bullet-seed,3,Bullet Seed,12,25,30,100,0,10,2,30,,1,14,7
+332,aerial-ace,3,Aerial Ace,3,60,20,,0,10,2,18,,1,27,17
+333,icicle-spear,3,Icicle Spear,15,25,30,100,0,10,2,30,,2,23,7
+334,iron-defense,3,Iron Defense,9,,15,,0,7,1,52,,5,15,13
+335,block,3,Block,1,,5,,0,10,1,107,,3,18,13
+336,howl,3,Howl,1,,40,,0,7,1,11,,1,32,11
+337,dragon-claw,3,Dragon Claw,16,80,15,100,0,10,2,1,,1,23,17
+338,frenzy-plant,3,Frenzy Plant,12,150,5,90,0,10,3,81,,1,6,22
+339,bulk-up,3,Bulk Up,2,,20,,0,7,1,209,,2,32,11
+340,bounce,3,Bounce,3,85,5,85,0,10,2,264,30,3,15,6
+341,mud-shot,3,Mud Shot,5,55,15,95,0,10,3,71,100,5,5,2
+342,poison-tail,3,Poison Tail,4,50,25,100,0,10,2,210,10,4,33,4
+343,covet,3,Covet,1,60,25,100,0,10,2,106,,3,20,12
+344,volt-tackle,3,Volt Tackle,13,120,15,100,0,10,2,263,10,1,3,22
+345,magical-leaf,3,Magical Leaf,12,60,20,,0,10,3,18,,2,27,17
+346,water-sport,3,Water Sport,11,,15,,0,12,1,211,,3,1,13
+347,calm-mind,3,Calm Mind,14,,20,,0,7,1,212,,4,16,11
+348,leaf-blade,3,Leaf Blade,12,90,15,100,0,10,2,44,,1,2,17
+349,dragon-dance,3,Dragon Dance,16,,20,,0,7,1,213,,1,32,11
+350,rock-blast,3,Rock Blast,6,25,10,90,0,10,2,30,,5,12,7
+351,shock-wave,3,Shock Wave,13,60,20,,0,10,3,18,,1,27,17
+352,water-pulse,3,Water Pulse,11,60,20,100,0,10,3,77,20,2,21,17
+353,doom-desire,3,Doom Desire,9,140,5,100,0,10,3,149,,1,24,17
+354,psycho-boost,3,Psycho Boost,14,140,5,90,0,10,3,205,100,4,3,22
+355,roost,4,Roost,3,,10,,0,7,1,215,,1,,8
+356,gravity,4,Gravity,14,,5,,0,12,1,216,,2,,13
+357,miracle-eye,4,Miracle Eye,14,,40,,0,10,1,217,,3,,20
+358,wake-up-slap,4,Wake-Up Slap,2,70,10,100,0,10,2,218,,4,,16
+359,hammer-arm,4,Hammer Arm,2,100,10,90,0,10,2,219,100,1,,2
+360,gyro-ball,4,Gyro Ball,9,,5,100,0,10,2,220,,2,,15
+361,healing-wish,4,Healing Wish,14,,10,,0,7,1,221,,3,,8
+362,brine,4,Brine,11,65,10,100,0,10,3,222,,4,,4
+363,natural-gift,4,Natural Gift,1,,15,100,0,10,2,223,,1,,18
+364,feint,4,Feint,1,30,10,100,2,10,2,224,,2,,16
+365,pluck,4,Pluck,3,60,20,100,0,10,2,225,,3,,12
+366,tailwind,4,Tailwind,3,,15,,0,4,1,226,,4,,1
+367,acupressure,4,Acupressure,1,,30,,0,5,1,227,,1,,11
+368,metal-burst,4,Metal Burst,9,,10,100,0,1,2,228,,2,,15
+369,u-turn,4,U-turn,7,70,20,100,0,10,2,229,,3,,16
+370,close-combat,4,Close Combat,2,120,5,100,0,10,2,230,100,4,,22
+371,payback,4,Payback,17,50,10,100,0,10,2,231,,1,,6
+372,assurance,4,Assurance,17,60,10,100,0,10,2,232,,2,,15
+373,embargo,4,Embargo,17,,15,100,0,10,1,233,,3,,13
+374,fling,4,Fling,17,,10,100,0,10,2,234,,5,,23
+375,psycho-shift,4,Psycho Shift,14,,10,100,0,10,1,235,,1,,16
+376,trump-card,4,Trump Card,1,,5,,0,10,3,236,,1,,21
+377,heal-block,4,Heal Block,14,,15,100,0,11,1,237,,3,,13
+378,wring-out,4,Wring Out,1,,5,100,0,10,3,238,,4,,22
+379,power-trick,4,Power Trick,14,,10,,0,7,1,239,,1,,16
+380,gastro-acid,4,Gastro Acid,4,,10,100,0,10,1,240,,2,,13
+381,lucky-chant,4,Lucky Chant,1,,30,,0,4,1,241,,3,,13
+382,me-first,4,Me First,1,,20,,0,2,1,242,,3,,1
+383,copycat,4,Copycat,1,,20,,0,7,1,243,,1,,12
+384,power-swap,4,Power Swap,14,,10,,0,10,1,244,,2,,16
+385,guard-swap,4,Guard Swap,14,,10,,0,10,1,245,,3,,16
+386,punishment,4,Punishment,17,,5,100,0,10,2,246,,4,,23
+387,last-resort,4,Last Resort,1,140,5,100,0,10,2,247,,3,,21
+388,worry-seed,4,Worry Seed,12,,10,100,0,10,1,248,,2,,19
+389,sucker-punch,4,Sucker Punch,17,70,5,100,1,10,2,249,,4,,1
+390,toxic-spikes,4,Toxic Spikes,4,,20,,0,6,1,250,,4,,13
+391,heart-swap,4,Heart Swap,14,,10,,0,10,1,251,,1,,16
+392,aqua-ring,4,Aqua Ring,11,,20,,0,7,1,252,,2,,8
+393,magnet-rise,4,Magnet Rise,13,,10,,0,7,1,253,,3,,13
+394,flare-blitz,4,Flare Blitz,10,120,15,100,0,10,2,254,10,4,,22
+395,force-palm,4,Force Palm,2,60,10,100,0,10,2,7,30,1,,18
+396,aura-sphere,4,Aura Sphere,2,80,20,,0,10,3,18,,2,,17
+397,rock-polish,4,Rock Polish,6,,20,,0,7,1,53,,5,,1
+398,poison-jab,4,Poison Jab,4,80,20,100,0,10,2,3,30,4,,4
+399,dark-pulse,4,Dark Pulse,17,80,15,100,0,10,3,32,20,1,,17
+400,night-slash,4,Night Slash,17,70,15,100,0,10,2,44,,2,,5
+401,aqua-tail,4,Aqua Tail,11,90,10,90,0,10,2,1,,3,,5
+402,seed-bomb,4,Seed Bomb,12,80,15,100,0,10,2,1,,4,,5
+403,air-slash,4,Air Slash,3,75,15,95,0,10,3,32,30,1,,17
+404,x-scissor,4,X-Scissor,7,80,15,100,0,10,2,1,,2,,17
+405,bug-buzz,4,Bug Buzz,7,90,10,100,0,10,3,73,10,3,,4
+406,dragon-pulse,4,Dragon Pulse,16,85,10,100,0,10,3,1,,4,,4
+407,dragon-rush,4,Dragon Rush,16,100,10,75,0,10,2,32,20,1,,18
+408,power-gem,4,Power Gem,6,80,20,100,0,10,3,1,,2,,5
+409,drain-punch,4,Drain Punch,2,75,10,100,0,10,2,4,,2,,20
+410,vacuum-wave,4,Vacuum Wave,2,40,30,100,1,10,3,104,,4,,1
+411,focus-blast,4,Focus Blast,2,120,5,70,0,10,3,73,10,1,,17
+412,energy-ball,4,Energy Ball,12,90,10,100,0,10,3,73,10,2,,17
+413,brave-bird,4,Brave Bird,3,120,15,100,0,10,2,199,,3,,18
+414,earth-power,4,Earth Power,5,90,10,100,0,10,3,73,10,4,,18
+415,switcheroo,4,Switcheroo,17,,10,100,0,10,1,178,,1,,12
+416,giga-impact,4,Giga Impact,1,150,5,90,0,10,2,81,,2,,22
+417,nasty-plot,4,Nasty Plot,17,,20,,0,7,1,54,,3,,11
+418,bullet-punch,4,Bullet Punch,9,40,30,100,1,10,2,104,,4,,1
+419,avalanche,4,Avalanche,15,60,10,100,-4,10,2,186,,1,,15
+420,ice-shard,4,Ice Shard,15,40,30,100,1,10,2,104,,2,,1
+421,shadow-claw,4,Shadow Claw,8,70,15,100,0,10,2,44,,3,,17
+422,thunder-fang,4,Thunder Fang,13,65,15,95,0,10,2,276,10,4,,5
+423,ice-fang,4,Ice Fang,15,65,15,95,0,10,2,275,10,1,,5
+424,fire-fang,4,Fire Fang,10,65,15,95,0,10,2,274,10,2,,5
+425,shadow-sneak,4,Shadow Sneak,8,40,30,100,1,10,2,104,,4,,1
+426,mud-bomb,4,Mud Bomb,5,65,10,85,0,10,3,74,30,4,,18
+427,psycho-cut,4,Psycho Cut,14,70,20,100,0,10,2,44,,1,,17
+428,zen-headbutt,4,Zen Headbutt,14,80,15,90,0,10,2,32,20,2,,18
+429,mirror-shot,4,Mirror Shot,9,65,10,85,0,10,3,74,30,3,,17
+430,flash-cannon,4,Flash Cannon,9,80,10,100,0,10,3,73,10,4,,17
+431,rock-climb,4,Rock Climb,1,90,20,85,0,10,2,77,20,1,,18
+432,defog,4,Defog,3,,15,,0,10,1,259,,2,,13
+433,trick-room,4,Trick Room,14,,5,,-7,12,1,260,,3,,14
+434,draco-meteor,4,Draco Meteor,16,130,5,90,0,10,3,205,100,4,,22
+435,discharge,4,Discharge,13,80,15,100,0,9,3,7,30,1,,17
+436,lava-plume,4,Lava Plume,10,80,15,100,0,9,3,5,30,5,,17
+437,leaf-storm,4,Leaf Storm,12,130,5,90,0,10,3,205,100,3,,22
+438,power-whip,4,Power Whip,12,120,10,85,0,10,2,1,,2,,5
+439,rock-wrecker,4,Rock Wrecker,6,150,5,90,0,10,2,81,,5,,22
+440,cross-poison,4,Cross Poison,4,70,20,100,0,10,2,210,10,1,,5
+441,gunk-shot,4,Gunk Shot,4,120,5,80,0,10,2,3,30,1,,5
+442,iron-head,4,Iron Head,9,80,15,100,0,10,2,32,30,5,,18
+443,magnet-bomb,4,Magnet Bomb,9,60,20,,0,10,2,18,,1,,5
+444,stone-edge,4,Stone Edge,6,100,5,80,0,10,2,44,,5,,4
+445,captivate,4,Captivate,1,,20,100,0,11,1,266,,2,,19
+446,stealth-rock,4,Stealth Rock,6,,20,,0,6,1,267,,1,,13
+447,grass-knot,4,Grass Knot,12,,20,100,0,10,3,197,,4,,4
+448,chatter,4,Chatter,3,65,20,100,0,10,3,268,100,4,,23
+449,judgment,4,Judgment,1,100,10,100,0,10,3,269,,4,,14
+450,bug-bite,4,Bug Bite,7,60,20,100,0,10,2,225,,5,,12
+451,charge-beam,4,Charge Beam,13,50,10,90,0,10,3,277,70,2,,17
+452,wood-hammer,4,Wood Hammer,12,120,15,100,0,10,2,199,,5,,18
+453,aqua-jet,4,Aqua Jet,11,40,20,100,1,10,2,104,,2,,1
+454,attack-order,4,Attack Order,7,90,15,100,0,10,2,44,,4,,4
+455,defend-order,4,Defend Order,7,,10,,0,7,1,207,,4,,11
+456,heal-order,4,Heal Order,7,,10,,0,7,1,33,,4,,8
+457,head-smash,4,Head Smash,6,150,5,80,0,10,2,270,,5,,22
+458,double-hit,4,Double Hit,1,35,10,90,0,10,2,45,,4,,7
+459,roar-of-time,4,Roar of Time,16,150,5,90,0,10,3,81,,1,,22
+460,spacial-rend,4,Spacial Rend,16,100,5,95,0,10,3,44,,5,,4
+461,lunar-dance,4,Lunar Dance,14,,10,,0,7,1,271,,2,,8
+462,crush-grip,4,Crush Grip,1,,5,100,0,10,2,238,,5,,15
+463,magma-storm,4,Magma Storm,10,100,5,75,0,10,3,43,100,5,,7
+464,dark-void,4,Dark Void,17,,10,50,0,11,1,2,,4,,19
+465,seed-flare,4,Seed Flare,12,120,5,85,0,10,3,272,40,1,,22
+466,ominous-wind,4,Ominous Wind,8,60,5,100,0,10,3,141,10,4,,11
+467,shadow-force,4,Shadow Force,8,120,5,100,0,10,2,273,,4,,22
+468,hone-claws,5,Hone Claws,17,,15,,0,7,1,278,,,,
+469,wide-guard,5,Wide Guard,6,,10,,3,4,1,279,,,,
+470,guard-split,5,Guard Split,14,,10,,0,10,1,280,,,,
+471,power-split,5,Power Split,14,,10,,0,10,1,281,,,,
+472,wonder-room,5,Wonder Room,14,,10,,0,12,1,282,,,,
+473,psyshock,5,Psyshock,14,80,10,100,0,10,3,283,,,,
+474,venoshock,5,Venoshock,4,65,10,100,0,10,3,284,,,,
+475,autotomize,5,Autotomize,9,,15,,0,7,1,285,,,,
+476,rage-powder,5,Rage Powder,7,,20,,2,7,1,173,,,,
+477,telekinesis,5,Telekinesis,14,,15,,0,10,1,286,,,,
+478,magic-room,5,Magic Room,14,,10,,0,12,1,287,,,,
+479,smack-down,5,Smack Down,6,50,15,100,0,10,2,288,100,,,
+480,storm-throw,5,Storm Throw,2,60,10,100,0,10,2,289,,,,
+481,flame-burst,5,Flame Burst,10,70,15,100,0,10,3,290,,,,
+482,sludge-wave,5,Sludge Wave,4,95,10,100,0,9,3,3,10,,,
+483,quiver-dance,5,Quiver Dance,7,,20,,0,7,1,291,,,,
+484,heavy-slam,5,Heavy Slam,9,,10,100,0,10,2,292,,,,
+485,synchronoise,5,Synchronoise,14,120,10,100,0,9,3,293,,,,
+486,electro-ball,5,Electro Ball,13,,10,100,0,10,3,294,,,,
+487,soak,5,Soak,11,,20,100,0,10,1,295,,,,
+488,flame-charge,5,Flame Charge,10,50,20,100,0,10,2,296,100,,,
+489,coil,5,Coil,4,,20,,0,7,1,323,,,,
+490,low-sweep,5,Low Sweep,2,65,20,100,0,10,2,21,100,,,
+491,acid-spray,5,Acid Spray,4,40,20,100,0,10,3,297,100,,,
+492,foul-play,5,Foul Play,17,95,15,100,0,10,2,298,,,,
+493,simple-beam,5,Simple Beam,1,,15,100,0,10,1,299,,,,
+494,entrainment,5,Entrainment,1,,15,100,0,10,1,300,,,,
+495,after-you,5,After You,1,,15,,0,10,1,301,,,,
+496,round,5,Round,1,60,15,100,0,10,3,302,,,,
+497,echoed-voice,5,Echoed Voice,1,40,15,100,0,10,3,303,,,,
+498,chip-away,5,Chip Away,1,70,20,100,0,10,2,304,,,,
+499,clear-smog,5,Clear Smog,4,50,15,,0,10,3,305,,,,
+500,stored-power,5,Stored Power,14,20,10,100,0,10,3,306,,,,
+501,quick-guard,5,Quick Guard,2,,15,,3,4,1,307,,,,
+502,ally-switch,5,Ally Switch,14,,15,,2,7,1,308,,,,
+503,scald,5,Scald,11,80,15,100,0,10,3,5,30,,,
+504,shell-smash,5,Shell Smash,1,,15,,0,7,1,309,,,,
+505,heal-pulse,5,Heal Pulse,14,,10,,0,10,1,310,,,,
+506,hex,5,Hex,8,65,10,100,0,10,3,311,,,,
+507,sky-drop,5,Sky Drop,3,60,10,100,0,10,2,312,,,,
+508,shift-gear,5,Shift Gear,9,,10,,0,7,1,313,,,,
+509,circle-throw,5,Circle Throw,2,60,10,90,-6,10,2,314,,,,
+510,incinerate,5,Incinerate,10,60,15,100,0,11,3,315,,,,
+511,quash,5,Quash,17,,15,100,0,10,1,316,,,,
+512,acrobatics,5,Acrobatics,3,55,15,100,0,10,2,318,,,,
+513,reflect-type,5,Reflect Type,1,,15,,0,10,1,319,,,,
+514,retaliate,5,Retaliate,1,70,5,100,0,10,2,320,,,,
+515,final-gambit,5,Final Gambit,2,,5,100,0,10,3,321,,,,
+516,bestow,5,Bestow,1,,15,,0,10,1,324,,,,
+517,inferno,5,Inferno,10,100,5,50,0,10,3,5,100,,,
+518,water-pledge,5,Water Pledge,11,80,10,100,0,10,3,325,,,,
+519,fire-pledge,5,Fire Pledge,10,80,10,100,0,10,3,326,,,,
+520,grass-pledge,5,Grass Pledge,12,80,10,100,0,10,3,327,,,,
+521,volt-switch,5,Volt Switch,13,70,20,100,0,10,3,229,,,,
+522,struggle-bug,5,Struggle Bug,7,50,20,100,0,11,3,72,100,,,
+523,bulldoze,5,Bulldoze,5,60,20,100,0,9,2,71,100,,,
+524,frost-breath,5,Frost Breath,15,60,10,90,0,10,3,289,100,,,
+525,dragon-tail,5,Dragon Tail,16,60,10,90,-6,10,2,314,,,,
+526,work-up,5,Work Up,1,,30,,0,7,1,328,,,,
+527,electroweb,5,Electroweb,13,55,15,95,0,11,3,21,100,,,
+528,wild-charge,5,Wild Charge,13,90,15,100,0,10,2,49,,,,
+529,drill-run,5,Drill Run,5,80,10,95,0,10,2,44,,,,
+530,dual-chop,5,Dual Chop,16,40,15,90,0,10,2,45,,,,
+531,heart-stamp,5,Heart Stamp,14,60,25,100,0,10,2,32,30,,,
+532,horn-leech,5,Horn Leech,12,75,10,100,0,10,2,4,,,,
+533,sacred-sword,5,Sacred Sword,2,90,15,100,0,10,2,304,,,,
+534,razor-shell,5,Razor Shell,11,75,10,95,0,10,2,70,50,,,
+535,heat-crash,5,Heat Crash,10,,10,100,0,10,2,292,,,,
+536,leaf-tornado,5,Leaf Tornado,12,65,10,90,0,10,3,74,50,,,
+537,steamroller,5,Steamroller,7,65,20,100,0,10,2,151,30,,,
+538,cotton-guard,5,Cotton Guard,12,,10,,0,7,1,329,,,,
+539,night-daze,5,Night Daze,17,85,10,95,0,10,3,74,40,,,
+540,psystrike,5,Psystrike,14,100,10,100,0,10,3,283,,,,
+541,tail-slap,5,Tail Slap,1,25,10,85,0,10,2,30,,,,
+542,hurricane,5,Hurricane,3,110,10,70,0,10,3,334,30,,,
+543,head-charge,5,Head Charge,1,120,15,100,0,10,2,49,,,,
+544,gear-grind,5,Gear Grind,9,50,15,85,0,10,2,45,,,,
+545,searing-shot,5,Searing Shot,10,100,5,100,0,9,3,5,30,,,
+546,techno-blast,5,Techno Blast,1,120,5,100,0,10,3,269,,,,
+547,relic-song,5,Relic Song,1,75,10,100,0,11,3,330,10,,,
+548,secret-sword,5,Secret Sword,2,85,10,100,0,10,3,283,,,,
+549,glaciate,5,Glaciate,15,65,10,95,0,11,3,331,100,,,
+550,bolt-strike,5,Bolt Strike,13,130,5,85,0,10,2,7,20,,,
+551,blue-flare,5,Blue Flare,10,130,5,85,0,10,3,5,20,,,
+552,fiery-dance,5,Fiery Dance,10,80,10,100,0,10,3,277,50,,,
+553,freeze-shock,5,Freeze Shock,15,140,5,90,0,10,2,332,30,,,
+554,ice-burn,5,Ice Burn,15,140,5,90,0,10,3,333,30,,,
+555,snarl,5,Snarl,17,55,15,95,0,11,3,72,100,,,
+556,icicle-crash,5,Icicle Crash,15,85,10,90,0,10,2,32,30,,,
+557,v-create,5,V-create,10,180,5,95,0,10,2,335,100,,,
+558,fusion-flare,5,Fusion Flare,10,100,5,100,0,10,3,336,,,,
+559,fusion-bolt,5,Fusion Bolt,13,100,5,100,0,10,2,337,,,,
+560,flying-press,6,Flying Press,2,100,10,95,0,10,2,338,,,,
+561,mat-block,6,Mat Block,2,,10,,0,4,1,377,,,,
+562,belch,6,Belch,4,120,10,90,0,10,3,339,,,,
+563,rototiller,6,Rototiller,5,,10,,0,14,1,340,100,,,
+564,sticky-web,6,Sticky Web,7,,20,,0,6,1,341,,,,
+565,fell-stinger,6,Fell Stinger,7,50,25,100,0,10,2,342,,,,
+566,phantom-force,6,Phantom Force,8,90,10,100,0,10,2,273,,,,
+567,trick-or-treat,6,Trick-or-Treat,8,,20,100,0,10,1,343,,,,
+568,noble-roar,6,Noble Roar,1,,30,100,0,10,1,344,100,,,
+569,ion-deluge,6,Ion Deluge,13,,25,,1,12,1,345,,,,
+570,parabolic-charge,6,Parabolic Charge,13,65,20,100,0,9,3,346,,,,
+571,forests-curse,6,Forest’s Curse,12,,20,100,0,10,1,376,,,,
+572,petal-blizzard,6,Petal Blizzard,12,90,15,100,0,9,2,379,,,,
+573,freeze-dry,6,Freeze-Dry,15,70,20,100,0,10,3,380,10,,,
+574,disarming-voice,6,Disarming Voice,18,40,15,,0,11,3,381,,,,
+575,parting-shot,6,Parting Shot,17,,20,100,0,10,1,347,100,,,
+576,topsy-turvy,6,Topsy-Turvy,17,,20,,0,10,1,348,,,,
+577,draining-kiss,6,Draining Kiss,18,50,10,100,0,10,3,349,,,,
+578,crafty-shield,6,Crafty Shield,18,,10,,3,4,1,350,,,,
+579,flower-shield,6,Flower Shield,18,,10,,0,14,1,351,100,,,
+580,grassy-terrain,6,Grassy Terrain,12,,10,,0,12,1,352,,,,
+581,misty-terrain,6,Misty Terrain,18,,10,,0,12,1,353,,,,
+582,electrify,6,Electrify,13,,20,,0,10,1,354,,,,
+583,play-rough,6,Play Rough,18,90,10,90,0,10,2,69,10,,,
+584,fairy-wind,6,Fairy Wind,18,40,30,100,0,10,3,1,,,,
+585,moonblast,6,Moonblast,18,95,15,100,0,10,3,72,30,,,
+586,boomburst,6,Boomburst,1,140,10,100,0,9,3,379,,,,
+587,fairy-lock,6,Fairy Lock,18,,10,,0,12,1,355,,,,
+588,kings-shield,6,King’s Shield,9,,10,,4,7,1,356,,,,
+589,play-nice,6,Play Nice,1,,20,,0,10,1,357,100,,,
+590,confide,6,Confide,1,,20,,0,10,1,358,100,,,
+591,diamond-storm,6,Diamond Storm,6,100,5,95,0,11,2,359,50,,,
+592,steam-eruption,6,Steam Eruption,11,110,5,95,0,10,3,5,30,,,
+593,hyperspace-hole,6,Hyperspace Hole,14,80,5,,0,10,3,360,,,,
+594,water-shuriken,6,Water Shuriken,11,15,20,100,1,10,3,361,,,,
+595,mystical-fire,6,Mystical Fire,10,75,10,100,0,10,3,72,100,,,
+596,spiky-shield,6,Spiky Shield,12,,10,,4,7,1,362,,,,
+597,aromatic-mist,6,Aromatic Mist,18,,20,,0,3,1,363,,,,
+598,eerie-impulse,6,Eerie Impulse,13,,15,100,0,10,1,62,,,,
+599,venom-drench,6,Venom Drench,4,,20,100,0,11,1,364,100,,,
+600,powder,6,Powder,7,,20,100,1,10,1,378,,,,
+601,geomancy,6,Geomancy,18,,10,,0,7,1,366,,,,
+602,magnetic-flux,6,Magnetic Flux,13,,20,,0,13,1,367,,,,
+603,happy-hour,6,Happy Hour,1,,30,,0,4,1,368,,,,
+604,electric-terrain,6,Electric Terrain,13,,10,,0,12,1,369,,,,
+605,dazzling-gleam,6,Dazzling Gleam,18,80,10,100,0,11,3,1,,,,
+606,celebrate,6,Celebrate,1,,40,,0,7,1,370,,,,
+607,hold-hands,6,Hold Hands,1,,40,,0,3,1,371,,,,
+608,baby-doll-eyes,6,Baby-Doll Eyes,18,,30,100,1,10,1,365,,,,
+609,nuzzle,6,Nuzzle,13,20,20,100,0,10,2,372,100,,,
+610,hold-back,6,Hold Back,1,40,40,100,0,10,2,102,,,,
+611,infestation,6,Infestation,7,20,20,100,0,10,3,43,100,,,
+612,power-up-punch,6,Power-Up Punch,2,40,20,100,0,10,2,375,100,,,
+613,oblivion-wing,6,Oblivion Wing,3,80,10,100,0,10,3,349,,,,
+614,thousand-arrows,6,Thousand Arrows,5,90,10,100,0,11,2,373,100,,,
+615,thousand-waves,6,Thousand Waves,5,90,10,100,0,11,2,374,,,,
+616,lands-wrath,6,Land’s Wrath,5,90,10,100,0,11,2,1,,,,
+617,light-of-ruin,6,Light of Ruin,18,140,5,90,0,10,3,270,,,,
+618,origin-pulse,6,Origin Pulse,11,110,10,85,0,11,3,1,,,,
+619,precipice-blades,6,Precipice Blades,5,120,10,85,0,11,2,1,,,,
+620,dragon-ascent,6,Dragon Ascent,3,120,5,100,0,10,2,230,100,,,
+621,hyperspace-fury,6,Hyperspace Fury,17,100,5,,0,10,2,360,100,,,
+622,breakneck-blitz--physical,7,Breakneck Blitz,1,,1,,0,10,2,1,,,,
+623,breakneck-blitz--special,7,Breakneck Blitz,1,,1,,0,10,3,1,,,,
+624,all-out-pummeling--physical,7,All-Out Pummeling,2,,1,,0,10,2,1,,,,
+625,all-out-pummeling--special,7,All-Out Pummeling,2,,1,,0,10,3,1,,,,
+626,supersonic-skystrike--physical,7,Supersonic Skystrike,3,,1,,0,10,2,1,,,,
+627,supersonic-skystrike--special,7,Supersonic Skystrike,3,,1,,0,10,3,1,,,,
+628,acid-downpour--physical,7,Acid Downpour,4,,1,,0,10,2,1,,,,
+629,acid-downpour--special,7,Acid Downpour,4,,1,,0,10,3,1,,,,
+630,tectonic-rage--physical,7,Tectonic Rage,5,,1,,0,10,2,1,,,,
+631,tectonic-rage--special,7,Tectonic Rage,5,,1,,0,10,3,1,,,,
+632,continental-crush--physical,7,Continental Crush,6,,1,,0,10,2,1,,,,
+633,continental-crush--special,7,Continental Crush,6,,1,,0,10,3,1,,,,
+634,savage-spin-out--physical,7,Savage Spin-Out,7,,1,,0,10,2,1,,,,
+635,savage-spin-out--special,7,Savage Spin-Out,7,,1,,0,10,3,1,,,,
+636,never-ending-nightmare--physical,7,Never-Ending Nightmare,8,,1,,0,10,2,1,,,,
+637,never-ending-nightmare--special,7,Never-Ending Nightmare,8,,1,,0,10,3,1,,,,
+638,corkscrew-crash--physical,7,Corkscrew Crash,9,,1,,0,10,2,1,,,,
+639,corkscrew-crash--special,7,Corkscrew Crash,9,,1,,0,10,3,1,,,,
+640,inferno-overdrive--physical,7,Inferno Overdrive,10,,1,,0,10,2,1,,,,
+641,inferno-overdrive--special,7,Inferno Overdrive,10,,1,,0,10,3,1,,,,
+642,hydro-vortex--physical,7,Hydro Vortex,11,,1,,0,10,2,1,,,,
+643,hydro-vortex--special,7,Hydro Vortex,11,,1,,0,10,3,1,,,,
+644,bloom-doom--physical,7,Bloom Doom,12,,1,,0,10,2,1,,,,
+645,bloom-doom--special,7,Bloom Doom,12,,1,,0,10,3,1,,,,
+646,gigavolt-havoc--physical,7,Gigavolt Havoc,13,,1,,0,10,2,1,,,,
+647,gigavolt-havoc--special,7,Gigavolt Havoc,13,,1,,0,10,3,1,,,,
+648,shattered-psyche--physical,7,Shattered Psyche,14,,1,,0,10,2,1,,,,
+649,shattered-psyche--special,7,Shattered Psyche,14,,1,,0,10,3,1,,,,
+650,subzero-slammer--physical,7,Subzero Slammer,15,,1,,0,10,2,1,,,,
+651,subzero-slammer--special,7,Subzero Slammer,15,,1,,0,10,3,1,,,,
+652,devastating-drake--physical,7,Devastating Drake,16,,1,,0,10,2,1,,,,
+653,devastating-drake--special,7,Devastating Drake,16,,1,,0,10,3,1,,,,
+654,black-hole-eclipse--physical,7,Black Hole Eclipse,17,,1,,0,10,2,1,,,,
+655,black-hole-eclipse--special,7,Black Hole Eclipse,17,,1,,0,10,3,1,,,,
+656,twinkle-tackle--physical,7,Twinkle Tackle,18,,1,,0,10,2,1,,,,
+657,twinkle-tackle--special,7,Twinkle Tackle,18,,1,,0,10,3,1,,,,
+658,catastropika,7,Catastropika,13,210,1,,0,10,2,1,,,,
+659,shore-up,7,Shore Up,5,,10,,0,7,1,382,,,,
+660,first-impression,7,First Impression,7,90,10,100,2,10,2,383,,,,
+661,baneful-bunker,7,Baneful Bunker,4,,10,,4,7,1,384,,,,
+662,spirit-shackle,7,Spirit Shackle,8,80,10,100,0,10,2,385,,,,
+663,darkest-lariat,7,Darkest Lariat,17,85,10,100,0,10,2,304,,,,
+664,sparkling-aria,7,Sparkling Aria,11,90,10,100,0,9,3,386,,,,
+665,ice-hammer,7,Ice Hammer,15,100,10,90,0,10,2,219,100,,,
+666,floral-healing,7,Floral Healing,18,,10,,0,10,1,387,,,,
+667,high-horsepower,7,High Horsepower,5,95,10,95,0,10,2,1,,,,
+668,strength-sap,7,Strength Sap,12,,10,100,0,10,1,388,100,,,
+669,solar-blade,7,Solar Blade,12,125,10,100,0,10,2,152,,,,
+670,leafage,7,Leafage,12,40,40,100,0,10,2,1,,,,
+671,spotlight,7,Spotlight,1,,15,,3,10,1,389,,,,
+672,toxic-thread,7,Toxic Thread,4,,20,100,0,10,1,390,100,,,
+673,laser-focus,7,Laser Focus,1,,30,,0,7,1,391,,,,
+674,gear-up,7,Gear Up,9,,20,,0,13,1,392,,,,
+675,throat-chop,7,Throat Chop,17,80,15,100,0,10,2,393,100,,,
+676,pollen-puff,7,Pollen Puff,7,90,15,100,0,10,3,394,,,,
+677,anchor-shot,7,Anchor Shot,9,80,20,100,0,10,2,385,,,,
+678,psychic-terrain,7,Psychic Terrain,14,,10,,0,12,1,395,,,,
+679,lunge,7,Lunge,7,80,15,100,0,10,2,396,100,,,
+680,fire-lash,7,Fire Lash,10,80,15,100,0,10,2,397,100,,,
+681,power-trip,7,Power Trip,17,20,10,100,0,10,2,306,,,,
+682,burn-up,7,Burn Up,10,130,5,100,0,10,3,398,,,,
+683,speed-swap,7,Speed Swap,14,,10,,0,10,1,399,,,,
+684,smart-strike,7,Smart Strike,9,70,10,,0,10,2,18,,,,
+685,purify,7,Purify,4,,20,,0,10,1,400,,,,
+686,revelation-dance,7,Revelation Dance,1,90,15,100,0,10,3,401,,,,
+687,core-enforcer,7,Core Enforcer,16,100,10,100,0,11,3,402,,,,
+688,trop-kick,7,Trop Kick,12,70,15,100,0,10,2,396,100,,,
+689,instruct,7,Instruct,14,,15,,0,10,1,403,,,,
+690,beak-blast,7,Beak Blast,3,100,15,100,-3,10,2,404,,,,
+691,clanging-scales,7,Clanging Scales,16,110,5,100,0,11,3,405,100,,,
+692,dragon-hammer,7,Dragon Hammer,16,90,15,100,0,10,2,1,,,,
+693,brutal-swing,7,Brutal Swing,17,60,20,100,0,9,2,406,,,,
+694,aurora-veil,7,Aurora Veil,15,,20,,0,4,1,407,,,,
+695,sinister-arrow-raid,7,Sinister Arrow Raid,8,180,1,,0,10,2,1,,,,
+696,malicious-moonsault,7,Malicious Moonsault,17,180,1,,0,10,2,1,,,,
+697,oceanic-operetta,7,Oceanic Operetta,11,195,1,,0,10,3,1,,,,
+698,guardian-of-alola,7,Guardian of Alola,18,,1,,0,10,3,413,,,,
+699,soul-stealing-7-star-strike,7,Soul-Stealing 7-Star Strike,8,195,1,,0,10,2,1,,,,
+700,stoked-sparksurfer,7,Stoked Sparksurfer,13,175,1,,0,10,3,7,100,,,
+701,pulverizing-pancake,7,Pulverizing Pancake,1,210,1,,0,10,2,1,,,,
+702,extreme-evoboost,7,Extreme Evoboost,1,,1,,0,7,1,414,100,,,
+703,genesis-supernova,7,Genesis Supernova,14,185,1,,0,10,3,415,,,,
+704,shell-trap,7,Shell Trap,10,150,5,100,-3,11,3,408,,,,
+705,fleur-cannon,7,Fleur Cannon,18,130,5,90,0,10,3,205,100,,,
+706,psychic-fangs,7,Psychic Fangs,14,85,10,100,0,10,2,187,,,,
+707,stomping-tantrum,7,Stomping Tantrum,5,75,10,100,0,10,2,409,,,,
+708,shadow-bone,7,Shadow Bone,8,85,10,100,0,10,2,70,20,,,
+709,accelerock,7,Accelerock,6,40,20,100,1,10,2,104,,,,
+710,liquidation,7,Liquidation,11,85,10,100,0,10,2,70,20,,,
+711,prismatic-laser,7,Prismatic Laser,14,160,10,100,0,10,3,81,,,,
+712,spectral-thief,7,Spectral Thief,8,90,10,100,0,10,2,410,,,,
+713,sunsteel-strike,7,Sunsteel Strike,9,100,5,100,0,10,2,411,,,,
+714,moongeist-beam,7,Moongeist Beam,8,100,5,100,0,10,3,411,,,,
+715,tearful-look,7,Tearful Look,1,,20,,0,10,1,412,100,,,
+716,zing-zap,7,Zing Zap,13,80,10,100,0,10,2,32,30,,,
+717,natures-madness,7,Nature’s Madness,18,,10,90,0,10,3,41,,,,
+718,multi-attack,7,Multi-Attack,1,90,10,100,0,10,2,269,,,,
+719,10-000-000-volt-thunderbolt,7,"10,000,000 Volt Thunderbolt",13,195,1,,0,10,3,1,,,,
+720,mind-blown,7,Mind Blown,10,150,5,100,0,9,3,420,,,,
+721,plasma-fists,7,Plasma Fists,13,100,15,100,0,10,2,1,,,,
+722,photon-geyser,7,Photon Geyser,14,100,5,100,0,10,3,1,,,,
+723,light-that-burns-the-sky,7,Light That Burns the Sky,14,200,1,,0,10,3,416,,,,
+724,searing-sunraze-smash,7,Searing Sunraze Smash,9,200,1,,0,10,2,411,,,,
+725,menacing-moonraze-maelstrom,7,Menacing Moonraze Maelstrom,8,200,1,,0,10,3,411,,,,
+726,lets-snuggle-forever,7,Let’s Snuggle Forever,18,190,1,,0,10,2,417,,,,
+727,splintered-stormshards,7,Splintered Stormshards,6,190,1,,0,10,2,418,,,,
+728,clangorous-soulblaze,7,Clangorous Soulblaze,16,185,1,,0,11,3,419,100,,,
+10001,shadow-rush,3,Shadow Rush,10002,55,,100,0,10,2,10001,,,,
+10002,shadow-blast,3,Shadow Blast,10002,80,,100,0,10,2,44,,,,
+10003,shadow-blitz,3,Shadow Blitz,10002,40,,100,0,10,2,1,,,,
+10004,shadow-bolt,3,Shadow Bolt,10002,75,,100,0,10,3,7,10,,,
+10005,shadow-break,3,Shadow Break,10002,75,,100,0,10,2,1,,,,
+10006,shadow-chill,3,Shadow Chill,10002,75,,100,0,10,3,6,10,,,
+10007,shadow-end,3,Shadow End,10002,120,,60,0,10,2,10002,,,,
+10008,shadow-fire,3,Shadow Fire,10002,75,,100,0,10,3,5,10,,,
+10009,shadow-rave,3,Shadow Rave,10002,70,,100,0,6,3,1,,,,
+10010,shadow-storm,3,Shadow Storm,10002,95,,100,0,6,3,1,,,,
+10011,shadow-wave,3,Shadow Wave,10002,50,,100,0,6,3,1,,,,
+10012,shadow-down,3,Shadow Down,10002,,,100,0,6,1,60,,,,
+10013,shadow-half,3,Shadow Half,10002,,,100,0,12,3,10003,,,,
+10014,shadow-hold,3,Shadow Hold,10002,,,,0,6,1,107,,,,
+10015,shadow-mist,3,Shadow Mist,10002,,,100,0,6,1,10004,,,,
+10016,shadow-panic,3,Shadow Panic,10002,,,90,0,6,1,50,,,,
+10017,shadow-shed,3,Shadow Shed,10002,,,,0,12,1,10005,,,,
+10018,shadow-sky,3,Shadow Sky,10002,,,,0,12,1,10006,,,,

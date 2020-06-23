@@ -125,6 +125,9 @@ class Invite(commands.Cog):
     async def add_invites(self, member):
         data = await self.db.fetch_member_info(member)
 
+        if data is None:
+            return
+
         update = {"$inc": {"invites": 1}}
 
         species = None

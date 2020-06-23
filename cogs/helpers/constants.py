@@ -16,6 +16,50 @@ REWARD_WEIGHTS = {
     "ultra": [300, 800, 1000, 100, 80, 20, 10, 10, 3],
 }
 
+TYPES = [
+    None,
+    "Normal",
+    "Fighting",
+    "Flying",
+    "Poison",
+    "Ground",
+    "Rock",
+    "Bug",
+    "Ghost",
+    "Steel",
+    "Fire",
+    "Water",
+    "Grass",
+    "Electric",
+    "Psychic",
+    "Ice",
+    "Dragon",
+    "Dark",
+    "Fairy",
+    "???",
+    "Shadow",
+]
+
+DAMAGE_CLASSES = [None, "Status", "Physical", "Special"]
+
+MOVE_TARGETS = [
+    None,
+    "One specific move. How this move is chosen depends upon on the move being used.",
+    "One other Pokémon on the field, selected by the trainer. Stolen moves reuse the same target.",
+    "The user's ally (if any).",
+    "The user's side of the field. Affects the user and its ally (if any).",
+    "Either the user or its ally, selected by the trainer.",
+    "The opposing side of the field. Affects opposing Pokémon.",
+    "The user.",
+    "One opposing Pokémon, selected at random.",
+    "Every other Pokémon on the field.",
+    "One other Pokémon on the field, selected by the trainer.",
+    "All opposing Pokémon.",
+    "The entire field. Affects all Pokémon.",
+    "The user and its allies.",
+    "Every Pokémon on the field.",
+]
+
 NATURES = [
     "Adamant",
     "Bashful",
