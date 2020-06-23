@@ -26,15 +26,24 @@ class Invite(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    # @commands.command()
-    # async def invitetop(self, ctx: commands.Context):
-    #     if ctx.guild.id != self.bot.guild.id:
-    #         return
+    @commands.command()
+    async def invitetop(self, ctx: commands.Context):
+        if ctx.guild.id != self.bot.guild.id:
+            return
 
-    #     member = await self.db.fetch_member_info(ctx.author)
-    #     return await ctx.send(
-    #         f"You've invited **{member.invites}** people to this server! For more info on the invite event, check out <#724215559943880714>.\n\nWhen inviting people, make sure to make your OWN invite link, so we know it's you!"
-    #     )
+        top = await mongo.db.member.aggregate(
+            [{"$project": {"invites": 1}}, {"$sort": {"invites": -1}}, {"$limit": 10}]
+        ).to_list(None)
+        print(top)
+        top = [(self.bot.guild.get_member(x["_id"]), x["invites"]) for x in top]
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = "Top Inviters"
+
+        embed.description = "\n".join(f"**{member}** • {invites} users" for member, invites in top)
+
+        await ctx.send(embed=embed)
 
     @commands.is_owner()
     @commands.command()
@@ -102,7 +111,7 @@ class Invite(commands.Cog):
             await member.send(
                 f"Thanks for inviting **{invreward} user{'' if invreward == 1 else 's'}** to our official server! {msg}"
             )
-        
+
             await ctx.send("Done")
 
     @commands.Cog.listener()
