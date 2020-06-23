@@ -4,6 +4,7 @@ id,name,description,cost,action,page,emote,separate
 10003,XP Booster 2,Doubles your XP for 2 hours!,70,xpboost_120,1,,1
 10004,XP Booster 3,Doubles your XP for 3 hours!,100,xpboost_180,1,,1
 10005,Rare Candy,Levels up your pokémon.,75,level,1,candy_rare,1
+14001,Friendship Bracelet,Causes certain pokémon to evolve.,150,evolve_normal,2,,
 80,Sun Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_sun,
 81,Moon Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_moon,
 82,Fire Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_fire,
