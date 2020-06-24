@@ -38,6 +38,7 @@ class Battling(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
+        embed.description = "Here are the moves your pokémon can learn right now. View all moves and how to get them using `p!moveset`!"
 
         embed.add_field(
             name="Available Moves",
@@ -48,18 +49,96 @@ class Battling(commands.Cog):
             ),
         )
 
+        embed.add_field(
+            name="Current Moves",
+            value="No Moves"
+            if len(pokemon.moves) == 0
+            else "\n".join(
+                models.GameData.move_by_number(x).name for x in pokemon.moves
+            ),
+        )
+
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["ms"])
+    @checks.has_started()
+    @commands.command()
+    async def learn(self, ctx: commands.Context, *, search: str):
+        move = models.GameData.move_by_name(search)
+
+        if move is None:
+            return await ctx.send("Couldn't find that move!")
+
+        member = await self.db.fetch_member_info(ctx.author)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+
+        if move.id in pokemon.moves:
+            return await ctx.send("Your pokémon has already learned that move!")
+
+        try:
+            pokemon_move = next(
+                x for x in pokemon.species.moves if x.move_id == move.id
+            )
+        except StopIteration:
+            pokemon_move = None
+
+        if pokemon_move is None or pokemon_move.method.level > pokemon.level:
+            return await ctx.send("Your pokémon can't learn that move!")
+
+        update = {}
+
+        if len(pokemon.moves) >= 4:
+
+            await ctx.send(
+                "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, or anything else to abort:\n"
+                + "\n".join(
+                    models.GameData.move_by_number(x).name for x in pokemon.moves
+                )
+            )
+
+            def check(m):
+                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+            try:
+                msg = await self.bot.wait_for("message", timeout=60, check=check)
+            except asyncio.TimeoutError:
+                return await ctx.send("Time's up. Aborted.")
+
+            rep_move = models.GameData.move_by_name(msg.content)
+
+            if rep_move is None or rep_move.id not in pokemon.moves:
+                return await ctx.send("Aborted.")
+
+            idx = pokemon.moves.index(rep_move.id)
+
+            update["$set"] = {f"pokemon.{member.selected}.moves.{idx}": move.id}
+
+        else:
+            update["$push"] = {f"pokemon.{member.selected}.moves": move.id}
+
+        await self.db.update_member(ctx.author, update)
+
+        return await ctx.send("Your pokémon has learned " + move.name + "!")
+
+    @commands.command(aliases=["ms"], rest_is_raw=True)
     async def moveset(self, ctx: commands.Context, *, search: str):
 
-        if search[0] in "N#" and search[1:].isdigit():
+        search = search.strip()
+
+        if len(search) > 0 and search[0] in "Nn#" and search[1:].isdigit():
             species = models.GameData.species_by_number(int(search[1:]))
         else:
             species = models.GameData.species_by_name(search)
 
+            if species is None:
+                converter = converters.Pokemon(raise_errors=False)
+                pokemon, idx = await converter.convert(ctx, search)
+                if pokemon is not None:
+                    species = pokemon.species
+
         if species is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            raise converters.PokemonConversionError(
+                f"Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for a specific pokémon, `latest` for your latest pokémon."
+            )
 
         async def get_page(pidx, clear):
             pgstart = (pidx) * 20

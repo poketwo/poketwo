@@ -497,8 +497,8 @@ class Shop(commands.Cog):
                 for move in pokemon.species.moves:
                     if pokemon.level + qty >= move.method.level > pokemon.level:
                         embed.add_field(
-                            name=f"New move learned!",
-                            value=f"Your {name} can now use {move.move.name}!",
+                            name=f"New move!",
+                            value=f"Your {name} can now learn {move.move.name}!",
                         )
                         c += 1
 

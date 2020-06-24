@@ -168,7 +168,7 @@ class Pokedex(commands.Cog):
         else:
             shiny = False
 
-            if search_or_page[0] in "N#" and search_or_page[1:].isdigit():
+            if search_or_page[0] in "Nn#" and search_or_page[1:].isdigit():
                 species = models.GameData.species_by_number(int(search_or_page[1:]))
 
             else:

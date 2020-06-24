@@ -6,8 +6,9 @@ class PokemonConversionError(commands.CommandError):
 
 
 class Pokemon(commands.Converter):
-    def __init__(self, accept_blank=True):
+    def __init__(self, accept_blank=True, raise_errors=True):
         self.accept_blank = accept_blank
+        self.raise_errors = raise_errors
 
     async def convert(self, ctx, arg):
         arg = arg.strip()
@@ -22,6 +23,8 @@ class Pokemon(commands.Converter):
             number = int(arg) - 1
         elif arg.lower() == "latest":
             number = -1
+        elif not self.raise_errors:
+            return None, None
         elif self.accept_blank:
             raise PokemonConversionError(
                 f"Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon."

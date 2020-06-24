@@ -521,7 +521,7 @@ class Pokemon(commands.Cog):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
 
         try:
-            msg = await self.bot.wait_for("message", timeout=15, check=check)
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
 
             if msg.content.lower() != "y":
                 return await ctx.send("Aborted.")
@@ -628,7 +628,7 @@ class Pokemon(commands.Cog):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
 
         try:
-            msg = await self.bot.wait_for("message", timeout=15, check=check)
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
 
             if msg.content != f"confirm release {num}":
                 return await ctx.send("Aborted.")

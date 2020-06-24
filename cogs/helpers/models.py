@@ -569,6 +569,13 @@ class GameData:
             return None
 
     @classmethod
+    def move_by_number(cls, number: int) -> Move:
+        try:
+            return _Data.moves[number]
+        except KeyError:
+            return None
+
+    @classmethod
     def move_by_name(cls, name: str) -> Move:
         try:
             return next(
