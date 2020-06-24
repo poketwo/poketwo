@@ -1,11 +1,12 @@
 import asyncio
+import math
 from functools import cached_property
 
 import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo, models, converters
+from .helpers import checks, converters, models, mongo, pagination
 
 
 def setup(bot: commands.Bot):
@@ -37,23 +38,63 @@ class Battling(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
-        embed.description = "Early preview of battle moves (you can't set moves yet). Battling will come soon! Join the official server for updates regarding battling."
 
-        for idx, xlist in enumerate(chunks(pokemon.species.moveset, 3)):
-            embed.add_field(
-                name="Moveset" if idx == 0 else "‎",
-                value="\n".join(x.name for x in xlist),
-            )
+        embed.add_field(
+            name="Available Moves",
+            value="\n".join(
+                x.move.name
+                for x in pokemon.species.moves
+                if pokemon.level >= x.method.level
+            ),
+        )
 
         await ctx.send(embed=embed)
+
+    @commands.command(aliases=["ms"])
+    async def moveset(self, ctx: commands.Context, *, search: str):
+
+        if search[0] in "N#" and search[1:].isdigit():
+            species = models.GameData.species_by_number(int(search[1:]))
+        else:
+            species = models.GameData.species_by_name(search)
+
+        if species is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        async def get_page(pidx, clear):
+            pgstart = (pidx) * 20
+            pgend = min(pgstart + 20, len(species.moves))
+
+            # Send embed
+
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"{species} — Moveset"
+
+            embed.set_footer(
+                text=f"Showing {pgstart + 1}–{pgend} out of {len(species.moves)}."
+            )
+
+            for move in species.moves[pgstart:pgend]:
+                embed.add_field(name=move.move.name, value=move.text)
+
+            for i in range(-pgend % 3):
+                embed.add_field(name="‎", value="‎")
+
+            return embed
+
+        paginator = pagination.Paginator(
+            get_page, num_pages=math.ceil(len(species.moves) / 20)
+        )
+        await paginator.send(self.bot, ctx, 0)
 
     @commands.command(aliases=["mi"])
     async def moveinfo(self, ctx: commands.Context, *, search: str):
         """Get information about a certain move."""
 
-        try:
-            move = models.GameData.move_by_name(search)
-        except models.SpeciesNotFoundError:
+        move = models.GameData.move_by_name(search)
+
+        if move is None:
             return await ctx.send("Couldn't find a move with that name!")
 
         embed = discord.Embed()

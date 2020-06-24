@@ -30,6 +30,12 @@ class Spawning(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        try:
+            await self.handle_message(message)
+        except discord.Forbidden:
+            pass
+
+    async def handle_message(self, message: discord.Message):
         if not self.bot.enabled:
             return
 
@@ -93,21 +99,34 @@ class Spawning(commands.Cog):
                     if (
                         pokemon.species.level_evolution is not None
                         and pokemon.held_item != 13001
+                        and pokemon.level + 1
+                        >= pokemon.species.level_evolution.trigger.level
                     ):
-                        if (
-                            pokemon.level + 1
-                            >= pokemon.species.level_evolution.trigger.level
-                        ):
-                            embed.add_field(
-                                name=f"Your {name} is evolving!",
-                                value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
-                            )
-                            update["$set"][
-                                f"pokemon.{member.selected}.species_id"
-                            ] = pokemon.species.level_evolution.target_id
+                        embed.add_field(
+                            name=f"Your {name} is evolving!",
+                            value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
+                        )
+                        update["$set"][
+                            f"pokemon.{member.selected}.species_id"
+                        ] = pokemon.species.level_evolution.target_id
 
-                            if member.silence and pokemon.level < 99:
-                                await message.author.send(embed=embed)
+                        if member.silence and pokemon.level < 99:
+                            await message.author.send(embed=embed)
+
+                    else:
+                        c = 0
+                        for move in pokemon.species.moves:
+                            if move.method.level == pokemon.level + 1:
+                                embed.add_field(
+                                    name=f"New move learned!",
+                                    value=f"Your {name} can now use {move.move.name}!",
+                                )
+                                c += 1
+
+                        for i in range(-c % 3):
+                            embed.add_field(
+                                name="‎", value="‎",
+                            )
 
                     await self.db.update_member(message.author, update)
 

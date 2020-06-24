@@ -63,10 +63,7 @@ class Pokemon(EmbeddedDocument):
 
     @property
     def species(self):
-        try:
-            return models.GameData.species_by_number(self.species_id)
-        except models.SpeciesNotFoundError:
-            return None
+        return models.GameData.species_by_number(self.species_id)
 
     @property
     def max_xp(self):

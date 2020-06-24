@@ -178,9 +178,8 @@ class Pokedex(commands.Cog):
                     shiny = True
                     search = search_or_page[6:]
 
-                try:
-                    species = models.GameData.species_by_name(search)
-                except models.SpeciesNotFoundError:
+                species = models.GameData.species_by_name(search)
+                if species is None:
                     return await ctx.send(
                         f"Could not find a pokemon matching `{search_or_page}`."
                     )

@@ -136,6 +136,38 @@ class Item:
         return self.name
 
 
+class MoveMethod(ABC):
+    pass
+
+
+class LevelMethod(MoveMethod):
+    level: int
+
+    def __init__(self, level):
+        self.level = level
+
+    @cached_property
+    def text(self):
+        return f"Level {self.level}"
+
+
+class PokemonMove:
+    move_id: int
+    method: MoveMethod
+
+    def __init__(self, move_id, method):
+        self.move_id = move_id
+        self.method = method
+
+    @cached_property
+    def move(self):
+        return _Data.moves[self.move_id]
+
+    @cached_property
+    def text(self):
+        return self.method.text
+
+
 # Evolution
 
 
@@ -269,7 +301,7 @@ class Species:
     form_item: int
     abundance: int
 
-    moveset_ids: List[int]
+    moves: List[PokemonMove]
 
     mega_id: int
     mega_x_id: int
@@ -297,7 +329,7 @@ class Species:
         ultra_beast: bool = False,
         is_form: bool = False,
         form_item: int = None,
-        moveset_ids: list = [],
+        moves: list = None,
     ):
         self.id = id
         self.names = names
@@ -318,7 +350,7 @@ class Species:
         self.mega_y_id = mega_y_id
 
         self.types = types
-        self.moveset_ids = moveset_ids
+        self.moves = moves or []
 
         if evolution_from is not None:
             self.evolution_from = EvolutionList(evolution_from)
@@ -336,7 +368,7 @@ class Species:
 
     def __str__(self):
         return self.name
-    
+
     @cached_property
     def moveset(self):
         return [_Data.moves[x] for x in self.moveset_ids]
@@ -427,10 +459,6 @@ def load_data(*, pokemon, items, effects, moves):
     _Data.moves = moves
 
 
-class SpeciesNotFoundError(Exception):
-    pass
-
-
 class GameData:
     @classmethod
     def all_pokemon(cls):
@@ -505,7 +533,7 @@ class GameData:
         try:
             return _Data.pokemon[number]
         except KeyError:
-            raise SpeciesNotFoundError
+            return None
 
     @classmethod
     def species_by_name(cls, name: str) -> Species:
@@ -518,14 +546,14 @@ class GameData:
                 )
             )
         except StopIteration:
-            raise SpeciesNotFoundError
+            return None
 
     @classmethod
     def item_by_number(cls, number: int) -> Item:
         try:
             return _Data.items[number]
         except KeyError:
-            raise SpeciesNotFoundError
+            return None
 
     @classmethod
     def item_by_name(cls, name: str) -> Item:
@@ -538,7 +566,7 @@ class GameData:
                 )
             )
         except StopIteration:
-            raise SpeciesNotFoundError
+            return None
 
     @classmethod
     def move_by_name(cls, name: str) -> Move:
@@ -551,7 +579,7 @@ class GameData:
                 )
             )
         except StopIteration:
-            raise SpeciesNotFoundError
+            return None
 
     @classmethod
     def random_spawn(cls, rarity="normal"):

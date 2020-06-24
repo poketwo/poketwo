@@ -235,9 +235,9 @@ class Bot(commands.Cog):
 
         member = await self.db.fetch_member_info(user)
 
-        try:
-            species = models.GameData.species_by_name(species)
-        except models.SpeciesNotFoundError:
+        species = models.GameData.species_by_name(species)
+
+        if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         await self.db.update_member(

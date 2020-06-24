@@ -4,15 +4,21 @@ from pathlib import Path
 from cogs.helpers import models
 
 
-def get_pokemon():
-    path = Path.cwd() / "data" / "pokemon.csv"
+def get_data_from(filename):
+    path = Path.cwd() / "data" / filename
 
     with open(path) as f:
         reader = csv.DictReader(f)
-        species = [None] + list(
+        data = list(
             {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
             for row in reader
         )
+
+    return data
+
+
+def get_pokemon():
+    species = [None] + get_data_from("pokemon.csv")
 
     pokemon = {}
 
@@ -86,13 +92,6 @@ def get_pokemon():
         if "name.fr" in row:
             names.append(("🇫🇷", row["name.fr"]))
 
-        moveset_ids = []
-        if "moves" in row:
-            if type(row["moves"]) == int:
-                moveset_ids = [row["moves"]]
-            else:
-                moveset_ids = [int(x) for x in row["moves"].split()]
-
         pokemon[row["id"]] = models.Species(
             id=row["id"],
             names=names,
@@ -121,21 +120,24 @@ def get_pokemon():
             ultra_beast="ultra_beast" in row,
             is_form="is_form" in row,
             form_item=row["form_item"] if "form_item" in row else None,
-            moveset_ids=moveset_ids,
         )
+
+    moves = get_data_from("pokemon_moves.csv")
+
+    for row in moves:
+        if row["pokemon_move_method_id"] == 1 and row["pokemon_id"] in pokemon:
+            pokemon[row["pokemon_id"]].moves.append(
+                models.PokemonMove(row["move_id"], models.LevelMethod(row["level"]))
+            )
+    
+    for p in pokemon.values():
+        p.moves.sort(key=lambda x: x.method.level)
 
     return pokemon
 
 
 def get_items():
-    path = Path.cwd() / "data" / "items.csv"
-
-    with open(path) as f:
-        reader = csv.DictReader(f)
-        data = list(
-            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
-            for row in reader
-        )
+    data = get_data_from("items.csv")
 
     items = {}
 
@@ -155,14 +157,7 @@ def get_items():
 
 
 def get_effects():
-    path = Path.cwd() / "data" / "move_effects.csv"
-
-    with open(path) as f:
-        reader = csv.DictReader(f)
-        data = list(
-            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
-            for row in reader
-        )
+    data = get_data_from("move_effects.csv")
 
     effects = {}
 
@@ -173,14 +168,7 @@ def get_effects():
 
 
 def get_moves():
-    path = Path.cwd() / "data" / "moves.csv"
-
-    with open(path) as f:
-        reader = csv.DictReader(f)
-        data = list(
-            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
-            for row in reader
-        )
+    data = get_data_from("moves.csv")
 
     moves = {}
 

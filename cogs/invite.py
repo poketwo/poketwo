@@ -41,7 +41,9 @@ class Invite(commands.Cog):
         embed.color = 0xF44336
         embed.title = "Top Inviters"
 
-        embed.description = "\n".join(f"**{member}** • {invites} users" for member, invites in top)
+        embed.description = "\n".join(
+            f"**{member}** • {invites} users" for member, invites in top
+        )
 
         await ctx.send(embed=embed)
 
@@ -201,6 +203,8 @@ class Invite(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        await self.bot.wait_until_ready()
+
         if member.guild.id != self.bot.guild.id:
             return
 

@@ -53,9 +53,8 @@ class Pokemon(commands.Cog):
         if member.redeems == 0:
             return await ctx.send("You don't have any redeems!")
 
-        try:
-            species = models.GameData.species_by_name(species)
-        except models.SpeciesNotFoundError:
+        species = models.GameData.species_by_name(species)
+        if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         if not species.catchable:
@@ -115,9 +114,8 @@ class Pokemon(commands.Cog):
         if member.redeems == 0:
             return await ctx.send("You don't have any redeems!")
 
-        try:
-            species = models.GameData.species_by_name(species)
-        except models.SpeciesNotFoundError:
+        species = models.GameData.species_by_name(species)
+        if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
         if not species.catchable:
