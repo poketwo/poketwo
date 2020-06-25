@@ -167,7 +167,7 @@ class Spawning(commands.Cog):
             else:
                 channel = message.channel
 
-            if message.guild.id == 716390832034414685:
+            if message.guild.id == 716390832034414685 and self.bot.env != "dev":
                 channel, channel2 = [
                     self.bot.get_channel(x)
                     for x in random.sample(

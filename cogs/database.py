@@ -25,23 +25,30 @@ class Database(commands.Cog):
 
         member = await self.fetch_member_info(ctx.author)
 
-        embed.add_field(
-            name="Pokémon Caught", value=await self.fetch_pokemon_count(ctx.author)
+        pokemon_caught = []
+
+        pokemon_caught.append(
+            "**Total: **" + str(await self.fetch_pokedex_sum(ctx.author))
         )
 
         for name, filt in (
-            ("Mythicals", models.GameData.list_mythical()),
-            ("Legendaries", models.GameData.list_legendary()),
+            ("Mythical", models.GameData.list_mythical()),
+            ("Legendary", models.GameData.list_legendary()),
             ("Ultra Beast", models.GameData.list_ub()),
         ):
-            embed.add_field(
-                name=f"{name} Caught",
-                value=await self.fetch_pokemon_count(
-                    ctx.author, [{"$match": {"pokemon.species_id": {"$in": filt}}}],
-                ),
+            pokemon_caught.append(
+                f"**{name}: **"
+                + str(
+                    await self.fetch_pokedex_sum(
+                        ctx.author,
+                        [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
+                    )
+                )
             )
 
-        embed.add_field(name="Shinies Caught", value=member.shinies_caught)
+        pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
+
+        embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
 
         await ctx.send(embed=embed)
 
@@ -101,11 +108,38 @@ class Database(commands.Cog):
         result = await mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
-                {"$addFields": {"count": {"$size": {"$objectToArray": "$pokedex"}}}},
+                {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
+                {"$unwind": {"path": "$pokedex"}},
+                {"$replaceRoot": {"newRoot": "$pokedex"}},
+                *aggregations,
+                {"$group": {"_id": "count", "result": {"$sum": 1}}},
             ]
         ).to_list(None)
 
-        return result[0]["count"]
+        if len(result) == 0:
+            return 0
+
+        return result[0]["result"]
+
+    async def fetch_pokedex_sum(
+        self, member: discord.Member, aggregations=[]
+    ) -> mongo.Member:
+
+        result = await mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
+                {"$unwind": {"path": "$pokedex"}},
+                {"$replaceRoot": {"newRoot": "$pokedex"}},
+                *aggregations,
+                {"$group": {"_id": "sum", "result": {"$sum": "$v"}}},
+            ]
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["result"]
 
     async def update_member(self, member: discord.Member, update):
         return await mongo.db.member.update_one({"_id": member.id}, update)

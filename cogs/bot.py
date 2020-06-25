@@ -270,11 +270,13 @@ class Bot(commands.Cog):
         member = await self.db.fetch_member_info(user)
 
         pokemon = []
+        pokedex = {}
 
         for i in range(num):
+            spid = random.randint(1, 809)
             pokemon.append(
                 {
-                    "species_id": random.randint(1, 809),
+                    "species_id": spid,
                     "level": 1,
                     "xp": 0,
                     "nature": mongo.random_nature(),
@@ -287,9 +289,10 @@ class Bot(commands.Cog):
                     "shiny": random.randint(1, 4096) == 1,
                 }
             )
+            pokedex["pokedex." + str(spid)] = pokedex.get("pokedex." + str(spid), 0) + 1
 
         await self.db.update_member(
-            user, {"$push": {"pokemon": {"$each": pokemon}},},
+            user, {"$push": {"pokemon": {"$each": pokemon}}, "$inc": pokedex},
         )
 
         await ctx.send(f"Gave {user.mention} {num} pokémon.")
