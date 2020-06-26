@@ -305,11 +305,9 @@ class EmojiManager:
 
         gguild = await bot.fetch_guild(725819081835544596)
 
-        self.blank = next(filter(lambda x: x.name == "blank", gguild.emojis))
         self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
         self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))
         self.gray = next(filter(lambda x: x.name == "gray_tick", gguild.emojis))
-        self.heart = next(filter(lambda x: x.name == "red_heart", gguild.emojis))
 
         self.gift_normal = next(
             filter(lambda x: x.name == "gift_normal", gguild.emojis)

@@ -751,10 +751,7 @@ class Pokemon(commands.Cog):
                 name += ' "' + p.nickname + '"'
 
             if p.favorite:
-                if do_emojis:
-                    name += f" {constants.EMOJIS.heart}".replace("red_heart", "h")
-                else:
-                    name += " ❤️"
+                name += " ❤️"
 
             return name
 
