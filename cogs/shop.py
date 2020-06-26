@@ -270,7 +270,7 @@ class Shop(commands.Cog):
 
             items = [i for i in models.GameData.all_items() if i.page == page]
 
-            gguild = self.bot.get_guild(716390832034414685)
+            gguild = self.bot.get_guild(725819081835544596)
 
             for item in items:
                 emote = ""

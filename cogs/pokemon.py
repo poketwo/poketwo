@@ -280,7 +280,7 @@ class Pokemon(commands.Cog):
 
             if pokemon.held_item:
                 item = models.GameData.item_by_number(pokemon.held_item)
-                gguild = self.bot.get_guild(716390832034414685)
+                gguild = self.bot.get_guild(725819081835544596)
                 emote = ""
                 if item.emote is not None:
                     try:

@@ -303,7 +303,7 @@ class EmojiManager:
             self._emojis.append(emoji)
             self._shiny.append(shiny)
 
-        gguild = await bot.fetch_guild(716390832034414685)
+        gguild = await bot.fetch_guild(725819081835544596)
 
         self.blank = next(filter(lambda x: x.name == "blank", gguild.emojis))
         self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
