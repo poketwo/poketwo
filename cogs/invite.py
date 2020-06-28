@@ -125,6 +125,8 @@ class Invite(commands.Cog):
         self.bot.invited_ids = set()
 
     async def add_invites(self, member):
+        return
+
         data = await self.db.fetch_member_info(member)
 
         if data is None:
