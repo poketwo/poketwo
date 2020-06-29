@@ -37,7 +37,7 @@ def dbl():
         {"_id": int(request.json["user"])},
         {
             "$set": {"vote_streak": streak, "last_voted": datetime.now()},
-            "$inc": {"total_votes": 1, f"gifts_{box_type}": 1},
+            "$inc": {"vote_total": 1, f"gifts_{box_type}": 1},
         },
     )
 
