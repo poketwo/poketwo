@@ -19,7 +19,7 @@ def dbl():
     res = db.member.find_one({"_id": int(request.json["user"])})
 
     streak = res.get("vote_streak", 0)
-    last_voted = res.get("last_voted", datetime.min())
+    last_voted = res.get("last_voted", datetime.min)
 
     if datetime.now() - last_voted < timedelta(days=2):
         streak += 1
