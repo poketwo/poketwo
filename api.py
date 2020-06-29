@@ -2,6 +2,7 @@ import asyncio
 import hmac
 import os
 
+from datetime import datetime, timedelta
 from flask import Flask, abort, request
 from pymongo import MongoClient
 
@@ -14,6 +15,29 @@ app = Flask(__name__)
 @app.route("/dbl", methods=["POST"])
 def dbl():
     print(request.json)
+
+    res = db.member.find_one({"_id": int(request.json["user"])})
+
+    streak = res.get("vote_streak", 0)
+    last_voted = res.get("last_voted", datetime.min())
+
+    if datetime.now() - last_voted < timedelta(days=2):
+        streak += 1
+    else:
+        streak = 0
+
+    box_type = "normal"
+
+    if streak >= 14:
+        box_type = "ultra"
+    elif streak >= 7:
+        box_type = "great"
+
+    db.member.update_one(
+        {"_id": int(request.json["user"])},
+        {"$set": {"vote_streak": streak, "last_voted": datetime.now()}},
+        {"$inc": {"total_votes": 1, f"gift_{box_type}": 1}},
+    )
 
 
 # @app.route("/patreon", methods=["POST"])
