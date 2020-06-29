@@ -19,10 +19,15 @@ class Spawning(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.bot.spawns = {}
+
+        if not hasattr(self.bot, "spawns"):
+            self.bot.spawns = {}
+
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
-        self.bot.guild_counter = {}
+
+        if not hasattr(self.bot, "guild_counter"):
+            self.bot.guild_counter = {}
 
     @property
     def db(self) -> Database:
@@ -36,6 +41,9 @@ class Spawning(commands.Cog):
             pass
 
     async def handle_message(self, message: discord.Message):
+        if message.guild is None:
+            return
+
         if not self.bot.enabled:
             return
 

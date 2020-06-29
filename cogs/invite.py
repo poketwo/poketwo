@@ -32,7 +32,8 @@ class Invite(commands.Cog):
             return
 
         top = await mongo.db.member.aggregate(
-            [{"$project": {"invites": 1}}, {"$sort": {"invites": -1}}, {"$limit": 10}]
+            [{"$project": {"invites": 1}}, {"$sort": {"invites": -1}}, {"$limit": 10}],
+            allowDiskUse=True,
         ).to_list(None)
         print(top)
         top = [(self.bot.guild.get_member(x["_id"]), x["invites"]) for x in top]

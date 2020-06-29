@@ -16,11 +16,12 @@ discord-flags = "*"
 unidecode = "*"
 humanfriendly = "*"
 motor = "*"
-umongo = "*"
+umongo = "==3.0.0b7"
 flask = "*"
 requests = "*"
 gunicorn = "*"
 dblpy = "*"
+jishaku = "*"
 
 [requires]
 python_version = "3.8"

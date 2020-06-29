@@ -19,8 +19,14 @@ class Bot(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.bot.prefixes = {}
-        self.bot.dblpy = dbl.DBLClient(self.bot, os.getenv("DBL_TOKEN"), autopost=True)
+
+        if not hasattr(self.bot, "prefixes"):
+            self.bot.prefixes = {}
+
+        if not hasattr(self.bot, "dblpy"):
+            self.bot.dblpy = dbl.DBLClient(
+                self.bot, os.getenv("DBL_TOKEN"), autopost=True
+            )
 
     @property
     def db(self) -> Database:
@@ -161,7 +167,8 @@ class Bot(commands.Cog):
             [
                 {"$project": {"pokemon_count": {"$size": "$pokemon"}},},
                 {"$group": {"_id": None, "total_count": {"$sum": "$pokemon_count"},},},
-            ]
+            ],
+            allowDiskUse=True,
         ).to_list(1)
 
         embed.add_field(
@@ -277,7 +284,7 @@ class Bot(commands.Cog):
             pokemon.append(
                 {
                     "species_id": spid,
-                    "level": 1,
+                    "level": 80,
                     "xp": 0,
                     "nature": mongo.random_nature(),
                     "iv_hp": mongo.random_iv(),

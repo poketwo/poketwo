@@ -36,6 +36,8 @@ client = commands.AutoShardedBot(
 client.env = env
 client.enabled = False
 
+client.load_extension("jishaku")
+
 for cog in cogs.ALL_COGS:
     client.load_extension(f"cogs.{cog}")
 
@@ -109,13 +111,6 @@ async def on_message(message: discord.Message):
     await client.process_commands(message)
 
 
-@client.event
-async def on_ready():
-    await constants.EMOJIS.init_emojis(client)
-    print(f"Logged in as {client.user}")
-    client.enabled = True
-
-
 client.add_check(checks.enabled(client))
 
 
@@ -124,6 +119,15 @@ client.add_check(checks.enabled(client))
 print("Starting bot...")
 
 try:
+
+    async def do_tasks():
+        await client.wait_until_ready()
+        await constants.EMOJIS.init_emojis(client)
+        print(f"Logged in as {client.user}")
+        client.enabled = True
+
+    client.loop.create_task(do_tasks())
     client.run(bot_token)
+
 except KeyboardInterrupt:
     client.logout()

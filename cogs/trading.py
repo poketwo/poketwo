@@ -17,7 +17,9 @@ class Trading(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.bot.trades = {}
+
+        if not hasattr(self.bot, "trades"):
+            self.bot.trades = {}
 
     @property
     def db(self) -> Database:
@@ -70,12 +72,6 @@ class Trading(commands.Cog):
             embed.add_field(
                 name=f"{sign} {mem.display_name}", value="None" if val == "" else val,
             )
-
-        if "prev" in trade:
-            try:
-                await trade["prev"].delete()
-            except:
-                pass
 
         # Check if done
 
@@ -164,6 +160,12 @@ class Trading(commands.Cog):
                 )
 
         # Send msg
+
+        if "prev" in trade:
+            try:
+                await trade["prev"].delete()
+            except:
+                pass
 
         msg = await ctx.send(embed=embed)
 

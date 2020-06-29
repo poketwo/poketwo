@@ -93,7 +93,8 @@ class Database(commands.Cog):
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$count": "num_matches"},
-            ]
+            ],
+            allowDiskUse=True,
         ).to_list(None)
 
         if len(result) == 0:
@@ -113,7 +114,8 @@ class Database(commands.Cog):
                 {"$replaceRoot": {"newRoot": "$pokedex"}},
                 *aggregations,
                 {"$group": {"_id": "count", "result": {"$sum": 1}}},
-            ]
+            ],
+            allowDiskUse=True,
         ).to_list(None)
 
         if len(result) == 0:
@@ -133,7 +135,8 @@ class Database(commands.Cog):
                 {"$replaceRoot": {"newRoot": "$pokedex"}},
                 *aggregations,
                 {"$group": {"_id": "sum", "result": {"$sum": "$v"}}},
-            ]
+            ],
+            allowDiskUse=True,
         ).to_list(None)
 
         if len(result) == 0:
