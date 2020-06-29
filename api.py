@@ -35,8 +35,10 @@ def dbl():
 
     db.member.update_one(
         {"_id": int(request.json["user"])},
-        {"$set": {"vote_streak": streak, "last_voted": datetime.now()}},
-        {"$inc": {"total_votes": 1, f"gift_{box_type}": 1}},
+        {
+            "$set": {"vote_streak": streak, "last_voted": datetime.now()},
+            "$inc": {"total_votes": 1, f"gift_{box_type}": 1},
+        },
     )
 
 
