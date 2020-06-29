@@ -24,7 +24,7 @@ def dbl():
     if datetime.now() - last_voted < timedelta(days=2):
         streak += 1
     else:
-        streak = 0
+        streak += 1
 
     box_type = "normal"
 
