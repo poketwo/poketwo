@@ -278,14 +278,14 @@ class Pokemon(commands.Cog):
 
             embed.add_field(name="Stats", value="\n".join(stats))
 
-            embed.add_field(
-                name="Moves",
-                value="No Moves"
-                if len(pokemon.moves) == 0
-                else "\n".join(
-                    models.GameData.move_by_number(x).name for x in pokemon.moves
-                ),
-            )
+            # embed.add_field(
+            #     name="Moves",
+            #     value="No Moves"
+            #     if len(pokemon.moves) == 0
+            #     else "\n".join(
+            #         models.GameData.move_by_number(x).name for x in pokemon.moves
+            #     ),
+            # )
 
             if pokemon.held_item:
                 item = models.GameData.item_by_number(pokemon.held_item)
