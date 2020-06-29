@@ -41,6 +41,8 @@ def dbl():
         },
     )
 
+    return "Success", 200
+
 
 # @app.route("/patreon", methods=["POST"])
 # def patreon():
