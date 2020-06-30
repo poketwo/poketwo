@@ -220,18 +220,6 @@ class Battling(commands.Cog):
         await asyncio.sleep(5)
         await self.send_battle(a)
 
-    @checks.has_started()
-    @battle.command(aliases=["x"])
-    async def cancel(self, ctx: commands.Context):
-        if ctx.author.id not in self.bot.battles:
-            return await ctx.send("You're not in a battle!")
-
-        a, b = self.bot.battles[ctx.author.id]["users"]
-        del self.bot.battles[a.id]
-        del self.bot.battles[b.id]
-
-        await ctx.send("The battle has been canceled.")
-
     async def send_battle(self, user: discord.Member):
         battle = self.bot.battles[user.id]
         a, b = battle["users"]
@@ -653,3 +641,15 @@ class Battling(commands.Cog):
         embed.add_field(name="Class", value=move.damage_class)
 
         await ctx.send(embed=embed)
+
+    @checks.has_started()
+    @battle.command(aliases=["x"])
+    async def cancel(self, ctx: commands.Context):
+        if ctx.author.id not in self.bot.battles:
+            return await ctx.send("You're not in a battle!")
+
+        a, b = self.bot.battles[ctx.author.id]["users"]
+        del self.bot.battles[a.id]
+        del self.bot.battles[b.id]
+
+        await ctx.send("The battle has been canceled.")
