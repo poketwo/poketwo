@@ -197,7 +197,9 @@ class Trading(commands.Cog):
         await message.add_reaction("✅")
 
         def check(reaction, u):
-            return u == user and str(reaction.emoji) == "✅"
+            return (
+                reaction.message.id == message.id and u == user and str(reaction.emoji) == "✅"
+            )
 
         try:
             await self.bot.wait_for("reaction_add", timeout=30, check=check)
