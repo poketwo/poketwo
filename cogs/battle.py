@@ -649,7 +649,7 @@ class Battling(commands.Cog):
             return await ctx.send("You're not in a battle!")
 
         a, b = self.bot.battles[ctx.author.id]["users"]
-        del self.bot.battles[a.id]
-        del self.bot.battles[b.id]
+        del self.bot.battles[a]
+        del self.bot.battles[b]
 
         await ctx.send("The battle has been canceled.")
