@@ -157,7 +157,7 @@ class Battling(commands.Cog):
                 move = action["value"]
                 success = True
 
-                if move.damage_class_id == 1:
+                if move.damage_class_id == 1 or move.power is None:
                     damage = 0
                 else:
                     if move.damage_class_id == 2:
@@ -219,6 +219,18 @@ class Battling(commands.Cog):
 
         await asyncio.sleep(5)
         await self.send_battle(a)
+
+    @checks.has_started()
+    @trade.command(aliases=["x"])
+    async def cancel(self, ctx: commands.Context):
+        if ctx.author.id not in self.bot.battles:
+            return await ctx.send("You're not in a battle!")
+
+        a, b = self.bot.battles[ctx.author.id]["users"]
+        del self.bot.battles[a.id]
+        del self.bot.battles[b.id]
+
+        await ctx.send("The battle has been canceled.")
 
     async def send_battle(self, user: discord.Member):
         battle = self.bot.battles[user.id]
