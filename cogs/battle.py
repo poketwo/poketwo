@@ -221,7 +221,7 @@ class Battling(commands.Cog):
         await self.send_battle(a)
 
     @checks.has_started()
-    @trade.command(aliases=["x"])
+    @battle.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
         if ctx.author.id not in self.bot.battles:
             return await ctx.send("You're not in a battle!")
