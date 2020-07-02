@@ -128,6 +128,9 @@ class Pokemon(commands.Cog):
             ctx.author, {"$inc": {"redeems": -1}},
         )
 
+        await ctx.message.delete()
+
+        self.bot.redeem[ctx.channel.id] = datetime.now()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
     @commands.command(aliases=["nick"])

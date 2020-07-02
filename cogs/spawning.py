@@ -1,5 +1,6 @@
 import random
 import time
+from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import discord
 from discord.ext import commands
 
 from .database import Database
-from .helpers import checks, mongo, models
+from .helpers import checks, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -25,6 +26,7 @@ class Spawning(commands.Cog):
 
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
+        self.bot.redeem = {}
 
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
@@ -191,9 +193,18 @@ class Spawning(commands.Cog):
                 ]
 
                 await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
-                await self.spawn_pokemon(channel2)
 
-            await self.spawn_pokemon(channel)
+                if channel2.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
+                    channel2.id
+                ] > timedelta(
+                    minutes=1
+                ):
+                    await self.spawn_pokemon(channel2)
+
+            if channel.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
+                channel.id
+            ] > timedelta(minutes=1):
+                await self.spawn_pokemon(channel)
 
     async def spawn_pokemon(self, channel, species=None, shiny=None):
         # Get random species and level, add to tracker
