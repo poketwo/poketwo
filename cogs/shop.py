@@ -39,7 +39,7 @@ class Shop(commands.Cog):
         embed.color = 0xF44336
         embed.title = f"Voting Rewards"
 
-        embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
+        embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
 
         embed.add_field(
             name="Voting Streak",
