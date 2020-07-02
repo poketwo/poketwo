@@ -128,31 +128,47 @@ class Shop(commands.Cog):
                     f"{reward['value']} redeem" + ("" if reward["value"] == 1 else "s")
                 )
             elif reward["type"] == "pokemon":
-                pokemon = models.GameData.random_spawn(rarity=reward["value"])
-                level = min(max(int(random.normalvariate(20, 10)), 1), 100)
+                species = models.GameData.random_spawn(rarity=reward["value"])
+                level = min(max(int(random.normalvariate(70, 10)), 1), 100)
                 shiny = reward["value"] == "shiny" or random.randint(1, 4096) == 1
+
+                lower_bound = 0
+
+                if reward["value"] == "iv50":
+                    lower_bound = 15
+
+                if reward["value"] == "iv70":
+                    lower_bound = 21
+
+                ivs = [
+                    random.randint(lower_bound, 31),
+                    random.randint(lower_bound, 31),
+                    random.randint(lower_bound, 31),
+                    random.randint(lower_bound, 31),
+                    random.randint(lower_bound, 31),
+                    random.randint(lower_bound, 31),
+                ]
+
+                pokemon = {
+                    "species_id": species.id,
+                    "level": level,
+                    "xp": 0,
+                    "nature": mongo.random_nature(),
+                    "iv_hp": ivs[0],
+                    "iv_atk": ivs[1],
+                    "iv_defn": ivs[2],
+                    "iv_satk": ivs[3],
+                    "iv_sdef": ivs[4],
+                    "iv_spd": ivs[5],
+                    "shiny": shiny,
+                }
+
                 text.append(
-                    f"{constants.EMOJIS.get(pokemon.dex_number, shiny=shiny)} Level {level} {pokemon}"
+                    f"{constants.EMOJIS.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
                     + (" ✨" if shiny else "")
                 )
-                update["$push"]["pokemon"]["$each"].append(
-                    {
-                        "species_id": pokemon.id,
-                        "level": level,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                        "shiny": shiny,
-                    }
-                )
 
-        print(rewards)
-        print(text)
+                update["$push"]["pokemon"]["$each"].append(pokemon)
 
         embed.add_field(name="Rewards Received", value="\n".join(text))
 
