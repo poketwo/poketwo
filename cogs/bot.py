@@ -139,19 +139,10 @@ class Bot(commands.Cog):
     async def invite(self, ctx: commands.Context):
         """Get the invite link for the bot."""
 
-        if ctx.guild.id == self.bot.guild.id:
-            member = await self.db.fetch_member_info(ctx.author)
-            if member is not None:
-                return await ctx.send(
-                    f"You've invited **{member.invites}** people to this server! For more info on the invite event, check out <#724215559943880714>.\n\nWhen inviting people, make sure to make your OWN invite link, so we know it's you!"
-                )
-            else:
-                return await ctx.send("Please do p!start first!")
-
         await ctx.send(
             "Want to add me to your server? Use the link below!\n\n"
             "Invite Bot: https://invite.poketwo.net/\n"
-            "Join Server: https://discord.gg/QyEWy4C\n\n"
+            "Join Server: https://discord.gg/QyEWy4C"
         )
 
     @commands.command()
