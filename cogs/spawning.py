@@ -167,7 +167,11 @@ class Spawning(commands.Cog):
         )
 
         if self.bot.guild_counter[message.guild.id] >= (
-            5 if self.bot.env == "dev" else 15
+            5
+            if self.bot.env == "dev"
+            else 25
+            if message.guild.id == 716390832034414685
+            else 15
         ):
             self.bot.guild_counter[message.guild.id] = 0
             guild = await self.db.fetch_guild(message.guild)
@@ -240,7 +244,7 @@ class Spawning(commands.Cog):
         await channel.send(file=image, embed=embed)
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["h"])
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
@@ -252,7 +256,7 @@ class Spawning(commands.Cog):
         await ctx.send(f"The pokémon is {hint}.")
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["c"])
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
 
@@ -349,6 +353,7 @@ class Spawning(commands.Cog):
 
         await ctx.send(message)
 
+    @checks.has_started()
     @commands.command()
     async def silence(self, ctx: commands.Context):
         """Silence level up messages."""
