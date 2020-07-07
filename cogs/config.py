@@ -1,3 +1,4 @@
+import typing
 import asyncio
 import math
 import random
@@ -69,9 +70,18 @@ class Configuration(commands.Cog):
 
     @checks.is_admin()
     @commands.command()
-    async def redirect(self, ctx: commands.Context, *, channel: discord.TextChannel):
+    async def redirect(
+        self, ctx: commands.Context, *, channel: typing.Union[discord.TextChannel, str]
+    ):
         """Redirect pokémon catches to one channel."""
 
-        await self.db.update_guild(ctx.guild, {"$set": {"channel": channel.id}})
+        if channel == "reset":
+            id = None
+            await ctx.send(f"No longer redirecting spawns.")
+        elif type(channel) == str:
+            return await ctx.send("That's not a valid option!")
+        else:
+            id = channel.id
+            await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")
 
-        await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")
+        await self.db.update_guild(ctx.guild, {"$set": {"channel": id}})
