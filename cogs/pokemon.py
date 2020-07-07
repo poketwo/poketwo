@@ -3,12 +3,14 @@ import math
 import random
 from datetime import datetime
 from functools import cached_property
+from operator import itemgetter
 
 import discord
 from discord.ext import commands, flags
 
-from .database import Database
 from helpers import checks, constants, converters, models, mongo, pagination
+
+from .database import Database
 
 
 def setup(bot: commands.Bot):
