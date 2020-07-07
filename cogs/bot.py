@@ -49,8 +49,6 @@ class Bot(commands.Cog):
                     self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
                 ]
 
-        print(self.bot.user.mention)
-        print(message.content)
         return [
             "p!",
             "P!",
