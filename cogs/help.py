@@ -137,15 +137,3 @@ class CustomHelpCommand(commands.HelpCommand):
         embed.add_field(name="Signature", value=self.get_command_signature(command))
 
         await self.context.send(embed=embed)
-
-    def get_command_signature(self, command):
-        parent = command.full_parent_name
-        if len(command.aliases) > 0:
-            aliases = "|".join(command.aliases)
-            fmt = f"[{command.name}|{aliases}]"
-            if parent:
-                fmt = f"{parent} {fmt}"
-            alias = fmt
-        else:
-            alias = command.name if not parent else f"{parent} {command.name}"
-        return f"{alias} {command.signature}"
