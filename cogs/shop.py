@@ -176,7 +176,7 @@ class Shop(commands.Cog):
     async def balance(self, ctx: commands.Context):
         """View your current balance."""
 
-        member = await self.db.fetch_member_info(member)
+        member = await self.db.fetch_member_info(ctx.author)
         await ctx.send(f"You have {member.balance} Pokécoins.")
 
     @checks.has_started()
