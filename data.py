@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 
-from cogs.helpers import models
+from helpers import models
 
 
 def get_data_from(filename):

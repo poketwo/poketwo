@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, constants, converters, models, mongo, pagination
+from helpers import checks, constants, converters, models, mongo, pagination
 
 
 def setup(bot: commands.Bot):
@@ -25,115 +25,7 @@ class Pokemon(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @checks.has_started()
-    @commands.command()
-    async def redeem(self, ctx: commands.Context, *, species: str = None):
-        """Redeem a pokémon."""
-
-        member = await self.db.fetch_member_info(ctx.author)
-
-        if species is None:
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
-
-            embed.add_field(
-                name="p!redeem <pokémon>",
-                value="Use a redeem to receive a pokémon of your choice.",
-            )
-
-            embed.add_field(
-                name="p!redeemspawn <pokémon>",
-                value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
-            )
-
-            return await ctx.send(embed=embed)
-
-        if member.redeems == 0:
-            return await ctx.send("You don't have any redeems!")
-
-        species = models.GameData.species_by_name(species)
-        if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
-
-        if not species.catchable:
-            return await ctx.send("You can't redeem this pokémon!")
-
-        await self.db.update_member(
-            ctx.author,
-            {
-                "$inc": {"redeems": -1},
-                "$push": {
-                    "pokemon": {
-                        "species_id": species.id,
-                        "level": 1,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                        "shiny": random.randint(1, 4096) == 1,
-                    }
-                },
-            },
-        )
-
-        await ctx.send(
-            f"You used a redeem and received a {species}! View it with `p!info latest`."
-        )
-
-    @checks.has_started()
-    @commands.command()
-    async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
-        """Redeem spawn a pokémon."""
-
-        member = await self.db.fetch_member_info(ctx.author)
-
-        if species is None:
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
-
-            embed.add_field(
-                name="p!redeem <pokémon>",
-                value="Use a redeem to receive a pokémon of your choice.",
-            )
-
-            embed.add_field(
-                name="p!redeemspawn <pokémon>",
-                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overrided)*.",
-            )
-
-            return await ctx.send(embed=embed)
-
-        if member.redeems == 0:
-            return await ctx.send("You don't have any redeems!")
-
-        species = models.GameData.species_by_name(species)
-        if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
-
-        if not species.catchable:
-            return await ctx.send("You can't redeem this pokémon!")
-
-        if ctx.channel.id == 720944005856100452:
-            return await ctx.send("You can't redeemspawn a pokémon here!")
-
-        await self.db.update_member(
-            ctx.author, {"$inc": {"redeems": -1}},
-        )
-
-        await ctx.message.delete()
-
-        self.bot.redeem[ctx.channel.id] = datetime.now()
-        await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
-
-    @commands.command(aliases=["nick"])
+    @commands.command(aliases=["n", "nick"])
     async def nickname(self, ctx: commands.Context, *, nickname: str):
         """Change the nickname for your pokémon."""
 
@@ -159,7 +51,7 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
-    @commands.command(aliases=["fav"], rest_is_raw=True)
+    @commands.command(aliases=["f", "fav"], rest_is_raw=True)
     async def favorite(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Mark a pokémon as a favorite."""
 
@@ -183,50 +75,6 @@ class Pokemon(commands.Cog):
             await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
         else:
             await ctx.send(f"Favorited your level {pokemon.level} {name}.")
-
-    @commands.command()
-    async def start(self, ctx: commands.Context):
-        """View the starter pokémon."""
-
-        embed = discord.Embed()
-        embed.color = 0xF44336
-        embed.title = "Welcome to the world of Pokémon!"
-        embed.description = "To start, choose one of the starter pokémon using the `p!pick <pokemon>` command. "
-
-        for gen, pokemon in constants.STARTER_GENERATION.items():
-            embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
-
-        await ctx.send(embed=embed)
-
-    @commands.command()
-    async def pick(self, ctx: commands.Context, *, name: str):
-        """Choose a starter pokémon to get started."""
-
-        member = await self.db.fetch_member_info(ctx.author)
-
-        if member is not None:
-            return await ctx.send(
-                "You have already chosen a starter pokémon! View your pokémon with `p!pokemon`."
-            )
-
-        if name.lower() not in constants.STARTER_POKEMON:
-            return await ctx.send(
-                "Please select one of the starter pokémon. To view them, type `p!start`."
-            )
-
-        species = models.GameData.species_by_name(name)
-
-        starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
-
-        member = mongo.Member(
-            id=ctx.author.id, pokemon=[starter], selected=0, joined_at=datetime.now()
-        )
-
-        await member.commit()
-
-        await ctx.send(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `p!info` to view it!"
-        )
 
     @checks.has_started()
     @commands.command(rest_is_raw=True)
@@ -312,7 +160,7 @@ class Pokemon(commands.Cog):
         await paginator.send(self.bot, ctx, pidx)
 
     @checks.has_started()
-    @commands.command(rest_is_raw=True)
+    @commands.command(aliases=["s"], rest_is_raw=True)
     async def select(
         self, ctx: commands.Context, *, pokemon: converters.Pokemon(accept_blank=False)
     ):
@@ -334,7 +182,7 @@ class Pokemon(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["or"])
     async def order(self, ctx: commands.Context, *, sort: str = ""):
         """Change how your pokémon are ordered."""
 
@@ -459,7 +307,7 @@ class Pokemon(commands.Cog):
         return aggregations
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["r"])
     async def release(self, ctx: commands.Context, *args):
         """Release pokémon from your collection."""
 
@@ -554,44 +402,6 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"You released {len(mons)} pokémon.")
 
-    @commands.command()
-    async def healschema(self, ctx: commands.Context, member: discord.User = None):
-        await self.db.update_member(
-            member or ctx.author,
-            {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
-        )
-        await self.db.update_member(member or ctx.author, {"$pull": {f"pokemon": None}})
-        await ctx.send("Trying to heal schema...")
-
-    @checks.has_started()
-    @commands.is_owner()
-    @commands.command()
-    async def arelease(self, ctx: commands.Context, user: discord.User, idx: int):
-        """Release pokémon from your collection."""
-
-        if user.id in self.bot.trades:
-            return await ctx.send("You can't do that in a trade!")
-
-        member = await self.db.fetch_member_info(user)
-        num = await self.db.fetch_pokemon_count(user)
-
-        converter = converters.Pokemon(accept_blank=False)
-
-        dec = 0
-
-        if (idx % num) < member.selected:
-            dec += 1
-
-        # confirmed, release
-
-        await self.db.update_member(user, {"$unset": {f"pokemon.{idx - 1}": 1}})
-
-        await self.db.update_member(
-            user, {"$inc": {f"selected": -dec}, "$pull": {f"pokemon": None}}
-        )
-
-        await ctx.send(f"Finished releasing pokémon.")
-
     @flags.add_flag("--name", nargs="+")
     @flags.add_flag("--type", type=str)
     @flags.add_flag("--hpiv", nargs="+")
@@ -602,9 +412,9 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+")
     @flags.add_flag("--iv", nargs="+")
     @checks.has_started()
-    @flags.command()
+    @flags.command(aliases=["ra"])
     async def releaseall(self, ctx: commands.Context, **flags):
-        """Release the pokémon in your collection."""
+        """Mass release pokémon from your collection."""
 
         if ctx.author.id in self.bot.trades:
             return await ctx.send("You can't do that in a trade!")
@@ -690,10 +500,10 @@ class Pokemon(commands.Cog):
 
     # Pokemon
     @checks.has_started()
-    @flags.command()
+    @flags.command(aliases=["p"])
     @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def pokemon(self, ctx: commands.Context, **flags):
-        """List the pokémon in your collection."""
+        """View or filter the pokémon in your collection."""
 
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
@@ -818,3 +628,212 @@ class Pokemon(commands.Cog):
 
         paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
+
+    @flags.add_flag("page", nargs="*", type=str, default="1")
+    @flags.add_flag("--caught", action="store_true")
+    @flags.add_flag("--uncaught", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--orderd", action="store_true")
+    @flags.add_flag("--ordera", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--type", type=str)
+    @checks.has_started()
+    @flags.command(aliases=["d", "dex"])
+    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
+    async def pokedex(self, ctx: commands.Context, **flags):
+        """View your pokédex, or search for a pokémon species."""
+
+        search_or_page = " ".join(flags["page"])
+
+        if flags["orderd"] and flags["ordera"]:
+            return await ctx.send(
+                "You can use either --orderd or --ordera, but not both."
+            )
+
+        if flags["caught"] and flags["uncaught"]:
+            return await ctx.send(
+                "You can use either --caught or --uncaught, but not both."
+            )
+
+        if flags["mythical"] + flags["legendary"] + flags["ub"] > 1:
+            return await ctx.send("You can't use more than one rarity flag!")
+
+        if search_or_page is None:
+            search_or_page = "1"
+
+        if search_or_page.isdigit():
+            pgstart = (int(search_or_page) - 1) * 20
+
+            if pgstart >= 809 or pgstart < 0:
+                return await ctx.send("There are no pokémon on this page.")
+
+            num = await self.db.fetch_pokedex_count(ctx.author)
+
+            do_emojis = ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+
+            member = await self.db.fetch_pokedex(ctx.author, 0, 810)
+            pokedex = member.pokedex
+
+            if not flags["uncaught"] and not flags["caught"]:
+                for i in range(1, 810):
+                    if str(i) not in pokedex:
+                        pokedex[str(i)] = 0
+            elif flags["uncaught"]:
+                for i in range(1, 810):
+                    if str(i) not in pokedex:
+                        pokedex[str(i)] = 0
+                    else:
+                        del pokedex[str(i)]
+
+            def include(key):
+                if flags["legendary"] and key not in models.GameData.list_legendary():
+                    return False
+                if flags["mythical"] and key not in models.GameData.list_mythical():
+                    return False
+                if flags["ub"] and key not in models.GameData.list_ub():
+                    return False
+
+                if flags["type"] and key not in models.GameData.list_type(
+                    flags["type"]
+                ):
+                    return False
+
+                return True
+
+            pokedex = {int(k): v for k, v in pokedex.items() if include(int(k))}
+
+            if flags["ordera"]:
+                pokedex = sorted(pokedex.items(), key=itemgetter(1))
+            elif flags["orderd"]:
+                pokedex = sorted(pokedex.items(), key=itemgetter(1), reverse=True)
+            else:
+                pokedex = sorted(pokedex.items(), key=itemgetter(0))
+
+            async def get_page(pidx, clear):
+                pgstart = (pidx) * 20
+                pgend = min(pgstart + 20, len(pokedex))
+
+                # Send embed
+
+                embed = discord.Embed()
+                embed.color = 0xF44336
+                embed.title = f"Your pokédex"
+                embed.description = f"You've caught {num} out of 809 pokémon!"
+
+                if do_emojis:
+                    embed.set_footer(
+                        text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}."
+                    )
+                else:
+                    embed.set_footer(
+                        text=f"Showing {pgstart + 1}–{pgend} out of 809. Please give me permission to Use External Emojis! It'll make this menu look a lot better."
+                    )
+
+                # embed.description = (
+                #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
+                # )
+
+                for k, v in pokedex[pgstart:pgend]:
+                    species = models.GameData.species_by_number(k)
+
+                    if do_emojis:
+                        text = f"{constants.EMOJIS.cross} Not caught yet!"
+                    else:
+                        text = "Not caught yet!"
+
+                    if v > 0:
+                        if do_emojis:
+                            text = f"{constants.EMOJIS.check} {v} caught!"
+                        else:
+                            text = f"{v} caught!"
+
+                    if do_emojis:
+                        emoji = (
+                            str(constants.EMOJIS.get(k)).replace("pokemon_sprite_", "")
+                            + " "
+                        )
+                    else:
+                        emoji = ""
+
+                    embed.add_field(
+                        name=f"{emoji}{species.name} #{species.id}", value=text
+                    )
+
+                if pgend != 809:
+                    embed.add_field(name="‎", value="‎")
+
+                return embed
+
+            paginator = pagination.Paginator(
+                get_page, num_pages=math.ceil(len(pokedex) / 20)
+            )
+            await paginator.send(self.bot, ctx, int(search_or_page) - 1)
+
+        else:
+            shiny = False
+
+            if search_or_page[0] in "Nn#" and search_or_page[1:].isdigit():
+                species = models.GameData.species_by_number(int(search_or_page[1:]))
+
+            else:
+                search = search_or_page
+
+                if search_or_page.lower().startswith("shiny "):
+                    shiny = True
+                    search = search_or_page[6:]
+
+                species = models.GameData.species_by_name(search)
+                if species is None:
+                    return await ctx.send(
+                        f"Could not find a pokemon matching `{search_or_page}`."
+                    )
+
+            member = await self.db.fetch_pokedex(
+                ctx.author, species.dex_number, species.dex_number + 1
+            )
+
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"#{species.dex_number} — {species}"
+            embed.description = species.evolution_text
+
+            extrafooter = ""
+
+            if shiny:
+                embed.title += " ✨"
+                embed.set_image(url=species.shiny_image_url)
+                extrafooter = " Note that we don't have artwork for all shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
+            else:
+                embed.set_image(url=species.image_url)
+
+            base_stats = (
+                f"**HP:** {species.base_stats.hp}",
+                f"**Attack:** {species.base_stats.atk}",
+                f"**Defense:** {species.base_stats.defn}",
+                f"**Sp. Atk:** {species.base_stats.satk}",
+                f"**Sp. Def:** {species.base_stats.sdef}",
+                f"**Speed:** {species.base_stats.spd}",
+            )
+
+            embed.add_field(
+                name="Names",
+                value="\n".join(f"{x} {y}" for x, y in species.names),
+                inline=False,
+            )
+            embed.add_field(name="Base Stats", value="\n".join(base_stats))
+            embed.add_field(
+                name="Appearance",
+                value=f"Height: {species.height} m\nWeight: {species.weight} kg",
+            )
+            embed.add_field(name="Types", value="\n".join(species.types))
+
+            text = "You haven't caught this pokémon yet!"
+            if str(species.dex_number) in member.pokedex:
+                text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
+
+            embed.set_footer(text=text + extrafooter)
+
+            await ctx.send(embed=embed)

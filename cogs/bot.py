@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, constants, converters, models, mongo
+from helpers import checks, constants, converters, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -32,41 +32,6 @@ class Bot(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @commands.command()
-    async def help(self, ctx: commands.Context, *, page_or_cmd: str = "0"):
-        """View a list of commands for the bot."""
-
-        embed = discord.Embed()
-        embed.color = 0xF44336
-
-        cmd = self.bot.all_commands.get(page_or_cmd, None)
-
-        if cmd is None:
-
-            if page_or_cmd not in constants.HELP:
-                return await ctx.send("Could not find that page or command.")
-
-            page = constants.HELP[page_or_cmd]
-
-            embed.title = page.get("title", "Help")
-            embed.description = page.get("description", None)
-
-            for key, field in page.get("fields", {}).items():
-                embed.add_field(name=key, value=field, inline=False)
-
-        else:
-            embed.title = f"p!{cmd.qualified_name}"
-
-            if cmd.help:
-                embed.description = cmd.help
-
-            embed.set_footer(text=f"p!{cmd.qualified_name} {cmd.signature}",)
-
-        if isinstance(ctx.channel, discord.TextChannel):
-            await ctx.message.add_reaction("📬")
-
-        await ctx.author.send(embed=embed)
-
     async def determine_prefix(self, message):
         if message.guild:
             if message.guild.id not in self.bot.prefixes:
@@ -77,9 +42,21 @@ class Bot(commands.Cog):
 
                 self.bot.prefixes[message.guild.id] = guild.prefix
 
-            return self.bot.prefixes[message.guild.id] or ["p!", "P!"]
+            if self.bot.prefixes[message.guild.id] is not None:
+                return [
+                    self.bot.prefixes[message.guild.id],
+                    self.bot.user.mention + " ",
+                    self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
+                ]
 
-        return ["p!", "P!"]
+        print(self.bot.user.mention)
+        print(message.content)
+        return [
+            "p!",
+            "P!",
+            self.bot.user.mention + " ",
+            self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
+        ]
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -137,7 +114,7 @@ class Bot(commands.Cog):
 
     @commands.command()
     async def invite(self, ctx: commands.Context):
-        """Get the invite link for the bot."""
+        """View the invite link for the bot."""
 
         await ctx.send(
             "Want to add me to your server? Use the link below!\n\n"
@@ -147,32 +124,21 @@ class Bot(commands.Cog):
 
     @commands.command()
     async def stats(self, ctx: commands.Context):
-        """View some interesting statistics about the bot."""
+        """View interesting statistics about the bot."""
 
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
 
-        total = await mongo.db.member.aggregate(
-            [
-                {"$project": {"pokemon_count": {"$size": "$pokemon"}},},
-                {"$group": {"_id": None, "total_count": {"$sum": "$pokemon_count"},},},
-            ],
-            allowDiskUse=True,
-        ).to_list(1)
-
         embed.add_field(
             name="Servers", value=await mongo.db.guild.count_documents({}), inline=False
         )
         embed.add_field(name="Users", value=len(self.bot.users))
         embed.add_field(
-            name="Real Users",
+            name="Trainers",
             value=await mongo.db.member.count_documents({}),
             inline=False,
-        )
-        embed.add_field(
-            name="Pokémon Caught", value=total[0]["total_count"], inline=False
         )
         embed.add_field(
             name="Discord Latency",
@@ -182,115 +148,102 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.is_admin()
-    @commands.command()
-    async def prefix(self, ctx: commands.Context, *, prefix: str):
-        """Change the bot prefix. (Needs admin)"""
-
-        if prefix == "reset":
-            await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})
-            self.bot.prefixes[ctx.guild.id] = None
-
-            return await ctx.send("Reset prefix to `p!` for this server.")
-
-        if len(prefix) > 100:
-            return await ctx.send("Prefix must not be longer than 100 characters.")
-
-        await self.db.update_guild(ctx.guild, {"$set": {"prefix": prefix}})
-        self.bot.prefixes[ctx.guild.id] = prefix
-
-        await ctx.send(f"Changed prefix to `{prefix}` for this server.")
-
     @commands.command()
     async def ping(self, ctx: commands.Context):
+        """View the bot's latency."""
+
         message = await ctx.send("Pong!")
         ms = (message.created_at - ctx.message.created_at).total_seconds() * 1000
         await message.edit(content=f"Pong! **{int(ms)} ms**")
 
-    @commands.is_owner()
     @commands.command()
-    async def eval(self, ctx: commands.Context, *, code: str):
-        result = eval(code)
-        await ctx.send(result)
+    async def start(self, ctx: commands.Context):
+        """View the starter pokémon."""
 
-    @commands.is_owner()
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = "Welcome to the world of Pokémon!"
+        embed.description = "To start, choose one of the starter pokémon using the `p!pick <pokemon>` command. "
+
+        for gen, pokemon in constants.STARTER_GENERATION.items():
+            embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
+
+        await ctx.send(embed=embed)
+
     @commands.command()
-    async def giveredeem(
-        self, ctx: commands.Context, user: discord.Member, *, num: int = 1
-    ):
-        """Redeem a pokémon."""
+    async def pick(self, ctx: commands.Context, *, name: str):
+        """Pick a starter pokémon to get started."""
 
-        await self.db.update_member(
-            user, {"$inc": {"redeems": num},},
-        )
+        member = await self.db.fetch_member_info(ctx.author)
 
-        await ctx.send(f"Gave {user.mention} {num} redeems.")
-
-    @commands.is_owner()
-    @commands.command()
-    async def give(self, ctx: commands.Context, user: discord.Member, *, species: str):
-        """Give a pokémon."""
-
-        member = await self.db.fetch_member_info(user)
-
-        species = models.GameData.species_by_name(species)
-
-        if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
-
-        await self.db.update_member(
-            user,
-            {
-                "$push": {
-                    "pokemon": {
-                        "species_id": species.id,
-                        "level": 1,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                    }
-                },
-            },
-        )
-
-        await ctx.send(f"Gave {user.mention} a {species}.")
-
-    @commands.is_owner()
-    @commands.command()
-    async def setup(self, ctx: commands.Context, user: discord.Member, num: int = 100):
-        """Test setup pokémon."""
-
-        member = await self.db.fetch_member_info(user)
-
-        pokemon = []
-        pokedex = {}
-
-        for i in range(num):
-            spid = random.randint(1, 809)
-            pokemon.append(
-                {
-                    "species_id": spid,
-                    "level": 80,
-                    "xp": 0,
-                    "nature": mongo.random_nature(),
-                    "iv_hp": mongo.random_iv(),
-                    "iv_atk": mongo.random_iv(),
-                    "iv_defn": mongo.random_iv(),
-                    "iv_satk": mongo.random_iv(),
-                    "iv_sdef": mongo.random_iv(),
-                    "iv_spd": mongo.random_iv(),
-                    "shiny": random.randint(1, 4096) == 1,
-                }
+        if member is not None:
+            return await ctx.send(
+                "You have already chosen a starter pokémon! View your pokémon with `p!pokemon`."
             )
-            pokedex["pokedex." + str(spid)] = pokedex.get("pokedex." + str(spid), 0) + 1
 
-        await self.db.update_member(
-            user, {"$push": {"pokemon": {"$each": pokemon}}, "$inc": pokedex},
+        if name.lower() not in constants.STARTER_POKEMON:
+            return await ctx.send(
+                "Please select one of the starter pokémon. To view them, type `p!start`."
+            )
+
+        species = models.GameData.species_by_name(name)
+
+        starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
+
+        member = mongo.Member(
+            id=ctx.author.id, pokemon=[starter], selected=0, joined_at=datetime.now()
         )
 
-        await ctx.send(f"Gave {user.mention} {num} pokémon.")
+        await member.commit()
+
+        await ctx.send(
+            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `p!info` to view it!"
+        )
+
+    @checks.has_started()
+    @commands.command()
+    async def profile(self, ctx: commands.Context):
+        """View your profile."""
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"{ctx.author}"
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        pokemon_caught = []
+
+        pokemon_caught.append(
+            "**Total: **" + str(await self.db.fetch_pokedex_sum(ctx.author))
+        )
+
+        for name, filt in (
+            ("Mythical", models.GameData.list_mythical()),
+            ("Legendary", models.GameData.list_legendary()),
+            ("Ultra Beast", models.GameData.list_ub()),
+        ):
+            pokemon_caught.append(
+                f"**{name}: **"
+                + str(
+                    await self.db.fetch_pokedex_sum(
+                        ctx.author,
+                        [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
+                    )
+                )
+            )
+
+        pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
+
+        embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
+
+        await ctx.send(embed=embed)
+
+    @checks.has_started()
+    @commands.command()
+    async def healschema(self, ctx: commands.Context, member: discord.User = None):
+        await self.db.update_member(
+            member or ctx.author,
+            {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
+        )
+        await self.db.update_member(member or ctx.author, {"$pull": {f"pokemon": None}})
+        await ctx.send("Trying to heal schema...")

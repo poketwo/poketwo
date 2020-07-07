@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, mongo
+from helpers import checks, mongo
 
 
 def setup(bot: commands.Bot):
@@ -177,6 +177,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.group(aliases=["t"], invoke_without_command=True)
     async def trade(self, ctx: commands.Context, *, user: discord.Member):
+        """Trade pokémon with another trainer."""
+
         if user == ctx.author:
             return await ctx.send("Nice try...")
 
@@ -198,7 +200,9 @@ class Trading(commands.Cog):
 
         def check(reaction, u):
             return (
-                reaction.message.id == message.id and u == user and str(reaction.emoji) == "✅"
+                reaction.message.id == message.id
+                and u == user
+                and str(reaction.emoji) == "✅"
             )
 
         try:
@@ -230,6 +234,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @trade.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
+        """Cancel a trade."""
+
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
@@ -242,6 +248,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @trade.command(aliases=["c"])
     async def confirm(self, ctx: commands.Context):
+        """Confirm a trade."""
+
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
@@ -254,6 +262,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
+        """Add an item to a trade."""
+
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
@@ -351,6 +361,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
+        """Remove an item from a trade."""
+
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 

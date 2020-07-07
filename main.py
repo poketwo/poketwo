@@ -3,14 +3,15 @@ import logging
 import os
 import subprocess
 from importlib import reload
+from itertools import chain
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-import data
 import cogs
-from cogs.helpers import checks, constants, converters, models, mongo, pagination
+import data
+import helpers
 
 # Setup
 
@@ -31,15 +32,17 @@ async def determine_prefix(bot, message):
 
 
 client = commands.AutoShardedBot(
-    command_prefix=determine_prefix, help_command=None, case_insensitive=True,
+    command_prefix=determine_prefix, case_insensitive=True,
 )
 client.env = env
 client.enabled = False
 
 client.load_extension("jishaku")
 
-for cog in cogs.ALL_COGS:
-    client.load_extension(f"cogs.{cog}")
+
+for i in dir(cogs):
+    if not i.startswith("_"):
+        client.load_extension(f"cogs.{i}")
 
 
 # Reloading
@@ -48,47 +51,18 @@ for cog in cogs.ALL_COGS:
 async def reload_modules():
     client.enabled = False
 
-    for x in (
-        cogs,
-        models,
-        data,
-        mongo,
-        checks,
-        constants,
-        converters,
-        pagination,
-    ):
-        reload(x)
+    reload(cogs)
+    reload(helpers)
 
     data.load_data()
 
-    for cog in cogs.ALL_COGS:
-        client.reload_extension(f"cogs.{cog}")
+    for i in chain(dir(helpers), dir(cogs)):
+        if not i.startswith("_"):
+            client.load_extension(f"cogs.{i}")
 
     await constants.EMOJIS.init_emojis(client)
 
     client.enabled = True
-
-
-@commands.is_owner()
-@client.command()
-async def disable(ctx: commands.Context):
-    client.enabled = False
-    await ctx.send("Disabling bot...")
-
-
-@commands.is_owner()
-@client.command()
-async def enable(ctx: commands.Context):
-    client.enabled = True
-    await ctx.send("Enabling bot...")
-
-
-@commands.is_owner()
-@client.command()
-async def reloadcog(ctx: commands.Context, cog: str):
-    client.reload_extension(f"cogs.{cog}")
-    await ctx.send("Disabling bot...")
 
 
 @commands.is_owner()
@@ -111,7 +85,7 @@ async def on_message(message: discord.Message):
     await client.process_commands(message)
 
 
-client.add_check(checks.enabled(client))
+client.add_check(helpers.checks.enabled(client))
 
 
 # Run Discord Bot
@@ -122,7 +96,7 @@ try:
 
     async def do_tasks():
         await client.wait_until_ready()
-        await constants.EMOJIS.init_emojis(client)
+        await helpers.constants.EMOJIS.init_emojis(client)
         print(f"Logged in as {client.user}")
         client.enabled = True
 

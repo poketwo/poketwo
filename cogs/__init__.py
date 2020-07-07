@@ -1,11 +1,12 @@
-ALL_COGS = [
-    "database",
-    "bot",
-    "invite",
-    "pokedex",
-    "pokemon",
-    "shop",
-    "spawning",
-    "trading",
-    "battle",
-]
+from . import (
+    admin,
+    battling,
+    bot,
+    config,
+    database,
+    help,
+    pokemon,
+    shop,
+    spawning,
+    trading,
+)

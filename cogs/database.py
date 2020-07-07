@@ -3,7 +3,7 @@ import datetime
 import discord
 from discord.ext import commands
 
-from .helpers import mongo, models
+from helpers import mongo, models, checks
 
 
 def setup(bot: commands.Bot):
@@ -15,42 +15,6 @@ class Database(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @commands.command()
-    async def profile(self, ctx: commands.Context):
-
-        embed = discord.Embed()
-        embed.color = 0xF44336
-        embed.title = f"{ctx.author}"
-
-        member = await self.fetch_member_info(ctx.author)
-
-        pokemon_caught = []
-
-        pokemon_caught.append(
-            "**Total: **" + str(await self.fetch_pokedex_sum(ctx.author))
-        )
-
-        for name, filt in (
-            ("Mythical", models.GameData.list_mythical()),
-            ("Legendary", models.GameData.list_legendary()),
-            ("Ultra Beast", models.GameData.list_ub()),
-        ):
-            pokemon_caught.append(
-                f"**{name}: **"
-                + str(
-                    await self.fetch_pokedex_sum(
-                        ctx.author,
-                        [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
-                    )
-                )
-            )
-
-        pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
-
-        embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
-
-        await ctx.send(embed=embed)
 
     async def fetch_member_info(self, member: discord.Member) -> mongo.Member:
         return await mongo.Member.find_one(

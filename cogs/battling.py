@@ -7,17 +7,11 @@ import discord
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, constants, converters, models, mongo, pagination
+from helpers import checks, constants, converters, models, mongo, pagination
 
 
 def setup(bot: commands.Bot):
     bot.add_cog(Battling(bot))
-
-
-def chunks(l, n):
-    """Yield n number of striped chunks from l."""
-    for i in range(0, n):
-        yield l[i::n]
 
 
 class Battling(commands.Cog):
@@ -319,14 +313,10 @@ class Battling(commands.Cog):
         msg = await battle["channel"].send(embed=embed)
         battle["prev"] = msg
 
-    @commands.is_owner()
-    @commands.command()
-    async def sb(self, ctx: commands.Context, *, user: discord.User = None):
-        await self.send_battle(user or ctx.author)
-
     @checks.has_started()
     @commands.group(aliases=["b"], invoke_without_command=True)
     async def battle(self, ctx: commands.Context, *, user: discord.Member):
+        """Battle another trainer with your pokémon!"""
 
         # Base cases
 
@@ -412,6 +402,8 @@ class Battling(commands.Cog):
     @checks.has_started()
     @battle.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
+        """Add a pokémon to a battle."""
+
         if ctx.author.id not in self.bot.battles:
             return await ctx.send("You're not in a battle!")
 
@@ -473,8 +465,10 @@ class Battling(commands.Cog):
         await self.send_battle(ctx.author)
 
     @checks.has_started()
-    @commands.command(rest_is_raw=True)
+    @commands.command(aliases=["m"], rest_is_raw=True)
     async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+        """View current and available moves for your pokémon."""
+
         pokemon, idx = pokemon
 
         embed = discord.Embed()
@@ -503,8 +497,10 @@ class Battling(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["l"])
     async def learn(self, ctx: commands.Context, *, search: str):
+        """Learn moves for your pokémon to use in battle."""
+
         move = models.GameData.move_by_name(search)
 
         if move is None:
@@ -561,8 +557,10 @@ class Battling(commands.Cog):
 
         return await ctx.send("Your pokémon has learned " + move.name + "!")
 
+    @checks.has_started()
     @commands.command(aliases=["ms"], rest_is_raw=True)
     async def moveset(self, ctx: commands.Context, *, search: str):
+        """View all moves for your pokémon and how to get them."""
 
         search = search.strip()
 
@@ -611,7 +609,7 @@ class Battling(commands.Cog):
 
     @commands.command(aliases=["mi"])
     async def moveinfo(self, ctx: commands.Context, *, search: str):
-        """Get information about a certain move."""
+        """View information about a certain move."""
 
         move = models.GameData.move_by_name(search)
 
@@ -645,6 +643,8 @@ class Battling(commands.Cog):
     @checks.has_started()
     @battle.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
+        """Cancel a battle."""
+
         if ctx.author.id not in self.bot.battles:
             return await ctx.send("You're not in a battle!")
 

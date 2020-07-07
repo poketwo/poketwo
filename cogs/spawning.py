@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 from .database import Database
-from .helpers import checks, models, mongo
+from helpers import checks, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -52,11 +52,11 @@ class Spawning(commands.Cog):
         if message.author.bot:
             return
 
-        if self.bot.user in message.mentions:
-            prefix = await self.bot.get_cog("Bot").determine_prefix(message)
-            if type(prefix) == list:
-                prefix = prefix[0]
-            await message.channel.send(f"My prefix is `{prefix}` in this server.")
+        # if self.bot.user in message.mentions:
+        #     prefix = await self.bot.get_cog("Bot").determine_prefix(message)
+        #     if type(prefix) == list:
+        #         prefix = prefix[0]
+        #     await message.channel.send(f"My prefix is `{prefix}` in this server.")
 
         current = time.time()
 
@@ -348,30 +348,3 @@ class Spawning(commands.Cog):
             message += "\n\nThese colors seem unusual... ✨"
 
         await ctx.send(message)
-
-    @checks.has_started()
-    @commands.command()
-    async def silence(self, ctx: commands.Context):
-        """Silence level up messages."""
-
-        member = await self.db.fetch_member_info(ctx.author)
-
-        await self.db.update_member(
-            ctx.author, {"$set": {"silence": not member.silence}}
-        )
-
-        if member.silence:
-            await ctx.send(f"Reverting to normal level up behavior.")
-        else:
-            await ctx.send(
-                f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
-            )
-
-    @checks.is_admin()
-    @commands.command()
-    async def redirect(self, ctx: commands.Context, *, channel: discord.TextChannel):
-        """Redirect pokémon catches to one channel."""
-
-        await self.db.update_guild(ctx.guild, {"$set": {"channel": channel.id}})
-
-        await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")

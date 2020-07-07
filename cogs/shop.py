@@ -7,7 +7,7 @@ import humanfriendly
 from discord.ext import commands, flags
 
 from .database import Database
-from .helpers import checks, constants, converters, models, mongo
+from helpers import checks, constants, converters, models, mongo
 
 
 def setup(bot: commands.Bot):
@@ -29,9 +29,9 @@ class Shop(commands.Cog):
         return member.balance
 
     @checks.has_started()
-    @commands.command(aliases=["daily", "boxes"])
+    @commands.command(aliases=["v", "daily", "boxes"])
     async def vote(self, ctx: commands.Context):
-        """View voting rewards."""
+        """View information on voting rewards."""
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -80,9 +80,9 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["o"])
     async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
-        """Open mystery boxes."""
+        """Open mystery boxes received from voting."""
 
         if type.lower() not in ("normal", "great", "ultra"):
             return await ctx.send("Please type `normal`, `great`, or `ultra`!")
@@ -176,13 +176,14 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["balance"])
-    async def bal(self, ctx: commands.Context):
+    @commands.command(aliases=["bal"])
+    async def balance(self, ctx: commands.Context):
         """View your current balance."""
 
         await ctx.send(f"You have {await self.balance(ctx.author)} Pokécoins.")
 
-    @commands.command(rest_is_raw=True)
+    @checks.has_started()
+    @commands.command(aliases=["di"], rest_is_raw=True)
     async def dropitem(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Drop a pokémon's held item."""
 
@@ -207,7 +208,8 @@ class Shop(commands.Cog):
 
         await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
 
-    @commands.command()
+    @checks.has_started()
+    @commands.command(aliases=["mvi"])
     async def moveitem(
         self,
         ctx: commands.Context,
@@ -261,7 +263,8 @@ class Shop(commands.Cog):
             f"Moved held item from your level {from_pokemon.level} {from_name} to your level {to_pokemon.level} {to_name}."
         )
 
-    @commands.command()
+    @checks.has_started()
+    @commands.command(aliases=["sh"])
     async def shop(self, ctx: commands.Context, *, page: int = 0):
         """View the Pokétwo item shop."""
 
@@ -315,9 +318,10 @@ class Shop(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @checks.has_started()
     @commands.command()
     async def buy(self, ctx: commands.Context, *args: str):
-        """Buy an item from the shop."""
+        """Purchase an item from the shop."""
 
         qty = 1
 
@@ -578,3 +582,111 @@ class Shop(commands.Cog):
                     await ctx.send(embed=embed)
 
                     break
+
+    @checks.has_started()
+    @commands.command()
+    async def redeem(self, ctx: commands.Context, *, species: str = None):
+        """Use a redeem to receive a pokémon of your choice."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if species is None:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Your Redeems: {member.redeems}"
+            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+
+            embed.add_field(
+                name="p!redeem <pokémon>",
+                value="Use a redeem to receive a pokémon of your choice.",
+            )
+
+            embed.add_field(
+                name="p!redeemspawn <pokémon>",
+                value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
+            )
+
+            return await ctx.send(embed=embed)
+
+        if member.redeems == 0:
+            return await ctx.send("You don't have any redeems!")
+
+        species = models.GameData.species_by_name(species)
+        if species is None:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        if not species.catchable:
+            return await ctx.send("You can't redeem this pokémon!")
+
+        await self.db.update_member(
+            ctx.author,
+            {
+                "$inc": {"redeems": -1},
+                "$push": {
+                    "pokemon": {
+                        "species_id": species.id,
+                        "level": 1,
+                        "xp": 0,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": mongo.random_iv(),
+                        "iv_atk": mongo.random_iv(),
+                        "iv_defn": mongo.random_iv(),
+                        "iv_satk": mongo.random_iv(),
+                        "iv_sdef": mongo.random_iv(),
+                        "iv_spd": mongo.random_iv(),
+                        "shiny": random.randint(1, 4096) == 1,
+                    }
+                },
+            },
+        )
+
+        await ctx.send(
+            f"You used a redeem and received a {species}! View it with `p!info latest`."
+        )
+
+    @checks.has_started()
+    @commands.command()
+    async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
+        """Use a redeem to spawn a pokémon of your choice."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if species is None:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Your Redeems: {member.redeems}"
+            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+
+            embed.add_field(
+                name="p!redeem <pokémon>",
+                value="Use a redeem to receive a pokémon of your choice.",
+            )
+
+            embed.add_field(
+                name="p!redeemspawn <pokémon>",
+                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overrided)*.",
+            )
+
+            return await ctx.send(embed=embed)
+
+        if member.redeems == 0:
+            return await ctx.send("You don't have any redeems!")
+
+        species = models.GameData.species_by_name(species)
+        if species is None:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        if not species.catchable:
+            return await ctx.send("You can't redeem this pokémon!")
+
+        if ctx.channel.id == 720944005856100452:
+            return await ctx.send("You can't redeemspawn a pokémon here!")
+
+        await self.db.update_member(
+            ctx.author, {"$inc": {"redeems": -1}},
+        )
+
+        await ctx.message.delete()
+
+        self.bot.redeem[ctx.channel.id] = datetime.now()
+        await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
