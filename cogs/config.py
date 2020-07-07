@@ -30,13 +30,12 @@ class Configuration(commands.Cog):
         """Change the bot prefix."""
 
         if prefix is None:
-            prefix = await self.bot.get_cog("Bot").determine_prefix(ctx.message)
-            if type(prefix) == list:
-                prefix = prefix[0]
-            await ctx.send(f"My prefix is `{prefix}` in this server.")
-            return
+            current = await self.bot.get_cog("Bot").determine_prefix(ctx.message)
+            if type(current) == list:
+                current = current[0]
+            return await ctx.send(f"My prefix is `{current}` in this server.")
 
-        if prefix == "reset" or "p!":
+        if prefix == "reset" or prefix == "p!":
             await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})
             self.bot.prefixes[ctx.guild.id] = None
 
