@@ -24,10 +24,6 @@ class Shop(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    async def balance(self, member: discord.Member):
-        member = await self.db.fetch_member_info(member)
-        return member.balance
-
     @checks.has_started()
     @commands.command(aliases=["v", "daily", "boxes"])
     async def vote(self, ctx: commands.Context):
@@ -180,7 +176,8 @@ class Shop(commands.Cog):
     async def balance(self, ctx: commands.Context):
         """View your current balance."""
 
-        await ctx.send(f"You have {await self.balance(ctx.author)} Pokécoins.")
+        member = await self.db.fetch_member_info(member)
+        await ctx.send(f"You have {member.balance} Pokécoins.")
 
     @checks.has_started()
     @commands.command(aliases=["di"], rest_is_raw=True)
