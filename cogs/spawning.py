@@ -172,6 +172,8 @@ class Spawning(commands.Cog):
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
+        guild = await self.db.fetch_guild(message.guild)
+
         if self.bot.guild_counter[message.guild.id] >= (
             5 if self.bot.env == "dev" else 15
         ):
