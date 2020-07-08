@@ -57,7 +57,7 @@ class Spawning(commands.Cog):
         # Spamcheck, every two seconds
 
         if self.bot.env != "dev":
-            if current - self.bot.cooldown_users.get(message.author.id, 0) < 1:
+            if current - self.bot.cooldown_users.get(message.author.id, 0) < 2:
                 return
 
         self.bot.cooldown_users[message.author.id] = current
@@ -67,6 +67,7 @@ class Spawning(commands.Cog):
         member = await self.db.fetch_member_info(message.author)
 
         if member is not None:
+
             silence = member.silence
 
             if message.guild:
@@ -158,7 +159,7 @@ class Spawning(commands.Cog):
             return
 
         if self.bot.env != "dev":
-            if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1:
+            if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1.5:
                 return
 
         self.bot.cooldown_guilds[message.guild.id] = current
