@@ -131,9 +131,7 @@ class Bot(commands.Cog):
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
 
-        embed.add_field(
-            name="Servers", value=await mongo.db.guild.count_documents({}), inline=False
-        )
+        embed.add_field(name="Servers", value=len(self.bot.guilds), inline=False)
         embed.add_field(name="Users", value=len(self.bot.users))
         embed.add_field(
             name="Trainers",
@@ -141,7 +139,7 @@ class Bot(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="Discord Latency",
+            name="Latency",
             value=f"{int(self.bot.latencies[0][1] * 1000)} ms",
             inline=False,
         )

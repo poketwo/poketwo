@@ -52,12 +52,6 @@ class Spawning(commands.Cog):
         if message.author.bot:
             return
 
-        # if self.bot.user in message.mentions:
-        #     prefix = await self.bot.get_cog("Bot").determine_prefix(message)
-        #     if type(prefix) == list:
-        #         prefix = prefix[0]
-        #     await message.channel.send(f"My prefix is `{prefix}` in this server.")
-
         current = time.time()
 
         # Spamcheck, every two seconds
@@ -183,6 +177,9 @@ class Spawning(commands.Cog):
                 channel = message.guild.get_channel(random.choice(guild.channels))
             else:
                 channel = message.channel
+
+            if channel is None:
+                print("NONE channel " + str(message.guild.id))
 
             if message.guild.id == 716390832034414685 and self.bot.env != "dev":
                 channel, channel2 = [
