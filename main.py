@@ -54,13 +54,17 @@ async def reload_modules():
     reload(cogs)
     reload(helpers)
 
+    for i in dir(helpers):
+        if not i.startswith("_"):
+            reload(getattr(helpers, i))
+
     data.load_data()
 
-    for i in chain(dir(helpers), dir(cogs)):
+    for i in dir(cogs):
         if not i.startswith("_"):
-            client.load_extension(f"cogs.{i}")
+            client.reload_extension(f"cogs.{i}")
 
-    await constants.EMOJIS.init_emojis(client)
+    await helpers.constants.EMOJIS.init_emojis(client)
 
     client.enabled = True
 
