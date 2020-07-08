@@ -90,6 +90,9 @@ class Configuration(commands.Cog):
     ):
         """Redirect pokémon catches to one or more channels."""
 
+        if len(channels) == 0:
+            return "Please specify channels to redirect to!"
+
         await self.db.update_guild(
             ctx.guild, {"$set": {"channels": [x.id for x in channels]}}
         )
