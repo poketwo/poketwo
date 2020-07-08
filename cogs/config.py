@@ -84,19 +84,23 @@ class Configuration(commands.Cog):
             )
 
     @checks.is_admin()
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     async def redirect(
-        self, ctx: commands.Context, *, channel: typing.Union[discord.TextChannel, str]
+        self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]
     ):
-        """Redirect pokémon catches to one channel."""
+        """Redirect pokémon catches to one or more channels."""
 
-        if channel == "reset":
-            id = None
-            await ctx.send(f"No longer redirecting spawns.")
-        elif type(channel) == str:
-            return await ctx.send("That's not a valid option!")
-        else:
-            id = channel.id
-            await ctx.send(f"Now redirecting all pokémon spawns to {channel.mention}")
+        await self.db.update_guild(
+            ctx.guild, {"$set": {"channels": [x.id for x in channels]}}
+        )
+        await ctx.send(
+            "Now redirecting spawns to " + ", ".join(x.mention for x in channels)
+        )
 
-        await self.db.update_guild(ctx.guild, {"$set": {"channel": id}})
+    @checks.is_admin()
+    @redirect.command()
+    async def reset(self, ctx: commands.Context):
+        """Reset channel redirect."""
+
+        await self.db.update_guild(ctx.guild, {"$set": {"channels": []}})
+        await ctx.send(f"No longer redirecting spawns.")

@@ -134,4 +134,4 @@ class Database(commands.Cog):
         return guild
 
     async def update_guild(self, guild: discord.Guild, update):
-        return await mongo.db.guild.update_one({"_id": guild.id}, update)
+        return await mongo.db.guild.update_one({"_id": guild.id}, update, upsert=True)

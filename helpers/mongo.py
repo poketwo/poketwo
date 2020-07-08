@@ -193,5 +193,6 @@ class Member(Document):
 class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
+    channels = fields.ListField(fields.IntegerField, default=list)
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)

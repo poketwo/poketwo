@@ -71,13 +71,14 @@ class Spawning(commands.Cog):
         # Increase XP on selected pokemon
 
         member = await self.db.fetch_member_info(message.author)
-        silence = member.silence
-
-        if message.guild:
-            guild = await self.db.fetch_guild(message.guild)
-            silence = silence or guild and guild.silence
 
         if member is not None:
+            silence = member.silence
+
+            if message.guild:
+                guild = await self.db.fetch_guild(message.guild)
+                silence = silence or guild and guild.silence
+
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
 
             if pokemon is not None and pokemon.held_item != 13002:
@@ -176,8 +177,8 @@ class Spawning(commands.Cog):
         ):
             self.bot.guild_counter[message.guild.id] = 0
 
-            if guild.channel is not None:
-                channel = message.guild.get_channel(guild.channel)
+            if len(guild.channels) > 0:
+                channel = message.guild.get_channel(random.choice(guild.channels))
             else:
                 channel = message.channel
 
