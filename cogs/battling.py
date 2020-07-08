@@ -348,7 +348,7 @@ class Battling(commands.Cog):
         try:
             await self.bot.wait_for("reaction_add", timeout=30, check=ccheck)
         except asyncio.TimeoutError:
-            await message.add_reaction("❌")
+            await confirm.add_reaction("❌")
             await ctx.send("The confirmation has timed out.")
             return
 

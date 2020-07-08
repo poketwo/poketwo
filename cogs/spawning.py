@@ -179,7 +179,7 @@ class Spawning(commands.Cog):
                 channel = message.channel
 
             if channel is None:
-                print("NONE channel " + str(message.guild.id))
+                return
 
             if message.guild.id == 716390832034414685 and self.bot.env != "dev":
                 channel, channel2 = [
