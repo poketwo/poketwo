@@ -71,6 +71,11 @@ class Spawning(commands.Cog):
         # Increase XP on selected pokemon
 
         member = await self.db.fetch_member_info(message.author)
+        silence = member.silence
+
+        if message.guild:
+            guild = await self.db.fetch_guild(message.guild)
+            silence = silence or guild and guild.silence
 
         if member is not None:
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
@@ -120,7 +125,7 @@ class Spawning(commands.Cog):
                             f"pokemon.{member.selected}.species_id"
                         ] = pokemon.species.level_evolution.target_id
 
-                        if member.silence and pokemon.level < 99:
+                        if silence and pokemon.level < 99:
                             await message.author.send(embed=embed)
 
                     else:
@@ -140,10 +145,10 @@ class Spawning(commands.Cog):
 
                     await self.db.update_member(message.author, update)
 
-                    if member.silence and pokemon.level == 99:
+                    if silence and pokemon.level == 99:
                         await message.author.send(embed=embed)
 
-                    if not member.silence:
+                    if not silence:
                         await message.channel.send(embed=embed)
 
                 elif pokemon.level == 100:
@@ -170,7 +175,6 @@ class Spawning(commands.Cog):
             5 if self.bot.env == "dev" else 15
         ):
             self.bot.guild_counter[message.guild.id] = 0
-            guild = await self.db.fetch_guild(message.guild)
 
             if guild.channel is not None:
                 channel = message.guild.get_channel(guild.channel)

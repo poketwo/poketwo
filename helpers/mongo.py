@@ -194,3 +194,4 @@ class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
     prefix = fields.StringField(default=None)
+    silence = fields.BooleanField(default=False)

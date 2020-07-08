@@ -52,7 +52,7 @@ class Configuration(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def silence(self, ctx: commands.Context):
-        """Silence level up messages."""
+        """Silence level up messages for yourself."""
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -65,6 +65,22 @@ class Configuration(commands.Cog):
         else:
             await ctx.send(
                 f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
+            )
+
+    @checks.is_admin()
+    @commands.command()
+    async def serversilence(self, ctx: commands.Context):
+        """Silence level up messages server-wide."""
+
+        guild = await self.db.fetch_guild(ctx.guild)
+
+        await self.db.update_guild(ctx.guild, {"$set": {"silence": not guild.silence}})
+
+        if guild.silence:
+            await ctx.send(f"Level up messages are no longer disabled in this server.")
+        else:
+            await ctx.send(
+                f"Disabled level up messages in this server. I'll send a DM when pokémon evolve or reach level 100."
             )
 
     @checks.is_admin()
