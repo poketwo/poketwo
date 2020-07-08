@@ -185,7 +185,7 @@ class Spawning(commands.Cog):
                 channel = message.channel
 
             if message.guild.id == 716390832034414685 and self.bot.env != "dev":
-                channel, channel2 = [
+                channel, channel2, channel3 = [
                     self.bot.get_channel(x)
                     for x in random.sample(
                         [
@@ -195,12 +195,11 @@ class Spawning(commands.Cog):
                             724762012453961810,
                             724762035094683718,
                             728867911799668747,
+                            720944005856100452,
                         ],
-                        2,
+                        3,
                     )
                 ]
-
-                await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
 
                 if channel2.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
                     channel2.id
@@ -208,6 +207,13 @@ class Spawning(commands.Cog):
                     minutes=1
                 ):
                     await self.spawn_pokemon(channel2)
+
+                if channel3.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
+                    channel3.id
+                ] > timedelta(
+                    minutes=1
+                ):
+                    await self.spawn_pokemon(channel3)
 
             if channel.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
                 channel.id
