@@ -225,14 +225,17 @@ class Spawning(commands.Cog):
 
         main = models.GameData.species_by_number(species.dex_number)
 
-        hint = "".join(x if i in blanks else "\_" for i, x in enumerate(main.name))
+        hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
         # Fetch image and send embed
 
-        with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-            image = discord.File(f, filename="pokemon.png")
+        def get_image():
+            with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
+                return discord.File(f, filename="pokemon.png")
+
+        image = await self.bot.loop.run_in_executor(None, get_image)
 
         embed = discord.Embed()
         embed.color = 0xF44336

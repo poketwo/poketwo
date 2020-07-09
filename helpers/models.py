@@ -8,8 +8,6 @@ from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, List, Union, overload
 
-from PIL import Image
-
 from . import constants
 
 
@@ -365,6 +363,8 @@ class Species:
         self.mythical = mythical
         self.legendary = legendary
         self.ultra_beast = ultra_beast
+
+        self.image_file = open(Path.cwd() / "data" / "images" / f"{id}.png", "rb")
 
     def __str__(self):
         return self.name
