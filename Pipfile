@@ -24,6 +24,7 @@ dblpy = "*"
 jishaku = "*"
 pytz = "*"
 "discord.py" = "*"
+pokedex = {git = "https://github.com/veekun/pokedex.git"}
 
 [requires]
 python_version = "3.8"
