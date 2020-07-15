@@ -880,3 +880,27 @@ class Pokemon(commands.Cog):
             await ctx.send(embed=embed)
         else:
             await ctx.send("That pokémon can't be evolved!")
+
+    @commands.command(aliases=["n"])
+    async def next(self, ctx: commands.Context):
+        if ctx.author.id not in pagination.paginators:
+            return await ctx.send("Couldn't find a previous message.")
+
+        paginator = pagination.paginators[ctx.author.id]
+
+        pidx = paginator.last_page + 1
+        pidx %= paginator.num_pages
+
+        await paginator.send(self.bot, ctx, pidx)
+
+    @commands.command(aliases=["b"])
+    async def back(self, ctx: commands.Context):
+        if ctx.author.id not in pagination.paginators:
+            return await ctx.send("Couldn't find a previous message.")
+
+        paginator = pagination.paginators[ctx.author.id]
+
+        pidx = paginator.last_page - 1
+        pidx %= paginator.num_pages
+
+        await paginator.send(self.bot, ctx, pidx)

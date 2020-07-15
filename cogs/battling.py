@@ -314,7 +314,7 @@ class Battling(commands.Cog):
         battle["prev"] = msg
 
     @checks.has_started()
-    @commands.group(aliases=["b"], invoke_without_command=True)
+    @commands.group(aliases=["duel"], invoke_without_command=True)
     async def battle(self, ctx: commands.Context, *, user: discord.Member):
         """Battle another trainer with your pokémon!"""
 

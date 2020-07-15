@@ -3,14 +3,22 @@ import asyncio
 from discord.ext import commands
 
 
+paginators = {}
+
+
 class Paginator:
     def __init__(self, get_page, num_pages):
         self.num_pages = num_pages
         self.get_page = get_page
+        self.last_page = None
 
     async def send(self, bot: commands.Bot, ctx: commands.Context, pidx: int):
         async def clear(msg):
             return await ctx.send(msg)
+
+        paginators[ctx.author.id] = self
+
+        self.last_page = pidx
 
         embed = await self.get_page(pidx, clear)
 
@@ -31,7 +39,10 @@ class Paginator:
                         and u.id == ctx.author.id,
                         timeout=120,
                     )
-                    await reaction.remove(user)
+                    try:
+                        await reaction.remove(user)
+                    except:
+                        pass
 
                     pidx = {
                         "⏮️": 0,
@@ -45,3 +56,4 @@ class Paginator:
 
             except asyncio.TimeoutError:
                 await message.add_reaction("❌")
+                del paginators[ctx.author.id]
