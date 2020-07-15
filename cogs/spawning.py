@@ -264,6 +264,8 @@ class Spawning(commands.Cog):
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
 
+        print(guess)
+
         # Retrieve correct species and level from tracker
 
         if ctx.channel.id not in self.bot.spawns:
@@ -271,7 +273,10 @@ class Spawning(commands.Cog):
 
         species, level, hint, shiny, users = self.bot.spawns[ctx.channel.id]
 
-        if models.deaccent(guess.lower()) not in species.correct_guesses:
+        if (
+            models.deaccent(guess.lower().replace("′", "'"))
+            not in species.correct_guesses
+        ):
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database

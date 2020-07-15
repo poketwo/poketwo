@@ -27,7 +27,7 @@ class Pokemon(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @commands.command(aliases=["n", "nick"])
+    @commands.command(aliases=["nick"])
     async def nickname(self, ctx: commands.Context, *, nickname: str):
         """Change the nickname for your pokémon."""
 
@@ -839,3 +839,44 @@ class Pokemon(commands.Cog):
             embed.set_footer(text=text + extrafooter)
 
             await ctx.send(embed=embed)
+
+    @checks.has_started()
+    @commands.command(rest_is_raw=True)
+    async def evolve(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+        """Evolve a pokémon if it has reached the target level."""
+
+        pokemon, idx = pokemon
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if (
+            pokemon.species.level_evolution is not None
+            and pokemon.held_item != 13001
+            and pokemon.level >= pokemon.species.level_evolution.trigger.level
+        ):
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Congratulations {ctx.author.name}!"
+
+            name = str(pokemon.species)
+
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
+
+            embed.add_field(
+                name=f"Your {name} is evolving!",
+                value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
+            )
+
+            await self.db.update_member(
+                ctx.author,
+                {
+                    "$set": {
+                        f"pokemon.{member.selected}.species_id": pokemon.species.level_evolution.target_id
+                    }
+                },
+            )
+
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("That pokémon can't be evolved!")
