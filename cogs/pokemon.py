@@ -872,7 +872,7 @@ class Pokemon(commands.Cog):
                 ctx.author,
                 {
                     "$set": {
-                        f"pokemon.{member.selected}.species_id": pokemon.species.level_evolution.target_id
+                        f"pokemon.{idx}.species_id": pokemon.species.level_evolution.target_id
                     }
                 },
             )
