@@ -1,11 +1,13 @@
 import asyncio
+import math
 from functools import cached_property
 
 import discord
 from discord.ext import commands, flags
 
+from helpers import checks, mongo, pagination
+
 from .database import Database
-from helpers import checks, mongo
 
 
 def setup(bot: commands.Bot):
@@ -39,39 +41,64 @@ class Trading(commands.Cog):
         a = ctx.guild.get_member(a)
         b = ctx.guild.get_member(b)
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
-        embed.title = f"Trade between {a.display_name} and {b.display_name}."
+        num_pages = max(math.ceil(len(x) / 20) for x in trade["items"].values())
 
-        if done:
-            embed.title = (
-                f"✅ Completed trade between {a.display_name} and {b.display_name}."
-            )
+        async def get_page(pidx, clear):
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Trade between {a.display_name} and {b.display_name}."
 
-        embed.set_footer(
-            text="Type `p!trade add <number>` to add a pokémon, `p!trade add <number> pc` to add Pokécoins, `p!trade confirm` to confirm, or `p!trade cancel` to cancel."
-        )
-
-        for i, side in trade["items"].items():
-            mem = ctx.guild.get_member(i)
-
-            if mem is None:
-                return await ctx.send(
-                    "The trade has been canceled because a user has left the server."
+            if done:
+                execmsg = await ctx.send("Executing trade...")
+                embed.title = (
+                    f"✅ Completed trade between {a.display_name} and {b.display_name}."
                 )
 
-            val = "\n".join(
-                f"{x} Pokécoins"
-                if type(x) == int
-                else f"Level {x[0].level} {x[0].species} ({x[1] + 1})"
-                for x in side
+            embed.set_footer(
+                text=f"Type `{ctx.prefix}trade add <number>` to add a pokémon, `{ctx.prefix}trade add <number> pc` to add Pokécoins, `{ctx.prefix}trade confirm` to confirm, or `{ctx.prefix}trade cancel` to cancel."
             )
 
-            sign = "🟢" if trade[i] else "🔴"
+            for i, fullside in trade["items"].items():
+                mem = ctx.guild.get_member(i)
 
-            embed.add_field(
-                name=f"{sign} {mem.display_name}", value="None" if val == "" else val,
-            )
+                side = fullside[pidx * 20 : (pidx + 1) * 20]
+
+                if mem is None:
+                    return await ctx.send("The trade has been canceled.")
+
+                if len(side) > 0:
+                    maxn = max(x[1] + 1 for x in side if type(x) != int)
+
+                def padn(idx, n):
+                    return " " * (len(str(n)) - len(str(idx))) + str(idx)
+
+                def txt(x):
+                    val = f"`{padn(x[1] + 1, maxn)}`⠀**{x[0].species}**"
+                    if x[0].shiny:
+                        val += " ✨"
+                    val += f"⠀•⠀Lvl. {x[0].level}⠀•⠀{x[0].iv_percentage:.2%}"
+                    return val
+
+                val = "\n".join(
+                    f"{x} Pokécoins" if type(x) == int else txt(x) for x in side
+                )
+
+                if val == "":
+                    if len(fullside) == 0:
+                        val = "None"
+                    else:
+                        val = "None on this page"
+
+                sign = "🟢" if trade[i] else "🔴"
+
+                embed.add_field(name=f"{sign} {mem.display_name}", value=val)
+
+            embed.set_footer(text=f"Showing page {pidx + 1} out of {num_pages}.")
+
+            return embed
+
+        paginator = pagination.Paginator(get_page, num_pages=num_pages)
+        asyncio.create_task(paginator.send(self.bot, ctx, 0))
 
         # Check if done
 
@@ -159,20 +186,12 @@ class Trading(commands.Cog):
                     mem, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}},
                 )
 
+            await execmsg.delete()
+
         # Send msg
-
-        if "prev" in trade:
-            try:
-                await trade["prev"].delete()
-            except:
-                pass
-
-        msg = await ctx.send(embed=embed)
 
         for evo_embed in embeds:
             await ctx.send(embed=evo_embed)
-
-        trade["prev"] = msg
 
     @checks.has_started()
     @commands.group(aliases=["t"], invoke_without_command=True)
@@ -225,6 +244,7 @@ class Trading(commands.Cog):
                 "items": {ctx.author.id: [], user.id: []},
                 ctx.author.id: False,
                 user.id: False,
+                "channel": ctx.channel,
             }
             self.bot.trades[ctx.author.id] = trade
             self.bot.trades[user.id] = trade
@@ -266,6 +286,9 @@ class Trading(commands.Cog):
 
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
+
+        if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
+            return await ctx.send("You must be in the same channel to add items!")
 
         if len(args) <= 2 and (
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
@@ -365,6 +388,9 @@ class Trading(commands.Cog):
 
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
+
+        if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
+            return await ctx.send("You must be in the same channel to remove items!")
 
         trade = self.bot.trades[ctx.author.id]
 
