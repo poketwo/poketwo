@@ -374,7 +374,8 @@ class Trading(commands.Cog):
                     )
                     continue
 
-            await ctx.send("\n".join(lines)[:2048])
+            if len(lines) > 0:
+                await ctx.send("\n".join(lines)[:2048])
 
             if not updated:
                 return
