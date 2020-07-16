@@ -43,13 +43,15 @@ class Trading(commands.Cog):
 
         num_pages = max(math.ceil(len(x) / 20) for x in trade["items"].values())
 
+        if done:
+            execmsg = await ctx.send("Executing trade...")
+
         async def get_page(pidx, clear):
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"Trade between {a.display_name} and {b.display_name}."
 
             if done:
-                execmsg = await ctx.send("Executing trade...")
                 embed.title = (
                     f"✅ Completed trade between {a.display_name} and {b.display_name}."
                 )
@@ -96,9 +98,6 @@ class Trading(commands.Cog):
             embed.set_footer(text=f"Showing page {pidx + 1} out of {num_pages}.")
 
             return embed
-
-        paginator = pagination.Paginator(get_page, num_pages=num_pages)
-        asyncio.create_task(paginator.send(self.bot, ctx, 0))
 
         # Check if done
 
@@ -189,6 +188,9 @@ class Trading(commands.Cog):
             await execmsg.delete()
 
         # Send msg
+
+        paginator = pagination.Paginator(get_page, num_pages=num_pages)
+        asyncio.create_task(paginator.send(self.bot, ctx, 0))
 
         for evo_embed in embeds:
             await ctx.send(embed=evo_embed)
@@ -317,6 +319,8 @@ class Trading(commands.Cog):
 
             updated = False
 
+            lines = []
+
             for what in args:
 
                 if what.isdigit():
@@ -324,7 +328,7 @@ class Trading(commands.Cog):
                     skip = False
 
                     if not 1 <= int(what) <= 2 ** 31 - 1:
-                        await ctx.send(f"{what}: NO")
+                        lines.append(f"{what}: NO")
                         continue
 
                     for x in self.bot.trades[ctx.author.id]["items"][ctx.author.id]:
@@ -332,9 +336,7 @@ class Trading(commands.Cog):
                             continue
 
                         if x[1] + 1 == int(what):
-                            await ctx.send(
-                                f"{what}: This item is already in the trade!"
-                            )
+                            lines.append(f"{what}: This item is already in the trade!")
                             skip = True
                             break
 
@@ -347,17 +349,15 @@ class Trading(commands.Cog):
                     pokemon = await self.db.fetch_pokemon(ctx.author, number)
 
                     if pokemon is None:
-                        await ctx.send(f"{what}: Couldn't find that pokémon!")
+                        lines.append(f"{what}: Couldn't find that pokémon!")
                         continue
 
                     if member.selected == number:
-                        await ctx.send(
-                            f"{what}: You can't trade your selected pokémon!"
-                        )
+                        lines.append(f"{what}: You can't trade your selected pokémon!")
                         continue
 
                     if pokemon.favorite:
-                        await ctx.send(f"{what}: You can't trade favorited pokémon!")
+                        lines.append(f"{what}: You can't trade favorited pokémon!")
                         continue
 
                     self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(
@@ -367,10 +367,12 @@ class Trading(commands.Cog):
                     updated = True
 
                 else:
-                    await ctx.send(
+                    lines.append(
                         f"{what}: That's not a valid item to add to the trade!"
                     )
                     continue
+
+            await ctx.send("\n".join(lines)[:2048])
 
             if not updated:
                 return

@@ -86,6 +86,7 @@ async def on_message(message: discord.Message):
         .replace("‘", "′")
         .replace("’", "′")
     )
+
     await client.process_commands(message)
 
 
