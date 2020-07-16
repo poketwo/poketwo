@@ -265,8 +265,6 @@ class Spawning(commands.Cog):
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
 
-        print(guess)
-
         # Retrieve correct species and level from tracker
 
         if ctx.channel.id not in self.bot.spawns:
