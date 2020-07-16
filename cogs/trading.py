@@ -68,8 +68,10 @@ class Trading(commands.Cog):
                 if mem is None:
                     return await ctx.send("The trade has been canceled.")
 
-                if len(side) > 0:
+                try:
                     maxn = max(x[1] + 1 for x in side if type(x) != int)
+                except ValueError:
+                    maxn = 0
 
                 def padn(idx, n):
                     return " " * (len(str(n)) - len(str(idx))) + str(idx)
