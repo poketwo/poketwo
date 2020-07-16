@@ -237,12 +237,13 @@ class Spawning(commands.Cog):
 
         image = await self.bot.loop.run_in_executor(None, get_image)
 
+        prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
+        prefix = prefix[0]
+
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"A wild pokémon has appeared!"
-        embed.description = (
-            "Guess the pokémon and type `p!catch <pokémon>` to catch it!"
-        )
+        embed.description = f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
         embed.set_image(url="attachment://pokemon.png")
 
         await channel.send(file=image, embed=embed)

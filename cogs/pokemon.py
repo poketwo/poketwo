@@ -605,7 +605,7 @@ class Pokemon(commands.Cog):
             maxn = max(idx for x, idx in pokemon)
 
             page = [
-                f"`{padn(p, idx, maxn)}`   **{txt}**   •   Lvl. {p.level}   •   {p.iv_percentage * 100:.2f}%"
+                f"`{padn(p, idx, maxn)}`⠀**{txt}**⠀•⠀Lvl. {p.level}⠀•⠀{p.iv_percentage * 100:.2f}%"
                 for p, idx in pokemon
                 if (txt := nick(p)) is not None
             ]
@@ -880,6 +880,26 @@ class Pokemon(commands.Cog):
             await ctx.send(embed=embed)
         else:
             await ctx.send("That pokémon can't be evolved!")
+
+    @checks.has_started()
+    @commands.command(rest_is_raw=True)
+    async def unmega(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+        """Switch a pokémon back to its non-mega form."""
+
+        pokemon, idx = pokemon
+
+        fr = models.GameData.species_by_number(pokemon.species.dex_number)
+
+        if pokemon.species not in (fr.mega, fr.mega_x, fr.mega_y,):
+            return await ctx.send("This pokémon is not in mega form!")
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        await self.db.update_member(
+            ctx.author, {"$set": {f"pokemon.{member.selected}.species_id": fr.id}},
+        )
+
+        await ctx.send("Successfully switched back to normal form.")
 
     @commands.command(aliases=["n"])
     async def next(self, ctx: commands.Context):

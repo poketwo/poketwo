@@ -66,7 +66,7 @@ class Shop(commands.Cog):
 
         embed.add_field(
             name="Claiming Rewards",
-            value="Use `p!open <normal|great|ultra> [amt]` to open your boxes!",
+            value=f"Use `{ctx.prefix}open <normal|great|ultra> [amt]` to open your boxes!",
         )
 
         embed.set_footer(
@@ -272,7 +272,7 @@ class Shop(commands.Cog):
         embed.title = f"Pokétwo Shop — {member.balance} Pokécoins"
 
         if page == 0:
-            embed.description = "Use `p!shop <page>` to view different pages."
+            embed.description = f"Use `{ctx.prefix}shop <page>` to view different pages."
 
             embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
             embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
@@ -282,7 +282,7 @@ class Shop(commands.Cog):
             embed.add_field(name="Page 6", value="Mega Evolutions", inline=False)
 
         else:
-            embed.description = "We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `p!buy <item>` to buy an item!"
+            embed.description = f"We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `{ctx.prefix}buy <item>` to buy an item!"
 
             items = [i for i in models.GameData.all_items() if i.page == page]
 
@@ -344,13 +344,13 @@ class Shop(commands.Cog):
         if item.action == "level":
             if pokemon.level + qty > 100:
                 return await ctx.send(
-                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `p!select` and try again."
+                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
         if item.action == "evolve_mega":
             if pokemon.species.mega is None:
                 return await ctx.send(
-                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega
@@ -363,7 +363,7 @@ class Shop(commands.Cog):
         if item.action == "evolve_megax":
             if pokemon.species.mega_x is None:
                 return await ctx.send(
-                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega_x
@@ -376,7 +376,7 @@ class Shop(commands.Cog):
         if item.action == "evolve_megay":
             if pokemon.species.mega_y is None:
                 return await ctx.send(
-                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega_y
@@ -399,11 +399,11 @@ class Shop(commands.Cog):
                     ).target
                 except StopIteration:
                     return await ctx.send(
-                        "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                        f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                     )
             else:
                 return await ctx.send(
-                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
             if pokemon.held_item == 13001:
@@ -422,7 +422,7 @@ class Shop(commands.Cog):
                     break
             else:
                 return await ctx.send(
-                    "This item can't be used on your selected pokémon! Please select a different pokémon using `p!select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.prefix}select` and try again."
                 )
 
         if "xpboost" in item.action:
@@ -594,12 +594,12 @@ class Shop(commands.Cog):
             embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
 
             embed.add_field(
-                name="p!redeem <pokémon>",
+                name=f"{ctx.prefix}redeem <pokémon>",
                 value="Use a redeem to receive a pokémon of your choice.",
             )
 
             embed.add_field(
-                name="p!redeemspawn <pokémon>",
+                name=f"{ctx.prefix}redeemspawn <pokémon>",
                 value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
             )
 
@@ -638,7 +638,7 @@ class Shop(commands.Cog):
         )
 
         await ctx.send(
-            f"You used a redeem and received a {species}! View it with `p!info latest`."
+            f"You used a redeem and received a {species}! View it with `{ctx.prefix}info latest`."
         )
 
     @checks.has_started()
@@ -655,12 +655,12 @@ class Shop(commands.Cog):
             embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
 
             embed.add_field(
-                name="p!redeem <pokémon>",
+                name=f"{ctx.prefix}redeem <pokémon>",
                 value="Use a redeem to receive a pokémon of your choice.",
             )
 
             embed.add_field(
-                name="p!redeemspawn <pokémon>",
+                name=f"{ctx.prefix}redeemspawn <pokémon>",
                 value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overrided)*.",
             )
 

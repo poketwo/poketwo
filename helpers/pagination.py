@@ -56,4 +56,7 @@ class Paginator:
 
             except asyncio.TimeoutError:
                 await message.add_reaction("❌")
-                del paginators[ctx.author.id]
+                try:
+                    del paginators[ctx.author.id]
+                except KeyError:
+                    pass

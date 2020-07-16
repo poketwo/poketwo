@@ -270,7 +270,7 @@ class Battling(commands.Cog):
                     )
 
                 cembed.set_footer(
-                    text="Use `p!battle add <pokemon>` in this DM to add a pokémon to the party!"
+                    text=f"Use `{ctx.prefix}battle add <pokemon>` in this DM to add a pokémon to the party!"
                 )
                 await i.send(embed=cembed)
 
@@ -474,7 +474,7 @@ class Battling(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
-        embed.description = "Here are the moves your pokémon can learn right now. View all moves and how to get them using `p!moveset`!"
+        embed.description = f"Here are the moves your pokémon can learn right now. View all moves and how to get them using `{ctx.prefix}moveset`!"
 
         embed.add_field(
             name="Available Moves",

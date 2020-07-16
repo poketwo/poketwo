@@ -34,19 +34,19 @@ class Bot(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    async def determine_prefix(self, message):
-        if message.guild:
-            if message.guild.id not in self.bot.prefixes:
-                guild = await mongo.Guild.find_one({"id": message.guild.id})
-                if guild is None:
-                    guild = mongo.Guild(id=message.guild.id)
-                    await guild.commit()
+    async def determine_prefix(self, guild):
+        if guild:
+            if guild.id not in self.bot.prefixes:
+                data = await mongo.Guild.find_one({"id": guild.id})
+                if data is None:
+                    data = mongo.Guild(id=guild.id)
+                    await data.commit()
 
-                self.bot.prefixes[message.guild.id] = guild.prefix
+                self.bot.prefixes[guild.id] = data.prefix
 
-            if self.bot.prefixes[message.guild.id] is not None:
+            if self.bot.prefixes[guild.id] is not None:
                 return [
-                    self.bot.prefixes[message.guild.id],
+                    self.bot.prefixes[guild.id],
                     self.bot.user.mention + " ",
                     self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
                 ]
@@ -64,21 +64,11 @@ class Bot(commands.Cog):
             return
 
         if isinstance(error, commands.MissingRequiredArgument):
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"p!{ctx.command.qualified_name}"
-
-            if ctx.command.help:
-                embed.description = ctx.command.help
-
-            embed.set_footer(
-                text=f"p!{ctx.command.qualified_name} {ctx.command.signature}",
-            )
-            return await ctx.send(embed=embed)
+            return await ctx.send_help(ctx.command)
 
         if isinstance(error, checks.MustHaveStarted):
             return await ctx.send(
-                "Please pick a starter pokémon by typing `p!start` before using this command!"
+                f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
             )
 
         if isinstance(error, flags.ArgumentParsingError):
@@ -161,7 +151,7 @@ class Bot(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = "Welcome to the world of Pokémon!"
-        embed.description = "To start, choose one of the starter pokémon using the `p!pick <pokemon>` command. "
+        embed.description = f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. "
 
         for gen, pokemon in constants.STARTER_GENERATION.items():
             embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
@@ -176,12 +166,12 @@ class Bot(commands.Cog):
 
         if member is not None:
             return await ctx.send(
-                "You have already chosen a starter pokémon! View your pokémon with `p!pokemon`."
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.prefix}pokemon`."
             )
 
         if name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(
-                "Please select one of the starter pokémon. To view them, type `p!start`."
+                f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`."
             )
 
         species = models.GameData.species_by_name(name)
@@ -195,7 +185,7 @@ class Bot(commands.Cog):
         await member.commit()
 
         await ctx.send(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `p!info` to view it!"
+            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"
         )
 
     @checks.has_started()

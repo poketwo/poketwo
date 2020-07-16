@@ -28,7 +28,7 @@ data.load_data()
 
 async def determine_prefix(bot, message):
     cog = bot.get_cog("Bot")
-    return await cog.determine_prefix(message)
+    return await cog.determine_prefix(message.guild)
 
 
 client = commands.AutoShardedBot(
