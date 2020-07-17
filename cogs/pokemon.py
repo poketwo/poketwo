@@ -810,7 +810,12 @@ class Pokemon(commands.Cog):
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"#{species.dex_number} — {species}"
-            embed.description = species.evolution_text
+
+            if species.description:
+                embed.description = species.description.replace("\n", " ")
+
+            if species.evolution_text:
+                embed.add_field(name="Evolution", value=species.evolution_text, inline=False)
 
             extrafooter = ""
 

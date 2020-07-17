@@ -287,6 +287,7 @@ class Species:
     base_stats: Stats
     evolution_from: EvolutionList
     evolution_to: EvolutionList
+    description: str
     mythical: bool
     legendary: bool
     ultra_beast: bool
@@ -317,6 +318,7 @@ class Species:
         catchable: bool,
         types: List[str],
         abundance: int,
+        description: str = None,
         mega_id: int = None,
         mega_x_id: int = None,
         mega_y_id: int = None,
@@ -339,6 +341,7 @@ class Species:
         self.is_form = is_form
         self.form_item = form_item
         self.abundance = abundance
+        self.description = description
 
         self.height = height
         self.weight = weight

@@ -113,6 +113,7 @@ def get_pokemon():
             catchable="catchable" in row,
             dex_number=row["dex_number"],
             abundance=row["abundance"] if "abundance" in row else 0,
+            description=row.get("description", None),
             evolution_from=evo_from,
             evolution_to=evo_to,
             mythical="mythical" in row,
