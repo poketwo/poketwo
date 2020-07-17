@@ -129,7 +129,7 @@ def get_pokemon():
             pokemon[row["pokemon_id"]].moves.append(
                 models.PokemonMove(row["move_id"], models.LevelMethod(row["level"]))
             )
-    
+
     for p in pokemon.values():
         p.moves.sort(key=lambda x: x.method.level)
 
