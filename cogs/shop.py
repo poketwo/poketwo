@@ -614,7 +614,7 @@ class Shop(commands.Cog):
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
-        if not species.catchable:
+        if not species.catchable or "Alolan" in species.name:
             return await ctx.send("You can't redeem this pokémon!")
 
         await self.db.update_member(
@@ -675,7 +675,7 @@ class Shop(commands.Cog):
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
-        if not species.catchable:
+        if not species.catchable or "Alolan" in species.name:
             return await ctx.send("You can't redeem this pokémon!")
 
         if ctx.channel.id == 720944005856100452:
