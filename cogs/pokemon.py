@@ -228,6 +228,15 @@ class Pokemon(commands.Cog):
                 }
             )
 
+        if "alolan" in flags and flags["alolan"]:
+            aggregations.append(
+                {
+                    "$match": {
+                        "pokemon.species_id": {"$in": models.GameData.list_alolan()}
+                    }
+                }
+            )
+
         if "legendary" in flags and flags["legendary"]:
             aggregations.append(
                 {
@@ -482,6 +491,7 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")

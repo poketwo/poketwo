@@ -465,6 +465,32 @@ class GameData:
         return _Data.pokemon.values()
 
     @classmethod
+    def list_alolan(cls):
+        if not hasattr(cls, "_alolan"):
+            cls._alolan = [
+                10091,
+                10092,
+                10093,
+                10100,
+                10101,
+                10102,
+                10103,
+                10104,
+                10105,
+                10106,
+                10107,
+                10108,
+                10109,
+                10110,
+                10111,
+                10112,
+                10113,
+                10114,
+                10115,
+            ]
+        return cls._alolan
+
+    @classmethod
     def list_mythical(cls):
         if not hasattr(cls, "_mythical"):
             cls._mythical = [v.id for v in _Data.pokemon.values() if v.mythical]
