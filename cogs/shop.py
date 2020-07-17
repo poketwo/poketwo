@@ -272,7 +272,9 @@ class Shop(commands.Cog):
         embed.title = f"Pokétwo Shop — {member.balance} Pokécoins"
 
         if page == 0:
-            embed.description = f"Use `{ctx.prefix}shop <page>` to view different pages."
+            embed.description = (
+                f"Use `{ctx.prefix}shop <page>` to view different pages."
+            )
 
             embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
             embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
@@ -683,7 +685,10 @@ class Shop(commands.Cog):
             ctx.author, {"$inc": {"redeems": -1}},
         )
 
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except:
+            pass
 
         self.bot.redeem[ctx.channel.id] = datetime.now()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
