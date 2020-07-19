@@ -12,3 +12,5 @@ The source code here is provided for educational purposes. I would recommend aga
 ## Contributing
 
 I'm open to contributions. Please, however, make an issue first if you want to contribute to the bot.
+
+Right now, the code's still quite convoluted. I am working on refactoring and reorganizing the project.
