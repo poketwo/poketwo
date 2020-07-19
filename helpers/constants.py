@@ -264,7 +264,7 @@ class EmojiManager:
         self._shiny = [None]
         
         #check if you have access to pokemon sprites
-        self.emojiStatus = True
+        self.emoji_status = True
 
     async def init_emojis(self, bot):
         try: 
@@ -297,12 +297,12 @@ class EmojiManager:
             )
             self.gift_great = next(filter(lambda x: x.name == "gift_great", gguild.emojis))
             self.gift_ultra = next(filter(lambda x: x.name == "gift_ultra", gguild.emojis))
-        except:
-            print("emojis off")
-            self.emojiStatus = False
+        except AttributeError:
+            print("sprite emojis off")
+            self.emoji_status = False
 
-    def getStatus(self):
-        return self.emojiStatus
+    def get_status(self):
+        return self.emoji_status
 
     def get(self, idx, shiny=False):
         if shiny:

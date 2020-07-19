@@ -516,7 +516,7 @@ class Pokemon(commands.Cog):
 
         do_emojis = (ctx.channel.permissions_for(
             ctx.guild.get_member(self.bot.user.id)
-        ).external_emojis and constants.EMOJIS.getStatus())
+        ).external_emojis and constants.EMOJIS.get_status())
 
         fixed_pokemon = False
 
@@ -658,7 +658,7 @@ class Pokemon(commands.Cog):
 
             do_emojis = (ctx.channel.permissions_for(
                 ctx.guild.get_member(self.bot.user.id)
-            ).external_emojis and constants.EMOJIS.getStatus())
+            ).external_emojis and constants.EMOJIS.get_status())
 
             member = await self.db.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex

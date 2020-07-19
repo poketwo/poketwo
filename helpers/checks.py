@@ -39,7 +39,7 @@ class ShuttingDown(commands.CheckFailure):
 
 def enabled(bot):
     async def predicate(ctx: commands.Context):
-        if ctx.author.id == 398686833153933313:
+        if ctx.author.id == 485641940826849292:
             return True
 
         if not bot.enabled:
