@@ -32,7 +32,7 @@ class Administration(commands.Cog):
         """Give a redeem."""
 
         await self.db.update_member(
-            user, {"$inc": {"redeems": num},},
+            user, {"$inc": {"redeems": num}},
         )
 
         await ctx.send(f"Gave {user.mention} {num} redeems.")
@@ -75,6 +75,8 @@ class Administration(commands.Cog):
     @commands.command()
     async def setup(self, ctx: commands.Context, user: discord.Member, num: int = 100):
         """Test setup pokémon."""
+
+        # This is for development purposes.
 
         member = await self.db.fetch_member_info(user)
 

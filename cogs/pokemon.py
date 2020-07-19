@@ -53,30 +53,33 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
-    @commands.command(aliases=["f", "fav"], rest_is_raw=True)
-    async def favorite(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    @commands.command(aliases=["f", "fav", "favourite"], rest_is_raw=True)
+    async def favorite(
+        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+    ):
         """Mark a pokémon as a favorite."""
 
-        pokemon, idx = pokemon
+        if len(args) == 0:
+            args.append(await converters.Pokemon().convert(ctx, ""))
 
-        if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+        for pokemon, idx in args:
+            if pokemon is None:
+                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
+                continue
 
-        num = await self.db.fetch_pokemon_count(ctx.author)
+            await self.db.update_member(
+                ctx.author, {"$set": {f"pokemon.{idx}.favorite": not pokemon.favorite}},
+            )
 
-        await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{idx}.favorite": not pokemon.favorite}},
-        )
+            name = str(pokemon.species)
 
-        name = str(pokemon.species)
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
 
-        if pokemon.nickname is not None:
-            name += f' "{pokemon.nickname}"'
-
-        if pokemon.favorite:
-            await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
-        else:
-            await ctx.send(f"Favorited your level {pokemon.level} {name}.")
+            if pokemon.favorite:
+                await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
+            else:
+                await ctx.send(f"Favorited your level {pokemon.level} {name}.")
 
     @checks.has_started()
     @commands.command(rest_is_raw=True)
@@ -129,16 +132,7 @@ class Pokemon(commands.Cog):
                 f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
             )
 
-            embed.add_field(name="Stats", value="\n".join(stats))
-
-            # embed.add_field(
-            #     name="Moves",
-            #     value="No Moves"
-            #     if len(pokemon.moves) == 0
-            #     else "\n".join(
-            #         models.GameData.move_by_number(x).name for x in pokemon.moves
-            #     ),
-            # )
+            embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
             if pokemon.held_item:
                 item = models.GameData.item_by_number(pokemon.held_item)
@@ -150,7 +144,9 @@ class Pokemon(commands.Cog):
                         emote = f"{e} "
                     except StopIteration:
                         pass
-                embed.add_field(name="Held Item", value=f"{emote}{item.name}")
+                embed.add_field(
+                    name="Held Item", value=f"{emote}{item.name}", inline=False
+                )
 
             embed.set_footer(
                 text=f"Displaying pokémon {pidx + 1} out of {num}." + extrafooter
@@ -188,16 +184,18 @@ class Pokemon(commands.Cog):
     async def order(self, ctx: commands.Context, *, sort: str = ""):
         """Change how your pokémon are ordered."""
 
-        if (s := sort.lower()) not in ("number", "iv", "level", "pokedex"):
+        sort = sort.lower()
+
+        if sort not in ("number", "iv", "level", "pokedex"):
             return await ctx.send(
                 "Please specify either `number`, `IV`, `level`, or `pokedex`."
             )
 
         await self.db.update_member(
-            ctx.author, {"$set": {f"order_by": s}},
+            ctx.author, {"$set": {f"order_by": sort}},
         )
 
-        await ctx.send(f"Now ordering pokemon by {'IV' if s == 'iv' else s}.")
+        await ctx.send(f"Now ordering pokemon by `{sort}`.")
 
     def parse_numerical_flag(self, text):
         if not (1 <= len(text) <= 2):
@@ -219,42 +217,17 @@ class Pokemon(commands.Cog):
     async def create_filter(self, flags, ctx):
         aggregations = []
 
-        if "mythical" in flags and flags["mythical"]:
-            aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.species_id": {"$in": models.GameData.list_mythical()}
+        for x in ("mythical", "legendary", "ub", "alolan", "mega"):
+            if x in flags and flags[x]:
+                aggregations.append(
+                    {
+                        "$match": {
+                            "pokemon.species_id": {
+                                "$in": getattr(models.GameData, f"list_{x}")()
+                            }
+                        }
                     }
-                }
-            )
-
-        if "alolan" in flags and flags["alolan"]:
-            aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.species_id": {"$in": models.GameData.list_alolan()}
-                    }
-                }
-            )
-
-        if "legendary" in flags and flags["legendary"]:
-            aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.species_id": {"$in": models.GameData.list_legendary()}
-                    }
-                }
-            )
-
-        if "ub" in flags and flags["ub"]:
-            aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": models.GameData.list_ub()}}}
-            )
-
-        if "mega" in flags and flags["mega"]:
-            aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": models.GameData.list_mega()}}}
-            )
+                )
 
         if "type" in flags and flags["type"]:
             aggregations.append(
@@ -290,8 +263,9 @@ class Pokemon(commands.Cog):
                 ops = self.parse_numerical_flag(text)
 
                 if ops is None:
-                    await ctx.send(f"Couldn't parse `--{flag} {' '.join(text)}`")
-                    return
+                    raise commands.BadArgument(
+                        f"Couldn't parse `--{flag} {' '.join(text)}`"
+                    )
 
                 if ops[0] == "<":
                     aggregations.extend(
@@ -319,7 +293,9 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=["r"])
-    async def release(self, ctx: commands.Context, *args):
+    async def release(
+        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+    ):
         """Release pokémon from your collection."""
 
         if ctx.author.id in self.bot.trades:
@@ -335,34 +311,23 @@ class Pokemon(commands.Cog):
         idxs = set()
         mons = list()
 
-        if len(args) >= 10:
-            await ctx.send(
-                f"Querying for {len(args)} pokémon, this might take a while..."
-            )
-
-        for number in args:
-
-            try:
-                pokemon, idx = await converter.convert(ctx, number)
-            except converters.PokemonConversionError:
-                await ctx.send(f"{number}: Not a valid pokémon!")
-                continue
+        for pokemon, idx in args:
 
             if pokemon is None:
-                await ctx.send(f"{number}: Couldn't find that pokémon!")
+                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
                 continue
 
             # can't release selected/fav
 
             if idx in idxs:
-                await ctx.send(f"{number}: This pokémon is already being released!")
+                continue
 
             if member.selected == idx:
-                await ctx.send(f"{number}: You can't release your selected pokémon!")
+                await ctx.send(f"{idx + 1}: You can't release your selected pokémon!")
                 continue
 
             if pokemon.favorite:
-                await ctx.send(f"{number}: You can't release favorited pokémon!")
+                await ctx.send(f"{idx + 1}: You can't release favorited pokémon!")
                 continue
 
             idxs.add(idx)
@@ -370,6 +335,11 @@ class Pokemon(commands.Cog):
 
             if (idx % num) < member.selected:
                 dec += 1
+
+        # Confirmation msg
+
+        if len(mons) == 0:
+            return
 
         if len(args) == 1:
             await ctx.send(
@@ -403,13 +373,15 @@ class Pokemon(commands.Cog):
 
         unsets = {f"pokemon.{idx}": 1 for idx in idxs}
 
-        await self.db.update_member(ctx.author, {"$unset": unsets})
+        # mongo is bad so we have to do two steps here
 
-        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
+        await self.db.update_member(ctx.author, {"$unset": unsets})
         await self.db.update_member(
             ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
         )
-        await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
+        await self.db.update_member(
+            ctx.author, {"$pull": {f"pokemon": None}, "$inc": {f"selected": -dec}}
+        )
 
         await ctx.send(f"You released {len(mons)} pokémon.")
 
@@ -549,6 +521,8 @@ class Pokemon(commands.Cog):
         fixed_pokemon = False
 
         async def fix_pokemon():
+            # TODO This is janky way of removing bad database entries, I should fix this
+
             nonlocal fixed_pokemon
 
             if fixed_pokemon:
@@ -815,7 +789,9 @@ class Pokemon(commands.Cog):
                 embed.description = species.description.replace("\n", " ")
 
             if species.evolution_text:
-                embed.add_field(name="Evolution", value=species.evolution_text, inline=False)
+                embed.add_field(
+                    name="Evolution", value=species.evolution_text, inline=False
+                )
 
             extrafooter = ""
 

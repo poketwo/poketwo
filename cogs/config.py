@@ -35,7 +35,7 @@ class Configuration(commands.Cog):
                 current = current[0]
             return await ctx.send(f"My prefix is `{current}` in this server.")
 
-        if prefix == "reset" or prefix == "p!":
+        if prefix in ("reset", "p!", "P!"):
             await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})
             self.bot.prefixes[ctx.guild.id] = None
 
@@ -64,7 +64,7 @@ class Configuration(commands.Cog):
             await ctx.send(f"Reverting to normal level up behavior.")
         else:
             await ctx.send(
-                f"I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
+                "I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
             )
 
     @checks.is_admin()

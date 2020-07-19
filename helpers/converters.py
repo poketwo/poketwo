@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 
-class PokemonConversionError(commands.CommandError):
+class PokemonConversionError(commands.ConversionError):
     pass
 
 
@@ -35,6 +35,8 @@ class Pokemon(commands.Converter):
             )
 
         count = await db.fetch_pokemon_count(ctx.author)
-        number = number % count
+
+        if number < 0:
+            number = number % count
 
         return await db.fetch_pokemon(ctx.author, number), number

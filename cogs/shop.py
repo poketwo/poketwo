@@ -343,6 +343,8 @@ class Shop(commands.Cog):
         if member.balance < item.cost * qty:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
+        # Check to make sure it's purchasable.
+
         if item.action == "level":
             if pokemon.level + qty > 100:
                 return await ctx.send(
@@ -444,6 +446,8 @@ class Shop(commands.Cog):
                 await ctx.send(f"You purchased {item.name} x {qty} for your {name}!")
             else:
                 await ctx.send(f"You purchased a {item.name} for your {name}!")
+        
+        # OK to buy, go ahead
 
         await self.db.update_member(
             ctx.author, {"$inc": {"balance": -item.cost * qty},},
@@ -484,6 +488,9 @@ class Shop(commands.Cog):
                 "$set": {f"pokemon.{member.selected}.xp": 0,},
                 "$inc": {f"pokemon.{member.selected}.level": qty,},
             }
+
+            # TODO this code is repeated too many times.
+
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"Congratulations {ctx.author.name}!"
@@ -648,6 +655,8 @@ class Shop(commands.Cog):
     async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 
+        # TODO I should really merge this and redeem into one function.
+
         member = await self.db.fetch_member_info(ctx.author)
 
         if species is None:
@@ -672,6 +681,7 @@ class Shop(commands.Cog):
             return await ctx.send("You don't have any redeems!")
 
         species = models.GameData.species_by_name(species)
+
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
@@ -679,6 +689,7 @@ class Shop(commands.Cog):
             return await ctx.send("You can't redeem this pokémon!")
 
         if ctx.channel.id == 720944005856100452:
+            # Patreon channel
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
         await self.db.update_member(

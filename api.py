@@ -1,3 +1,5 @@
+# TODO switch to an async thing here.
+
 import asyncio
 import hmac
 import os
@@ -14,8 +16,6 @@ app = Flask(__name__)
 
 @app.route("/dbl", methods=["POST"])
 def dbl():
-    print(request.json)
-
     res = db.member.find_one({"_id": int(request.json["user"])})
 
     streak = res.get("vote_streak", 0)
@@ -43,6 +43,8 @@ def dbl():
 
     return "Success", 200
 
+
+# TODO implement patreon webhooks that actually work
 
 # @app.route("/patreon", methods=["POST"])
 # def patreon():

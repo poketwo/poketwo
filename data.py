@@ -1,3 +1,8 @@
+"""
+I'm in the process of pulling pokémon data from a SQL database, instead of this mess.
+Will use veekun/pokedex.
+"""
+
 import csv
 from pathlib import Path
 

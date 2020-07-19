@@ -7,24 +7,20 @@ verify_ssl = true
 black = "*"
 
 [packages]
-discord-py = "*"
 pillow = "*"
 pymongo = {extras = ["tls"],version = "*"}
 python-dotenv = "*"
-dnspython = "*"
 discord-flags = "*"
 unidecode = "*"
 humanfriendly = "*"
 motor = "*"
 umongo = "==3.0.0b7"
 flask = "*"
-requests = "*"
-gunicorn = "*"
 dblpy = "*"
 jishaku = "*"
-pytz = "*"
 "discord.py" = "*"
 pokedex = {git = "https://github.com/veekun/pokedex.git"}
+discord = {git = "https://github.com/Rapptz/discord.py.git", ref = "sharding-rework"}
 
 [requires]
 python_version = "3.8"

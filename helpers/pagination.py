@@ -18,11 +18,12 @@ class Paginator:
 
         paginators[ctx.author.id] = self
 
-        self.last_page = pidx
-
         embed = await self.get_page(pidx, clear)
 
         message = await ctx.send(embed=embed)
+
+        self.last_msg = message
+        self.last_page = pidx
 
         if self.num_pages > 1:
 

@@ -1,5 +1,7 @@
 import os
 import random
+import sys
+import traceback
 from datetime import datetime
 from functools import cached_property
 
@@ -60,47 +62,51 @@ class Bot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if isinstance(error, discord.Forbidden):
-            return
 
-        if isinstance(error, commands.MissingRequiredArgument):
-            return await ctx.send_help(ctx.command)
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.send("This command cannot be used in private messages.")
 
-        if isinstance(error, checks.MustHaveStarted):
-            return await ctx.send(
-                f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
-            )
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.send("Sorry. This command is disabled and cannot be used.")
 
-        if isinstance(error, flags.ArgumentParsingError):
-            return await ctx.send(error)
-
-        if isinstance(error, commands.BadArgument):
-            return await ctx.send(f"Bad argument: {error}")
-
-        if isinstance(error, converters.PokemonConversionError):
-            return await ctx.send(error)
-
-        if isinstance(error, commands.BotMissingPermissions):
+        elif isinstance(error, commands.BotMissingPermissions):
             missing = [
                 "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
                 for perm in error.missing_perms
             ]
-
             if len(missing) > 2:
                 fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
             else:
                 fmt = " and ".join(missing)
-
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            return await ctx.send(message)
+            await ctx.send(message)
 
-        if isinstance(error, commands.CheckFailure):
-            return await ctx.send(error)
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send(error)
 
-        if isinstance(error, commands.CommandNotFound):
+        elif isinstance(error, converters.PokemonConversionError):
+            await ctx.send(error)
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send_help(ctx.command)
+
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send(error)
+
+        elif isinstance(error, flags.ArgumentParsingError):
+            await ctx.send(error)
+
+        elif isinstance(error, discord.errors.Forbidden):
             return
 
-        raise error
+        elif isinstance(error, commands.CommandNotFound):
+            return
+
+        else:
+            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr
+            )
 
     @commands.command()
     async def invite(self, ctx: commands.Context):
@@ -229,6 +235,8 @@ class Bot(commands.Cog):
     @checks.has_started()
     @commands.command()
     async def healschema(self, ctx: commands.Context, member: discord.User = None):
+        """Fix database schema if broken."""
+
         await self.db.update_member(
             member or ctx.author,
             {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},

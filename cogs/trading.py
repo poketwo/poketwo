@@ -28,6 +28,8 @@ class Trading(commands.Cog):
         return self.bot.get_cog("Database")
 
     async def send_trade(self, ctx: commands.Context, user: discord.Member):
+        # TODO this code is pretty shit. although it does work
+
         trade = self.bot.trades[user.id]
         a, b = trade["items"].keys()
 
@@ -390,6 +392,8 @@ class Trading(commands.Cog):
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
         """Remove an item from a trade."""
+
+        # TODO this shares a lot of code with the add command
 
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")

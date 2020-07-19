@@ -22,7 +22,9 @@ def has_started():
             member = await mongo.Member.find_one({"id": ctx.author.id})
 
             if member is None:
-                raise MustHaveStarted
+                raise MustHaveStarted(
+                    f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
+                )
 
         users.add(ctx.author.id)
 

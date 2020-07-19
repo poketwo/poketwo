@@ -1,3 +1,9 @@
+"""
+I'm in the process of pulling pokémon data from a SQL database, instead of this mess.
+Will use veekun/pokedex.
+"""
+
+
 import csv
 import random
 import re
@@ -18,6 +24,8 @@ def deaccent(text):
 
 
 class _Data:
+    # TODO not sure why I made a class for this?
+
     pokemon = {}
     items = {}
     effects = {}
@@ -463,6 +471,8 @@ def load_data(*, pokemon, items, effects, moves):
 
 
 class GameData:
+    # TODO not sure why I made a class for this?
+
     @classmethod
     def all_pokemon(cls):
         return _Data.pokemon.values()

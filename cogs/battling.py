@@ -1,3 +1,8 @@
+"""
+The code in here is shit. I know.
+I'm working on rewriting this file with better code that actually works.
+"""
+
 import asyncio
 import math
 import random

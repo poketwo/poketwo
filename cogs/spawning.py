@@ -43,6 +43,8 @@ class Spawning(commands.Cog):
             pass
 
     async def handle_message(self, message: discord.Message):
+        # TODO this method is wayyy too long.
+
         if message.guild is None:
             return
 
@@ -77,6 +79,8 @@ class Spawning(commands.Cog):
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
 
             if pokemon is not None and pokemon.held_item != 13002:
+
+                # TODO this stuff here needs to be refactored
 
                 if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
                     xp_inc = random.randint(10, 40)
@@ -213,8 +217,6 @@ class Spawning(commands.Cog):
                 await self.spawn_pokemon(channel)
 
     async def spawn_pokemon(self, channel, species=None, shiny=None):
-        # Get random species and level, add to tracker
-
         if species is None:
             species = models.GameData.random_spawn()
 
@@ -243,7 +245,9 @@ class Spawning(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"A wild pokémon has appeared!"
-        embed.description = f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
+        embed.description = (
+            f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
+        )
         embed.set_image(url="attachment://pokemon.png")
 
         await channel.send(file=image, embed=embed)
