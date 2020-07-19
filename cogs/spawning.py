@@ -230,9 +230,8 @@ class Spawning(commands.Cog):
         hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
-
+        
         # Fetch image and send embed
-
         def get_image():
             with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
                 return discord.File(f, filename="pokemon.png")

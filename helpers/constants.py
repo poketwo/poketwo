@@ -262,37 +262,47 @@ class EmojiManager:
     def __init__(self):
         self._emojis = [None]
         self._shiny = [None]
+        
+        #check if you have access to pokemon sprites
+        self.emojiStatus = True
 
     async def init_emojis(self, bot):
-        for x in range(809):
-            guild = bot.get_guild(EMOJI_SERVERS[0][x // 50])
-            emoji = next(i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}")
+        try: 
+            for x in range(809):
+                guild = bot.get_guild(EMOJI_SERVERS[0][x // 50])
+                emoji = next(i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}")
 
-            guild = bot.get_guild(EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])])
-            try:
-                shiny = next(
-                    i
-                    for i in guild.emojis
-                    if i.name == f"pokemon_sprite_{x + 1}"
-                    or i.name == f"pokemon_sprite_{x + 1}_shiny"
-                )
-            except StopIteration:
-                shiny = emoji
+                guild = bot.get_guild(EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])])
+                try:
+                    shiny = next(
+                        i
+                        for i in guild.emojis
+                        if i.name == f"pokemon_sprite_{x + 1}"
+                        or i.name == f"pokemon_sprite_{x + 1}_shiny"
+                    )
+                except StopIteration:
+                    shiny = emoji
 
-            self._emojis.append(emoji)
-            self._shiny.append(shiny)
+                self._emojis.append(emoji)
+                self._shiny.append(shiny)
 
-        gguild = await bot.fetch_guild(725819081835544596)
+            gguild = await bot.fetch_guild(725819081835544596)
 
-        self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
-        self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))
-        self.gray = next(filter(lambda x: x.name == "gray_tick", gguild.emojis))
+            self.check = next(filter(lambda x: x.name == "green_tick", gguild.emojis))
+            self.cross = next(filter(lambda x: x.name == "red_tick", gguild.emojis))
+            self.gray = next(filter(lambda x: x.name == "gray_tick", gguild.emojis))
 
-        self.gift_normal = next(
-            filter(lambda x: x.name == "gift_normal", gguild.emojis)
-        )
-        self.gift_great = next(filter(lambda x: x.name == "gift_great", gguild.emojis))
-        self.gift_ultra = next(filter(lambda x: x.name == "gift_ultra", gguild.emojis))
+            self.gift_normal = next(
+                filter(lambda x: x.name == "gift_normal", gguild.emojis)
+            )
+            self.gift_great = next(filter(lambda x: x.name == "gift_great", gguild.emojis))
+            self.gift_ultra = next(filter(lambda x: x.name == "gift_ultra", gguild.emojis))
+        except:
+            print("emojis off")
+            self.emojiStatus = False
+
+    def getStatus(self):
+        return self.emojiStatus
 
     def get(self, idx, shiny=False):
         if shiny:
