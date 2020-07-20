@@ -459,3 +459,80 @@ class Trading(commands.Cog):
                 self.bot.trades[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)
+
+    # Filter
+    @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", nargs="+")
+    @flags.add_flag("--level", type=int)
+    @flags.add_flag("--type", type=str)
+
+    # IV
+    @flags.add_flag("--hpiv", nargs="+")
+    @flags.add_flag("--atkiv", nargs="+")
+    @flags.add_flag("--defiv", nargs="+")
+    @flags.add_flag("--spatkiv", nargs="+")
+    @flags.add_flag("--spdefiv", nargs="+")
+    @flags.add_flag("--spdiv", nargs="+")
+    @flags.add_flag("--iv", nargs="+")
+
+    # Pokemon
+    @checks.has_started()
+    @trade.command(aliases=["aa"], cls=flags.FlagCommand)
+    async def addall(self, ctx: commands.Context, **flags):
+
+        if ctx.author.id not in self.bot.trades:
+            return await ctx.send("You aren't in a trade!")
+
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx)
+
+        if aggregations is None:
+            return
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        aggregations.extend(
+            [
+                {"$match": {"idx": {"$not": {"$eq": member.selected}}}},
+                {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
+            ]
+        )
+
+        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+
+        if num == 0:
+            return await ctx.send(
+                "Found no pokémon matching this search (excluding favorited and selected pokémon)."
+            )
+
+        # confirmed, release all
+
+        await ctx.send(f"Adding {num} pokémon, this might take a while...")
+
+        pokemon = await self.db.fetch_pokemon_list(
+            ctx.author, 0, num, aggregations=aggregations
+        )
+
+        self.bot.trades[ctx.author.id]["items"][ctx.author.id].extend(
+            (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"]) for x in pokemon
+        )
+
+        for k in self.bot.trades[ctx.author.id]:
+            if type(k) == int:
+                self.bot.trades[ctx.author.id][k] = False
+
+        await self.send_trade(ctx, ctx.author)
+
+        # pokemon = {f'pokemon.{x["idx"]}': 1 for x in pokemon}
+
+        # await self.db.update_member(ctx.author, {"$unset": pokemon})
+        # await self.db.update_member(
+        #     ctx.author, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}}
+        # )
+
+        # await ctx.send(f"You have released {num} pokémon.")
