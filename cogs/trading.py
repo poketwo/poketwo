@@ -481,6 +481,10 @@ class Trading(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
     # Trade add all
     @checks.has_started()
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)
@@ -489,12 +493,12 @@ class Trading(commands.Cog):
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You aren't in a trade!")
 
-        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx)
+        member = await self.db.fetch_member_info(ctx.author)
+
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
-
-        member = await self.db.fetch_member_info(ctx.author)
 
         aggregations.extend(
             [

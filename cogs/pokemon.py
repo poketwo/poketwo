@@ -214,7 +214,7 @@ class Pokemon(commands.Cog):
 
         return ops
 
-    async def create_filter(self, flags, ctx):
+    async def create_filter(self, flags, ctx, order_by=None):
         aggregations = []
 
         for x in ("mythical", "legendary", "ub", "alolan", "mega"):
@@ -289,6 +289,20 @@ class Pokemon(commands.Cog):
                             {"$match": {flag: {"$gt": int(ops[1])}}},
                         ]
                     )
+
+        if order_by is not None:
+            aggregations.extend(
+                [
+                    {"$addFields": {"sorting": constants.SORTING_FUNCTIONS[order_by]}},
+                    {"$sort": {"sorting": 1}},
+                ]
+            )
+
+        if "skip" in flags and flags["skip"] is not None:
+            aggregations.append({"$skip": flags["skip"]})
+
+        if "limit" in flags and flags["limit"] is not None:
+            aggregations.append({"$limit": flags["limit"]})
 
         return aggregations
 
@@ -407,6 +421,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
     # Release all
     @checks.has_started()
     @flags.command(aliases=["ra"])
@@ -496,6 +514,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
     # Pokemon
     @checks.has_started()
     @flags.command(aliases=["p"])
@@ -506,27 +528,14 @@ class Pokemon(commands.Cog):
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
 
-        aggregations = await self.create_filter(flags, ctx)
+        member = await self.db.fetch_member_info(ctx.author)
+
+        aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
 
-        # # Filter pokemon
-
-        # Pagination
-
-        member = await self.db.fetch_member_info(ctx.author)
-
-        aggregations.extend(
-            [
-                {
-                    "$addFields": {
-                        "sorting": constants.SORTING_FUNCTIONS[member.order_by]
-                    }
-                },
-                {"$sort": {"sorting": 1}},
-            ]
-        )
+        # Filter pokemon
 
         do_emojis = (
             ctx.channel.permissions_for(
