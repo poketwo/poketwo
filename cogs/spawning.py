@@ -3,13 +3,14 @@ import time
 from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
+import io
 
 import discord
 from discord.ext import commands
 
 from .database import Database
 from helpers import checks, models, mongo
-
+from PIL import Image, ImageFilter
 
 def setup(bot: commands.Bot):
     bot.add_cog(Spawning(bot))
@@ -234,7 +235,14 @@ class Spawning(commands.Cog):
         # Fetch image and send embed
         def get_image():
             with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-                return discord.File(f, filename="pokemon.png")
+                poke_image = Image.open(f)
+                poke_image = poke_image.filter(ImageFilter.UnsharpMask(radius=2, percent=random.randint(2,10), threshold=random.randint(1,2)))
+
+                arr = io.BytesIO()
+                poke_image.save(arr, format='PNG')
+                arr.seek(0)
+
+                return discord.File(arr, filename="pokemon.png")
 
         image = await self.bot.loop.run_in_executor(None, get_image)
 
