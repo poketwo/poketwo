@@ -527,12 +527,3 @@ class Trading(commands.Cog):
                 self.bot.trades[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)
-
-        # pokemon = {f'pokemon.{x["idx"]}': 1 for x in pokemon}
-
-        # await self.db.update_member(ctx.author, {"$unset": pokemon})
-        # await self.db.update_member(
-        #     ctx.author, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}}
-        # )
-
-        # await ctx.send(f"You have released {num} pokémon.")
