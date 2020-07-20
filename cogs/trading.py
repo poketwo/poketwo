@@ -510,7 +510,25 @@ class Trading(commands.Cog):
                 "Found no pokémon matching this search (excluding favorited and selected pokémon)."
             )
 
-        # confirmed, release all
+        # confirm
+
+        await ctx.send(
+            f"Are you sure you want to trade {num} pokémon? Favorited and selected pokémon won't be added. Type `confirm trade {num}` to confirm."
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+            if msg.content != f"confirm trade {num}":
+                return await ctx.send("Aborted.")
+
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        # confirmed, add all
 
         await ctx.send(f"Adding {num} pokémon, this might take a while...")
 
