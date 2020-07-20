@@ -183,6 +183,7 @@ FILTER_BY_NUMERICAL = {
             1.86,
         ]
     },
+    "level": "$pokemon.level",
     "hpiv": "$pokemon.iv_hp",
     "atkiv": "$pokemon.iv_atk",
     "defiv": "$pokemon.iv_defn",
@@ -262,17 +263,21 @@ class EmojiManager:
     def __init__(self):
         self._emojis = [None]
         self._shiny = [None]
-        
-        #check if you have access to pokemon sprites
+
+        # check if you have access to pokemon sprites
         self.emoji_status = True
 
     async def init_emojis(self, bot):
-        try: 
+        try:
             for x in range(809):
                 guild = bot.get_guild(EMOJI_SERVERS[0][x // 50])
-                emoji = next(i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}")
+                emoji = next(
+                    i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}"
+                )
 
-                guild = bot.get_guild(EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])])
+                guild = bot.get_guild(
+                    EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])]
+                )
                 try:
                     shiny = next(
                         i
@@ -295,8 +300,12 @@ class EmojiManager:
             self.gift_normal = next(
                 filter(lambda x: x.name == "gift_normal", gguild.emojis)
             )
-            self.gift_great = next(filter(lambda x: x.name == "gift_great", gguild.emojis))
-            self.gift_ultra = next(filter(lambda x: x.name == "gift_ultra", gguild.emojis))
+            self.gift_great = next(
+                filter(lambda x: x.name == "gift_great", gguild.emojis)
+            )
+            self.gift_ultra = next(
+                filter(lambda x: x.name == "gift_ultra", gguild.emojis)
+            )
         except AttributeError:
             print("sprite emojis off")
             self.emoji_status = False

@@ -247,19 +247,20 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"pokemon.shiny": True}})
 
         if "name" in flags and flags["name"] is not None:
-            all_species = models.GameData.find_all_matches(" ".join(flags["name"]))
+            all_species = [
+                i
+                for x in flags["name"]
+                for i in models.GameData.find_all_matches(" ".join(x))
+            ]
 
             aggregations.append(
                 {"$match": {"pokemon.species_id": {"$in": all_species}}}
             )
 
-        if "level" in flags and flags["level"] is not None:
-            aggregations.append({"$match": {"pokemon.level": flags["level"]}})
-
         # Numerical flags
 
         for flag, expr in constants.FILTER_BY_NUMERICAL.items():
-            if flag in flags and (text := flags[flag]) is not None:
+            for text in flags[flag] or []:
                 ops = self.parse_numerical_flag(text)
 
                 if ops is None:
@@ -385,15 +386,28 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"You released {len(mons)} pokémon.")
 
-    @flags.add_flag("--name", nargs="+")
-    @flags.add_flag("--type", type=str)
-    @flags.add_flag("--hpiv", nargs="+")
-    @flags.add_flag("--atkiv", nargs="+")
-    @flags.add_flag("--defiv", nargs="+")
-    @flags.add_flag("--spatkiv", nargs="+")
-    @flags.add_flag("--spdefiv", nargs="+")
-    @flags.add_flag("--spdiv", nargs="+")
-    @flags.add_flag("--iv", nargs="+")
+    # Filter
+    @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Release all
     @checks.has_started()
     @flags.command(aliases=["ra"])
     async def releaseall(self, ctx: commands.Context, **flags):
@@ -469,18 +483,18 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
-    @flags.add_flag("--name", nargs="+")
-    @flags.add_flag("--level", type=int)
-    @flags.add_flag("--type", type=str)
+    @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
 
     # IV
-    @flags.add_flag("--hpiv", nargs="+")
-    @flags.add_flag("--atkiv", nargs="+")
-    @flags.add_flag("--defiv", nargs="+")
-    @flags.add_flag("--spatkiv", nargs="+")
-    @flags.add_flag("--spdefiv", nargs="+")
-    @flags.add_flag("--spdiv", nargs="+")
-    @flags.add_flag("--iv", nargs="+")
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
 
     # Pokemon
     @checks.has_started()
@@ -514,9 +528,12 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        do_emojis = (ctx.channel.permissions_for(
-            ctx.guild.get_member(self.bot.user.id)
-        ).external_emojis and constants.EMOJIS.get_status())
+        do_emojis = (
+            ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+            and constants.EMOJIS.get_status()
+        )
 
         fixed_pokemon = False
 
@@ -656,9 +673,12 @@ class Pokemon(commands.Cog):
 
             num = await self.db.fetch_pokedex_count(ctx.author)
 
-            do_emojis = (ctx.channel.permissions_for(
-                ctx.guild.get_member(self.bot.user.id)
-            ).external_emojis and constants.EMOJIS.get_status())
+            do_emojis = (
+                ctx.channel.permissions_for(
+                    ctx.guild.get_member(self.bot.user.id)
+                ).external_emojis
+                and constants.EMOJIS.get_status()
+            )
 
             member = await self.db.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex

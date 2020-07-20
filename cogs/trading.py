@@ -468,20 +468,20 @@ class Trading(commands.Cog):
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--mega", action="store_true")
-    @flags.add_flag("--name", nargs="+")
-    @flags.add_flag("--level", type=int)
-    @flags.add_flag("--type", type=str)
+    @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
 
     # IV
-    @flags.add_flag("--hpiv", nargs="+")
-    @flags.add_flag("--atkiv", nargs="+")
-    @flags.add_flag("--defiv", nargs="+")
-    @flags.add_flag("--spatkiv", nargs="+")
-    @flags.add_flag("--spdefiv", nargs="+")
-    @flags.add_flag("--spdiv", nargs="+")
-    @flags.add_flag("--iv", nargs="+")
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
 
-    # Pokemon
+    # Trade add all
     @checks.has_started()
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)
     async def addall(self, ctx: commands.Context, **flags):
