@@ -467,7 +467,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content != f"confirm release {num}":
+            if msg.content.lower() != f"confirm release {num}":
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:

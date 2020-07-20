@@ -526,7 +526,7 @@ class Trading(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content != f"confirm trade {num}":
+            if msg.content.lower() != f"confirm trade {num}":
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
