@@ -230,14 +230,14 @@ class Pokemon(commands.Cog):
                 )
 
         if "type" in flags and flags["type"]:
+            all_species = [
+                i
+                for x in flags["type"]
+                for i in models.GameData.list_type(x)
+            ]
+
             aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.species_id": {
-                            "$in": models.GameData.list_type(flags["type"])
-                        }
-                    }
-                }
+                {"$match": {"pokemon.species_id": {"$in": all_species}}}
             )
 
         if "favorite" in flags and flags["favorite"]:
