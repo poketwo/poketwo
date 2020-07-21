@@ -502,6 +502,11 @@ class Shop(commands.Cog):
 
             embed.description = f"Your {name} is now level {pokemon.level + qty}!"
 
+            if pokemon.shiny:
+                embed.set_thumbnail(url=pokemon.species.shiny_image_url)
+            else:
+                embed.set_thumbnail(url=pokemon.species.image_url)
+
             if (
                 pokemon.species.level_evolution is not None
                 and pokemon.held_item != 13001

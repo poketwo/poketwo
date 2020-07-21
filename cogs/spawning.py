@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 from .database import Database
-from helpers import checks, models, mongo
+from helpers import checks, models, mongo, constants
 
 
 def setup(bot: commands.Bot):
@@ -110,6 +110,11 @@ class Spawning(commands.Cog):
                         name += f' "{pokemon.nickname}"'
 
                     embed.description = f"Your {name} is now level {pokemon.level + 1}!"
+
+                    if pokemon.shiny:
+                        embed.set_thumbnail(url=pokemon.species.shiny_image_url)
+                    else:
+                        embed.set_thumbnail(url=pokemon.species.image_url)
 
                     if (
                         pokemon.species.level_evolution is not None
@@ -230,7 +235,7 @@ class Spawning(commands.Cog):
         hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
-        
+
         # Fetch image and send embed
         def get_image():
             with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
