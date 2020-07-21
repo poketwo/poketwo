@@ -126,6 +126,16 @@ class Spawning(commands.Cog):
                             name=f"Your {name} is evolving!",
                             value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
                         )
+
+                        if pokemon.shiny:
+                            embed.set_thumbnail(
+                                url=pokemon.species.level_evolution.target.shiny_image_url
+                            )
+                        else:
+                            embed.set_thumbnail(
+                                url=pokemon.species.level_evolution.target.image_url
+                            )
+
                         update["$set"][
                             f"pokemon.{member.selected}.species_id"
                         ] = pokemon.species.level_evolution.target_id
