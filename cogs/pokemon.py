@@ -916,7 +916,7 @@ class Pokemon(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{member.selected}.species_id": fr.id}},
+            ctx.author, {"$set": {f"pokemon.{idx}.species_id": fr.id}},
         )
 
         await ctx.send("Successfully switched back to normal form.")
