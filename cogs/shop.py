@@ -85,6 +85,9 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
+        if amt <= 0:
+            return await ctx.send("Nice try...")
+
         if amt > getattr(member, f"gifts_{type.lower()}"):
             return await ctx.send("You don't have enough boxes to do that!")
 
