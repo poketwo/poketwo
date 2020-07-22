@@ -177,6 +177,8 @@ class Member(Document):
     joined_at = fields.DateTimeField(default=None)
     invites = fields.IntegerField(default=0)
 
+    suspended = fields.BooleanField(default=False)
+
     @property
     def selected_pokemon(self):
         try:

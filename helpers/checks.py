@@ -7,26 +7,27 @@ class MustHaveStarted(commands.CheckFailure):
     pass
 
 
+class Suspended(commands.CheckFailure):
+    pass
+
+
 def is_admin():
     return commands.check_any(
         commands.is_owner(), commands.has_permissions(administrator=True)
     )
 
 
-users = set()
-
-
 def has_started():
     async def predicate(ctx: commands.Context):
-        if ctx.author.id not in users:
-            member = await mongo.Member.find_one({"id": ctx.author.id})
+        member = await mongo.Member.find_one({"id": ctx.author.id})
 
-            if member is None:
-                raise MustHaveStarted(
-                    f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
-                )
+        if member is None:
+            raise MustHaveStarted(
+                f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
+            )
 
-        users.add(ctx.author.id)
+        if member.suspended:
+            raise Suspended(f"Your account has been suspended.")
 
         return True
 
