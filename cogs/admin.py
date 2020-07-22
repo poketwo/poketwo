@@ -26,7 +26,7 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def suspend(self, ctx: commands.Context, user: discord.Member):
+    async def suspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
         await self.db.update_member(
@@ -37,7 +37,7 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def unsuspend(self, ctx: commands.Context, user: discord.Member):
+    async def unsuspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
         await self.db.update_member(
