@@ -26,6 +26,28 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
+    async def suspend(self, ctx: commands.Context, user: discord.Member):
+        """Suspend a user."""
+
+        await self.db.update_member(
+            user, {"$set": {"suspended": True}},
+        )
+
+        await ctx.send(f"Suspended {user.mention}.")
+
+    @commands.is_owner()
+    @commands.command()
+    async def unsuspend(self, ctx: commands.Context, user: discord.Member):
+        """Suspend a user."""
+
+        await self.db.update_member(
+            user, {"$set": {"suspended": False}},
+        )
+
+        await ctx.send(f"Unsuspended {user.mention}.")
+
+    @commands.is_owner()
+    @commands.command()
     async def giveredeem(
         self, ctx: commands.Context, user: discord.Member, *, num: int = 1
     ):
