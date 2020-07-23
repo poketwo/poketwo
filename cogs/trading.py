@@ -35,10 +35,9 @@ class Trading(commands.Cog):
 
         done = False
 
-        if trade[a] and trade[b]:
+        if trade[a] and trade[b] and not trade["executing"]:
             done = True
-            del self.bot.trades[a]
-            del self.bot.trades[b]
+            trade["executing"] = True
 
         a = ctx.guild.get_member(a)
         b = ctx.guild.get_member(b)
@@ -191,6 +190,9 @@ class Trading(commands.Cog):
 
             await execmsg.delete()
 
+            del self.bot.trades[a.id]
+            del self.bot.trades[b.id]
+
         # Send msg
 
         paginator = pagination.Paginator(get_page, num_pages=num_pages)
@@ -251,6 +253,7 @@ class Trading(commands.Cog):
                 ctx.author.id: False,
                 user.id: False,
                 "channel": ctx.channel,
+                "executing": False,
             }
             self.bot.trades[ctx.author.id] = trade
             self.bot.trades[user.id] = trade
@@ -279,6 +282,9 @@ class Trading(commands.Cog):
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
 
+        if self.bot.trades[ctx.author.id]["executing"]:
+            return await ctx.send("The trade is currently being executed...")
+
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[
             ctx.author.id
         ][ctx.author.id]
@@ -295,6 +301,9 @@ class Trading(commands.Cog):
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
             return await ctx.send("You must be in the same channel to add items!")
+
+        if self.bot.trades[ctx.author.id]["executing"]:
+            return await ctx.send("The trade is currently being executed...")
 
         if len(args) <= 2 and (
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
@@ -401,6 +410,9 @@ class Trading(commands.Cog):
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
             return await ctx.send("You must be in the same channel to remove items!")
 
+        if self.bot.trades[ctx.author.id]["executing"]:
+            return await ctx.send("The trade is currently being executed...")
+
         trade = self.bot.trades[ctx.author.id]
 
         if len(args) <= 2 and (
@@ -491,11 +503,19 @@ class Trading(commands.Cog):
     async def addall(self, ctx: commands.Context, **flags):
 
         if ctx.author.id not in self.bot.trades:
-            return await ctx.send("You aren't in a trade!")
+            return await ctx.send("You're not in a trade!")
+
+        if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
+            return await ctx.send("You must be in the same channel to add items!")
+
+        if self.bot.trades[ctx.author.id]["executing"]:
+            return await ctx.send("The trade is currently being executed...")
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx, order_by=member.order_by)
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(
+            flags, ctx, order_by=member.order_by
+        )
 
         if aggregations is None:
             return
