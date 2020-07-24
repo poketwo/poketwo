@@ -279,7 +279,7 @@ class Trading(commands.Cog):
             return await ctx.send("You're not in a trade!")
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently being executed...")
+            return await ctx.send("The trade is currently loading...")
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[
             ctx.author.id
@@ -299,7 +299,7 @@ class Trading(commands.Cog):
             return await ctx.send("You must be in the same channel to add items!")
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently being executed...")
+            return await ctx.send("The trade is currently loading...")
 
         if len(args) <= 2 and (
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
@@ -407,7 +407,7 @@ class Trading(commands.Cog):
             return await ctx.send("You must be in the same channel to remove items!")
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently being executed...")
+            return await ctx.send("The trade is currently loading...")
 
         trade = self.bot.trades[ctx.author.id]
 
@@ -505,7 +505,9 @@ class Trading(commands.Cog):
             return await ctx.send("You must be in the same channel to add items!")
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently being executed...")
+            return await ctx.send("The trade is currently loading...")
+
+        self.bot.trades[ctx.author.id]["executing"] = True
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -557,13 +559,21 @@ class Trading(commands.Cog):
         )
 
         self.bot.trades[ctx.author.id]["items"][ctx.author.id].extend(
-            (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"]) for x in pokemon
+            (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"])
+            for x in pokemon
+            if all(
+                (
+                    type(i) == int or x["idx"] != i[1]
+                    for i in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
+                )
+            )
         )
 
         for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["executing"] = False
         await self.send_trade(ctx, ctx.author)
 
 
