@@ -6,10 +6,6 @@ from discord.ext import commands
 from helpers import mongo, models, checks
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Database(bot))
-
-
 class Database(commands.Cog):
     """For database operations."""
 
@@ -135,3 +131,8 @@ class Database(commands.Cog):
 
     async def update_guild(self, guild: discord.Guild, update):
         return await mongo.db.guild.update_one({"_id": guild.id}, update, upsert=True)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Database(bot))
+

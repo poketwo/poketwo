@@ -15,10 +15,6 @@ from .database import Database
 from helpers import checks, constants, converters, models, mongo, pagination
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Battling(bot))
-
-
 class Battling(commands.Cog):
     """For battling."""
 
@@ -658,3 +654,8 @@ class Battling(commands.Cog):
         del self.bot.battles[b]
 
         await ctx.send("The battle has been canceled.")
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Battling(bot))
+

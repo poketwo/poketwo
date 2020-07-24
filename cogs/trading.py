@@ -10,10 +10,6 @@ from helpers import checks, mongo, pagination
 from .database import Database
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Trading(bot))
-
-
 class Trading(commands.Cog):
     """For trading."""
 
@@ -569,3 +565,7 @@ class Trading(commands.Cog):
                 self.bot.trades[ctx.author.id][k] = False
 
         await self.send_trade(ctx, ctx.author)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Trading(bot))

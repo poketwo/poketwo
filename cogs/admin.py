@@ -10,10 +10,6 @@ from .database import Database
 from helpers import checks, constants, converters, models, mongo, pagination
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Administration(bot))
-
-
 class Administration(commands.Cog):
     """Commands for bot administration."""
 
@@ -129,3 +125,8 @@ class Administration(commands.Cog):
         )
 
         await ctx.send(f"Gave {user.mention} {num} pokémon.")
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Administration(bot))
+

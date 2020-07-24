@@ -7,12 +7,9 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
+from helpers import checks, constants, models, mongo
+
 from .database import Database
-from helpers import checks, models, mongo, constants
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(Spawning(bot))
 
 
 class Spawning(commands.Cog):
@@ -378,3 +375,7 @@ class Spawning(commands.Cog):
             message += "\n\nThese colors seem unusual... ✨"
 
         await ctx.send(message)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Spawning(bot))

@@ -10,10 +10,6 @@ from .database import Database
 from helpers import checks, constants, converters, models, mongo, pagination
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Configuration(bot))
-
-
 class Configuration(commands.Cog):
     """Configuration commands to change bot behavior."""
 
@@ -107,3 +103,7 @@ class Configuration(commands.Cog):
 
         await self.db.update_guild(ctx.guild, {"$set": {"channels": []}})
         await ctx.send(f"No longer redirecting spawns.")
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Configuration(bot))

@@ -6,15 +6,6 @@ from discord.ext import commands, flags
 from helpers import pagination
 
 
-def setup(bot: commands.Bot):
-    bot.old_help_command = bot.help_command
-    bot.help_command = CustomHelpCommand()
-
-
-def teardown(bot: commands.Bot):
-    bot.help_command = bot.old_help_command
-
-
 class CustomHelpCommand(commands.HelpCommand):
     def __init__(self):
         super().__init__(
@@ -137,3 +128,12 @@ class CustomHelpCommand(commands.HelpCommand):
         embed.add_field(name="Signature", value=self.get_command_signature(command))
 
         await self.context.send(embed=embed)
+
+
+def setup(bot: commands.Bot):
+    bot.old_help_command = bot.help_command
+    bot.help_command = CustomHelpCommand()
+
+
+def teardown(bot: commands.Bot):
+    bot.help_command = bot.old_help_command

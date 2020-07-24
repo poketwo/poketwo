@@ -13,10 +13,6 @@ from helpers import checks, constants, converters, models, mongo, pagination
 from .database import Database
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Pokemon(bot))
-
-
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
@@ -231,9 +227,7 @@ class Pokemon(commands.Cog):
 
         if "type" in flags and flags["type"]:
             all_species = [
-                i
-                for x in flags["type"]
-                for i in models.GameData.list_type(x)
+                i for x in flags["type"] for i in models.GameData.list_type(x)
             ]
 
             aggregations.append(
@@ -944,3 +938,7 @@ class Pokemon(commands.Cog):
         pidx %= paginator.num_pages
 
         await paginator.send(self.bot, ctx, pidx)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Pokemon(bot))

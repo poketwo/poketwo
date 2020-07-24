@@ -14,10 +14,6 @@ from helpers import checks, constants, converters, models, mongo
 from .database import Database
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Bot(bot))
-
-
 class Bot(commands.Cog):
     """For basic bot operation."""
 
@@ -243,3 +239,8 @@ class Bot(commands.Cog):
         )
         await self.db.update_member(member or ctx.author, {"$pull": {f"pokemon": None}})
         await ctx.send("Trying to heal schema...")
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Bot(bot))
+

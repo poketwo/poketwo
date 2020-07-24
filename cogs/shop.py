@@ -6,12 +6,9 @@ import discord
 import humanfriendly
 from discord.ext import commands, flags
 
-from .database import Database
 from helpers import checks, constants, converters, models, mongo
 
-
-def setup(bot: commands.Bot):
-    bot.add_cog(Shop(bot))
+from .database import Database
 
 
 class Shop(commands.Cog):
@@ -521,9 +518,13 @@ class Shop(commands.Cog):
                 )
 
                 if pokemon.shiny:
-                    embed.set_thumbnail(url=pokemon.species.level_evolution.target.shiny_image_url)
+                    embed.set_thumbnail(
+                        url=pokemon.species.level_evolution.target.shiny_image_url
+                    )
                 else:
-                    embed.set_thumbnail(url=pokemon.species.level_evolution.target.image_url)
+                    embed.set_thumbnail(
+                        url=pokemon.species.level_evolution.target.image_url
+                    )
 
                 update["$set"][
                     f"pokemon.{member.selected}.species_id"
@@ -717,3 +718,7 @@ class Shop(commands.Cog):
 
         self.bot.redeem[ctx.channel.id] = datetime.now()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Shop(bot))
