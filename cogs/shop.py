@@ -456,7 +456,7 @@ class Shop(commands.Cog):
         if "evolve" in item.action:
             embed = discord.Embed()
             embed.color = 0xF44336
-            embed.title = f"Congratulations {ctx.author.name}!"
+            embed.title = f"Congratulations {ctx.author.display_name}!"
 
             name = str(pokemon.species)
 
@@ -493,7 +493,7 @@ class Shop(commands.Cog):
 
             embed = discord.Embed()
             embed.color = 0xF44336
-            embed.title = f"Congratulations {ctx.author.name}!"
+            embed.title = f"Congratulations {ctx.author.display_name}!"
 
             name = str(pokemon.species)
 
@@ -583,7 +583,7 @@ class Shop(commands.Cog):
                 ):
                     embed = discord.Embed()
                     embed.color = 0xF44336
-                    embed.title = f"Congratulations {ctx.author.name}!"
+                    embed.title = f"Congratulations {ctx.author.display_name}!"
 
                     name = str(pokemon.species)
 

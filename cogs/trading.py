@@ -138,7 +138,7 @@ class Trading(commands.Cog):
                             ):
                                 evo_embed = discord.Embed()
                                 evo_embed.color = 0xF44336
-                                evo_embed.title = f"Congratulations {omem.name}!"
+                                evo_embed.title = f"Congratulations {omem.display_name}!"
 
                                 name = str(pokemon.species)
 

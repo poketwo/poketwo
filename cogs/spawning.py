@@ -99,7 +99,7 @@ class Spawning(commands.Cog):
                     }
                     embed = discord.Embed()
                     embed.color = 0xF44336
-                    embed.title = f"Congratulations {message.author.name}!"
+                    embed.title = f"Congratulations {message.author.display_name}!"
 
                     name = str(pokemon.species)
 
