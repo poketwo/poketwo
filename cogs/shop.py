@@ -130,20 +130,22 @@ class Shop(commands.Cog):
 
                 lower_bound = 0
 
-                if reward["value"] == "iv50":
-                    lower_bound = 15
-
-                if reward["value"] == "iv70":
+                if reward["value"] == "iv1":
                     lower_bound = 21
+
+                if reward["value"] == "iv2":
+                    lower_bound = 25
 
                 ivs = [
                     random.randint(lower_bound, 31),
                     random.randint(lower_bound, 31),
                     random.randint(lower_bound, 31),
-                    random.randint(lower_bound, 31),
-                    random.randint(lower_bound, 31),
-                    random.randint(lower_bound, 31),
+                    random.randint(0, 31),
+                    random.randint(0, 31),
+                    random.randint(0, 31),
                 ]
+
+                random.shuffle(ivs)
 
                 pokemon = {
                     "species_id": species.id,
