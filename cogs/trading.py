@@ -118,6 +118,8 @@ class Trading(commands.Cog):
                 member = await self.db.fetch_member_info(mem)
                 omember = await self.db.fetch_member_info(omem)
 
+                idxs = set()
+
                 for x in side:
                     if type(x) == int:
                         await self.db.update_member(mem, {"$inc": {"balance": -x}})
@@ -125,6 +127,11 @@ class Trading(commands.Cog):
                     else:
 
                         pokemon, idx = x
+
+                        if idx in idxs:
+                            continue
+
+                        idxs.add(idx)
 
                         if idx < member.selected:
                             dec += 1
@@ -138,7 +145,9 @@ class Trading(commands.Cog):
                             ):
                                 evo_embed = discord.Embed()
                                 evo_embed.color = 0xF44336
-                                evo_embed.title = f"Congratulations {omem.display_name}!"
+                                evo_embed.title = (
+                                    f"Congratulations {omem.display_name}!"
+                                )
 
                                 name = str(pokemon.species)
 
@@ -301,6 +310,8 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
+        self.bot.trades[ctx.author.id]["executing"] = True
+
         if len(args) <= 2 and (
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
         ):
@@ -317,11 +328,13 @@ class Trading(commands.Cog):
                 member = await self.db.fetch_member_info(ctx.author)
 
                 if current + int(what) > member.balance:
+                    self.bot.trades[ctx.author.id]["executing"] = False
                     return await ctx.send("You don't have enough Pokécoins for that!")
 
                 self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(int(what))
 
             else:
+                self.bot.trades[ctx.author.id]["executing"] = False
                 return await ctx.send("That's not a valid item to add to the trade!")
 
         else:
@@ -385,12 +398,14 @@ class Trading(commands.Cog):
                 await ctx.send("\n".join(lines)[:2048])
 
             if not updated:
+                self.bot.trades[ctx.author.id]["executing"] = False
                 return
 
         for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["executing"] = False
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -516,6 +531,7 @@ class Trading(commands.Cog):
         )
 
         if aggregations is None:
+            self.bot.trades[ctx.author.id]["executing"] = False
             return
 
         aggregations.extend(
@@ -528,6 +544,7 @@ class Trading(commands.Cog):
         num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
+            self.bot.trades[ctx.author.id]["executing"] = False
             return await ctx.send(
                 "Found no pokémon matching this search (excluding favorited and selected pokémon)."
             )
@@ -545,9 +562,11 @@ class Trading(commands.Cog):
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
             if msg.content.lower() != f"confirm trade {num}":
+                self.bot.trades[ctx.author.id]["executing"] = False
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
+            self.bot.trades[ctx.author.id]["executing"] = False
             return await ctx.send("Time's up. Aborted.")
 
         # confirmed, add all
