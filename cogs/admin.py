@@ -1,13 +1,16 @@
 import asyncio
 import math
 import random
+from datetime import datetime
 from functools import cached_property
+import typing
 
 import discord
 from discord.ext import commands, flags
 
-from .database import Database
 from helpers import checks, constants, converters, models, mongo, pagination
+
+from .database import Database
 
 
 class Administration(commands.Cog):
@@ -54,6 +57,26 @@ class Administration(commands.Cog):
         )
 
         await ctx.send(f"Gave {user.mention} {num} redeems.")
+
+    @commands.is_owner()
+    @commands.command()
+    async def addvote(
+        self, ctx: commands.Context, user: discord.Member, box_type: str,
+    ):
+        """Give a user a vote."""
+
+        if box_type not in ("normal", "great", "ultra"):
+            return await ctx.send("That's not a valid box type!")
+
+        await self.db.update_member(
+            user,
+            {
+                "$set": {"last_voted": datetime.now()},
+                "$inc": {"vote_total": 1, "vote_streak": 1, f"gifts_{box_type}": 1},
+            },
+        )
+
+        await ctx.send(f"Gave {user.mention} an {box_type} box.")
 
     @commands.is_owner()
     @commands.command()
@@ -129,4 +152,3 @@ class Administration(commands.Cog):
 
 def setup(bot: commands.Bot):
     bot.add_cog(Administration(bot))
-
