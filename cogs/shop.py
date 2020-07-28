@@ -28,6 +28,14 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
+        if member.vote_streak > 0 and datetime.now() - member.last_voted > timedelta(
+            days=2
+        ):
+            await self.db.update_member(
+                ctx.author, {"$set": {"vote_streak": 0},},
+            )
+            member = await self.db.fetch_member_info(ctx.author)
+
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Voting Rewards"

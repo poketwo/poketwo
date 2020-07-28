@@ -21,10 +21,10 @@ def dbl():
     streak = res.get("vote_streak", 0)
     last_voted = res.get("last_voted", datetime.min)
 
-    if datetime.now() - last_voted < timedelta(days=2):
-        streak += 1
-    else:
+    if datetime.now() - last_voted > timedelta(days=2):
         streak = 0
+
+    streak += 1
 
     box_type = "normal"
 
