@@ -60,6 +60,16 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
+    async def addbal(
+        self, ctx: commands.Context, user: discord.Member, amt: int,
+    ):
+        """Add to a user's balance."""
+
+        await self.db.update_member(user, {"$inc": {"balance": amt}})
+        await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
+
+    @commands.is_owner()
+    @commands.command()
     async def addvote(
         self, ctx: commands.Context, user: discord.Member, box_type: str,
     ):
