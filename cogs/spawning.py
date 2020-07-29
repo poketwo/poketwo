@@ -79,18 +79,20 @@ class Spawning(commands.Cog):
 
                 # TODO this stuff here needs to be refactored
 
-                if pokemon.level < 100 and pokemon.xp <= pokemon.max_xp:
+                if pokemon.level < 100 and pokemon.xp < pokemon.max_xp:
                     xp_inc = random.randint(10, 40)
 
                     if member.boost_active or message.guild.id == 716390832034414685:
                         xp_inc *= 2
+
+                    pokemon.xp += xp_inc
 
                     await self.db.update_member(
                         message.author,
                         {"$inc": {f"pokemon.{member.selected}.xp": xp_inc},},
                     )
 
-                if pokemon.xp > pokemon.max_xp and pokemon.level < 100:
+                if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
                     update = {
                         "$set": {
                             f"pokemon.{member.selected}.xp": 0,
