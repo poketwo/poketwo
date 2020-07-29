@@ -74,10 +74,10 @@ class Trading(commands.Cog):
                     return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
                 def txt(x):
-                    val = f"`{padn(x[1] + 1, maxn)}`⠀**{x[0].species}**"
+                    val = f"`{padn(x[1] + 1, maxn)}`　**{x[0].species}**"
                     if x[0].shiny:
                         val += " ✨"
-                    val += f"⠀•⠀Lvl. {x[0].level}⠀•⠀{x[0].iv_percentage:.2%}"
+                    val += f"　•　Lvl. {x[0].level}　•　{x[0].iv_percentage:.2%}"
                     return val
 
                 val = "\n".join(

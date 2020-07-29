@@ -609,7 +609,7 @@ class Pokemon(commands.Cog):
             maxn = max(idx for x, idx in pokemon)
 
             page = [
-                f"`{padn(p, idx, maxn)}`⠀**{txt}**⠀•⠀Lvl. {p.level}⠀•⠀{p.iv_percentage * 100:.2f}%"
+                f"`{padn(p, idx, maxn)}`　**{txt}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
                 for p, idx in pokemon
                 if (txt := nick(p)) is not None
             ]
