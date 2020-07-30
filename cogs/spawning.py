@@ -165,7 +165,7 @@ class Spawning(commands.Cog):
                     if not silence:
                         await message.channel.send(embed=embed)
 
-                elif pokemon.level == 100:
+                elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
                     await self.db.update_member(
                         message.author,
                         {"$set": {f"pokemon.{member.selected}.xp": pokemon.max_xp}},
@@ -185,12 +185,12 @@ class Spawning(commands.Cog):
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
-        guild = await self.db.fetch_guild(message.guild)
-
         if self.bot.guild_counter[message.guild.id] >= (
             5 if self.bot.env == "dev" else 15
         ):
             self.bot.guild_counter[message.guild.id] = 0
+
+            guild = await self.db.fetch_guild(message.guild)
 
             if len(guild.channels) > 0:
                 channel = message.guild.get_channel(random.choice(guild.channels))
