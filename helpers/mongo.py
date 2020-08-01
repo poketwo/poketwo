@@ -49,6 +49,9 @@ class Pokemon(EmbeddedDocument):
 
     moves = fields.ListField(fields.IntegerField, default=list)
 
+    idx = None
+    _hp = None
+
     @classmethod
     def random(cls, **kwargs):
         return cls(
@@ -72,7 +75,7 @@ class Pokemon(EmbeddedDocument):
         return 250 + 25 * self.level
 
     @property
-    def hp(self):
+    def max_hp(self):
         if self.species_id == 292:
             return 1
         return (
@@ -80,6 +83,16 @@ class Pokemon(EmbeddedDocument):
             + self.level
             + 10
         )
+
+    @property
+    def hp(self):
+        if self._hp is None:
+            return self.max_hp
+        return self._hp
+
+    @hp.setter
+    def hp(self, value):
+        self._hp = value
 
     @property
     def atk(self):

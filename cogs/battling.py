@@ -1,8 +1,3 @@
-"""
-The code in here is shit. I know.
-I'm working on rewriting this file with better code that actually works.
-"""
-
 import asyncio
 import math
 import random
@@ -36,17 +31,20 @@ class Stage(Enum):
 
 
 class Trainer:
-    def __init__(self, user: discord.Member):
+    def __init__(self, user: discord.Member, bot: commands.Bot):
         self.user = user
         self.pokemon = []
-        self.selected_idx = None
+        self.selected_idx = 0
         self.done = False
+        self.bot = bot
 
     @property
     def selected(self):
+        if self.selected_idx == -1:
+            return None
         return self.pokemon[self.selected_idx]
 
-    async def send_selection(self, opponent):
+    async def send_selection(self):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = "Waiting for opponent..." if self.done else "Choose your party"
@@ -108,7 +106,7 @@ class Trainer:
 
         for idx, pokemon in enumerate(self.pokemon):
             if pokemon != self.selected and pokemon.hp > 0:
-                actions[constants.LETTER_REACTIONS[i]] = {
+                actions[constants.LETTER_REACTIONS[idx]] = {
                     "type": "switch",
                     "value": idx,
                     "text": f"Switch to {pokemon.iv_percentage:.2%} {pokemon.species}",
@@ -120,7 +118,7 @@ class Trainer:
         # Send embed
 
         embed.description = "\n".join(f"{k} {v['text']}" for k, v in actions.items())
-        msg = await user.send(embed=embed)
+        msg = await self.user.send(embed=embed)
 
         async def add_reactions():
             for k in actions:
@@ -143,25 +141,20 @@ class Trainer:
         except asyncio.TimeoutError:
             action = {"type": "pass", "text": "nothing. Passing turn..."}
 
-        await user.send(f"You selected **{action['text']}**.")
+        await self.user.send(f"You selected **{action['text']}**.")
 
         return action
 
 
 class Battle:
-    def __init__(
-        self, users: typing.List[discord.Member], channel: discord.TextChannel
-    ):
-        self.trainers = [Trainer(x) for x in users]
-        self.channel = channel
+    def __init__(self, users: typing.List[discord.Member], ctx: commands.Context):
+        self.trainers = [Trainer(x, ctx.bot) for x in users]
+        self.channel = ctx.channel
         self.stage = Stage.SELECT
-    
-    def 
 
     async def send_selection(self):
         await asyncio.gather(
-            self.trainers[0].send_selection(self.trainers[1]),
-            self.trainers[1].send_selection(self.trainers[0]),
+            self.trainers[0].send_selection(), self.trainers[1].send_selection(),
         )
 
     async def run_step(self):
@@ -169,23 +162,21 @@ class Battle:
             self.trainers[0].get_action(), self.trainers[1].get_action()
         )
 
-        iterl = zip(actions, self.trainers, reversed(self.trainers))
+        iterl = list(zip(actions, self.trainers, reversed(self.trainers)))
 
-        priority = {
-            action: get_priority(action, trainer.selected)
-            for action, trainer, opponent in iterl
-        }
+        for action, trainer, opponent in iterl:
+            action["priority"] = get_priority(action, trainer.selected)
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[0].user.display_name}."
+        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
         embed.set_footer(text="The next round will begin in 5 seconds.")
 
-        for action, trainer, opponent in sorted(iterl, key=lambda x: priority[x[0]]):
+        for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"]):
             if action["type"] == "flee":
                 # battle's over
                 await self.channel.send(
-                    f"{x.mention} has fled the battle! {o.mention} has won."
+                    f"{trainer.mention} has fled the battle! {opponent.mention} has won."
                 )
                 self.stage = Stage.END
                 return
@@ -212,17 +203,22 @@ class Battle:
                     success = random.randint(0, 99) <= move.accuracy
 
                     if move.damage_class_id == 2:
-                        atk = selected.atk
-                        defn = other_pokemon[0].defn
+                        atk = trainer.selected.atk
+                        defn = opponent.selected.defn
                     else:
-                        atk = selected.satk
-                        defn = other_pokemon[0].sdef
+                        atk = trainer.selected.satk
+                        defn = opponent.selected.sdef
 
                     damage = int(
-                        (2 * selected.level / 5 + 2) * move.power * atk / defn / 50 + 2
+                        (2 * trainer.selected.level / 5 + 2)
+                        * move.power
+                        * atk
+                        / defn
+                        / 50
+                        + 2
                     )
 
-                title = f"{selected.species} used {move.name}!"
+                title = f"{trainer.selected.species} used {move.name}!"
                 text = f"{move.name} dealt {damage} damage!"
 
                 if success:
@@ -245,7 +241,7 @@ class Battle:
                     except StopIteration:
                         # battle's over
                         self.stage = Stage.END
-                        battle["selected"][o.id] = -1
+                        opponent.selected_idx = -1
                         await self.channel.send(
                             f"Battle's over lol {x.mention} won xd hahahahaha gggggg"
                         )
@@ -256,38 +252,72 @@ class Battle:
 
                 embed.add_field(name=title, value=text, inline=False)
 
-    async def send_battle(self):
-        if self.stage == Stage.SELECT:
-            await self.send_selection()
-            return
+        await self.channel.send(embed=embed)
 
+    async def send_battle(self):
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Battle between {a.display_name} and {b.display_name}."
+        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[0].user.display_name}."
 
         if self.stage == Stage.PROGRESS:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
         else:
             embed.description = "The battle has ended."
 
-        for i in (a, b):
+        for trainer in self.trainers:
             embed.add_field(
-                name=i.display_name,
+                name=trainer.user.display_name,
                 value="\n".join(
-                    f"**{x.species}** • {hp}/{x.hp} HP"
-                    if battle["selected"][i.id] == idx
-                    else f"{x.species} • {hp}/{x.hp} HP"
-                    for idx, (x, hp) in enumerate(battle["game"][i.id])
+                    f"**{x.species}** • {x.hp}/{x.max_hp} HP"
+                    if trainer.selected == x
+                    else f"{x.species} • {x.hp}/{x.max_hp} HP"
+                    for x in trainer.pokemon
                 ),
             )
 
+        await self.channel.send(embed=embed)
+
     async def run_battle(self):
+        if self.stage != Stage.SELECT:
+            return
+
         self.stage = Stage.PROGRESS
         while self.stage != Stage.END:
             await asyncio.sleep(5)
             await self.send_battle()
             await self.run_step()
         await self.send_battle()
+
+
+class BattleManager:
+    def __init__(self):
+        self.battles = {}
+
+    def __getitem__(self, user):
+        return self.battles[user.id]
+
+    def __contains__(self, user):
+        return user.id in self.battles
+
+    def __delitem__(self, user):
+        for trainer in self.battles[user.id]:
+            del self.battles[trainer.user.id]
+
+    def get_trainer(self, user):
+        for trainer in self[user].trainers:
+            if trainer.user.id == user.id:
+                return trainer
+
+    def get_opponent(self, user):
+        for trainer in self[user].trainers:
+            if trainer.user.id != user.id:
+                return trainer
+
+    def new(self, user1, user2, ctx):
+        battle = Battle([user1, user2], ctx)
+        self.battles[user1.id] = battle
+        self.battles[user2.id] = battle
+        return battle
 
 
 class Battling(commands.Cog):
@@ -297,7 +327,7 @@ class Battling(commands.Cog):
         self.bot = bot
 
         if not hasattr(self.bot, "battles"):
-            self.bot.battles = {}
+            self.bot.battles = BattleManager()
 
     @property
     def db(self) -> Database:
@@ -313,10 +343,10 @@ class Battling(commands.Cog):
         if user == ctx.author:
             return await ctx.send("Nice try...")
 
-        if ctx.author.id in self.bot.battles:
+        if ctx.author in self.bot.battles:
             return await ctx.send("You are already in a battle!")
 
-        if user.id in self.bot.battles:
+        if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
         member = await mongo.Member.find_one({"id": user.id})
@@ -347,86 +377,70 @@ class Battling(commands.Cog):
 
         # Accepted, continue
 
-        if ctx.author.id in self.bot.battles:
+        if ctx.author in self.bot.battles:
             return await ctx.send(
                 "Sorry, the user who sent the challenge is already in another battle."
             )
 
-        if user.id in self.bot.battles:
+        if user in self.bot.battles:
             return await ctx.send(
                 "Sorry, you can't accept a challenge while you're already in a battle!"
             )
 
-        battle = Battle([ctx.author, user], ctx.channel)
-        self.bot.battles[ctx.author.id] = battle
-        self.bot.battles[user.id] = battle
-
+        battle = self.bot.battles.new(ctx.author, user, ctx)
         await battle.send_selection()
 
     @checks.has_started()
     @battle.command(aliases=["a"])
-    async def add(self, ctx: commands.Context, *args):
+    async def add(
+        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+    ):
         """Add a pokémon to a battle."""
 
-        if ctx.author.id not in self.bot.battles:
+        if ctx.author not in self.bot.battles:
             return await ctx.send("You're not in a battle!")
 
         updated = False
 
-        for what in args:
-            if what.isdigit():
+        trainer, opponent = (
+            self.bot.battles.get_trainer(ctx.author),
+            self.bot.battles.get_opponent(ctx.author),
+        )
 
-                skip = False
+        for pokemon, idx in args:
+            if pokemon is None:
+                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
+                return
 
-                if not 1 <= int(what) <= 2 ** 31 - 1:
-                    await ctx.send(f"{what}: NO")
-                    continue
-
-                elif (
-                    len(self.bot.battles[ctx.author.id]["pokemon"][ctx.author.id]) >= 3
-                ):
-                    await ctx.send(
-                        f"{what}: There are already enough pokémon in the party!"
-                    )
-                    skip = True
-
-                else:
-                    for x in self.bot.battles[ctx.author.id]["pokemon"][ctx.author.id]:
-                        if x[1] + 1 == int(what):
-                            await ctx.send(
-                                f"{what}: This pokémon is already in the party!"
-                            )
-                            skip = True
-                            break
-
-                if skip:
-                    continue
-
-                number = int(what) - 1
-
-                member = await self.db.fetch_member_info(ctx.author)
-                pokemon = await self.db.fetch_pokemon(ctx.author, number)
-
-                if pokemon is None:
-                    await ctx.send(f"{what}: Couldn't find that pokémon!")
-                    continue
-
-                self.bot.battles[ctx.author.id]["pokemon"][ctx.author.id].append(
-                    (pokemon, number)
-                )
-
-                updated = True
-
-            else:
+            if len(trainer.pokemon) >= 3:
                 await ctx.send(
-                    f"{what}: That's not a valid pokémon to add to the party!"
+                    f"{idx + 1}: There are already enough pokémon in the party!"
                 )
-                continue
+                return
+
+            for x in trainer.pokemon:
+                if x.idx == idx:
+                    await ctx.send(f"{idx + 1}: This pokémon is already in the party!")
+                    return
+
+            pokemon.idx = idx
+            pokemon.hp = pokemon.hp
+            trainer.pokemon.append(pokemon)
+
+            if len(trainer.pokemon) == 3:
+                trainer.done = True
+
+            updated = True
 
         if not updated:
             return
 
-        await self.send_battle(ctx.author)
+        if trainer.done and opponent.done:
+            await trainer.send_ready(opponent)
+            await opponent.send_ready(trainer)
+            await self.bot.battles[ctx.author].run_battle()
+        else:
+            await trainer.send_selection()
 
     @checks.has_started()
     @commands.command(aliases=["m"], rest_is_raw=True)
