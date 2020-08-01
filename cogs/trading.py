@@ -492,6 +492,7 @@ class Trading(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
 
     # IV

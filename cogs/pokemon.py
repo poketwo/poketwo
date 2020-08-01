@@ -251,6 +251,20 @@ class Pokemon(commands.Cog):
                 {"$match": {"pokemon.species_id": {"$in": all_species}}}
             )
 
+        if "nickname" in flags and flags["nickname"] is not None:
+            aggregations.append(
+                {
+                    "$match": {
+                        "pokemon.nickname": {
+                            "$regex": "("
+                            + ")|(".join(" ".join(x) for x in flags["nickname"])
+                            + ")",
+                            "$options": "i",
+                        }
+                    }
+                }
+            )
+
         # Numerical flags
 
         for flag, expr in constants.FILTER_BY_NUMERICAL.items():
@@ -403,6 +417,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
 
     # IV
@@ -496,6 +511,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--name", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
 
     # IV
