@@ -147,17 +147,27 @@ class Trainer:
 
 
 class Battle:
-    def __init__(self, users: typing.List[discord.Member], ctx: commands.Context):
+    def __init__(
+        self, users: typing.List[discord.Member], ctx: commands.Context, manager
+    ):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
         self.stage = Stage.SELECT
+        self.manager = manager
 
     async def send_selection(self):
         await asyncio.gather(
             self.trainers[0].send_selection(), self.trainers[1].send_selection(),
         )
 
+    def end(self):
+        self.stage = Stage.END
+        del self.manager[self.trainers[0].user]
+
     async def run_step(self):
+        if self.stage != Stage.PROGRESS:
+            return
+
         actions = await asyncio.gather(
             self.trainers[0].get_action(), self.trainers[1].get_action()
         )
@@ -176,9 +186,9 @@ class Battle:
             if action["type"] == "flee":
                 # battle's over
                 await self.channel.send(
-                    f"{trainer.mention} has fled the battle! {opponent.mention} has won."
+                    f"{trainer.user.mention} has fled the battle! {opponent.user.mention} has won."
                 )
-                self.stage = Stage.END
+                self.end()
                 return
 
             elif action["type"] == "switch":
@@ -235,15 +245,15 @@ class Battle:
 
                     try:
                         opponent.selected_idx = next(
-                            x.idx for x in opponent.pokemon if x.hp > 0
+                            idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0
                         )
 
                     except StopIteration:
                         # battle's over
-                        self.stage = Stage.END
+                        self.end()
                         opponent.selected_idx = -1
                         await self.channel.send(
-                            f"Battle's over lol {x.mention} won xd hahahahaha gggggg"
+                            f"{trainer.user.mention} won the battle!"
                         )
                         return
 
@@ -257,7 +267,7 @@ class Battle:
     async def send_battle(self):
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[0].user.display_name}."
+        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
 
         if self.stage == Stage.PROGRESS:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
@@ -300,7 +310,7 @@ class BattleManager:
         return user.id in self.battles
 
     def __delitem__(self, user):
-        for trainer in self.battles[user.id]:
+        for trainer in self.battles[user.id].trainers:
             del self.battles[trainer.user.id]
 
     def get_trainer(self, user):
@@ -314,7 +324,7 @@ class BattleManager:
                 return trainer
 
     def new(self, user1, user2, ctx):
-        battle = Battle([user1, user2], ctx)
+        battle = Battle([user1, user2], ctx, self)
         self.battles[user1.id] = battle
         self.battles[user2.id] = battle
         return battle
@@ -623,12 +633,10 @@ class Battling(commands.Cog):
     async def cancel(self, ctx: commands.Context):
         """Cancel a battle."""
 
-        if ctx.author.id not in self.bot.battles:
+        if ctx.author not in self.bot.battles:
             return await ctx.send("You're not in a battle!")
 
-        a, b = self.bot.battles[ctx.author.id].trainers
-        del self.bot.battles[a.user.id]
-        del self.bot.battles[b.user.id]
+        self.bot.battles[ctx.author].end()
 
         await ctx.send("The battle has been canceled.")
 
