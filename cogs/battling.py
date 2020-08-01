@@ -343,6 +343,11 @@ class Battling(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.is_owner()
+    @commands.command()
+    async def reloadbattling(self, ctx: commands.Context):
+        self.bot.battles = BattleManager()
+
     @checks.has_started()
     @commands.group(aliases=["duel"], invoke_without_command=True)
     async def battle(self, ctx: commands.Context, *, user: discord.Member):
