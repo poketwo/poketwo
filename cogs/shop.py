@@ -625,7 +625,7 @@ class Shop(commands.Cog):
             embed = discord.Embed()
             embed.color = 0xF44336
             embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+            embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by supporting the bot on Patreon or through voting rewards."
 
             embed.add_field(
                 name=f"{ctx.prefix}redeem <pokémon>",
