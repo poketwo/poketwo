@@ -302,7 +302,7 @@ class Pokemon(commands.Cog):
             aggregations.extend(
                 [
                     {"$addFields": {"sorting": constants.SORTING_FUNCTIONS[order_by]}},
-                    {"$sort": {"sorting": 1}},
+                    {"$sort": {"sorting": 1, "idx": 1}},
                 ]
             )
 
