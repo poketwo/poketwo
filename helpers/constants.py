@@ -255,6 +255,9 @@ EMOJI_SERVERS = [
         730375941494407169,
         730375972582588416,
         730376004333207614,
+        739926138297516052,
+        739926518066708551,
+        739926564837523458,
     ],
 ]
 
@@ -271,20 +274,13 @@ class EmojiManager:
         try:
             for x in range(809):
                 guild = bot.get_guild(EMOJI_SERVERS[0][x // 50])
-                emoji = next(
-                    i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}"
-                )
+                emoji = next(i for i in guild.emojis if str(x + 1) in i.name)
 
                 guild = bot.get_guild(
                     EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])]
                 )
                 try:
-                    shiny = next(
-                        i
-                        for i in guild.emojis
-                        if i.name == f"pokemon_sprite_{x + 1}"
-                        or i.name == f"pokemon_sprite_{x + 1}_shiny"
-                    )
+                    shiny = next(i for i in guild.emojis if str(x + 1) in i.name)
                 except StopIteration:
                     shiny = emoji
 

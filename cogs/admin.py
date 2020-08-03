@@ -95,6 +95,12 @@ class Administration(commands.Cog):
 
         member = await self.db.fetch_member_info(user)
 
+        shiny = False
+
+        if species.lower().startswith("shiny"):
+            shiny = True
+            species = species.lower().replace("shiny", "").strip()
+
         species = models.GameData.species_by_name(species)
 
         if species is None:
@@ -115,6 +121,7 @@ class Administration(commands.Cog):
                         "iv_satk": mongo.random_iv(),
                         "iv_sdef": mongo.random_iv(),
                         "iv_spd": mongo.random_iv(),
+                        "shiny": shiny,
                     }
                 },
             },
