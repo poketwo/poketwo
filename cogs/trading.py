@@ -596,6 +596,82 @@ class Trading(commands.Cog):
         self.bot.trades[ctx.author.id]["executing"] = False
         await self.send_trade(ctx, ctx.author)
 
+    @trade.command(aliases=["i"])
+    async def info(self, ctx: commands.Context, *, number: int):
+        """View a pokémon from the trade."""
+
+        if ctx.author.id not in self.bot.trades:
+            return await ctx.send("You're not in a trade!")
+
+        other_id = next(
+            x
+            for x in self.bot.trades[ctx.author.id]
+            if type(x) == int and x != ctx.author.id
+        )
+        other = ctx.guild.get_member(other_id)
+
+        try:
+            pokemon = next(
+                x
+                for x in self.bot.trades[ctx.author.id]["items"][other_id]
+                if type(x) != int and x[1] == number - 1
+            )[0]
+        except StopIteration:
+            return await ctx.send("Couldn't find that pokémon in the trade!")
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Level {pokemon.level} {pokemon.species}"
+
+        if pokemon.nickname is not None:
+            embed.title += f' "{pokemon.nickname}"'
+
+        extrafooter = ""
+
+        if pokemon.shiny:
+            embed.title += " ✨"
+            embed.set_image(url=pokemon.species.shiny_image_url)
+            extrafooter = " Note that we don't have artwork for all shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
+        else:
+            embed.set_image(url=pokemon.species.image_url)
+
+        embed.set_thumbnail(url=other.avatar_url)
+
+        info = (
+            f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
+            f"**Nature:** {pokemon.nature}",
+        )
+
+        embed.add_field(name="Details", value="\n".join(info), inline=False)
+
+        stats = (
+            f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
+            f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
+            f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
+            f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
+            f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
+            f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
+            f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
+        )
+
+        embed.add_field(name="Stats", value="\n".join(stats), inline=False)
+
+        if pokemon.held_item:
+            item = models.GameData.item_by_number(pokemon.held_item)
+            gguild = self.bot.get_guild(725819081835544596)
+            emote = ""
+            if item.emote is not None:
+                try:
+                    e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
+                    emote = f"{e} "
+                except StopIteration:
+                    pass
+            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
+
+        embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}." + extrafooter)
+
+        await ctx.send(embed=embed)
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(Trading(bot))
