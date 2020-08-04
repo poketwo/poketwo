@@ -171,12 +171,12 @@ class Bot(commands.Cog):
                 f"You have already chosen a starter pokémon! View your pokémon with `{ctx.prefix}pokemon`."
             )
 
-        if name.lower() not in constants.STARTER_POKEMON:
+        species = models.GameData.species_by_name(name)
+
+        if species.name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(
                 f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`."
             )
-
-        species = models.GameData.species_by_name(name)
 
         starter = mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
 
