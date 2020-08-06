@@ -308,13 +308,20 @@ class Shop(commands.Cog):
                         emote = f"{e} "
                     except StopIteration:
                         pass
-                embed.add_field(
-                    name=f"{emote}{item.name} – {item.cost} pc",
-                    value=f"{item.description}",
-                    inline=item.inline,
-                )
+                if item.description:
+                    embed.add_field(
+                        name=f"{emote}{item.name} – {item.cost} pc",
+                        value=f"{item.description}",
+                        inline=item.inline,
+                    )
+                else:
+                    embed.add_field(
+                        name=f"{emote}{item.name}",
+                        value=f"{item.cost} pc",
+                        inline=item.inline,
+                    )
 
-            if items[0].inline:
+            if items[-1].inline:
                 for i in range(-len(items) % 3):
                     embed.add_field(name="‎", value="‎")
 

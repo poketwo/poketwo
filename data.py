@@ -178,7 +178,7 @@ def get_items():
         items[row["id"]] = models.Item(
             id=row["id"],
             name=row["name"],
-            description=row["description"],
+            description=row.get("description", None),
             cost=row["cost"],
             page=row["page"],
             action=row["action"],
