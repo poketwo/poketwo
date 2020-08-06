@@ -525,7 +525,7 @@ class Shop(commands.Cog):
                 )
 
                 if pokemon.shiny:
-                    embed.set_thumbnail(url=pevo.shiny_image_url)
+                    embed.set_thumbnail(url=evo.shiny_image_url)
                 else:
                     embed.set_thumbnail(url=evo.image_url)
 
