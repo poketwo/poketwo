@@ -4,7 +4,6 @@ id,name,description,cost,action,page,emote,separate
 10003,XP Booster 2,Doubles your XP for 2 hours!,70,xpboost_120,1,,1
 10004,XP Booster 3,Doubles your XP for 3 hours!,100,xpboost_180,1,,1
 10005,Rare Candy,Levels up your pokémon.,75,level,1,candy_rare,1
-14001,Friendship Bracelet,Causes certain pokémon to evolve.,150,evolve_normal,2,,
 80,Sun Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_sun,
 81,Moon Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_moon,
 82,Fire Stone,Causes certain pokémon to evolve.,150,evolve_normal,2,stone_fire,
@@ -37,6 +36,7 @@ id,name,description,cost,action,page,emote,separate
 687,Sachet,Held item for your pokémon.,150,held_item,4,item_sachet,
 13001,Everstone,Prevents pokémon from evolving.,150,held_item,4,item_everstone,
 13002,XP Blocker,Prevents pokémon from gaining XP.,150,held_item,4,item_xpblocker,
+14001,Friendship Bracelet,Causes certain pokémon to evolve when leveled up.,150,held_item,4,,
 11001,Adamant Mint,"+10% Attack
 -10% Sp. Atk",50,nature_0,5,mint_atk,
 11002,Bashful Mint,No effect,50,nature_1,5,mint_serious,

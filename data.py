@@ -9,13 +9,21 @@ from pathlib import Path
 from helpers import models
 
 
+def isnumber(v):
+    try:
+        int(v)
+    except ValueError:
+        return False
+    return True
+
+
 def get_data_from(filename):
     path = Path.cwd() / "data" / filename
 
     with open(path) as f:
         reader = csv.DictReader(f)
         data = list(
-            {k: int(v) if v.isdigit() else v for k, v in row.items() if v != ""}
+            {k: int(v) if isnumber(v) else v for k, v in row.items() if v != ""}
             for row in reader
         )
 
@@ -24,6 +32,43 @@ def get_data_from(filename):
 
 def get_pokemon():
     species = [None] + get_data_from("pokemon.csv")
+    evolution = {x["evolved_species_id"]: x for x in get_data_from("evolution.csv")}
+
+    def get_evolution_trigger(pid):
+        evo = evolution[pid]
+
+        if evo["evolution_trigger_id"] == 1:
+            level = evo.get("minimum_level", None)
+            item = evo.get("held_item_id", None)
+            move = evo.get("known_move_id", None)
+            movetype = evo.get("known_move_type_id", None)
+            time = evo.get("time_of_day", None)
+            relative_stats = evo.get("relative_physical_stats", None)
+
+            if "location_id" in evo:
+                return models.OtherTrigger()
+
+            if "minimum_happiness" in evo:
+                item = 14001
+
+            return models.LevelTrigger(
+                level=level,
+                item_id=item,
+                move_id=move,
+                move_type_id=movetype,
+                time=time,
+                relative_stats=relative_stats,
+            )
+
+        elif evo["evolution_trigger_id"] == 2:
+            if "held_item_id" in evo:
+                return models.TradeTrigger(evo["held_item_id"])
+            return models.TradeTrigger()
+
+        elif evo["evolution_trigger_id"] == 3:
+            return models.ItemTrigger(evo["trigger_item_id"])
+
+        return models.OtherTrigger()
 
     pokemon = {}
 
@@ -34,39 +79,18 @@ def get_pokemon():
         evo_from = evo_to = None
 
         if "evo.from" in row:
-            if row["evo.trigger"] == 1 and "evo.level" in row:
-                trigger = models.LevelTrigger(int(row["evo.level"]))
-            elif row["evo.trigger"] == 2:
-                if "evo.item" in row:
-                    trigger = models.TradeTrigger(int(row["evo.item"]))
-                else:
-                    trigger = models.TradeTrigger()
-            elif row["evo.trigger"] == 3:
-                trigger = models.ItemTrigger(int(row["evo.item"]))
-            else:
-                trigger = models.OtherTrigger()
-
-            evo_from = models.Evolution.evolve_from(row["evo.from"], trigger)
+            evo_from = models.Evolution.evolve_from(
+                row["evo.from"], get_evolution_trigger(row["id"])
+            )
 
         if "evo.to" in row:
             evo_to = []
 
             for s in str(row["evo.to"]).split():
                 pto = species[int(s)]
-
-                if pto["evo.trigger"] == 1 and "evo.level" in pto:
-                    trigger = models.LevelTrigger(int(pto["evo.level"]))
-                elif pto["evo.trigger"] == 2:
-                    if "evo.item" in pto:
-                        trigger = models.TradeTrigger(int(pto["evo.item"]))
-                    else:
-                        trigger = models.TradeTrigger()
-                elif pto["evo.trigger"] == 3:
-                    trigger = models.ItemTrigger(int(pto["evo.item"]))
-                else:
-                    trigger = models.OtherTrigger()
-
-                evo_to.append(models.Evolution.evolve_to(int(s), trigger))
+                evo_to.append(
+                    models.Evolution.evolve_to(int(s), get_evolution_trigger(pto["id"]))
+                )
 
         if evo_to and len(evo_to) == 0:
             evo_to = None
@@ -208,13 +232,14 @@ def load_data():
         effects=get_effects(),
     )
 
+    # evos = {}
 
-# spawns = []
-# for i in range(100000):
-#     spawns.append(GameData.random_spawn())
+    # for pok in models.GameData.all_pokemon():
+    #     if pok.evolution_from is not None:
+    #         from_id = pok.evolution_from.items[0].target.id
+    #         if from_id not in evos:
+    #             evos[from_id] = []
+    #         evos[from_id].append(pok.id)
+    # for pok, val in evos.items():
+    #     print(pok, " ".join(str(x) for x in val), sep="\t")
 
-# unique = set(spawns)
-# freq = [(spawns.count(k), k.id) for k in unique]
-
-# import pprint
-# pprint.pprint(sorted(freq))

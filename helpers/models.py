@@ -9,6 +9,7 @@ import random
 import re
 import unicodedata
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
@@ -181,13 +182,60 @@ class EvolutionTrigger(ABC):
     pass
 
 
+@dataclass
 class LevelTrigger(EvolutionTrigger):
-    def __init__(self, level: int):
-        self.level = level
+    level: int
+    item_id: int
+    move_id: int
+    move_type_id: int
+    time: str
+    relative_stats: int
+
+    @cached_property
+    def item(self):
+        if self.item_id is None:
+            return None
+        return _Data.items[self.item_id]
+
+    @cached_property
+    def move(self):
+        if self.move_id is None:
+            return None
+        return _Data.moves[self.move_id]
+
+    @cached_property
+    def move_type(self):
+        if self.move_type_id is None:
+            return None
+        return constants.TYPES[self.move_type_id]
 
     @cached_property
     def text(self):
-        return f"starting from level {self.level}"
+        if self.level is None:
+            text = f"when leveled up"
+        else:
+            text = f"starting from level {self.level}"
+
+        if self.item is not None:
+            text += f" while holding a {self.item}"
+
+        if self.move is not None:
+            text += f" while knowing {self.move}"
+
+        if self.move_type is not None:
+            text += f" while knowing a {self.move_type}-type move"
+
+        if self.time is not None:
+            text += f" in the {self.time}"
+
+        if self.relative_stats == 1:
+            text += f" when its Attack is higher than its Defense"
+        elif self.relative_stats == -1:
+            text += f" when its Defense is higher than its Attack"
+        elif self.relative_stats == 0:
+            text += f" when its Attack is equal to its Defense"
+
+        return text
 
 
 class ItemTrigger(EvolutionTrigger):
