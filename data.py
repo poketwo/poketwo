@@ -32,7 +32,10 @@ def get_data_from(filename):
 
 def get_pokemon():
     species = [None] + get_data_from("pokemon.csv")
-    evolution = {x["evolved_species_id"]: x for x in get_data_from("evolution.csv")}
+    evolution = {
+        x["evolved_species_id"]: x
+        for x in reversed(get_data_from("evolution.csv"))
+    }
 
     def get_evolution_trigger(pid):
         evo = evolution[pid]

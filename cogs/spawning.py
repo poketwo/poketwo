@@ -115,32 +115,22 @@ class Spawning(commands.Cog):
                     else:
                         embed.set_thumbnail(url=pokemon.species.image_url)
 
-                    if (
-                        pokemon.species.level_evolution is not None
-                        and pokemon.held_item != 13001
-                        and pokemon.level + 1
-                        >= pokemon.species.level_evolution.trigger.level
-                    ):
+                    pokemon.level += 1
+                    if (evo := pokemon.next_evolution) is not None:
                         embed.add_field(
                             name=f"Your {name} is evolving!",
-                            value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
+                            value=f"Your {name} has turned into a {evo}!",
                         )
 
                         if pokemon.shiny:
-                            embed.set_thumbnail(
-                                url=pokemon.species.level_evolution.target.shiny_image_url
-                            )
+                            embed.set_thumbnail(url=pevo.shiny_image_url)
                         else:
-                            embed.set_thumbnail(
-                                url=pokemon.species.level_evolution.target.image_url
-                            )
+                            embed.set_thumbnail(url=evo.image_url)
 
-                        update["$set"][
-                            f"pokemon.{member.selected}.species_id"
-                        ] = pokemon.species.level_evolution.target_id
+                        update["$set"][f"pokemon.{member.selected}.species_id"] = evo.id
 
-                        if silence and pokemon.level < 99:
-                            await message.author.send(embed=embed)
+                        if member.silence and pokemon.level < 99:
+                            await ctx.author.send(embed=embed)
 
                     else:
                         c = 0

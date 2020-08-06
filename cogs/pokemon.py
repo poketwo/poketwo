@@ -879,37 +879,33 @@ class Pokemon(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        if (
-            pokemon.species.level_evolution is not None
-            and pokemon.held_item != 13001
-            and pokemon.level >= pokemon.species.level_evolution.trigger.level
-        ):
-            embed = discord.Embed()
-            embed.color = 0xF44336
-            embed.title = f"Congratulations {ctx.author.display_name}!"
+        if (evo := pokemon.next_evolution) is None:
+            return await ctx.send("That pokémon can't be evolved!")
 
-            name = str(pokemon.species)
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Congratulations {ctx.author.display_name}!"
 
-            if pokemon.nickname is not None:
-                name += f' "{pokemon.nickname}"'
+        name = str(pokemon.species)
 
-            embed.add_field(
-                name=f"Your {name} is evolving!",
-                value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
-            )
+        if pokemon.nickname is not None:
+            name += f' "{pokemon.nickname}"'
 
-            await self.db.update_member(
-                ctx.author,
-                {
-                    "$set": {
-                        f"pokemon.{idx}.species_id": pokemon.species.level_evolution.target_id
-                    }
-                },
-            )
+        embed.add_field(
+            name=f"Your {name} is evolving!",
+            value=f"Your {name} has turned into a {evo}!",
+        )
 
-            await ctx.send(embed=embed)
+        if pokemon.shiny:
+            embed.set_thumbnail(url=evo.shiny_image_url)
         else:
-            await ctx.send("That pokémon can't be evolved!")
+            embed.set_thumbnail(url=evo.image_url)
+
+        await self.db.update_member(
+            ctx.author, {"$set": {f"pokemon.{idx}.species_id": evo.id}},
+        )
+
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(rest_is_raw=True)

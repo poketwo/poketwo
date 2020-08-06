@@ -104,6 +104,9 @@ class Move:
     @cached_property
     def description(self):
         return self.effect.description.format(effect_chance=self.effect_chance)
+    
+    def __str__(self):
+        return self.name
 
 
 # Items
@@ -225,15 +228,15 @@ class LevelTrigger(EvolutionTrigger):
         if self.move_type is not None:
             text += f" while knowing a {self.move_type}-type move"
 
-        if self.time is not None:
-            text += f" in the {self.time}"
-
         if self.relative_stats == 1:
             text += f" when its Attack is higher than its Defense"
         elif self.relative_stats == -1:
             text += f" when its Defense is higher than its Attack"
         elif self.relative_stats == 0:
             text += f" when its Attack is equal to its Defense"
+
+        if self.time is not None:
+            text = "somehow"
 
         return text
 
@@ -469,17 +472,6 @@ class Species:
         if "nidoran" in self.slug:
             extra.append("nidoran")
         return extra + [deaccent(x.lower()) for _, x in self.names] + [self.slug]
-
-    @cached_property
-    def level_evolution(self):
-        if self.evolution_to is None:
-            return None
-
-        for e in self.evolution_to.items:
-            if isinstance(e.trigger, LevelTrigger):
-                return e
-
-        return None
 
     @cached_property
     def trade_evolution(self):

@@ -161,6 +161,53 @@ class Pokemon(EmbeddedDocument):
             + self.iv_spd / 31
         ) / 6
 
+    @property
+    def next_evolution(self):
+        if self.species.evolution_to is None or self.held_item == 13001:
+            return None
+
+        possible = []
+
+        for evo in self.species.evolution_to.items:
+            if not isinstance(evo.trigger, models.LevelTrigger):
+                continue
+
+            can = True
+
+            if evo.trigger.level and self.level < evo.trigger.level:
+                can = False
+            if evo.trigger.move_id and evo.trigger.move_id not in self.moves:
+                can = False
+            if evo.trigger.move_type_id and not any(
+                [
+                    models.GameData.move_by_number(x).type_id
+                    == evo.trigger.move_type_id
+                    for x in self.moves
+                ]
+            ):
+                can = False
+            if evo.trigger.time:
+                can = False
+
+            if evo.trigger.relative_stats == 1 and self.atk <= self.defn:
+                can = False
+            if evo.trigger.relative_stats == -1 and self.defn <= self.atk:
+                can = False
+            if evo.trigger.relative_stats == 0 and self.atk != self.defn:
+                can = False
+
+            if can:
+                possible.append(evo.target)
+
+        if len(possible) == 0:
+            return None
+
+        return random.choice(possible)
+
+    @property
+    def can_evolve(self):
+        return self.next_evolution is not None
+
 
 @instance.register
 class Member(Document):

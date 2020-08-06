@@ -496,7 +496,7 @@ class Shop(commands.Cog):
         if item.action == "level":
             update = {
                 "$set": {f"pokemon.{member.selected}.xp": 0,},
-                "$inc": {f"pokemon.{member.selected}.level": qty,},
+                "$inc": {f"pokemon.{member.selected}.level": qty},
             }
 
             # TODO this code is repeated too many times.
@@ -517,28 +517,19 @@ class Shop(commands.Cog):
             else:
                 embed.set_thumbnail(url=pokemon.species.image_url)
 
-            if (
-                pokemon.species.level_evolution is not None
-                and pokemon.held_item != 13001
-                and pokemon.level + qty >= pokemon.species.level_evolution.trigger.level
-            ):
+            pokemon.level += qty
+            if (evo := pokemon.next_evolution) is not None:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
-                    value=f"Your {name} has turned into a {pokemon.species.level_evolution.target}!",
+                    value=f"Your {name} has turned into a {evo}!",
                 )
 
                 if pokemon.shiny:
-                    embed.set_thumbnail(
-                        url=pokemon.species.level_evolution.target.shiny_image_url
-                    )
+                    embed.set_thumbnail(url=pevo.shiny_image_url)
                 else:
-                    embed.set_thumbnail(
-                        url=pokemon.species.level_evolution.target.image_url
-                    )
+                    embed.set_thumbnail(url=evo.image_url)
 
-                update["$set"][
-                    f"pokemon.{member.selected}.species_id"
-                ] = pokemon.species.level_evolution.target_id
+                update["$set"][f"pokemon.{member.selected}.species_id"] = evo.id
 
                 if member.silence and pokemon.level < 99:
                     await ctx.author.send(embed=embed)
@@ -546,7 +537,7 @@ class Shop(commands.Cog):
             else:
                 c = 0
                 for move in pokemon.species.moves:
-                    if pokemon.level + qty >= move.method.level > pokemon.level:
+                    if pokemon.level >= move.method.level > pokemon.level - qty:
                         embed.add_field(
                             name=f"New move!",
                             value=f"Your {name} can now learn {move.move.name}!",
