@@ -176,6 +176,8 @@ class Pokemon(EmbeddedDocument):
 
             if evo.trigger.level and self.level < evo.trigger.level:
                 can = False
+            if evo.trigger.item and self.held_item != evo.trigger.item_id:
+                can = False
             if evo.trigger.move_id and evo.trigger.move_id not in self.moves:
                 can = False
             if evo.trigger.move_type_id and not any(
