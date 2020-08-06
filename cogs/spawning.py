@@ -129,13 +129,10 @@ class Spawning(commands.Cog):
 
                         update["$set"][f"pokemon.{member.selected}.species_id"] = evo.id
 
-                        if member.silence and pokemon.level < 99:
-                            await ctx.author.send(embed=embed)
-
                     else:
                         c = 0
                         for move in pokemon.species.moves:
-                            if move.method.level == pokemon.level + 1:
+                            if move.method.level == pokemon.level:
                                 embed.add_field(
                                     name=f"New move!",
                                     value=f"Your {name} can now learn {move.move.name}!",
@@ -149,7 +146,7 @@ class Spawning(commands.Cog):
 
                     await self.db.update_member(message.author, update)
 
-                    if silence and pokemon.level == 99:
+                    if silence and pokemon.level == 100:
                         await message.author.send(embed=embed)
 
                     if not silence:

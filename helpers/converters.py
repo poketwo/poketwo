@@ -27,11 +27,13 @@ class Pokemon(commands.Converter):
             return None, None
         elif self.accept_blank:
             raise PokemonConversionError(
-                f"Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon."
+                f"Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon.",
+                original=ValueError(),
             )
         else:
             raise PokemonConversionError(
-                f"Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
+                f"Please either enter a number for a specific pokémon, or `latest` for your latest pokémon.",
+                original=ValueError(),
             )
 
         count = await db.fetch_pokemon_count(ctx.author)
