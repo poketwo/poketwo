@@ -187,7 +187,7 @@ class Shop(commands.Cog):
         """View your current balance."""
 
         member = await self.db.fetch_member_info(ctx.author)
-        await ctx.send(f"You have {member.balance} Pokécoins.")
+        await ctx.send(f"You have {member.balance:,} Pokécoins.")
 
     @checks.has_started()
     @commands.command(aliases=["di"], rest_is_raw=True)
@@ -279,7 +279,7 @@ class Shop(commands.Cog):
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = f"Pokétwo Shop — {member.balance} Pokécoins"
+        embed.title = f"Pokétwo Shop — {member.balance:,} Pokécoins"
 
         if page == 0:
             embed.description = (
