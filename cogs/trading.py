@@ -81,7 +81,7 @@ class Trading(commands.Cog):
                     return val
 
                 val = "\n".join(
-                    f"{x} Pokécoins" if type(x) == int else txt(x) for x in side
+                    f"{x:,} Pokécoins" if type(x) == int else txt(x) for x in side
                 )
 
                 if val == "":
@@ -316,7 +316,7 @@ class Trading(commands.Cog):
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
         ):
 
-            what = args[0].replace("pp", "").replace("pc", "").strip()
+            what = args[0].replace("pp", "").replace("pc", "").replace(",","").strip()
 
             if what.isdigit():
                 current = sum(
