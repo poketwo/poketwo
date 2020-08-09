@@ -458,7 +458,7 @@ class Species:
 
     @cached_property
     def image_url(self):
-        return f"https://assets.poketwo.net/images/{self.id}.png"
+        return f"https://assets.poketwo.net/images/{self.id}.png?v=600"
 
     @cached_property
     def shiny_image_url(self):
