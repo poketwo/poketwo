@@ -96,8 +96,8 @@ class Shop(commands.Cog):
         if amt > getattr(member, f"gifts_{type.lower()}"):
             return await ctx.send("You don't have enough boxes to do that!")
 
-        if amt > 20:
-            return await ctx.send("You can only open 20 boxes at once!")
+        if amt > 15:
+            return await ctx.send("You can only open 15 boxes at once!")
 
         await self.db.update_member(
             ctx.author, {"$inc": {f"gifts_{type.lower()}": -amt}}
@@ -134,7 +134,7 @@ class Shop(commands.Cog):
             elif reward["type"] == "pokemon":
                 species = models.GameData.random_spawn(rarity=reward["value"])
                 level = min(max(int(random.normalvariate(70, 10)), 1), 100)
-                shiny = reward["value"] == "shiny" or random.randint(1, 4096) == 1
+                shiny = reward["value"] == "shiny" or member.determine_shiny(species)
 
                 lower_bound = 0
 
@@ -271,7 +271,7 @@ class Shop(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command(aliases=["sh"])
+    @commands.command()
     async def shop(self, ctx: commands.Context, *, page: int = 0):
         """View the Pokétwo item shop."""
 
@@ -663,7 +663,7 @@ class Shop(commands.Cog):
                         "iv_satk": mongo.random_iv(),
                         "iv_sdef": mongo.random_iv(),
                         "iv_spd": mongo.random_iv(),
-                        "shiny": random.randint(1, 4096) == 1,
+                        "shiny": member.determine_shiny(species),
                     }
                 },
             },
@@ -674,7 +674,7 @@ class Shop(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=["rs"])
     async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 

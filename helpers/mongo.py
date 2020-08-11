@@ -213,6 +213,9 @@ class Pokemon(EmbeddedDocument):
 
 @instance.register
 class Member(Document):
+    class Meta:
+        strict = False
+
     id = fields.IntegerField(attribute="_id")
     pokemon = fields.ListField(fields.EmbeddedField(Pokemon), required=True)
 
@@ -225,6 +228,9 @@ class Member(Document):
     shinies_caught = fields.IntegerField(default=0)
     balance = fields.IntegerField(default=0)
     redeems = fields.IntegerField(default=0)
+
+    shiny_hunt = fields.IntegerField(default=None)
+    shiny_streak = fields.IntegerField(default=0)
 
     boost_expires = fields.DateTimeField(default=datetime.min)
 
@@ -251,6 +257,16 @@ class Member(Document):
     @property
     def boost_active(self):
         return datetime.now() < self.boost_expires
+
+    @property
+    def shiny_hunt_chance(self):
+        return (1 + math.tanh(self.shiny_streak / 50)) / 4096
+
+    def determine_shiny(self, species):
+        if self.shiny_hunt != species.dex_number:
+            return random.randint(1, 4096) == 1
+        else:
+            return random.random() < self.shiny_hunt_chance
 
 
 @instance.register
