@@ -295,7 +295,7 @@ class Spawning(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         if shiny is None:
-            shiny = random.randint(1, 4096) == 1
+            shiny = member.determine_shiny(species)
 
         await self.db.update_member(
             ctx.author,
@@ -360,10 +360,69 @@ class Spawning(commands.Cog):
                 {"$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},},
             )
 
+        if member.shiny_hunt == species.dex_number:
+            message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
+            await self.db.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
+
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
         await ctx.send(message)
+
+    @checks.has_started()
+    @commands.command(aliases=["sh"])
+    async def shinyhunt(self, ctx: commands.Context, *, species: str = None):
+        """Hunt for a shiny pokémon species."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if species is None:
+            embed = discord.Embed()
+            embed.color = 0xF44336
+            embed.title = f"Shiny Hunt ✨"
+            embed.description = "You can select a specific pokémon to shiny hunt. Each time you catch that pokémon, your chain will increase. The longer your chain, the higher your chance of catching a shiny one!"
+
+            embed.add_field(
+                name=f"Currently Hunting",
+                value=models.GameData.species_by_number(member.shiny_hunt).name
+                if member.shiny_hunt
+                else "Type `p!shinyhunt <pokémon>` to begin!",
+            )
+
+            if member.shiny_hunt:
+                embed.add_field(name=f"Chain", value=str(member.shiny_streak))
+
+            return await ctx.send(embed=embed)
+
+        species = models.GameData.species_by_name(species)
+
+        if species is None:
+            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+
+        if not species.catchable:
+            return await ctx.send("This pokémon can't be caught in the wild!")
+
+        if member.shiny_streak > 0:
+            await ctx.send(
+                f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset. [y/N]"
+            )
+
+            def check(m):
+                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+            try:
+                msg = await self.bot.wait_for("message", timeout=30, check=check)
+            except asyncio.TimeoutError:
+                return await ctx.send("Time's up. Aborted.")
+
+            if msg.content.lower() != "y":
+                return await ctx.send("Aborted.")
+
+        await self.db.update_member(
+            ctx.author, {"$set": {"shiny_hunt": species.id, "shiny_streak": 0},},
+        )
+
+        await ctx.send(f"You are now shiny hunting **{species}**.")
 
 
 def setup(bot: commands.Bot):
