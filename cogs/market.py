@@ -3,6 +3,7 @@ import math
 import discord
 from discord.ext import commands, flags
 from umongo import fields
+import bson
 
 from helpers import checks, constants, converters, models, mongo, pagination
 
@@ -166,9 +167,15 @@ class Market(commands.Cog):
     @commands.has_role(721825360827777043)
     @market.command(aliases=["unlist"])
     async def remove(self, ctx: commands.Context, id: str):
-        """List a pokémon on the marketplace."""
+        """Remove a pokémon from the marketplace."""
 
-        listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+        try:
+            listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+        except bson.errors.InvalidId:
+            return await ctx.send("Couldn't find that listing!")
+
+        if listing is None:
+            return await ctx.send("Couldn't find that listing!")
 
         if listing["user_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
@@ -187,9 +194,16 @@ class Market(commands.Cog):
     @commands.has_role(721825360827777043)
     @market.command(aliases=["purchase"])
     async def buy(self, ctx: commands.Context, id: str):
-        """List a pokémon on the marketplace."""
+        """Buy a pokémon on the marketplace."""
 
-        listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+        try:
+            listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+        except bson.errors.InvalidId:
+            return await ctx.send("Couldn't find that listing!")
+
+        if listing is None:
+            return await ctx.send("Couldn't find that listing!")
+
         member = await self.db.fetch_member_info(ctx.author)
 
         if listing["user_id"] == ctx.author.id:
