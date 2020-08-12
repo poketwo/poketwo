@@ -47,6 +47,7 @@ class Market(commands.Cog):
     # Market
     @flags.add_flag("--mine", action="store_true")
     @checks.has_started()
+    @commands.has_role(721825360827777043)
     @flags.group(invoke_without_command=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def market(self, ctx: commands.Context, **flags):
@@ -130,6 +131,8 @@ class Market(commands.Cog):
         paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
+    @checks.has_started()
+    @commands.has_role(721825360827777043)
     @market.command(aliases=["list"])
     async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
         """List a pokémon on the marketplace."""
@@ -159,6 +162,8 @@ class Market(commands.Cog):
 
         await ctx.send(message)
 
+    @checks.has_started()
+    @commands.has_role(721825360827777043)
     @market.command(aliases=["unlist"])
     async def remove(self, ctx: commands.Context, id: str):
         """List a pokémon on the marketplace."""
@@ -178,6 +183,8 @@ class Market(commands.Cog):
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
 
+    @checks.has_started()
+    @commands.has_role(721825360827777043)
     @market.command(aliases=["purchase"])
     async def buy(self, ctx: commands.Context, id: str):
         """List a pokémon on the marketplace."""
