@@ -213,6 +213,9 @@ class Pokemon(commands.Cog):
     async def create_filter(self, flags, ctx, order_by=None):
         aggregations = []
 
+        if "mine" in flags and flags["mine"]:
+            aggregations.append({"$match": {"user_id": ctx.author.id}})
+
         for x in ("mythical", "legendary", "ub", "alolan", "mega"):
             if x in flags and flags[x]:
                 aggregations.append(

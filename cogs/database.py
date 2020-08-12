@@ -37,7 +37,7 @@ class Database(commands.Cog):
 
     async def fetch_market_count(self, aggregations=[]) -> mongo.Member:
 
-        result = await mongo.db.member.aggregate(
+        result = await mongo.db.listing.aggregate(
             [*aggregations, {"$count": "num_matches"}], allowDiskUse=True
         ).to_list(None)
 
@@ -122,8 +122,10 @@ class Database(commands.Cog):
 
         return result[0]["result"]
 
-    async def update_member(self, member: discord.Member, update):
-        return await mongo.db.member.update_one({"_id": member.id}, update)
+    async def update_member(self, member, update):
+        if hasattr(member, "id"):
+            member = member.id
+        return await mongo.db.member.update_one({"_id": member}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if idx == -1:

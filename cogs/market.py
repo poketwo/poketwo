@@ -2,6 +2,7 @@ import math
 
 import discord
 from discord.ext import commands, flags
+from umongo import fields
 
 from helpers import checks, constants, converters, models, mongo, pagination
 
@@ -43,7 +44,8 @@ class Market(commands.Cog):
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
 
-    # Pokemon
+    # Market
+    @flags.add_flag("--mine", action="store_true")
     @checks.has_started()
     @flags.group(invoke_without_command=True)
     @commands.bot_has_permissions(manage_messages=True)
@@ -156,6 +158,60 @@ class Market(commands.Cog):
         message = f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {idx + 1}** on the market for **{price:,}** Pokécoins."
 
         await ctx.send(message)
+
+    @market.command(aliases=["unlist"])
+    async def remove(self, ctx: commands.Context, id: str):
+        """List a pokémon on the marketplace."""
+
+        listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+
+        if listing["user_id"] != ctx.author.id:
+            return await ctx.send("That's not your listing!")
+
+        await self.db.update_member(
+            ctx.author, {"$push": {f"pokemon": listing["pokemon"]}},
+        )
+        await mongo.db.listing.delete_one({"_id": fields.ObjectId(id)})
+
+        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        await ctx.send(
+            f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
+        )
+
+    @market.command(aliases=["purchase"])
+    async def buy(self, ctx: commands.Context, id: str):
+        """List a pokémon on the marketplace."""
+
+        listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+        member = await self.db.fetch_member_info(ctx.author)
+
+        if listing["user_id"] == ctx.author.id:
+            return await ctx.send("You can't purchase your own listing!")
+
+        if member.balance < listing["price"]:
+            return await ctx.send("You don't have enough Pokécoins for that!")
+
+        await self.db.update_member(
+            ctx.author,
+            {
+                "$push": {f"pokemon": listing["pokemon"]},
+                "$inc": {"balance": -listing["price"]},
+            },
+        )
+        await self.db.update_member(
+            listing["user_id"], {"$inc": {"balance": listing["price"]}}
+        )
+        await mongo.db.listing.delete_one({"_id": fields.ObjectId(id)})
+
+        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        await ctx.send(
+            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
+        )
+
+        seller = self.bot.get_user(listing["user_id"])
+        await seller.send(
+            f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!"
+        )
 
 
 def setup(bot: commands.Bot):
