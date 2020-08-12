@@ -28,6 +28,24 @@ class Database(commands.Cog):
 
         return await mongo.Member.find_one({"id": member.id}, filter_obj)
 
+    async def fetch_market_list(
+        self, skip: int, limit: int, aggregations=[]
+    ) -> mongo.Member:
+        return await mongo.db.listing.aggregate(
+            [*aggregations, {"$skip": skip}, {"$limit": limit}], allowDiskUse=True
+        ).to_list(None)
+
+    async def fetch_market_count(self, aggregations=[]) -> mongo.Member:
+
+        result = await mongo.db.member.aggregate(
+            [*aggregations, {"$count": "num_matches"}], allowDiskUse=True
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
     async def fetch_pokemon_list(
         self, member: discord.Member, skip: int, limit: int, aggregations=[]
     ) -> mongo.Member:

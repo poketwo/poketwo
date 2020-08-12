@@ -270,6 +270,14 @@ class Member(Document):
 
 
 @instance.register
+class Listing(Document):
+    id = fields.ObjectIdField(attribute="_id")
+    pokemon = fields.EmbeddedField(Pokemon, required=True)
+    user_id = fields.IntegerField(required=True)
+    price = fields.IntegerField(required=True)
+
+
+@instance.register
 class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
