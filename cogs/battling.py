@@ -458,7 +458,7 @@ class Battling(commands.Cog):
             await trainer.send_selection()
 
     @checks.has_started()
-    @commands.command(aliases=["m"], rest_is_raw=True)
+    @commands.command(aliases=["mv"], rest_is_raw=True)
     async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View current and available moves for your pokémon."""
 
