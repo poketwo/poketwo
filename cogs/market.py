@@ -142,6 +142,9 @@ class Market(commands.Cog):
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
+        
+        if price < 1:
+            return await ctx.send("The price must be positive!")
 
         member = await self.db.fetch_member_info(ctx.author)
 
