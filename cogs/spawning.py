@@ -3,11 +3,13 @@ import time
 from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
+from PIL import Image, ImageFilter
+import io
 
 import discord
 from discord.ext import commands
 
-from helpers import checks, constants, models, mongo
+from helpers import checks, constants, models, mongo, anticheat
 
 from .database import Database
 
@@ -235,7 +237,13 @@ class Spawning(commands.Cog):
         # Fetch image and send embed
         def get_image():
             with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-                return discord.File(f, filename="pokemon.png")
+                poke_image = anticheat.alter(Image.open(f))
+
+                arr = io.BytesIO()
+                poke_image.save(arr, format='PNG')
+                arr.seek(0)
+
+                return discord.File(arr, filename="pokemon.png")
 
         image = await self.bot.loop.run_in_executor(None, get_image)
 
