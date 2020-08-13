@@ -1,5 +1,6 @@
 from PIL import Image, ImageFilter
 from pathlib import Path
+import random
 
 def alter(image):
     '''background_img = "grassfield"
@@ -10,5 +11,5 @@ def alter(image):
     return background'''
 
     #add any image altering code here 
-    image = image.filter(ImageFilter.UnsharpMask(radius=2, percent=20, threshold=2))
+    image = image.filter(ImageFilter.UnsharpMask(radius=2, percent=random.randint(10,20), threshold=2))
     return image
