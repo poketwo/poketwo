@@ -21,7 +21,7 @@ def dbl():
     streak = res.get("vote_streak", 0)
     last_voted = res.get("last_voted", datetime.min)
 
-    if datetime.now() - last_voted > timedelta(days=2):
+    if datetime.utcnow() - last_voted > timedelta(days=2):
         streak = 0
 
     streak += 1
@@ -36,7 +36,7 @@ def dbl():
     db.member.update_one(
         {"_id": int(request.json["user"])},
         {
-            "$set": {"vote_streak": streak, "last_voted": datetime.now()},
+            "$set": {"vote_streak": streak, "last_voted": datetime.utcnow()},
             "$inc": {"vote_total": 1, f"gifts_{box_type}": 1},
         },
     )

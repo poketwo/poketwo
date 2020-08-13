@@ -205,14 +205,14 @@ class Spawning(commands.Cog):
 
                 await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
 
-                if channel2.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
+                if channel2.id not in self.bot.redeem or datetime.utcnow() - self.bot.redeem[
                     channel2.id
                 ] > timedelta(
                     minutes=1
                 ):
                     await self.spawn_pokemon(channel2)
 
-            if channel.id not in self.bot.redeem or datetime.now() - self.bot.redeem[
+            if channel.id not in self.bot.redeem or datetime.utcnow() - self.bot.redeem[
                 channel.id
             ] > timedelta(minutes=1):
                 await self.spawn_pokemon(channel)

@@ -81,7 +81,7 @@ class Administration(commands.Cog):
         await self.db.update_member(
             user,
             {
-                "$set": {"last_voted": datetime.now()},
+                "$set": {"last_voted": datetime.utcnow()},
                 "$inc": {"vote_total": 1, "vote_streak": 1, f"gifts_{box_type}": 1},
             },
         )

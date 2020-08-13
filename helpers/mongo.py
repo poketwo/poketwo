@@ -256,7 +256,7 @@ class Member(Document):
 
     @property
     def boost_active(self):
-        return datetime.now() < self.boost_expires
+        return datetime.utcnow() < self.boost_expires
 
     @property
     def shiny_hunt_chance(self):
