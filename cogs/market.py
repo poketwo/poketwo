@@ -20,6 +20,11 @@ class Market(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
+    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
+    async def market(self, ctx: commands.Context, **flags):
+        await ctx.send_help(ctx.command)
+
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
@@ -54,10 +59,10 @@ class Market(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @commands.has_role(721825360827777043)
-    @flags.group(aliases=["marketplace", "m"], invoke_without_command=True)
+    @market.command(aliases=["marketplace", "m"], cls=flags.FlagCommand)
     @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
-    async def market(self, ctx: commands.Context, **flags):
-        """View or filter the pokémon in your collection."""
+    async def search(self, ctx: commands.Context, **flags):
+        """Search pokémon from the marketplace."""
 
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
