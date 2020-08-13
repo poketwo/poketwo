@@ -23,6 +23,8 @@ class Market(commands.Cog):
     @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
     @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def market(self, ctx: commands.Context, **flags):
+        """Buy or sell pokémon on the Pokétwo marketplace."""
+
         await ctx.send_help(ctx.command)
 
     # Filter
