@@ -3,11 +3,13 @@ import time
 from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
+from PIL import Image, ImageFilter
+import io
 
 import discord
 from discord.ext import commands
 
-from helpers import checks, constants, models, mongo
+from helpers import checks, constants, models, mongo, anticheat
 
 from .database import Database
 
@@ -235,6 +237,19 @@ class Spawning(commands.Cog):
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
 
+        # Fetch image and send embed
+        def get_image():
+            with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
+                poke_image = anticheat.alter(Image.open(f), species)
+
+                arr = io.BytesIO()
+                poke_image.save(arr, format="PNG")
+                arr.seek(0)
+
+                return discord.File(arr, filename="pokemon.png")
+
+        image = await self.bot.loop.run_in_executor(None, get_image)
+
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"A wild pokémon has appeared!"
@@ -244,8 +259,7 @@ class Spawning(commands.Cog):
         embed.set_image(url="attachment://pokemon.png")
 
         await channel.send(
-            file=discord.File(f"data/images/{species.id}.png", filename="pokemon.png"),
-            embed=embed,
+            file=image, embed=embed,
         )
 
     @checks.has_started()

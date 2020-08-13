@@ -36,6 +36,11 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
+    async def randomspawn(self, ctx: commands.Context):
+        await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel)
+
+    @commands.is_owner()
+    @commands.command()
     async def unsuspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
