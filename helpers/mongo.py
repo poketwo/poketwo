@@ -271,7 +271,7 @@ class Member(Document):
 
 @instance.register
 class Listing(Document):
-    id = fields.ObjectIdField(attribute="_id")
+    id = fields.IntegerField(attribute="_id")
     pokemon = fields.EmbeddedField(Pokemon, required=True)
     user_id = fields.IntegerField(required=True)
     price = fields.IntegerField(required=True)
@@ -284,3 +284,9 @@ class Guild(Document):
     channels = fields.ListField(fields.IntegerField, default=list)
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
+
+
+@instance.register
+class Counter(Document):
+    id = fields.StringField(attribute="_id")
+    next = fields.IntegerField(default=0)

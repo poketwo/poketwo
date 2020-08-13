@@ -302,10 +302,15 @@ class Pokemon(commands.Cog):
                     )
 
         if order_by is not None:
+            if (s := order_by[-1]) in "+-":
+                order_by, asc = order_by[:-1], 1 if s == "+" else -1
+            else:
+                asc = -1 if order_by in ("iv", "level") else 1
+
             aggregations.extend(
                 [
                     {"$addFields": {"sorting": constants.SORTING_FUNCTIONS[order_by]}},
-                    {"$sort": {"sorting": 1, "idx": 1, "_id": 1}},
+                    {"$sort": {"sorting": asc, "idx": 1, "_id": 1}},
                 ]
             )
 

@@ -155,6 +155,7 @@ class Administration(commands.Cog):
                     "iv_satk": mongo.random_iv(),
                     "iv_sdef": mongo.random_iv(),
                     "iv_spd": mongo.random_iv(),
+                    "shiny": False,
                 }
             )
             pokedex["pokedex." + str(spid)] = pokedex.get("pokedex." + str(spid), 0) + 1

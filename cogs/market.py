@@ -46,11 +46,16 @@ class Market(commands.Cog):
     @flags.add_flag("--limit", type=int)
 
     # Market
-    @flags.add_flag("--mine", action="store_true")
+    @flags.add_flag(
+        "--order",
+        choices=["iv+", "iv-", "price+", "price-", "level+", "level-"],
+        default="price-",
+    )
+    @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @commands.has_role(721825360827777043)
-    @flags.group(aliases=["m"], invoke_without_command=True)
-    @commands.bot_has_permissions(manage_messages=True)
+    @flags.group(aliases=["marketplace", "m"], invoke_without_command=True)
+    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def market(self, ctx: commands.Context, **flags):
         """View or filter the pokémon in your collection."""
 
@@ -59,37 +64,42 @@ class Market(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx)
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(
+            flags, ctx, order_by=flags["order"]
+        )
 
         if aggregations is None:
             return
 
         # Filter pokemon
 
-        fixed_pokemon = False
-
-        async def fix_pokemon():
-            # TODO This is janky way of removing bad database entries, I should fix this
-
-            nonlocal fixed_pokemon
-
-            if fixed_pokemon:
-                return
-
-            await self.db.update_member(
-                ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
-            )
-            await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
-
-            fixed_pokemon = True
+        do_emojis = (
+            ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+            and constants.EMOJIS.get_status()
+        )
 
         def nick(p):
-            name = str(p.species)
+            if do_emojis:
+                name = (
+                    str(constants.EMOJIS.get(p.species.dex_number, shiny=p.shiny))
+                    .replace("pokemon_sprite_", "")
+                    .replace("_shiny", "")
+                    + " "
+                )
+            else:
+                name = ""
+
+            name += f"L{p.level} {p.species}"
 
             if p.shiny:
                 name += " ✨"
 
             return name
+
+        def padn(p, idx, n):
+            return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
         num = await self.db.fetch_market_count(aggregations=aggregations)
 
@@ -111,16 +121,17 @@ class Market(commands.Cog):
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
 
+            maxn = max(idx for x, idx, price in pokemon)
             page = [
-                f"`{id}`　**L{p.level} {nick(p)}**　•　{p.iv_percentage:.2%}　•　**{price:,} pc**"
-                for p, id, price in pokemon
+                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
+                for p, idx, price in pokemon
             ]
 
             # Send embed
 
             embed = discord.Embed()
             embed.color = 0xF44336
-            embed.title = f"Market"
+            embed.title = f"Pokétwo Marketplace"
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
@@ -134,23 +145,53 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.has_role(721825360827777043)
-    @market.command(aliases=["list"])
+    @market.command(aliases=["list", "a", "l"])
     async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
         """List a pokémon on the marketplace."""
+
+        if ctx.author.id in self.bot.trades:
+            return await ctx.send("You can't do that in a trade!")
 
         pokemon, idx = pokemon
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
-        
+
         if price < 1:
             return await ctx.send("The price must be positive!")
 
+        if price > 1000000000:
+            return await ctx.send("Price is too high!")
+
         member = await self.db.fetch_member_info(ctx.author)
+
+        # confirm
+
+        await ctx.send(
+            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {idx + 1}** for **{price:,}** Pokécoins? [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        if msg.content.lower() != "y":
+            return await ctx.send("Aborted.")
 
         # create listing
 
-        listing = mongo.Listing(pokemon=pokemon, user_id=ctx.author.id, price=price)
+        counter = await mongo.db.counter.find_one_and_update(
+            {"_id": "listing"}, {"$inc": {"next": 1}}, upsert=True
+        )
+        if counter is None:
+            counter = {"next": 0}
+        listing = mongo.Listing(
+            id=counter["next"], pokemon=pokemon, user_id=ctx.author.id, price=price
+        )
         await listing.commit()
 
         await self.db.update_member(ctx.author, {"$unset": {f"pokemon.{idx}": 1}})
@@ -168,12 +209,12 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.has_role(721825360827777043)
-    @market.command(aliases=["unlist"])
-    async def remove(self, ctx: commands.Context, id: str):
+    @market.command(aliases=["unlist", "r", "u"])
+    async def remove(self, ctx: commands.Context, id: int):
         """Remove a pokémon from the marketplace."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+            listing = await mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
@@ -186,7 +227,7 @@ class Market(commands.Cog):
         await self.db.update_member(
             ctx.author, {"$push": {f"pokemon": listing["pokemon"]}},
         )
-        await mongo.db.listing.delete_one({"_id": fields.ObjectId(id)})
+        await mongo.db.listing.delete_one({"_id": id})
 
         pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
@@ -195,12 +236,12 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.has_role(721825360827777043)
-    @market.command(aliases=["purchase"])
-    async def buy(self, ctx: commands.Context, id: str):
+    @market.command(aliases=["purchase", "b", "p"])
+    async def buy(self, ctx: commands.Context, id: int):
         """Buy a pokémon on the marketplace."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+            listing = await mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
@@ -215,6 +256,27 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
+        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+
+        # confirm
+
+        await ctx.send(
+            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon.species}** for **{listing['price']:,}** Pokécoins? [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        if msg.content.lower() != "y":
+            return await ctx.send("Aborted.")
+
+        # buy
+
         await self.db.update_member(
             ctx.author,
             {
@@ -225,9 +287,8 @@ class Market(commands.Cog):
         await self.db.update_member(
             listing["user_id"], {"$inc": {"balance": listing["price"]}}
         )
-        await mongo.db.listing.delete_one({"_id": fields.ObjectId(id)})
+        await mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )
@@ -240,11 +301,11 @@ class Market(commands.Cog):
     @checks.has_started()
     @commands.has_role(721825360827777043)
     @market.command(aliases=["i"])
-    async def info(self, ctx: commands.Context, id: str):
+    async def info(self, ctx: commands.Context, id: int):
         """View a pokémon from the market."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": fields.ObjectId(id)})
+            listing = await mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
@@ -256,9 +317,6 @@ class Market(commands.Cog):
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species}"
-
-        if pokemon.nickname is not None:
-            embed.title += f' "{pokemon.nickname}"'
 
         extrafooter = ""
 

@@ -160,11 +160,12 @@ SORTING_FUNCTIONS = {
                     "$pokemon.iv_spd",
                 ]
             },
-            -1.86,
+            1.86,
         ]
     },
-    "level": {"$multiply": ["$pokemon.level", -1]},
+    "level": "$pokemon.level",
     "pokedex": "$pokemon.species_id",
+    "price": "$price",
 }
 
 FILTER_BY_NUMERICAL = {
