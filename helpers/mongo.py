@@ -256,7 +256,7 @@ class Member(Document):
 
     @property
     def boost_active(self):
-        return datetime.now() < self.boost_expires
+        return datetime.utcnow() < self.boost_expires
 
     @property
     def shiny_hunt_chance(self):
@@ -267,6 +267,14 @@ class Member(Document):
             return random.randint(1, 4096) == 1
         else:
             return random.random() < self.shiny_hunt_chance
+
+
+@instance.register
+class Listing(Document):
+    id = fields.ObjectIdField(attribute="_id")
+    pokemon = fields.EmbeddedField(Pokemon, required=True)
+    user_id = fields.IntegerField(required=True)
+    price = fields.IntegerField(required=True)
 
 
 @instance.register

@@ -28,7 +28,7 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        if member.vote_streak > 0 and datetime.now() - member.last_voted > timedelta(
+        if member.vote_streak > 0 and datetime.utcnow() - member.last_voted > timedelta(
             days=2
         ):
             await self.db.update_member(
@@ -50,10 +50,10 @@ class Shop(commands.Cog):
             inline=False,
         )
 
-        if (later := member.last_voted + timedelta(hours=12)) < datetime.now():
+        if (later := member.last_voted + timedelta(hours=12)) < datetime.utcnow():
             embed.add_field(name="Vote Timer", value="You can vote right now!")
         else:
-            timespan = later - datetime.now()
+            timespan = later - datetime.utcnow()
             formatted = humanfriendly.format_timespan(timespan.total_seconds())
             embed.add_field(
                 name="Vote Timer", value=f"You can vote again in **{formatted}**."
@@ -326,7 +326,7 @@ class Shop(commands.Cog):
                     embed.add_field(name="‎", value="‎")
 
         if member.boost_active:
-            timespan = member.boost_expires - datetime.now()
+            timespan = member.boost_expires - datetime.utcnow()
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
             embed.set_footer(
                 text=f"You have an XP Booster active that expires in {timespan}."
@@ -497,7 +497,7 @@ class Shop(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {"$set": {"boost_expires": datetime.now() + timedelta(minutes=mins)},},
+                {"$set": {"boost_expires": datetime.utcnow() + timedelta(minutes=mins)},},
             )
 
         if item.action == "level":
@@ -724,7 +724,7 @@ class Shop(commands.Cog):
         except:
             pass
 
-        self.bot.redeem[ctx.channel.id] = datetime.now()
+        self.bot.redeem[ctx.channel.id] = datetime.utcnow()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
 

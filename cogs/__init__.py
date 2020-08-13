@@ -5,6 +5,7 @@ from . import (
     config,
     database,
     help,
+    market,
     pokemon,
     shop,
     spawning,
