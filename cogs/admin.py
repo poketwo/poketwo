@@ -22,7 +22,7 @@ class Administration(commands.Cog):
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
-        
+
     @commands.is_owner()
     @commands.command()
     async def suspend(self, ctx: commands.Context, user: discord.User):
@@ -33,7 +33,7 @@ class Administration(commands.Cog):
         )
 
         await ctx.send(f"Suspended {user.mention}.")
-    
+
     @commands.is_owner()
     @commands.command()
     async def randomspawn(self, ctx: commands.Context):
