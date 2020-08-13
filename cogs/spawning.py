@@ -232,13 +232,6 @@ class Spawning(commands.Cog):
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
-        # Fetch image and send embed
-        def get_image():
-            with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-                return discord.File(f, filename="pokemon.png")
-
-        image = await self.bot.loop.run_in_executor(None, get_image)
-
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
 
@@ -250,7 +243,10 @@ class Spawning(commands.Cog):
         )
         embed.set_image(url="attachment://pokemon.png")
 
-        await channel.send(file=image, embed=embed)
+        await channel.send(
+            file=discord.File(f"data/images/{species.id}.png", filename="pokemon.png"),
+            embed=embed,
+        )
 
     @checks.has_started()
     @commands.command(aliases=["h"])
