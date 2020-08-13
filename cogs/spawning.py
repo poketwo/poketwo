@@ -234,6 +234,22 @@ class Spawning(commands.Cog):
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
+<<<<<<< HEAD
+=======
+        # Fetch image and send embed
+        def get_image():
+            with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
+                poke_image = anticheat.alter(Image.open(f), species)
+
+                arr = io.BytesIO()
+                poke_image.save(arr, format='PNG')
+                arr.seek(0)
+
+                return discord.File(arr, filename="pokemon.png")
+
+        image = await self.bot.loop.run_in_executor(None, get_image)
+
+>>>>>>> Add new bot owner commands, implement anticheat
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
 
