@@ -8,6 +8,10 @@ from .database import Database
 from helpers import checks
 
 
+def geocode(location):
+    return geocoder.osm(location)
+
+
 class Configuration(commands.Cog):
     """Configuration commands to change bot behavior."""
 
@@ -104,7 +108,13 @@ class Configuration(commands.Cog):
 
     @checks.is_admin()
     @commands.command(aliases=["timezone", "tz"])
-    async def location(self, ctx: commands.Context, *, location: str):
+    async def location(self, ctx: commands.Context, *, location: str = None):
+        if location is None:
+            guild = await self.db.fetch_guild(ctx.guild)
+            return await ctx.send(
+                f"The server's current location is **{guild.loc}** ({guild.lat}, {guild.lng})."
+            )
+
         async with ctx.typing():
             g = await self.bot.loop.run_in_executor(None, geocode, location)
 
@@ -112,7 +122,9 @@ class Configuration(commands.Cog):
                 return await ctx.send("Couldn't find that location!")
 
             lat, lng = g.latlng
-            await self.db.update_guild(ctx.guild, {"$set": {"lat": lat, "lng": lng}})
+            await self.db.update_guild(
+                ctx.guild, {"$set": {"lat": lat, "lng": lng, "loc": g.address}}
+            )
             await ctx.send(f"Set server location to **{g.address}** ({lat}, {lng}).")
 
     @commands.command()
@@ -127,6 +139,9 @@ class Configuration(commands.Cog):
             "It is currently "
             + ("day" if guild.is_day else "night")
             + "time in this server."
+        )
+        embed.add_field(
+            name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}"
         )
 
         await ctx.send(embed=embed)

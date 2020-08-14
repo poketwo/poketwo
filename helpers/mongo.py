@@ -284,8 +284,12 @@ class Guild(Document):
     channels = fields.ListField(fields.IntegerField, default=list)
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
+
     lat = fields.FloatField(default=37.3893889)
     lng = fields.FloatField(default=-122.0832101)
+    loc = fields.StringField(
+        default="Mountain View, Santa Clara County, California, United States of America"
+    )
 
     @property
     def is_day(self):
