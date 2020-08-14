@@ -3,14 +3,13 @@ import io
 import random
 import time
 from datetime import datetime, timedelta
-from functools import cached_property
 from pathlib import Path
 
 import discord
 from discord.ext import commands
-from PIL import Image, ImageFilter
+from PIL import Image
 
-from helpers import anticheat, checks, constants, models, mongo
+from helpers import anticheat, checks, models, mongo
 
 from .database import Database
 

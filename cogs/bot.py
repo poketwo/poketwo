@@ -1,10 +1,8 @@
 import logging
 import os
-import random
 import sys
 import traceback
 from datetime import datetime
-from functools import cached_property
 
 import dbl
 import discord

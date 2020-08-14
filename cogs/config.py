@@ -1,13 +1,10 @@
 import typing
-import asyncio
-import math
-import random
 
 import discord
-from discord.ext import commands, flags
+from discord.ext import commands
 
 from .database import Database
-from helpers import checks, constants, converters, models, mongo, pagination
+from helpers import checks
 
 
 class Configuration(commands.Cog):

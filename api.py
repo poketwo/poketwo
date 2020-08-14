@@ -1,11 +1,9 @@
 # TODO switch to an async thing here.
 
-import asyncio
-import hmac
 import os
 
 from datetime import datetime, timedelta
-from flask import Flask, abort, request
+from flask import Flask, request
 from pymongo import MongoClient
 
 # secret = os.getenv("PATREON_SECRET").encode("ascii")

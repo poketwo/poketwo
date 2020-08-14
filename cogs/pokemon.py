@@ -1,8 +1,5 @@
 import asyncio
 import math
-import random
-from datetime import datetime
-from functools import cached_property
 from operator import itemgetter
 
 import discord
