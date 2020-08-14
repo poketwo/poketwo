@@ -280,6 +280,13 @@ class Market(commands.Cog):
 
         # buy
 
+        listing = await mongo.db.listing.find_one({"_id": id})
+
+        if listing is None:
+            return await ctx.send("That listing no longer exists.")
+
+        await mongo.db.listing.delete_one({"_id": id})
+
         await self.db.update_member(
             ctx.author,
             {
@@ -290,8 +297,6 @@ class Market(commands.Cog):
         await self.db.update_member(
             listing["user_id"], {"$inc": {"balance": listing["price"]}}
         )
-        await mongo.db.listing.delete_one({"_id": id})
-
         await ctx.send(
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )
