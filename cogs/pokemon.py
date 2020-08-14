@@ -75,7 +75,7 @@ class Pokemon(commands.Cog):
                 await ctx.send(f"Favorited your level {pokemon.level} {name}.")
 
     @checks.has_started()
-    @commands.command(rest_is_raw=True)
+    @commands.command(aliases=["i"], rest_is_raw=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
