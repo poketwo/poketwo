@@ -1,7 +1,7 @@
 from PIL import Image, ImageFilter
+import numpy as np
 from pathlib import Path
 import random
-import time
 
 images = {}
 
@@ -9,20 +9,33 @@ for background_img in ("grassback", "sky", "shadow"):
     with open(Path.cwd() / "data" / "backgrounds" / f"{background_img}.png", "rb") as f:
         images[background_img] = Image.open(f).copy()
 
-images["shadow"] = images["shadow"].resize((500, 100))
-
 image_width = 800
 image_height = 500
 
+def strip_image(pokemon):
+    # convert image to array, strip empty rows and columns
+    image_data = np.asarray(pokemon)
+    image_data_bw = image_data.take(3, axis=2)
+    non_empty_columns = np.where(image_data_bw.max(axis=0)>0)[0]
+    non_empty_rows = np.where(image_data_bw.max(axis=1)>0)[0]
+    cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+
+    image_data_new = image_data[cropBox[0]:cropBox[1]+1, cropBox[2]:cropBox[3]+1 , :]
+
+    new_image = Image.fromarray(image_data_new)
+
+    return (new_image)
 
 def alter(pokemon, species):
-    start_time = time.time()
-
-    #TODO make this more readable
+    # TODO make this more readable
 
     background = images["grassback"]
+    pokemon = strip_image(pokemon)
+    images["shadow"] = images["shadow"].resize((pokemon.size[0], 100))
 
     b_width, b_height = background.size
+    p_width, p_height = pokemon.size
+    s_width, s_height = images["shadow"].size
 
     try:
         left, top = (
@@ -38,20 +51,13 @@ def alter(pokemon, species):
 
     background.paste(
         images["shadow"],
-        ((image_width - 500) // 2, image_height - 110),
+        ((image_width - s_width) // 2, ((image_height - p_height) // 2) + p_height - (s_height*3)//4),
         images["shadow"],
     )
     background.paste(
         pokemon,
-        ((image_width - pokemon.size[0]) // 2, (image_height - pokemon.size[1]) // 2),
+        ((image_width - p_width) // 2, (image_height - p_height) // 2),
         pokemon,
     )
 
-    #print(f"Pokemon: {species}")
-    #print(f"pHash: {imagehash.phash(background)}")
-    #print("--- %s seconds ---" % (time.time() - start_time))
     return background
-
-    #add any image altering code here 
-    '''image = image.filter(ImageFilter.UnsharpMask(radius=2, percent=random.randint(10,20), threshold=2))
-    return image'''
