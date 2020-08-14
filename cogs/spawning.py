@@ -132,7 +132,7 @@ class Spawning(commands.Cog):
                         embed.set_thumbnail(url=pokemon.species.image_url)
 
                     pokemon.level += 1
-                    guild = await self.db.fetch_guild(channel.guild)
+                    guild = await self.db.fetch_guild(message.channel.guild)
                     if (evo := pokemon.get_next_evolution(guild.is_day)) is not None:
                         embed.add_field(
                             name=f"Your {name} is evolving!",
