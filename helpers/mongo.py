@@ -288,10 +288,10 @@ class Guild(Document):
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
 
-    lat = fields.FloatField(default=37.3893889)
-    lng = fields.FloatField(default=-122.0832101)
+    lat = fields.FloatField(default=37.7790262)
+    lng = fields.FloatField(default=-122.4199061)
     loc = fields.StringField(
-        default="Mountain View, Santa Clara County, California, United States of America"
+        default="San Francisco, San Francisco City and County, California, United States of America"
     )
 
     @property
