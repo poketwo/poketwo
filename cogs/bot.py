@@ -15,6 +15,10 @@ from helpers import checks, constants, converters, models, mongo
 from .database import Database
 
 
+class Blacklisted(commands.CheckFailure):
+    pass
+
+
 class CommandOnCooldown(commands.CommandOnCooldown):
     pass
 
@@ -41,6 +45,9 @@ class Bot(commands.Cog):
             )
 
     async def bot_check(self, ctx):
+        if await mongo.db.blacklist.count_documents({"_id": ctx.author.id}) > 0:
+            raise Blacklisted
+
         bucket = self._cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
         if retry_after:
@@ -83,12 +90,16 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
-        if isinstance(error, CommandOnCooldown):
+        if isinstance(error, Blacklisted):
+            logging.info(f"{ctx.author.id} is blacklisted")
+            return
+
+        elif isinstance(error, CommandOnCooldown):
+            logging.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("🛑")
 
         elif isinstance(error, commands.CommandOnCooldown):
-            # the cooldown message is also on cooldown
-            logging.info(f"{ctx.author.id} reached second stage cooldown")
+            logging.info(f"{ctx.author.id} hit second stage cooldown")
             return
 
         elif isinstance(error, commands.NoPrivateMessage):

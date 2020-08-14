@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 from functools import cached_property
 import typing
-
+from pymongo.errors import DuplicateKeyError
 import discord
 from discord.ext import commands, flags
 
@@ -22,6 +22,28 @@ class Administration(commands.Cog):
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
+
+    @commands.is_owner()
+    @commands.command()
+    async def blacklist(self, ctx: commands.Context, user: discord.User):
+        """Blacklist a user."""
+
+        try:
+            await mongo.db.blacklist.insert_one({"_id": user.id})
+            await ctx.send(f"Blacklisted {user.mention}.")
+        except DuplicateKeyError:
+            await ctx.send("That user is already blacklisted!")
+
+    @commands.is_owner()
+    @commands.command()
+    async def unblacklist(self, ctx: commands.Context, user: discord.User):
+        """Unblacklist a user."""
+
+        result = await mongo.db.blacklist.delete_one({"_id": user.id})
+        if result.deleted_count == 0:
+            await ctx.send("That user is not blacklisted!")
+        else:
+            await ctx.send(f"Unblacklisted {user.mention}.")
 
     @commands.is_owner()
     @commands.command()

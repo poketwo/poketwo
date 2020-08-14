@@ -290,3 +290,8 @@ class Guild(Document):
 class Counter(Document):
     id = fields.StringField(attribute="_id")
     next = fields.IntegerField(default=0)
+
+
+@instance.register
+class Blacklist(Document):
+    id = fields.IntegerField(attribute="_id")
