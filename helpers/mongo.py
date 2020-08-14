@@ -1,9 +1,10 @@
 import math
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from motor.motor_asyncio import AsyncIOMotorClient
+from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, fields
 
 from . import constants, models
@@ -283,6 +284,22 @@ class Guild(Document):
     channels = fields.ListField(fields.IntegerField, default=list)
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
+    lat = fields.FloatField(default=37.3893889)
+    lng = fields.FloatField(default=-122.0832101)
+
+    @property
+    def is_day(self):
+        sun = Sun(self.lat, self.lng)
+        sunrise, sunset = sun.get_sunrise_time(), sun.get_sunset_time()
+        if sunset < sunrise:
+            sunset += timedelta(days=1)
+
+        now = datetime.now(timezone.utc)
+        return (
+            sunrise < now < sunset
+            or sunrise < now + timedelta(days=1) < sunset
+            or sunrise < now + timedelta(days=-1) < sunset
+        )
 
 
 @instance.register

@@ -1,6 +1,7 @@
 import typing
 
 import discord
+import geocoder
 from discord.ext import commands
 
 from .database import Database
@@ -100,6 +101,35 @@ class Configuration(commands.Cog):
 
         await self.db.update_guild(ctx.guild, {"$set": {"channels": []}})
         await ctx.send(f"No longer redirecting spawns.")
+
+    @checks.is_admin()
+    @commands.command(aliases=["timezone", "tz"])
+    async def location(self, ctx: commands.Context, *, location: str):
+        async with ctx.typing():
+            g = await self.bot.loop.run_in_executor(None, geocode, location)
+
+            if g.latlng is None:
+                return await ctx.send("Couldn't find that location!")
+
+            lat, lng = g.latlng
+            await self.db.update_guild(ctx.guild, {"$set": {"lat": lat, "lng": lng}})
+            await ctx.send(f"Set server location to **{g.address}** ({lat}, {lng}).")
+
+    @commands.command()
+    async def time(self, ctx: commands.Context):
+        guild = await self.db.fetch_guild(ctx.guild)
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
+
+        embed.description = (
+            "It is currently "
+            + ("day" if guild.is_day else "night")
+            + "time in this server."
+        )
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot: commands.Bot):

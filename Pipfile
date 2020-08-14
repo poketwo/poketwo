@@ -20,6 +20,8 @@ dblpy = "*"
 jishaku = "*"
 "discord.py" = "==1.4.1"
 pokedex = {git = "https://github.com/veekun/pokedex.git"}
+geocoder = "*"
+suntime = "*"
 
 [requires]
 python_version = "3.8"

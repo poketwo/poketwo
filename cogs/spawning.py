@@ -15,9 +15,9 @@ from .database import Database
 
 
 # Fetch image and send embed
-def get_image(species):
+def get_image(species, is_day):
     with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-        poke_image = anticheat.alter(Image.open(f), species)
+        poke_image = anticheat.alter(Image.open(f), species, is_day)
 
         arr = io.BytesIO()
         poke_image.save(arr, format="PNG")
@@ -237,29 +237,37 @@ class Spawning(commands.Cog):
         if species is None:
             species = models.GameData.random_spawn()
 
-        level = min(max(int(random.normalvariate(20, 10)), 1), 100)
+        # determine species & stats
 
+        level = min(max(int(random.normalvariate(20, 10)), 1), 100)
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
         blanks = random.sample(inds, len(inds) // 2)
 
-        main = models.GameData.species_by_number(species.dex_number)
+        # get hint
 
+        main = models.GameData.species_by_number(species.dex_number)
         hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
-        self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
+        # spawn
 
-        prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
-        prefix = prefix[0]
-
-        image = await self.bot.loop.run_in_executor(self.executor, get_image, species)
+        guild = await self.db.fetch_guild(channel.guild)
+        image = await self.bot.loop.run_in_executor(
+            self.executor, get_image, species, guild.is_day
+        )
 
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"A wild pokémon has appeared!"
+
+        prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
+        prefix = prefix[0]
         embed.description = (
             f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
         )
+
         embed.set_image(url="attachment://pokemon.png")
+
+        self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
         await channel.send(
             file=discord.File(image, filename="pokemon.png"), embed=embed,
