@@ -18,7 +18,7 @@ image_height = 500
 def alter(pokemon, species):
     start_time = time.time()
 
-    #TODO make this more readable
+    # TODO make this more readable
 
     background = images["grassback"]
 
@@ -47,11 +47,5 @@ def alter(pokemon, species):
         pokemon,
     )
 
-    #print(f"Pokemon: {species}")
-    #print(f"pHash: {imagehash.phash(background)}")
-    #print("--- %s seconds ---" % (time.time() - start_time))
     return background
 
-    #add any image altering code here 
-    '''image = image.filter(ImageFilter.UnsharpMask(radius=2, percent=random.randint(10,20), threshold=2))
-    return image'''

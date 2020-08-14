@@ -14,11 +14,22 @@ from helpers import checks, constants, converters, models, mongo
 from .database import Database
 
 
+class CommandOnCooldown(commands.CommandOnCooldown):
+    pass
+
+
 class Bot(commands.Cog):
     """For basic bot operation."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+        self._cd = commands.CooldownMapping.from_cooldown(
+            5, 5, commands.BucketType.member
+        )
+        self._cd_cd = commands.CooldownMapping.from_cooldown(
+            1, 30, commands.BucketType.member
+        )
 
         if not hasattr(self.bot, "prefixes"):
             self.bot.prefixes = {}
@@ -27,6 +38,18 @@ class Bot(commands.Cog):
             self.bot.dblpy = dbl.DBLClient(
                 self.bot, os.getenv("DBL_TOKEN"), autopost=True
             )
+
+    async def bot_check(self, ctx):
+        bucket = self._cd.get_bucket(ctx.message)
+        retry_after = bucket.update_rate_limit()
+        if retry_after:
+            cd_bucket = self._cd_cd.get_bucket(ctx.message)
+            cd_retry_after = cd_bucket.update_rate_limit()
+            if cd_retry_after:
+                raise commands.CommandOnCooldown(bucket, retry_after)
+            else:
+                raise CommandOnCooldown(bucket, retry_after)
+        return True
 
     @property
     def db(self) -> Database:
@@ -59,7 +82,14 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
-        if isinstance(error, commands.NoPrivateMessage):
+        if isinstance(error, CommandOnCooldown):
+            await ctx.message.add_reaction("🛑")
+
+        elif isinstance(error, commands.CommandOnCooldown):
+            # the cooldown message is also on cooldown
+            return
+
+        elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
 
         elif isinstance(error, commands.DisabledCommand):
@@ -243,4 +273,3 @@ class Bot(commands.Cog):
 
 def setup(bot: commands.Bot):
     bot.add_cog(Bot(bot))
-

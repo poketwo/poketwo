@@ -426,8 +426,6 @@ class Species:
         self.legendary = legendary
         self.ultra_beast = ultra_beast
 
-        self.image_file = open(Path.cwd() / "data" / "images" / f"{id}.png", "rb")
-
     def __str__(self):
         return self.name
 
