@@ -1,17 +1,30 @@
+import concurrent.futures
+import io
 import random
 import time
 from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
-from PIL import Image, ImageFilter
-import io
 
 import discord
 from discord.ext import commands
+from PIL import Image, ImageFilter
 
-from helpers import checks, constants, models, mongo, anticheat
+from helpers import anticheat, checks, constants, models, mongo
 
 from .database import Database
+
+
+# Fetch image and send embed
+def get_image(species):
+    with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
+        poke_image = anticheat.alter(Image.open(f), species)
+
+        arr = io.BytesIO()
+        poke_image.save(arr, format="PNG")
+        arr.seek(0)
+
+        return arr
 
 
 class Spawning(commands.Cog):
@@ -29,6 +42,8 @@ class Spawning(commands.Cog):
 
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
+
+        self.executor = concurrent.futures.ProcessPoolExecutor()
 
     @property
     def db(self) -> Database:
@@ -237,18 +252,7 @@ class Spawning(commands.Cog):
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
 
-        # Fetch image and send embed
-        def get_image():
-            with open(Path.cwd() / "data" / "images" / f"{species.id}.png", "rb") as f:
-                poke_image = anticheat.alter(Image.open(f), species)
-
-                arr = io.BytesIO()
-                poke_image.save(arr, format="PNG")
-                arr.seek(0)
-
-                return discord.File(arr, filename="pokemon.png")
-
-        image = await self.bot.loop.run_in_executor(None, get_image)
+        image = await self.bot.loop.run_in_executor(self.executor, get_image, species)
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -259,7 +263,7 @@ class Spawning(commands.Cog):
         embed.set_image(url="attachment://pokemon.png")
 
         await channel.send(
-            file=image, embed=embed,
+            file=discord.File(image, filename="pokemon.png"), embed=embed,
         )
 
     @checks.has_started()
