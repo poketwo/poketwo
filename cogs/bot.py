@@ -25,10 +25,10 @@ class Bot(commands.Cog):
         self.bot = bot
 
         self._cd = commands.CooldownMapping.from_cooldown(
-            5, 5, commands.BucketType.member
+            5, 2, commands.BucketType.member
         )
         self._cd_cd = commands.CooldownMapping.from_cooldown(
-            1, 30, commands.BucketType.member
+            1, 10, commands.BucketType.member
         )
 
         if not hasattr(self.bot, "prefixes"):
