@@ -34,6 +34,14 @@ class Shop(commands.Cog):
                 ctx.author, {"$set": {"vote_streak": 0},},
             )
             member = await self.db.fetch_member_info(ctx.author)
+        
+
+        do_emojis = (
+            ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+            and constants.EMOJIS.get_status()
+        )
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -41,13 +49,20 @@ class Shop(commands.Cog):
 
         embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
 
-        embed.add_field(
-            name="Voting Streak",
-            value=str(constants.EMOJIS.check) * min(member.vote_streak, 14)
-            + str(constants.EMOJIS.gray) * (14 - min(member.vote_streak, 14))
-            + f"\nCurrent Streak: {member.vote_streak} votes!",
-            inline=False,
-        )
+        if do_emojis:
+            embed.add_field(
+                name="Voting Streak",
+                value=str(constants.EMOJIS.check) * min(member.vote_streak, 14)
+                + str(constants.EMOJIS.gray) * (14 - min(member.vote_streak, 14))
+                + f"\nCurrent Streak: {member.vote_streak} votes!",
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name="Voting Streak",
+                value=f"\nCurrent Streak: {member.vote_streak} votes!",
+                inline=False,
+            )
 
         if (later := member.last_voted + timedelta(hours=12)) < datetime.utcnow():
             embed.add_field(name="Vote Timer", value="You can vote right now!")
@@ -58,15 +73,26 @@ class Shop(commands.Cog):
                 name="Vote Timer", value=f"You can vote again in **{formatted}**."
             )
 
-        embed.add_field(
-            name="Your Rewards",
-            value=(
-                f"{constants.EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
-                f"{constants.EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
-                f"{constants.EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
-            ),
-            inline=False,
-        )
+        if do_emojis:
+            embed.add_field(
+                name="Your Rewards",
+                value=(
+                    f"{constants.EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
+                    f"{constants.EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
+                    f"{constants.EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+                ),
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name="Your Rewards",
+                value=(
+                    f"**Normal Mystery Box:** {member.gifts_normal}\n"
+                    f"**Great Mystery Box:** {member.gifts_great}\n"
+                    f"**Ultra Mystery Box:** {member.gifts_ultra}\n"
+                ),
+                inline=False,
+            )
 
         embed.add_field(
             name="Claiming Rewards",
@@ -82,10 +108,20 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["o"])
     async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
+        do_emojis = (
+            ctx.channel.permissions_for(
+                ctx.guild.get_member(self.bot.user.id)
+            ).external_emojis
+            and constants.EMOJIS.get_status()
+        )
+
         """Open mystery boxes received from voting."""
 
         if type.lower() not in ("normal", "great", "ultra"):
-            return await ctx.send("Please type `normal`, `great`, or `ultra`!")
+            if type.lower() in ("n", "g", "u"):
+                type = constants.BOXES[type.lower()]
+            else:
+                return await ctx.send("Please type `normal`, `great`, or `ultra`!")
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -113,11 +149,18 @@ class Shop(commands.Cog):
 
         embed = discord.Embed()
         embed.color = 0xF44336
-        embed.title = (
-            f" Opening {amt} {getattr(constants.EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
-            + ("" if amt == 1 else "es")
-            + "..."
-        )
+        if do_emojis:
+            embed.title = (
+                f" Opening {amt} {getattr(constants.EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+                + ("" if amt == 1 else "es")
+                + "..."
+            )
+        else:
+            embed.title = (
+                f" Opening {amt} {type.title()} Mystery Box"
+                + ("" if amt == 1 else "es")
+                + "..."
+            )
 
         text = []
 
@@ -168,10 +211,16 @@ class Shop(commands.Cog):
                     "shiny": shiny,
                 }
 
-                text.append(
-                    f"{constants.EMOJIS.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
-                    + (" ✨" if shiny else "")
-                )
+                if do_emojis:
+                    text.append(
+                        f"{constants.EMOJIS.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
+                        + (" ✨" if shiny else "")
+                    )
+                else:
+                    text.append(
+                        f"Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
+                        + (" ✨" if shiny else "")
+                    )                    
 
                 update["$push"]["pokemon"]["$each"].append(pokemon)
 

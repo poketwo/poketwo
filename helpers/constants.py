@@ -1,3 +1,9 @@
+BOXES = {
+  "n": "normal",
+  "g": "great",
+  "u": "ultra"
+}
+
 NUMBER_REACTIONS = [
     "0️⃣",
     "1️⃣",
