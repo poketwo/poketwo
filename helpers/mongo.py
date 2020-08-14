@@ -161,8 +161,7 @@ class Pokemon(EmbeddedDocument):
             + self.iv_spd / 31
         ) / 6
 
-    @property
-    def next_evolution(self):
+    def get_next_evolution(self, is_day):
         if self.species.evolution_to is None or self.held_item == 13001:
             return None
 
@@ -188,7 +187,12 @@ class Pokemon(EmbeddedDocument):
                 ]
             ):
                 can = False
-            if evo.trigger.time:
+            if (
+                evo.trigger.time == "day"
+                and not is_day
+                or evo.trigger.time == "night"
+                and is_day
+            ):
                 can = False
 
             if evo.trigger.relative_stats == 1 and self.atk <= self.defn:
@@ -206,9 +210,8 @@ class Pokemon(EmbeddedDocument):
 
         return random.choice(possible)
 
-    @property
-    def can_evolve(self):
-        return self.next_evolution is not None
+    def can_evolve(self, ctx):
+        return self.get_next_evolution() is not None
 
 
 @instance.register

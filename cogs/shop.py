@@ -496,7 +496,11 @@ class Shop(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {"$set": {"boost_expires": datetime.utcnow() + timedelta(minutes=mins)},},
+                {
+                    "$set": {
+                        "boost_expires": datetime.utcnow() + timedelta(minutes=mins)
+                    },
+                },
             )
 
         if item.action == "level":
@@ -524,7 +528,8 @@ class Shop(commands.Cog):
                 embed.set_thumbnail(url=pokemon.species.image_url)
 
             pokemon.level += qty
-            if (evo := pokemon.next_evolution) is not None:
+            guild = await self.db.fetch_guild(ctx.guild)
+            if (evo := pokemon.get_next_evolution(guild.is_day)) is not None:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",

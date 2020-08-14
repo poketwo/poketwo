@@ -883,8 +883,9 @@ class Pokemon(commands.Cog):
         pokemon, idx = pokemon
 
         member = await self.db.fetch_member_info(ctx.author)
+        guild = await self.db.fetch_guild(ctx.author)
 
-        if (evo := pokemon.next_evolution) is None:
+        if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
             return await ctx.send("That pokémon can't be evolved!")
 
         embed = discord.Embed()

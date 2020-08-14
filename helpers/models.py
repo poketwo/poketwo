@@ -231,7 +231,7 @@ class LevelTrigger(EvolutionTrigger):
             text += f" when its Attack is equal to its Defense"
 
         if self.time is not None:
-            text = "somehow"
+            text += " in the " + self.time + "time"
 
         return text
 
