@@ -5,7 +5,7 @@ import random
 
 images = {}
 
-for background_img in ("grassback-night", "sky", "shadow"):
+for background_img in ("grassback-day", "grassback-night", "sky", "shadow"):
     with open(Path.cwd() / "data" / "backgrounds" / f"{background_img}.png", "rb") as f:
         images[background_img] = Image.open(f).copy()
 
@@ -27,10 +27,14 @@ def strip_image(pokemon):
 
     return (new_image)
 
-def alter(pokemon, species, ):
+def alter(pokemon, species, is_day):
     # TODO make this more readable
 
-    background = images["grassback-night"]
+    if (is_day):
+        background = images["grassback-day"]
+    else:
+        background = images["grassback-night"]
+        
     #pokemon = strip_image(pokemon)
     images["shadow"] = images["shadow"].resize((pokemon.size[0]+50, 100))
 
