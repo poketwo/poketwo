@@ -408,7 +408,7 @@ class Pokemon(commands.Cog):
             ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
         )
         await self.db.update_member(
-            ctx.author, {"$pull": {f"pokemon": None}, "$inc": {f"selected": -dec}}
+            ctx.author, {"$pull": {"pokemon": None}, "$inc": {f"selected": -dec}}
         )
 
         await ctx.send(f"You released {len(mons)} pokémon.")

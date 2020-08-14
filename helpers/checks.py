@@ -27,7 +27,7 @@ def has_started():
             )
 
         if member.suspended:
-            raise Suspended(f"Your account has been suspended.")
+            raise Suspended("Your account has been suspended.")
 
         return True
 
