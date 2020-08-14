@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sys
@@ -87,6 +88,7 @@ class Bot(commands.Cog):
 
         elif isinstance(error, commands.CommandOnCooldown):
             # the cooldown message is also on cooldown
+            logging.info(f"{ctx.author.id} reached second stage cooldown")
             return
 
         elif isinstance(error, commands.NoPrivateMessage):
