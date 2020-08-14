@@ -1,112 +1,117 @@
-import asyncio
-import logging
-import os
-import subprocess
-from importlib import reload
-from itertools import chain
+# TODO I shouldn't wrap the whole thing in this
+# but I needed to fix the lag quickly so I just did this
+# will fix later
 
-import discord
-from discord.ext import commands
-from dotenv import load_dotenv
+if __name__ == "__main__":
+    import asyncio
+    import logging
+    import os
+    import subprocess
+    from importlib import reload
+    from itertools import chain
 
-import cogs
-import data
-import helpers
+    import discord
+    from discord.ext import commands
+    from dotenv import load_dotenv
 
-# Setup
+    import cogs
+    import data
+    import helpers
 
-logging.basicConfig(level=logging.INFO)
+    # Setup
 
-bot_token = os.getenv("BOT_TOKEN")
-env = os.getenv("ENV")
+    logging.basicConfig(level=logging.INFO)
 
-
-# Instantiate Discord Bot
-
-data.load_data()
-
-
-async def determine_prefix(bot, message):
-    cog = bot.get_cog("Bot")
-    return await cog.determine_prefix(message.guild)
+    bot_token = os.getenv("BOT_TOKEN")
+    env = os.getenv("ENV")
 
 
-client = commands.AutoShardedBot(
-    command_prefix=determine_prefix, case_insensitive=True,
-)
-client.env = env
-client.enabled = False
-
-client.load_extension("jishaku")
-
-
-for i in dir(cogs):
-    if not i.startswith("_"):
-        client.load_extension(f"cogs.{i}")
-
-
-# Reloading
-
-
-async def reload_modules():
-    client.enabled = False
-
-    reload(cogs)
-    reload(helpers)
-
-    for i in dir(helpers):
-        if not i.startswith("_"):
-            reload(getattr(helpers, i))
+    # Instantiate Discord Bot
 
     data.load_data()
 
+
+    async def determine_prefix(bot, message):
+        cog = bot.get_cog("Bot")
+        return await cog.determine_prefix(message.guild)
+
+
+    client = commands.AutoShardedBot(
+        command_prefix=determine_prefix, case_insensitive=True,
+    )
+    client.env = env
+    client.enabled = False
+
+    client.load_extension("jishaku")
+
+
     for i in dir(cogs):
         if not i.startswith("_"):
-            client.reload_extension(f"cogs.{i}")
-
-    await helpers.constants.EMOJIS.init_emojis(client)
-
-    client.enabled = True
+            client.load_extension(f"cogs.{i}")
 
 
-@commands.is_owner()
-@client.command()
-async def reloadall(ctx: commands.Context):
-    message = await ctx.send("Reloading all modules...")
-    await reload_modules()
-    await message.edit(content="All modules have been reloaded.")
+    # Reloading
 
 
-@client.event
-async def on_message(message: discord.Message):
-    await client.wait_until_ready()
-    message.content = (
-        message.content.replace("—", "--")
-        .replace("'", "′")
-        .replace("‘", "′")
-        .replace("’", "′")
-    )
+    async def reload_modules():
+        client.enabled = False
 
-    await client.process_commands(message)
+        reload(cogs)
+        reload(helpers)
 
+        for i in dir(helpers):
+            if not i.startswith("_"):
+                reload(getattr(helpers, i))
 
-client.add_check(helpers.checks.enabled(client))
+        data.load_data()
 
+        for i in dir(cogs):
+            if not i.startswith("_"):
+                client.reload_extension(f"cogs.{i}")
 
-# Run Discord Bot
-
-print("Starting bot...")
-
-try:
-
-    async def do_tasks():
-        await client.wait_until_ready()
         await helpers.constants.EMOJIS.init_emojis(client)
-        print(f"Logged in as {client.user}")
+
         client.enabled = True
 
-    client.loop.create_task(do_tasks())
-    client.run(bot_token)
 
-except KeyboardInterrupt:
-    client.logout()
+    @commands.is_owner()
+    @client.command()
+    async def reloadall(ctx: commands.Context):
+        message = await ctx.send("Reloading all modules...")
+        await reload_modules()
+        await message.edit(content="All modules have been reloaded.")
+
+
+    @client.event
+    async def on_message(message: discord.Message):
+        await client.wait_until_ready()
+        message.content = (
+            message.content.replace("—", "--")
+            .replace("'", "′")
+            .replace("‘", "′")
+            .replace("’", "′")
+        )
+
+        await client.process_commands(message)
+
+
+    client.add_check(helpers.checks.enabled(client))
+
+
+    # Run Discord Bot
+
+    print("Starting bot...")
+
+    try:
+
+        async def do_tasks():
+            await client.wait_until_ready()
+            await helpers.constants.EMOJIS.init_emojis(client)
+            print(f"Logged in as {client.user}")
+            client.enabled = True
+
+        client.loop.create_task(do_tasks())
+        client.run(bot_token)
+
+    except KeyboardInterrupt:
+        client.logout()
