@@ -1,8 +1,9 @@
+import asyncio
 import math
 
+import bson
 import discord
 from discord.ext import commands, flags
-import bson
 
 from helpers import checks, constants, converters, models, mongo, pagination
 
@@ -149,6 +150,7 @@ class Market(commands.Cog):
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["list", "a", "l"])
     async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
         """List a pokémon on the marketplace."""
