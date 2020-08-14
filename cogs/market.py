@@ -60,8 +60,7 @@ class Market(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
-    @commands.has_role(721825360827777043)
-    @market.command(aliases=["marketplace", "m"], cls=flags.FlagCommand)
+    @market.command(aliases=["s"], cls=flags.FlagCommand)
     @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def search(self, ctx: commands.Context, **flags):
         """Search pokémon from the marketplace."""
@@ -151,7 +150,6 @@ class Market(commands.Cog):
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
-    @commands.has_role(721825360827777043)
     @market.command(aliases=["list", "a", "l"])
     async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
         """List a pokémon on the marketplace."""
@@ -215,7 +213,6 @@ class Market(commands.Cog):
         await ctx.send(message)
 
     @checks.has_started()
-    @commands.has_role(721825360827777043)
     @market.command(aliases=["unlist", "r", "u"])
     async def remove(self, ctx: commands.Context, id: int):
         """Remove a pokémon from the marketplace."""
@@ -242,7 +239,6 @@ class Market(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.has_role(721825360827777043)
     @market.command(aliases=["purchase", "b", "p"])
     async def buy(self, ctx: commands.Context, id: int):
         """Buy a pokémon on the marketplace."""
@@ -306,7 +302,6 @@ class Market(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.has_role(721825360827777043)
     @market.command(aliases=["i"])
     async def info(self, ctx: commands.Context, id: int):
         """View a pokémon from the market."""
