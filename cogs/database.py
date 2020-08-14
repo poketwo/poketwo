@@ -1,9 +1,8 @@
-import datetime
 
 import discord
 from discord.ext import commands
 
-from helpers import mongo, models, checks
+from helpers import mongo
 
 
 class Database(commands.Cog):

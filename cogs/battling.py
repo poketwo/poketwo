@@ -3,10 +3,9 @@ import math
 import random
 import typing
 from enum import Enum
-from functools import cached_property
 
 import discord
-from discord.ext import commands, flags
+from discord.ext import commands
 
 from helpers import checks, constants, converters, models, mongo, pagination
 

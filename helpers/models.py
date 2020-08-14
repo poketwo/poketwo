@@ -2,15 +2,10 @@
 I'm in the process of pulling pokémon data from a SQL database, instead of this mess.
 Will use veekun/pokedex.
 """
-
-
-import csv
 import random
-import re
 import unicodedata
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
-from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from typing import ClassVar, List, Union, overload

@@ -2,7 +2,6 @@ import math
 
 import discord
 from discord.ext import commands, flags
-from umongo import fields
 import bson
 
 from helpers import checks, constants, converters, models, mongo, pagination

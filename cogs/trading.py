@@ -1,6 +1,5 @@
 import asyncio
 import math
-from functools import cached_property
 
 import discord
 from discord.ext import commands, flags

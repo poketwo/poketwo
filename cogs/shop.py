@@ -1,10 +1,9 @@
 import random
 from datetime import datetime, timedelta
-from functools import cached_property
 
 import discord
 import humanfriendly
-from discord.ext import commands, flags
+from discord.ext import commands
 
 from helpers import checks, constants, converters, models, mongo
 
