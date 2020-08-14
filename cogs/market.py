@@ -214,6 +214,7 @@ class Market(commands.Cog):
         await ctx.send(message)
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["unlist", "r", "u"])
     async def remove(self, ctx: commands.Context, id: int):
         """Remove a pokémon from the marketplace."""
@@ -240,6 +241,7 @@ class Market(commands.Cog):
         )
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["purchase", "b", "p"])
     async def buy(self, ctx: commands.Context, id: int):
         """Buy a pokémon on the marketplace."""
