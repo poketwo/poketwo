@@ -3,6 +3,8 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
+import numpy as np
+
 images = {}
 
 for background_img in ("grassback-day", "grassback-night", "sky", "shadow"):
@@ -13,6 +15,13 @@ for background_img in ("grassback-day", "grassback-night", "sky", "shadow"):
 image_width = 800
 image_height = 500
 
+def strip_image(pokemon):
+    # convert image to array, strip empty rows and columns
+    image_data = np.asarray(pokemon)
+    image_data_bw = image_data.take(3, axis=2)
+    non_empty_columns = np.where(image_data_bw.max(axis=0)>0)[0]
+    non_empty_rows = np.where(image_data_bw.max(axis=1)>0)[0]
+    cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
 
 def strip_image(pokemon):
     # convert image to array, strip empty rows and columns
