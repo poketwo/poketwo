@@ -34,8 +34,8 @@ class Trading(commands.Cog):
             done = True
             trade["executing"] = True
 
-        a = ctx.guild.get_member(a)
-        b = ctx.guild.get_member(b)
+        a = ctx.guild.get_member(a) or await ctx.guild.fetch_member(a)
+        b = ctx.guild.get_member(b) or await ctx.guild.fetch_member(b)
 
         num_pages = max(math.ceil(len(x) / 20) for x in trade["items"].values())
 
@@ -57,7 +57,7 @@ class Trading(commands.Cog):
             )
 
             for i, fullside in trade["items"].items():
-                mem = ctx.guild.get_member(i)
+                mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
 
                 side = fullside[pidx * 20 : (pidx + 1) * 20]
 
@@ -109,8 +109,8 @@ class Trading(commands.Cog):
                 oidx, otup = bothsides[(idx + 1) % 2]
                 oi, oside = otup
 
-                mem = ctx.guild.get_member(i)
-                omem = ctx.guild.get_member(oi)
+                mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
+                omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
 
                 dec = 0
 
@@ -315,7 +315,7 @@ class Trading(commands.Cog):
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
         ):
 
-            what = args[0].replace("pp", "").replace("pc", "").replace(",","").strip()
+            what = args[0].replace("pp", "").replace("pc", "").replace(",", "").strip()
 
             if what.isdigit():
                 current = sum(
@@ -607,7 +607,7 @@ class Trading(commands.Cog):
             for x in self.bot.trades[ctx.author.id]
             if type(x) == int and x != ctx.author.id
         )
-        other = ctx.guild.get_member(other_id)
+        other = ctx.guild.get_member(other_id) or await ctx.guild.fetch_member(other_id)
 
         try:
             pokemon = next(
@@ -667,7 +667,9 @@ class Trading(commands.Cog):
                     pass
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-        embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}." + extrafooter)
+        embed.set_footer(
+            text=f"Displaying pokémon {number} of {other.display_name}." + extrafooter
+        )
 
         await ctx.send(embed=embed)
 

@@ -34,11 +34,11 @@ class Shop(commands.Cog):
                 ctx.author, {"$set": {"vote_streak": 0},},
             )
             member = await self.db.fetch_member_info(ctx.author)
-        
 
         do_emojis = (
             ctx.channel.permissions_for(
                 ctx.guild.get_member(self.bot.user.id)
+                or await ctx.guild.fetch_member(self.bot.user.id)
             ).external_emojis
             and constants.EMOJIS.get_status()
         )
@@ -111,6 +111,7 @@ class Shop(commands.Cog):
         do_emojis = (
             ctx.channel.permissions_for(
                 ctx.guild.get_member(self.bot.user.id)
+                or await ctx.guild.fetch_member(self.bot.user.id)
             ).external_emojis
             and constants.EMOJIS.get_status()
         )
@@ -220,7 +221,7 @@ class Shop(commands.Cog):
                     text.append(
                         f"Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
                         + (" ✨" if shiny else "")
-                    )                    
+                    )
 
                 update["$push"]["pokemon"]["$each"].append(pokemon)
 

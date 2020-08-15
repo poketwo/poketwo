@@ -82,6 +82,7 @@ class Market(commands.Cog):
         do_emojis = (
             ctx.channel.permissions_for(
                 ctx.guild.get_member(self.bot.user.id)
+                or await ctx.guild.fetch_member(self.bot.user.id)
             ).external_emojis
             and constants.EMOJIS.get_status()
         )
