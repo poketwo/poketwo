@@ -15,6 +15,13 @@ from helpers import checks, models, mongo
 from .database import Database
 
 
+def write_fp(data):
+    arr = io.BytesIO()
+    arr.write(data)
+    arr.seek(0)
+    return arr
+
+
 class Spawning(commands.Cog):
     """For basic bot operation."""
 
@@ -245,9 +252,9 @@ class Spawning(commands.Cog):
             url += "day" if guild.is_day else "night"
             async with session.get(url) as resp:
                 if resp.status == 200:
-                    arr = io.BytesIO()
-                    arr.write(await resp.read())
-                    arr.seek(0)
+                    arr = await self.bot.loop.run_in_executor(
+                        None, write_fp, await resp.read()
+                    )
                 else:
                     logging.error("Couldn't fetch spawn image")
                     return
