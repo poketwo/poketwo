@@ -657,16 +657,9 @@ class Trading(commands.Cog):
 
         if pokemon.held_item:
             item = self.bot.data.item_by_number(pokemon.held_item)
-            gguild = self.bot.get_guild(
-                725819081835544596
-            ) or await self.bot.fetch_guild(725819081835544596)
             emote = ""
             if item.emote is not None:
-                try:
-                    e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
-                    emote = f"{e} "
-                except StopIteration:
-                    pass
+                emote = getattr(self.bot.sprites, item.emote)
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
         embed.set_footer(

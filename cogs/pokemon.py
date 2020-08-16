@@ -129,14 +129,9 @@ class Pokemon(commands.Cog):
 
             if pokemon.held_item:
                 item = self.bot.data.item_by_number(pokemon.held_item)
-                gguild = self.bot.get_guild(725819081835544596) or await self.bot.fetch_guild(725819081835544596)
                 emote = ""
                 if item.emote is not None:
-                    try:
-                        e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
-                        emote = f"{e} "
-                    except StopIteration:
-                        pass
+                    emote = getattr(self.bot.sprites, item.emote)
                 embed.add_field(
                     name="Held Item", value=f"{emote}{item.name}", inline=False
                 )
@@ -534,7 +529,7 @@ class Pokemon(commands.Cog):
     # Pokemon
     @checks.has_started()
     @flags.command(aliases=["p"])
-    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def pokemon(self, ctx: commands.Context, **flags):
         """View or filter the pokémon in your collection."""
 
@@ -550,13 +545,7 @@ class Pokemon(commands.Cog):
 
         # Filter pokemon
 
-        do_emojis = (
-            ctx.channel.permissions_for(
-                ctx.guild.get_member(self.bot.user.id)
-                or await ctx.guild.fetch_member(self.bot.user.id)
-            ).external_emojis
-            and constants.EMOJIS.get_status()
-        )
+        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
         fixed_pokemon = False
 
@@ -580,17 +569,14 @@ class Pokemon(commands.Cog):
                 asyncio.create_task(fix_pokemon())
                 return None
 
+            name = str(p.species)
+
             if do_emojis:
                 name = (
-                    str(constants.EMOJIS.get(p.species.dex_number, shiny=p.shiny))
-                    .replace("pokemon_sprite_", "")
-                    .replace("_shiny", "")
+                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
                     + " "
+                    + name
                 )
-            else:
-                name = ""
-
-            name += str(p.species)
 
             if p.shiny:
                 name += " ✨"
@@ -661,7 +647,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--type", type=str)
     @checks.has_started()
     @flags.command(aliases=["d", "dex"])
-    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def pokedex(self, ctx: commands.Context, **flags):
         """View your pokédex, or search for a pokémon species."""
 
@@ -691,13 +677,7 @@ class Pokemon(commands.Cog):
 
             num = await self.db.fetch_pokedex_count(ctx.author)
 
-            do_emojis = (
-                ctx.channel.permissions_for(
-                    ctx.guild.get_member(self.bot.user.id)
-                    or await ctx.guild.fetch_member(self.bot.user.id)
-                ).external_emojis
-                and constants.EMOJIS.get_status()
-            )
+            do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
             member = await self.db.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex
@@ -758,21 +738,18 @@ class Pokemon(commands.Cog):
                     species = self.bot.data.species_by_number(k)
 
                     if do_emojis:
-                        text = f"{constants.EMOJIS.cross} Not caught yet!"
+                        text = f"{self.bot.sprites.cross} Not caught yet!"
                     else:
                         text = "Not caught yet!"
 
                     if v > 0:
                         if do_emojis:
-                            text = f"{constants.EMOJIS.check} {v} caught!"
+                            text = f"{self.bot.sprites.check} {v} caught!"
                         else:
                             text = f"{v} caught!"
 
                     if do_emojis:
-                        emoji = (
-                            str(constants.EMOJIS.get(k)).replace("pokemon_sprite_", "")
-                            + " "
-                        )
+                        emoji = self.bot.sprites.get(k) + " "
                     else:
                         emoji = ""
 

@@ -35,13 +35,7 @@ class Shop(commands.Cog):
             )
             member = await self.db.fetch_member_info(ctx.author)
 
-        do_emojis = (
-            ctx.channel.permissions_for(
-                ctx.guild.get_member(self.bot.user.id)
-                or await ctx.guild.fetch_member(self.bot.user.id)
-            ).external_emojis
-            and constants.EMOJIS.get_status()
-        )
+        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -52,15 +46,15 @@ class Shop(commands.Cog):
         if do_emojis:
             embed.add_field(
                 name="Voting Streak",
-                value=str(constants.EMOJIS.check) * min(member.vote_streak, 14)
-                + str(constants.EMOJIS.gray) * (14 - min(member.vote_streak, 14))
+                value=str(self.bot.sprites.check) * min(member.vote_streak, 14)
+                + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
                 + f"\nCurrent Streak: {member.vote_streak} votes!",
                 inline=False,
             )
         else:
             embed.add_field(
                 name="Voting Streak",
-                value=f"\nCurrent Streak: {member.vote_streak} votes!",
+                value=f"Current Streak: {member.vote_streak} votes!",
                 inline=False,
             )
 
@@ -77,9 +71,9 @@ class Shop(commands.Cog):
             embed.add_field(
                 name="Your Rewards",
                 value=(
-                    f"{constants.EMOJIS.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
-                    f"{constants.EMOJIS.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
-                    f"{constants.EMOJIS.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+                    f"{self.bot.sprites.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
+                    f"{self.bot.sprites.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
+                    f"{self.bot.sprites.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
                 ),
                 inline=False,
             )
@@ -108,13 +102,7 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["o"])
     async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
-        do_emojis = (
-            ctx.channel.permissions_for(
-                ctx.guild.get_member(self.bot.user.id)
-                or await ctx.guild.fetch_member(self.bot.user.id)
-            ).external_emojis
-            and constants.EMOJIS.get_status()
-        )
+        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
         """Open mystery boxes received from voting."""
 
@@ -152,7 +140,7 @@ class Shop(commands.Cog):
         embed.color = 0xF44336
         if do_emojis:
             embed.title = (
-                f" Opening {amt} {getattr(constants.EMOJIS, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
                 + ("" if amt == 1 else "es")
                 + "..."
             )
@@ -214,7 +202,7 @@ class Shop(commands.Cog):
 
                 if do_emojis:
                     text.append(
-                        f"{constants.EMOJIS.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
+                        f"{self.bot.sprites.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
                         + (" ✨" if shiny else "")
                     )
                 else:
@@ -347,18 +335,12 @@ class Shop(commands.Cog):
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
-            gguild = self.bot.get_guild(
-                725819081835544596
-            ) or await self.bot.fetch_guild(725819081835544596)
+            do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
             for item in items:
                 emote = ""
-                if item.emote is not None:
-                    try:
-                        e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
-                        emote = f"{e} "
-                    except StopIteration:
-                        pass
+                if do_emojis and item.emote is not None:
+                    emote = getattr(self.bot.sprites, item.emote)
                 if item.description:
                     embed.add_field(
                         name=f"{emote}{item.name} – {item.cost} pc",

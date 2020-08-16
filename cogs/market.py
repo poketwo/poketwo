@@ -21,7 +21,6 @@ class Market(commands.Cog):
         return self.bot.get_cog("Database")
 
     @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
-    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
     async def market(self, ctx: commands.Context, **flags):
         """Buy or sell pokémon on the Pokétwo marketplace."""
 
@@ -61,7 +60,7 @@ class Market(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @market.command(aliases=["s"], cls=flags.FlagCommand)
-    @commands.bot_has_permissions(manage_messages=True, use_external_emojis=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def search(self, ctx: commands.Context, **flags):
         """Search pokémon from the marketplace."""
 
@@ -79,26 +78,17 @@ class Market(commands.Cog):
 
         # Filter pokemon
 
-        do_emojis = (
-            ctx.channel.permissions_for(
-                ctx.guild.get_member(self.bot.user.id)
-                or await ctx.guild.fetch_member(self.bot.user.id)
-            ).external_emojis
-            and constants.EMOJIS.get_status()
-        )
+        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
         def nick(p):
+            name = f"L{p.level} {p.species}"
+
             if do_emojis:
                 name = (
-                    str(constants.EMOJIS.get(p.species.dex_number, shiny=p.shiny))
-                    .replace("pokemon_sprite_", "")
-                    .replace("_shiny", "")
+                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
                     + " "
+                    + name
                 )
-            else:
-                name = ""
-
-            name += f"L{p.level} {p.species}"
 
             if p.shiny:
                 name += " ✨"
@@ -365,16 +355,9 @@ class Market(commands.Cog):
 
         if pokemon.held_item:
             item = self.bot.data.item_by_number(pokemon.held_item)
-            gguild = self.bot.get_guild(
-                725819081835544596
-            ) or await self.bot.fetch_guild(725819081835544596)
             emote = ""
             if item.emote is not None:
-                try:
-                    e = next(filter(lambda x: x.name == item.emote, gguild.emojis))
-                    emote = f"{e} "
-                except StopIteration:
-                    pass
+                emote = getattr(self.bot.sprites, item.emote)
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
         embed.set_footer(text=f"Displaying listing {id} from market." + extrafooter)

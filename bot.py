@@ -54,6 +54,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.responses = asyncio.Queue()
         self.eval_wait = False
         self.enabled = False
+        self.sprites = None
 
         log = logging.getLogger(f"Cluster#{self.cluster_name}")
         log.setLevel(logging.DEBUG)
@@ -84,12 +85,9 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def do_startup_tasks(self):
         await self.wait_until_ready()
-        try:
-            await helpers.constants.EMOJIS.init_emojis(self)
-        except:
-            pass
         self.enabled = True
-        print(f"Logged in as {self.user}")
+        self.sprites = helpers.emojis.EmojiManager(self)
+        logging.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
