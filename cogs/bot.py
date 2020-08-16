@@ -31,7 +31,7 @@ class Bot(commands.Cog):
             self.bot.prefixes = {}
 
         if not hasattr(self.bot, "dblpy"):
-            self.bot.mongo.dblpy = dbl.DBLClient(
+            self.bot.dblpy = dbl.DBLClient(
                 self.bot, os.getenv("DBL_TOKEN"), autopost=True
             )
 
