@@ -8,7 +8,7 @@
             "name": "Run Bot",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceRoot}/main.py",
+            "program": "${workspaceRoot}/launcher.py",
             "console": "internalConsole"
         }
     ]
