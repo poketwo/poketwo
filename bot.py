@@ -84,7 +84,10 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def do_startup_tasks(self):
         await self.wait_until_ready()
-        await helpers.constants.EMOJIS.init_emojis(self)
+        try:
+            await helpers.constants.EMOJIS.init_emojis(self)
+        except:
+            pass
         self.enabled = True
         print(f"Logged in as {self.user}")
 
