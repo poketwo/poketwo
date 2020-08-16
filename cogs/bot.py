@@ -27,13 +27,6 @@ class Bot(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        self._cd = commands.CooldownMapping.from_cooldown(
-            5, 5, commands.BucketType.user
-        )
-        self._cd_cd = commands.CooldownMapping.from_cooldown(
-            1, 10, commands.BucketType.user
-        )
-
         if not hasattr(self.bot, "prefixes"):
             self.bot.prefixes = {}
 
@@ -43,19 +36,11 @@ class Bot(commands.Cog):
             )
 
     async def bot_check(self, ctx):
-        if await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id}) > 0:
+        if (
+            await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
+            > 0
+        ):
             raise Blacklisted
-
-        bucket = self._cd.get_bucket(ctx.message)
-        retry_after = bucket.update_rate_limit()
-        if retry_after:
-            cd_bucket = self._cd_cd.get_bucket(ctx.message)
-            cd_retry_after = cd_bucket.update_rate_limit()
-            if cd_retry_after:
-                raise commands.CommandOnCooldown(bucket, retry_after)
-            else:
-                raise CommandOnCooldown(bucket, retry_after)
-        return True
 
     @property
     def db(self) -> Database:
