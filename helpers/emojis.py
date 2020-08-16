@@ -1736,7 +1736,7 @@ class EmojiManager:
 
     def get(self, idx, shiny=False):
         if self.status:
-            if shiny:
+            if shiny and pokemon.shiny[idx]:
                 return f"<:_:{pokemon.shiny[idx]}>"
             return f"<:_:{pokemon.normal[idx]}>"
         return ""
