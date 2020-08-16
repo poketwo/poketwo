@@ -174,8 +174,7 @@ class Pokemon(EmbeddedDocument):
                 can = False
             if evo.trigger.move_type_id and not any(
                 [
-                    self.bot.data.move_by_number(x).type_id
-                    == evo.trigger.move_type_id
+                    self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id
                     for x in self.moves
                 ]
             ):
@@ -255,7 +254,7 @@ class Member(Document):
 
     @property
     def shiny_hunt_chance(self):
-        return (1 + math.tanh(self.shiny_streak / 50)) / 4096
+        return (1 + 2 * math.tanh(self.shiny_streak / 100)) / 4096
 
     def determine_shiny(self, species):
         if self.shiny_hunt != species.dex_number:
