@@ -11,32 +11,32 @@ class Database(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def fetch_member_info(self, member: discord.Member) -> mongo.Member:
-        return await mongo.Member.find_one(
+    async def fetch_member_info(self, member: discord.Member):
+        return await self.bot.mongo.Member.find_one(
             {"id": member.id}, {"pokemon": 0, "pokedex": 0}
         )
 
     async def fetch_pokedex(
         self, member: discord.Member, start: int, end: int
-    ) -> mongo.Member:
+    ):
 
         filter_obj = {}
 
         for i in range(start, end):
             filter_obj[f"pokedex.{i}"] = 1
 
-        return await mongo.Member.find_one({"id": member.id}, filter_obj)
+        return await self.bot.mongo.Member.find_one({"id": member.id}, filter_obj)
 
     async def fetch_market_list(
         self, skip: int, limit: int, aggregations=[]
-    ) -> mongo.Member:
-        return await mongo.db.listing.aggregate(
+    ):
+        return await self.bot.mongo.db.listing.aggregate(
             [*aggregations, {"$skip": skip}, {"$limit": limit}], allowDiskUse=True
         ).to_list(None)
 
-    async def fetch_market_count(self, aggregations=[]) -> mongo.Member:
+    async def fetch_market_count(self, aggregations=[]):
 
-        result = await mongo.db.listing.aggregate(
+        result = await self.bot.mongo.db.listing.aggregate(
             [*aggregations, {"$count": "num_matches"}], allowDiskUse=True
         ).to_list(None)
 
@@ -47,9 +47,9 @@ class Database(commands.Cog):
 
     async def fetch_pokemon_list(
         self, member: discord.Member, skip: int, limit: int, aggregations=[]
-    ) -> mongo.Member:
+    ):
 
-        return await mongo.db.member.aggregate(
+        return await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -62,9 +62,9 @@ class Database(commands.Cog):
 
     async def fetch_pokemon_count(
         self, member: discord.Member, aggregations=[]
-    ) -> mongo.Member:
+    ):
 
-        result = await mongo.db.member.aggregate(
+        result = await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -81,9 +81,9 @@ class Database(commands.Cog):
 
     async def fetch_pokedex_count(
         self, member: discord.Member, aggregations=[]
-    ) -> mongo.Member:
+    ):
 
-        result = await mongo.db.member.aggregate(
+        result = await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
@@ -102,9 +102,9 @@ class Database(commands.Cog):
 
     async def fetch_pokedex_sum(
         self, member: discord.Member, aggregations=[]
-    ) -> mongo.Member:
+    ):
 
-        result = await mongo.db.member.aggregate(
+        result = await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
                 {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
@@ -124,15 +124,15 @@ class Database(commands.Cog):
     async def update_member(self, member, update):
         if hasattr(member, "id"):
             member = member.id
-        return await mongo.db.member.update_one({"_id": member}, update)
+        return await self.bot.mongo.db.member.update_one({"_id": member}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if idx == -1:
-            result = await mongo.Member.find_one(
+            result = await self.bot.mongo.Member.find_one(
                 {"_id": member.id}, projection={"pokemon": {"$slice": -1}},
             )
         else:
-            result = await mongo.Member.find_one(
+            result = await self.bot.mongo.Member.find_one(
                 {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
             )
 
@@ -141,15 +141,15 @@ class Database(commands.Cog):
 
         return result.pokemon[0]
 
-    async def fetch_guild(self, guild: discord.Guild) -> mongo.Guild:
-        guild = await mongo.Guild.find_one({"id": guild.id})
+    async def fetch_guild(self, guild: discord.Guild):
+        guild = await self.bot.mongo.Guild.find_one({"id": guild.id})
         if guild is None:
-            guild = mongo.Guild(id=guild.id)
+            guild = self.bot.mongo.Guild(id=guild.id)
             await guild.commit()
         return guild
 
     async def update_guild(self, guild: discord.Guild, update):
-        return await mongo.db.guild.update_one({"_id": guild.id}, update, upsert=True)
+        return await self.bot.mongo.db.guild.update_one({"_id": guild.id}, update, upsert=True)
 
 
 def setup(bot: commands.Bot):

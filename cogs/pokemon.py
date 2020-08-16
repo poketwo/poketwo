@@ -128,7 +128,7 @@ class Pokemon(commands.Cog):
             embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
             if pokemon.held_item:
-                item = models.GameData.item_by_number(pokemon.held_item)
+                item = self.bot.data.item_by_number(pokemon.held_item)
                 gguild = self.bot.get_guild(725819081835544596)
                 emote = ""
                 if item.emote is not None:
@@ -219,7 +219,7 @@ class Pokemon(commands.Cog):
                     {
                         "$match": {
                             "pokemon.species_id": {
-                                "$in": getattr(models.GameData, f"list_{x}")()
+                                "$in": getattr(self.bot.data, f"list_{x}")()
                             }
                         }
                     }
@@ -227,7 +227,7 @@ class Pokemon(commands.Cog):
 
         if "type" in flags and flags["type"]:
             all_species = [
-                i for x in flags["type"] for i in models.GameData.list_type(x)
+                i for x in flags["type"] for i in self.bot.data.list_type(x)
             ]
 
             aggregations.append(
@@ -244,7 +244,7 @@ class Pokemon(commands.Cog):
             all_species = [
                 i
                 for x in flags["name"]
-                for i in models.GameData.find_all_matches(" ".join(x))
+                for i in self.bot.data.find_all_matches(" ".join(x))
             ]
 
             aggregations.append(
@@ -621,7 +621,7 @@ class Pokemon(commands.Cog):
             )
 
             pokemon = [
-                (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"] + 1)
+                (self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"] + 1)
                 for x in pokemon
             ]
 
@@ -721,14 +721,14 @@ class Pokemon(commands.Cog):
                         del pokedex[str(i)]
 
             def include(key):
-                if flags["legendary"] and key not in models.GameData.list_legendary():
+                if flags["legendary"] and key not in self.bot.data.list_legendary():
                     return False
-                if flags["mythical"] and key not in models.GameData.list_mythical():
+                if flags["mythical"] and key not in self.bot.data.list_mythical():
                     return False
-                if flags["ub"] and key not in models.GameData.list_ub():
+                if flags["ub"] and key not in self.bot.data.list_ub():
                     return False
 
-                if flags["type"] and key not in models.GameData.list_type(
+                if flags["type"] and key not in self.bot.data.list_type(
                     flags["type"]
                 ):
                     return False
@@ -769,7 +769,7 @@ class Pokemon(commands.Cog):
                 # )
 
                 for k, v in pokedex[pgstart:pgend]:
-                    species = models.GameData.species_by_number(k)
+                    species = self.bot.data.species_by_number(k)
 
                     if do_emojis:
                         text = f"{constants.EMOJIS.cross} Not caught yet!"
@@ -808,7 +808,7 @@ class Pokemon(commands.Cog):
             shiny = False
 
             if search_or_page[0] in "Nn#" and search_or_page[1:].isdigit():
-                species = models.GameData.species_by_number(int(search_or_page[1:]))
+                species = self.bot.data.species_by_number(int(search_or_page[1:]))
 
             else:
                 search = search_or_page
@@ -817,7 +817,7 @@ class Pokemon(commands.Cog):
                     shiny = True
                     search = search_or_page[6:]
 
-                species = models.GameData.species_by_name(search)
+                species = self.bot.data.species_by_name(search)
                 if species is None:
                     return await ctx.send(
                         f"Could not find a pokemon matching `{search_or_page}`."
@@ -922,7 +922,7 @@ class Pokemon(commands.Cog):
 
         pokemon, idx = pokemon
 
-        fr = models.GameData.species_by_number(pokemon.species.dex_number)
+        fr = self.bot.data.species_by_number(pokemon.species.dex_number)
 
         if pokemon.species not in (fr.mega, fr.mega_x, fr.mega_y,):
             return await ctx.send("This pokémon is not in mega form!")

@@ -230,7 +230,7 @@ class Spawning(commands.Cog):
 
     async def spawn_pokemon(self, channel, species=None, shiny=None):
         if species is None:
-            species = models.GameData.random_spawn()
+            species = self.bot.data.random_spawn()
 
         # determine species & stats
 
@@ -240,7 +240,7 @@ class Spawning(commands.Cog):
 
         # get hint
 
-        main = models.GameData.species_by_number(species.dex_number)
+        main = self.bot.data.species_by_number(species.dex_number)
         hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
         # spawn
@@ -409,7 +409,7 @@ class Spawning(commands.Cog):
 
             embed.add_field(
                 name=f"Currently Hunting",
-                value=models.GameData.species_by_number(member.shiny_hunt).name
+                value=self.bot.data.species_by_number(member.shiny_hunt).name
                 if member.shiny_hunt
                 else "Type `p!shinyhunt <pokémon>` to begin!",
             )
@@ -419,7 +419,7 @@ class Spawning(commands.Cog):
 
             return await ctx.send(embed=embed)
 
-        species = models.GameData.species_by_name(species)
+        species = self.bot.data.species_by_name(species)
 
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")

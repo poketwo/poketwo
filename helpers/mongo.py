@@ -14,14 +14,7 @@ random_nature = lambda: random.choice(constants.NATURES)
 
 # Instance
 
-database_uri = os.getenv("DATABASE_URI")
-database_name = os.getenv("DATABASE_NAME")
 
-db = AsyncIOMotorClient(database_uri)[database_name]
-instance = Instance(db)
-
-
-@instance.register
 class Pokemon(EmbeddedDocument):
     class Meta:
         strict = False
@@ -214,7 +207,6 @@ class Pokemon(EmbeddedDocument):
         return self.get_next_evolution() is not None
 
 
-@instance.register
 class Member(Document):
     class Meta:
         strict = False
@@ -272,7 +264,6 @@ class Member(Document):
             return random.random() < self.shiny_hunt_chance
 
 
-@instance.register
 class Listing(Document):
     id = fields.IntegerField(attribute="_id")
     pokemon = fields.EmbeddedField(Pokemon, required=True)
@@ -280,7 +271,6 @@ class Listing(Document):
     price = fields.IntegerField(required=True)
 
 
-@instance.register
 class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
@@ -309,12 +299,26 @@ class Guild(Document):
         )
 
 
-@instance.register
 class Counter(Document):
     id = fields.StringField(attribute="_id")
     next = fields.IntegerField(default=0)
 
 
-@instance.register
 class Blacklist(Document):
     id = fields.IntegerField(attribute="_id")
+
+
+class Database:
+    def __init__(self, loop, host, dbname):
+        database_uri = os.getenv("DATABASE_URI")
+        database_name = os.getenv("DATABASE_NAME")
+
+        self.db = AsyncIOMotorClient(host, io_loop=loop)[dbname]
+        instance = Instance(self.db)
+
+        self.Pokemon = instance.register(Pokemon)
+        self.Member = instance.register(Member)
+        self.Listing = instance.register(Listing)
+        self.Guild = instance.register(Guild)
+        self.Counter = instance.register(Counter)
+        self.Blacklist = instance.register(Blacklist)

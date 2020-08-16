@@ -175,7 +175,7 @@ class Shop(commands.Cog):
                     f"{reward['value']} redeem" + ("" if reward["value"] == 1 else "s")
                 )
             elif reward["type"] == "pokemon":
-                species = models.GameData.random_spawn(rarity=reward["value"])
+                species = self.bot.data.random_spawn(rarity=reward["value"])
                 level = min(max(int(random.normalvariate(70, 10)), 1), 100)
                 shiny = reward["value"] == "shiny" or member.determine_shiny(species)
 
@@ -345,7 +345,7 @@ class Shop(commands.Cog):
         else:
             embed.description = f"We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `{ctx.prefix}buy <item>` to buy an item!"
 
-            items = [i for i in models.GameData.all_items() if i.page == page]
+            items = [i for i in self.bot.data.all_items() if i.page == page]
 
             gguild = self.bot.get_guild(725819081835544596)
 
@@ -396,7 +396,7 @@ class Shop(commands.Cog):
             if qty <= 0:
                 return await ctx.send("Nice try...")
 
-        item = models.GameData.item_by_name(" ".join(args))
+        item = self.bot.data.item_by_name(" ".join(args))
         if item is None:
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
 
@@ -482,7 +482,7 @@ class Shop(commands.Cog):
                 )
 
         if item.action == "form_item":
-            forms = models.GameData.all_species_by_number(pokemon.species.dex_number)
+            forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
                     form.id != pokemon.species.id
@@ -636,7 +636,7 @@ class Shop(commands.Cog):
             )
 
         if item.action == "form_item":
-            forms = models.GameData.all_species_by_number(pokemon.species.dex_number)
+            forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
                     form.id != pokemon.species.id
@@ -694,7 +694,7 @@ class Shop(commands.Cog):
         if member.redeems == 0:
             return await ctx.send("You don't have any redeems!")
 
-        species = models.GameData.species_by_name(species)
+        species = self.bot.data.species_by_name(species)
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
@@ -757,7 +757,7 @@ class Shop(commands.Cog):
         if member.redeems == 0:
             return await ctx.send("You don't have any redeems!")
 
-        species = models.GameData.species_by_name(species)
+        species = self.bot.data.species_by_name(species)
 
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")

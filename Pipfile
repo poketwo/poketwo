@@ -23,6 +23,11 @@ pokedex = {git = "https://github.com/veekun/pokedex.git"}
 geocoder = "*"
 suntime = "*"
 numpy = "*"
+websockets = "*"
+requests = "*"
+dnspython = "*"
+discord-ext-alternatives = "*"
+aioconsole = "*"
 
 [requires]
 python_version = "3.8"

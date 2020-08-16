@@ -1,5 +1,6 @@
 .env
 **/.DS_Store
+logs/
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode

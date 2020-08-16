@@ -121,7 +121,7 @@ class Market(commands.Cog):
             )
 
             pokemon = [
-                (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["_id"], x["price"])
+                (self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]), x["_id"], x["price"])
                 for x in pokemon
             ]
 
@@ -191,12 +191,12 @@ class Market(commands.Cog):
 
         # create listing
 
-        counter = await mongo.db.counter.find_one_and_update(
+        counter = await self.bot.mongo.db.counter.find_one_and_update(
             {"_id": "listing"}, {"$inc": {"next": 1}}, upsert=True
         )
         if counter is None:
             counter = {"next": 0}
-        listing = mongo.Listing(
+        listing = self.bot.mongo.Listing(
             id=counter["next"], pokemon=pokemon, user_id=ctx.author.id, price=price
         )
         await listing.commit()
@@ -221,7 +221,7 @@ class Market(commands.Cog):
         """Remove a pokémon from the marketplace."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": id})
+            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
@@ -234,9 +234,9 @@ class Market(commands.Cog):
         await self.db.update_member(
             ctx.author, {"$push": {f"pokemon": listing["pokemon"]}},
         )
-        await mongo.db.listing.delete_one({"_id": id})
+        await self.bot.mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
@@ -248,7 +248,7 @@ class Market(commands.Cog):
         """Buy a pokémon on the marketplace."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": id})
+            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
@@ -263,7 +263,7 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
 
         # confirm
 
@@ -284,12 +284,12 @@ class Market(commands.Cog):
 
         # buy
 
-        listing = await mongo.db.listing.find_one({"_id": id})
+        listing = await self.bot.mongo.db.listing.find_one({"_id": id})
 
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
-        await mongo.db.listing.delete_one({"_id": id})
+        await self.bot.mongo.db.listing.delete_one({"_id": id})
 
         await self.db.update_member(
             ctx.author,
@@ -316,14 +316,14 @@ class Market(commands.Cog):
         """View a pokémon from the market."""
 
         try:
-            listing = await mongo.db.listing.find_one({"_id": id})
+            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
             return await ctx.send("Couldn't find that listing!")
 
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        pokemon = mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
 
         embed = discord.Embed()
         embed.color = 0xF44336
@@ -360,7 +360,7 @@ class Market(commands.Cog):
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
         if pokemon.held_item:
-            item = models.GameData.item_by_number(pokemon.held_item)
+            item = self.bot.data.item_by_number(pokemon.held_item)
             gguild = self.bot.get_guild(725819081835544596)
             emote = ""
             if item.emote is not None:

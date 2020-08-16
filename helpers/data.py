@@ -1,12 +1,7 @@
-"""
-I'm in the process of pulling pokémon data from a SQL database, instead of this mess.
-Will use veekun/pokedex.
-"""
-
 import csv
 from pathlib import Path
 
-from helpers import models
+from . import models
 
 
 def isnumber(v):
@@ -30,11 +25,10 @@ def get_data_from(filename):
     return data
 
 
-def get_pokemon():
+def get_pokemon(instance):
     species = [None] + get_data_from("pokemon.csv")
     evolution = {
-        x["evolved_species_id"]: x
-        for x in reversed(get_data_from("evolution.csv"))
+        x["evolved_species_id"]: x for x in reversed(get_data_from("evolution.csv"))
     }
 
     def get_evolution_trigger(pid):
@@ -49,7 +43,7 @@ def get_pokemon():
             relative_stats = evo.get("relative_physical_stats", None)
 
             if "location_id" in evo:
-                return models.OtherTrigger()
+                return models.OtherTrigger(instance=instance)
 
             if "minimum_happiness" in evo:
                 item = 14001
@@ -61,17 +55,18 @@ def get_pokemon():
                 move_type_id=movetype,
                 time=time,
                 relative_stats=relative_stats,
+                instance=instance,
             )
 
         elif evo["evolution_trigger_id"] == 2:
             if "held_item_id" in evo:
-                return models.TradeTrigger(evo["held_item_id"])
-            return models.TradeTrigger()
+                return models.TradeTrigger(evo["held_item_id"], instance=instance)
+            return models.TradeTrigger(instance=instance)
 
         elif evo["evolution_trigger_id"] == 3:
-            return models.ItemTrigger(evo["trigger_item_id"])
+            return models.ItemTrigger(evo["trigger_item_id"], instance=instance)
 
-        return models.OtherTrigger()
+        return models.OtherTrigger(instance=instance)
 
     pokemon = {}
 
@@ -83,7 +78,7 @@ def get_pokemon():
 
         if "evo.from" in row:
             evo_from = models.Evolution.evolve_from(
-                row["evo.from"], get_evolution_trigger(row["id"])
+                row["evo.from"], get_evolution_trigger(row["id"]), instance=instance
             )
 
         if "evo.to" in row:
@@ -92,7 +87,9 @@ def get_pokemon():
             for s in str(row["evo.to"]).split():
                 pto = species[int(s)]
                 evo_to.append(
-                    models.Evolution.evolve_to(int(s), get_evolution_trigger(pto["id"]))
+                    models.Evolution.evolve_to(
+                        int(s), get_evolution_trigger(pto["id"]), instance=instance
+                    )
                 )
 
         if evo_to and len(evo_to) == 0:
@@ -146,13 +143,14 @@ def get_pokemon():
             dex_number=row["dex_number"],
             abundance=row["abundance"] if "abundance" in row else 0,
             description=row.get("description", None),
-            evolution_from=evo_from,
-            evolution_to=evo_to,
+            evolution_from=models.EvolutionList(evo_from) if evo_from else None,
+            evolution_to=models.EvolutionList(evo_to) if evo_to else None,
             mythical="mythical" in row,
             legendary="legendary" in row,
             ultra_beast="ultra_beast" in row,
             is_form="is_form" in row,
             form_item=row["form_item"] if "form_item" in row else None,
+            instance=instance,
         )
 
     moves = get_data_from("pokemon_moves.csv")
@@ -160,7 +158,11 @@ def get_pokemon():
     for row in moves:
         if row["pokemon_move_method_id"] == 1 and row["pokemon_id"] in pokemon:
             pokemon[row["pokemon_id"]].moves.append(
-                models.PokemonMove(row["move_id"], models.LevelMethod(row["level"]))
+                models.PokemonMove(
+                    row["move_id"],
+                    models.LevelMethod(row["level"], instance=instance),
+                    instance=instance,
+                )
             )
 
     for p in pokemon.values():
@@ -169,7 +171,7 @@ def get_pokemon():
     return pokemon
 
 
-def get_items():
+def get_items(instance):
     data = get_data_from("items.csv")
 
     items = {}
@@ -184,23 +186,26 @@ def get_items():
             action=row["action"],
             inline=(not "separate" in row),
             emote=row.get("emote", None),
+            instance=instance,
         )
 
     return items
 
 
-def get_effects():
+def get_effects(instance):
     data = get_data_from("move_effects.csv")
 
     effects = {}
 
     for row in data:
-        effects[row["id"]] = models.MoveEffect(id=row["id"], description=row["text"])
+        effects[row["id"]] = models.MoveEffect(
+            id=row["id"], description=row["text"], instance=instance
+        )
 
     return effects
 
 
-def get_moves():
+def get_moves(instance):
     data = get_data_from("moves.csv")
 
     moves = {}
@@ -222,27 +227,18 @@ def get_moves():
             damage_class_id=row["damage_class"],
             effect_id=row["effect"],
             effect_chance=row.get("effect_chance", None),
+            instance=instance,
         )
 
     return moves
 
 
-def load_data():
-    models.load_data(
-        moves=get_moves(),
-        pokemon=get_pokemon(),
-        items=get_items(),
-        effects=get_effects(),
-    )
+def make_data_manager():
+    instance = models.DataManager()
 
-    # evos = {}
+    instance.moves = get_moves(instance)
+    instance.pokemon = get_pokemon(instance)
+    instance.items = get_items(instance)
+    instance.effects = get_effects(instance)
 
-    # for pok in models.GameData.all_pokemon():
-    #     if pok.evolution_from is not None:
-    #         from_id = pok.evolution_from.items[0].target.id
-    #         if from_id not in evos:
-    #             evos[from_id] = []
-    #         evos[from_id].append(pok.id)
-    # for pok, val in evos.items():
-    #     print(pok, " ".join(str(x) for x in val), sep="\t")
-
+    return instance

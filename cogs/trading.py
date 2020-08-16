@@ -219,7 +219,7 @@ class Trading(commands.Cog):
         if user.id in self.bot.trades:
             return await ctx.send(f"**{user}** is already in a trade!")
 
-        member = await mongo.Member.find_one({"id": user.id})
+        member = await self.bot.mongo.Member.find_one({"id": user.id})
 
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
@@ -578,7 +578,7 @@ class Trading(commands.Cog):
         )
 
         self.bot.trades[ctx.author.id]["items"][ctx.author.id].extend(
-            (mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"])
+            (self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"])
             for x in pokemon
             if all(
                 (
@@ -656,7 +656,7 @@ class Trading(commands.Cog):
         embed.add_field(name="Stats", value="\n".join(stats), inline=False)
 
         if pokemon.held_item:
-            item = models.GameData.item_by_number(pokemon.held_item)
+            item = self.bot.data.item_by_number(pokemon.held_item)
             gguild = self.bot.get_guild(725819081835544596)
             emote = ""
             if item.emote is not None:

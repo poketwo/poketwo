@@ -26,7 +26,7 @@ class Administration(commands.Cog):
         """Blacklist a user."""
 
         try:
-            await mongo.db.blacklist.insert_one({"_id": user.id})
+            await self.bot.mongo.db.blacklist.insert_one({"_id": user.id})
             await ctx.send(f"Blacklisted {user.mention}.")
         except DuplicateKeyError:
             await ctx.send("That user is already blacklisted!")
@@ -36,7 +36,7 @@ class Administration(commands.Cog):
     async def unblacklist(self, ctx: commands.Context, user: discord.User):
         """Unblacklist a user."""
 
-        result = await mongo.db.blacklist.delete_one({"_id": user.id})
+        result = await self.bot.mongo.db.blacklist.delete_one({"_id": user.id})
         if result.deleted_count == 0:
             await ctx.send("That user is not blacklisted!")
         else:
@@ -125,7 +125,7 @@ class Administration(commands.Cog):
             shiny = True
             species = species.lower().replace("shiny", "").strip()
 
-        species = models.GameData.species_by_name(species)
+        species = self.bot.data.species_by_name(species)
 
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")

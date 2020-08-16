@@ -99,8 +99,8 @@ class Trainer:
         for idx, x in enumerate(self.selected.moves):
             actions[constants.NUMBER_REACTIONS[idx + 1]] = {
                 "type": "move",
-                "value": models.GameData.move_by_number(x),
-                "text": f"Use {models.GameData.move_by_number(x).name}",
+                "value": self.bot.data.move_by_number(x),
+                "text": f"Use {self.bot.data.move_by_number(x).name}",
             }
 
         for idx, pokemon in enumerate(self.pokemon):
@@ -363,7 +363,7 @@ class Battling(commands.Cog):
         if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
-        member = await mongo.Member.find_one({"id": user.id})
+        member = await self.bot.mongo.Member.find_one({"id": user.id})
 
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
@@ -482,7 +482,7 @@ class Battling(commands.Cog):
             value="No Moves"
             if len(pokemon.moves) == 0
             else "\n".join(
-                models.GameData.move_by_number(x).name for x in pokemon.moves
+                self.bot.data.move_by_number(x).name for x in pokemon.moves
             ),
         )
 
@@ -493,7 +493,7 @@ class Battling(commands.Cog):
     async def learn(self, ctx: commands.Context, *, search: str):
         """Learn moves for your pokémon to use in battle."""
 
-        move = models.GameData.move_by_name(search)
+        move = self.bot.data.move_by_name(search)
 
         if move is None:
             return await ctx.send("Couldn't find that move!")
@@ -521,7 +521,7 @@ class Battling(commands.Cog):
             await ctx.send(
                 "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, or anything else to abort:\n"
                 + "\n".join(
-                    models.GameData.move_by_number(x).name for x in pokemon.moves
+                    self.bot.data.move_by_number(x).name for x in pokemon.moves
                 )
             )
 
@@ -533,7 +533,7 @@ class Battling(commands.Cog):
             except asyncio.TimeoutError:
                 return await ctx.send("Time's up. Aborted.")
 
-            rep_move = models.GameData.move_by_name(msg.content)
+            rep_move = self.bot.data.move_by_name(msg.content)
 
             if rep_move is None or rep_move.id not in pokemon.moves:
                 return await ctx.send("Aborted.")
@@ -557,9 +557,9 @@ class Battling(commands.Cog):
         search = search.strip()
 
         if len(search) > 0 and search[0] in "Nn#" and search[1:].isdigit():
-            species = models.GameData.species_by_number(int(search[1:]))
+            species = self.bot.data.species_by_number(int(search[1:]))
         else:
-            species = models.GameData.species_by_name(search)
+            species = self.bot.data.species_by_name(search)
 
             if species is None:
                 converter = converters.Pokemon(raise_errors=False)
@@ -603,7 +603,7 @@ class Battling(commands.Cog):
     async def moveinfo(self, ctx: commands.Context, *, search: str):
         """View information about a certain move."""
 
-        move = models.GameData.move_by_name(search)
+        move = self.bot.data.move_by_name(search)
 
         if move is None:
             return await ctx.send("Couldn't find a move with that name!")
