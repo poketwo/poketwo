@@ -714,11 +714,11 @@ class Pokemon(commands.Cog):
                         del pokedex[str(i)]
 
             def include(key):
-                if flags["legendary"] and key not in self.bot.data.list_legendary():
+                if flags["legendary"] and key not in self.bot.data.list_legendary:
                     return False
-                if flags["mythical"] and key not in self.bot.data.list_mythical():
+                if flags["mythical"] and key not in self.bot.data.list_mythical:
                     return False
-                if flags["ub"] and key not in self.bot.data.list_ub():
+                if flags["ub"] and key not in self.bot.data.list_ub:
                     return False
 
                 if flags["type"] and key not in self.bot.data.list_type(flags["type"]):

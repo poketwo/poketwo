@@ -176,9 +176,9 @@ class Bot(commands.Cog):
         )
 
         for name, filt in (
-            ("Mythical", self.bot.data.list_mythical()),
-            ("Legendary", self.bot.data.list_legendary()),
-            ("Ultra Beast", self.bot.data.list_ub()),
+            ("Mythical", self.bot.data.list_mythical),
+            ("Legendary", self.bot.data.list_legendary),
+            ("Ultra Beast", self.bot.data.list_ub),
         ):
             pokemon_caught.append(
                 f"**{name}: **"
