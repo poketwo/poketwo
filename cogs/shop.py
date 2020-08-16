@@ -340,7 +340,7 @@ class Shop(commands.Cog):
             for item in items:
                 emote = ""
                 if do_emojis and item.emote is not None:
-                    emote = getattr(self.bot.sprites, item.emote)
+                    emote = getattr(self.bot.sprites, item.emote) + " "
                 if item.description:
                     embed.add_field(
                         name=f"{emote}{item.name} – {item.cost} pc",

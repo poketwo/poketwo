@@ -659,7 +659,7 @@ class Trading(commands.Cog):
             item = self.bot.data.item_by_number(pokemon.held_item)
             emote = ""
             if item.emote is not None:
-                emote = getattr(self.bot.sprites, item.emote)
+                emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
         embed.set_footer(
