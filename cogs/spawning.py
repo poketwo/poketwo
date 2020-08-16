@@ -247,18 +247,6 @@ class Spawning(commands.Cog):
 
         guild = await self.db.fetch_guild(channel.guild)
 
-        async with aiohttp.ClientSession() as session:
-            url = f"https://server.poketwo.net/image?species={species.id}&time="
-            url += "day" if guild.is_day else "night"
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    arr = await self.bot.loop.run_in_executor(
-                        None, write_fp, await resp.read()
-                    )
-                else:
-                    logging.error("Couldn't fetch spawn image")
-                    return
-
         embed = discord.Embed()
         embed.color = 0xF44336
         embed.title = f"A wild pokémon has appeared!"
@@ -269,12 +257,30 @@ class Spawning(commands.Cog):
             f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
         )
 
-        embed.set_image(url="attachment://pokemon.png")
+        async with aiohttp.ClientSession() as session:
+            url = f"http://localhost:8080/image?species={species.id}&time="
+            url += "day" if guild.is_day else "night"
+            try:
+                async with session.get(url) as resp:
+                    if resp.status == 200:
+                        arr = await self.bot.loop.run_in_executor(
+                            None, write_fp, await resp.read()
+                        )
+                        image = discord.File(arr, filename="pokemon.jpg")
+                        embed.set_image(url="attachment://pokemon.jpg")
+                    else:
+                        raise
+            except:
+                logging.error("Couldn't fetch spawn image")
+                image = discord.File(
+                    f"data/images/{species.id}.png", filename="pokemon.png"
+                )
+                embed.set_image(url="attachment://pokemon.png")
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
         await channel.send(
-            file=discord.File(arr, filename="pokemon.png"), embed=embed,
+            file=image, embed=embed,
         )
 
     @checks.has_started()
