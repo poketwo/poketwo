@@ -1,8 +1,4 @@
-BOXES = {
-  "n": "normal",
-  "g": "great",
-  "u": "ultra"
-}
+BOXES = {"n": "normal", "g": "great", "u": "ultra"}
 
 NUMBER_REACTIONS = [
     "0️⃣",
@@ -280,12 +276,16 @@ class EmojiManager:
     async def init_emojis(self, bot):
         try:
             for x in range(809):
-                guild = bot.get_guild(EMOJI_SERVERS[0][x // 50])
+                guild = bot.get_guild(
+                    EMOJI_SERVERS[0][x // 50]
+                ) or await bot.fetch_guild(EMOJI_SERVERS[0][x // 50])
                 emoji = next(
                     i for i in guild.emojis if i.name == f"pokemon_sprite_{x + 1}"
                 )
 
                 guild = bot.get_guild(
+                    EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])]
+                ) or await bot.fetch_guild(
                     EMOJI_SERVERS[1][(x // 50) % len(EMOJI_SERVERS[1])]
                 )
                 try:

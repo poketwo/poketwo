@@ -657,7 +657,9 @@ class Trading(commands.Cog):
 
         if pokemon.held_item:
             item = self.bot.data.item_by_number(pokemon.held_item)
-            gguild = self.bot.get_guild(725819081835544596)
+            gguild = self.bot.get_guild(
+                725819081835544596
+            ) or await self.bot.fetch_guild(725819081835544596)
             emote = ""
             if item.emote is not None:
                 try:

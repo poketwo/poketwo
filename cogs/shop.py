@@ -347,7 +347,9 @@ class Shop(commands.Cog):
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
-            gguild = self.bot.get_guild(725819081835544596)
+            gguild = self.bot.get_guild(
+                725819081835544596
+            ) or await self.bot.fetch_guild(725819081835544596)
 
             for item in items:
                 emote = ""
