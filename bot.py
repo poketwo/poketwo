@@ -34,6 +34,24 @@ async def ipcsend(ctx: commands.Context, *, command: str):
         raise
 
 
+@commands.command()
+@commands.is_owner()
+async def ipceval(ctx: commands.Context, *, body: str):
+    ctx.bot.eval_wait = True
+    try:
+        await ctx.bot.websocket.send(json.dumps({"command": "eval", "content": body}))
+        msgs = []
+        while True:
+            try:
+                msg = await asyncio.wait_for(ctx.bot.responses.get(), timeout=3)
+                msgs.append(f'{msg["author"]}: {msg["response"]}')
+            except asyncio.TimeoutError:
+                break
+        await ctx.send(" ".join(f"```py\n{m}\n```" for m in msgs))
+    finally:
+        ctx.bot.eval_wait = False
+
+
 class ClusterBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         self.pipe = kwargs.pop("pipe")
@@ -47,7 +65,6 @@ class ClusterBot(commands.AutoShardedBot):
             self, kwargs.pop("database_uri"), kwargs.pop("database_name")
         )
 
-        self.data = helpers.data.make_data_manager()
         self.websocket = None
         self._last_result = None
         self.ws_task = None
@@ -80,13 +97,15 @@ class ClusterBot(commands.AutoShardedBot):
         self.loop.create_task(self.ensure_ipc())
 
         self.add_command(ipcsend)
+        self.add_command(ipceval)
         self.add_check(helpers.checks.enabled(self))
         self.run(kwargs["token"])
 
     async def do_startup_tasks(self):
         await self.wait_until_ready()
-        self.enabled = True
+        self.data = helpers.data.make_data_manager()
         self.sprites = helpers.emojis.EmojiManager(self)
+        self.enabled = True
         logging.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
@@ -174,6 +193,49 @@ class ClusterBot(commands.AutoShardedBot):
 
         await self.do_startup_tasks()
 
+    def cleanup_code(self, content):
+        """Automatically removes code blocks from the code."""
+        # remove ```py\n```
+        if content.startswith("```") and content.endswith("```"):
+            return "\n".join(content.split("\n")[1:-1])
+
+        # remove `foo`
+        return content.strip("` \n")
+
+    async def exec(self, code):
+        env = {"bot": self, "_": self._last_result}
+
+        env.update(globals())
+
+        body = self.cleanup_code(code)
+        stdout = io.StringIO()
+
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return f"{e.__class__.__name__}: {e}"
+
+        func = env["func"]
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            f"{value}{traceback.format_exc()}"
+        else:
+            value = stdout.getvalue()
+
+            if ret is None:
+                if value:
+                    return str(value)
+                else:
+                    return "None"
+            else:
+                self._last_result = ret
+                return f"{value}{ret}"
+
     async def websocket_loop(self):
         while True:
             try:
@@ -194,6 +256,11 @@ class ClusterBot(commands.AutoShardedBot):
             if cmd == "ping":
                 self.log.info("received command [ping]")
                 ret = {"response": "pong"}
+            elif cmd == "eval":
+                self.log.info(f"received command [eval] ({data['content']})")
+                content = data["content"]
+                data = await self.exec(content)
+                ret = {"response": str(data)}
             elif cmd == "reloadall":
                 self.log.info("received command [reloadall]")
                 try:
