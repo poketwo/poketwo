@@ -397,8 +397,12 @@ class Spawning(commands.Cog):
             )
 
         if member.shiny_hunt == species.dex_number:
-            message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
-            await self.db.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
+            if shiny:
+                message += f"\n\nShiny streak reset."
+                await self.db.update_member(ctx.author, {"$set": {"shiny_streak": 0}})
+            else:
+                message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
+                await self.db.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
 
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
