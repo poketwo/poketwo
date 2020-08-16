@@ -61,7 +61,7 @@ class Pokemon(EmbeddedDocument):
 
     @property
     def species(self):
-        return models.GameData.species_by_number(self.species_id)
+        return self.bot.data.species_by_number(self.species_id)
 
     @property
     def max_xp(self):
@@ -174,7 +174,7 @@ class Pokemon(EmbeddedDocument):
                 can = False
             if evo.trigger.move_type_id and not any(
                 [
-                    models.GameData.move_by_number(x).type_id
+                    self.bot.data.move_by_number(x).type_id
                     == evo.trigger.move_type_id
                     for x in self.moves
                 ]
@@ -309,16 +309,22 @@ class Blacklist(Document):
 
 
 class Database:
-    def __init__(self, loop, host, dbname):
+    def __init__(self, bot, host, dbname):
         database_uri = os.getenv("DATABASE_URI")
         database_name = os.getenv("DATABASE_NAME")
 
-        self.db = AsyncIOMotorClient(host, io_loop=loop)[dbname]
+        self.db = AsyncIOMotorClient(host, io_loop=bot.loop)[dbname]
         instance = Instance(self.db)
 
         self.Pokemon = instance.register(Pokemon)
+        self.Pokemon.bot = bot
         self.Member = instance.register(Member)
+        self.Member.bot = bot
         self.Listing = instance.register(Listing)
+        self.Listing.bot = bot
         self.Guild = instance.register(Guild)
+        self.Guild.bot = bot
         self.Counter = instance.register(Counter)
+        self.Counter.bot = bot
         self.Blacklist = instance.register(Blacklist)
+        self.Blacklist.bot = bot

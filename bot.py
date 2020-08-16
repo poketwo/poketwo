@@ -40,12 +40,12 @@ class ClusterBot(commands.AutoShardedBot):
         self.cluster_name = kwargs.pop("cluster_name")
         self.env = kwargs.pop("env")
         loop = asyncio.new_event_loop()
-        self.mongo = helpers.mongo.Database(
-            loop, kwargs.pop("database_uri"), kwargs.pop("database_name")
-        )
 
         asyncio.set_event_loop(loop)
         super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
+        self.mongo = helpers.mongo.Database(
+            self, kwargs.pop("database_uri"), kwargs.pop("database_name")
+        )
 
         self.data = helpers.data.make_data_manager()
         self.websocket = None

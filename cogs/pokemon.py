@@ -226,9 +226,7 @@ class Pokemon(commands.Cog):
                 )
 
         if "type" in flags and flags["type"]:
-            all_species = [
-                i for x in flags["type"] for i in self.bot.data.list_type(x)
-            ]
+            all_species = [i for x in flags["type"] for i in self.bot.data.list_type(x)]
 
             aggregations.append(
                 {"$match": {"pokemon.species_id": {"$in": all_species}}}
@@ -643,14 +641,9 @@ class Pokemon(commands.Cog):
             embed.title = f"Your pokémon"
             embed.description = "\n".join(page)[:2048]
 
-            if do_emojis:
-                embed.set_footer(
-                    text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
-                )
-            else:
-                embed.set_footer(
-                    text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. Please give me permission to Use External Emojis! It'll make this menu look a lot better."
-                )
+            embed.set_footer(
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}."
+            )
 
             return embed
 
@@ -728,9 +721,7 @@ class Pokemon(commands.Cog):
                 if flags["ub"] and key not in self.bot.data.list_ub():
                     return False
 
-                if flags["type"] and key not in self.bot.data.list_type(
-                    flags["type"]
-                ):
+                if flags["type"] and key not in self.bot.data.list_type(flags["type"]):
                     return False
 
                 return True
@@ -755,14 +746,9 @@ class Pokemon(commands.Cog):
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
-                if do_emojis:
-                    embed.set_footer(
-                        text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}."
-                    )
-                else:
-                    embed.set_footer(
-                        text=f"Showing {pgstart + 1}–{pgend} out of 809. Please give me permission to Use External Emojis! It'll make this menu look a lot better."
-                    )
+                embed.set_footer(
+                    text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}."
+                )
 
                 # embed.description = (
                 #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
