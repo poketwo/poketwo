@@ -42,6 +42,8 @@ class Bot(commands.Cog):
         ):
             raise Blacklisted
 
+        return True
+
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
