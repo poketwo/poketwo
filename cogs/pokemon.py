@@ -219,7 +219,7 @@ class Pokemon(commands.Cog):
                     {
                         "$match": {
                             "pokemon.species_id": {
-                                "$in": getattr(self.bot.data, f"list_{x}")()
+                                "$in": getattr(self.bot.data, f"list_{x}")
                             }
                         }
                     }
