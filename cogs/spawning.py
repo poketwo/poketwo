@@ -1,7 +1,9 @@
 import io
 import logging
 import random
+import sys
 import time
+import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -258,7 +260,7 @@ class Spawning(commands.Cog):
         )
 
         async with aiohttp.ClientSession() as session:
-            url = f"http://localhost:8080/image?species={species.id}&time="
+            url = f"https://server.poketwo.net/image?species={species.id}&time="
             url += "day" if guild.is_day else "night"
             try:
                 async with session.get(url) as resp:
@@ -269,9 +271,12 @@ class Spawning(commands.Cog):
                         image = discord.File(arr, filename="pokemon.jpg")
                         embed.set_image(url="attachment://pokemon.jpg")
                     else:
-                        raise
-            except:
+                        raise Exception("Server error")
+            except Exception as error:
                 logging.error("Couldn't fetch spawn image")
+                traceback.print_exception(
+                    type(error), error, error.__traceback__, file=sys.stderr
+                )
                 image = discord.File(
                     f"data/images/{species.id}.png", filename="pokemon.png"
                 )
