@@ -24,32 +24,24 @@ async def determine_prefix(bot, message):
 
 @commands.is_owner()
 @commands.command()
-async def ipcsend(ctx: commands.Context, *, command: str):
-    ret = {"command": command}
-    try:
-        await ctx.bot.websocket.send(json.dumps(ret))
-    except websockets.ConnectionClosed as exc:
-        if exc.code == 1000:
-            return
-        raise
-
-
-@commands.command()
-@commands.is_owner()
-async def ipceval(ctx: commands.Context, *, body: str):
-    ctx.bot.eval_wait = True
-    try:
-        await ctx.bot.websocket.send(json.dumps({"command": "eval", "content": body}))
-        msgs = []
-        while True:
-            try:
-                msg = await asyncio.wait_for(ctx.bot.responses.get(), timeout=3)
-                msgs.append(f'{msg["author"]}: {msg["response"]}')
-            except asyncio.TimeoutError:
-                break
-        await ctx.send(" ".join(f"```py\n{m}\n```" for m in msgs))
-    finally:
-        ctx.bot.eval_wait = False
+async def ipcsend(ctx: commands.Context, command: str, *, content: str = None):
+    async with ctx.typing():
+        ctx.bot.waiting = True
+        ret = {"command": command}
+        if content is not None:
+            ret["content"] = content
+        try:
+            await ctx.bot.websocket.send(json.dumps(ret))
+            msgs = []
+            while True:
+                try:
+                    msg = await asyncio.wait_for(ctx.bot.responses.get(), timeout=3)
+                    msgs.append(f'{msg["author"]}: {msg["response"]}')
+                except asyncio.TimeoutError:
+                    break
+            await ctx.send("".join(f"```py\n{m}\n```" for m in msgs))
+        finally:
+            ctx.bot.waiting = False
 
 
 class ClusterBot(commands.AutoShardedBot):
@@ -69,7 +61,7 @@ class ClusterBot(commands.AutoShardedBot):
         self._last_result = None
         self.ws_task = None
         self.responses = asyncio.Queue()
-        self.eval_wait = False
+        self.waiting = False
         self.enabled = False
         self.sprites = None
 
@@ -93,12 +85,14 @@ class ClusterBot(commands.AutoShardedBot):
             if not i.startswith("_"):
                 self.load_extension(f"cogs.{i}")
 
+        self.add_command(ipcsend)
+        self.add_check(helpers.checks.enabled(self))
+
+        # Run bot
+
         self.loop.create_task(self.do_startup_tasks())
         self.loop.create_task(self.ensure_ipc())
 
-        self.add_command(ipcsend)
-        self.add_command(ipceval)
-        self.add_check(helpers.checks.enabled(self))
         self.run(kwargs["token"])
 
     async def do_startup_tasks(self):
@@ -246,7 +240,7 @@ class ClusterBot(commands.AutoShardedBot):
                 raise
 
             data = json.loads(msg)
-            if self.eval_wait and data.get("response"):
+            if self.waiting and data.get("response"):
                 await self.responses.put(data)
 
             cmd = data.get("command")

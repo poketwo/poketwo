@@ -16,7 +16,6 @@ async def dispatch(data):
 
 async def serve(ws, path):
     cluster_name = await ws.recv()
-    cluster_name = cluster_name
     if cluster_name in CLIENTS:
         print(f"! Cluster[{cluster_name}] attempted reconnection")
         await ws.close(4029, "already connected")
