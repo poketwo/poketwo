@@ -325,12 +325,9 @@ class Market(commands.Cog):
         embed.color = 0xF44336
         embed.title = f"Level {pokemon.level} {pokemon.species}"
 
-        extrafooter = ""
-
         if pokemon.shiny:
             embed.title += " ✨"
             embed.set_image(url=pokemon.species.shiny_image_url)
-            extrafooter = " Note that we don't have artwork for all shiny pokémon yet! We're working hard to make all the shiny pokémon look shiny."
         else:
             embed.set_image(url=pokemon.species.image_url)
 
@@ -362,7 +359,7 @@ class Market(commands.Cog):
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-        embed.set_footer(text=f"Displaying listing {id} from market." + extrafooter)
+        embed.set_footer(text=f"Displaying listing {id} from market.")
 
         await ctx.send(embed=embed)
 
