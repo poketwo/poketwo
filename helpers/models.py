@@ -369,11 +369,11 @@ class Species:
 
     @cached_property
     def image_url(self):
-        return f"https://assets.poketwo.net/images/{self.id}.png?v=900"
+        return f"https://assets.poketwo.net/images/{self.id}.png?v=1000"
 
     @cached_property
     def shiny_image_url(self):
-        return f"https://assets.poketwo.net/shiny/{self.id}.png?v=900"
+        return f"https://assets.poketwo.net/shiny/{self.id}.png?v=1000"
 
     @cached_property
     def correct_guesses(self):
