@@ -16,7 +16,6 @@ humanfriendly = "*"
 motor = "*"
 umongo = "==3.0.0b7"
 flask = "*"
-dblpy = "*"
 jishaku = "*"
 "discord.py" = "==1.4.1"
 pokedex = {git = "https://github.com/veekun/pokedex.git"}

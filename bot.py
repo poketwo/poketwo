@@ -10,7 +10,6 @@ from contextlib import redirect_stdout
 from importlib import reload
 
 import discord
-import websockets
 from discord.ext import commands, flags
 
 import cogs
@@ -22,33 +21,12 @@ async def determine_prefix(bot, message):
     return await cog.determine_prefix(message.guild)
 
 
-@commands.is_owner()
-@commands.command()
-async def ipcsend(ctx: commands.Context, command: str, *, content: str = None):
-    async with ctx.typing():
-        ctx.bot.waiting = True
-        ret = {"command": command}
-        if content is not None:
-            ret["content"] = content
-        try:
-            await ctx.bot.websocket.send(json.dumps(ret))
-            msgs = []
-            while True:
-                try:
-                    msg = await asyncio.wait_for(ctx.bot.responses.get(), timeout=3)
-                    msgs.append(f'{msg["author"]}: {msg["response"]}')
-                except asyncio.TimeoutError:
-                    break
-            await ctx.send("".join(f"```py\n{m}\n```" for m in msgs))
-        finally:
-            ctx.bot.waiting = False
-
-
 class ClusterBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
         self.env = kwargs.pop("env")
+        self.dbl_token = kwargs.pop("dbl_token")
         loop = asyncio.new_event_loop()
 
         asyncio.set_event_loop(loop)
@@ -57,10 +35,7 @@ class ClusterBot(commands.AutoShardedBot):
             self, kwargs.pop("database_uri"), kwargs.pop("database_name")
         )
 
-        self.websocket = None
         self._last_result = None
-        self.ws_task = None
-        self.responses = asyncio.Queue()
         self.waiting = False
         self.enabled = False
         self.sprites = None
@@ -85,13 +60,12 @@ class ClusterBot(commands.AutoShardedBot):
             if not i.startswith("_"):
                 self.load_extension(f"cogs.{i}")
 
-        self.add_command(ipcsend)
         self.add_check(helpers.checks.enabled(self))
 
         # Run bot
 
         self.loop.create_task(self.do_startup_tasks())
-        self.loop.create_task(self.ensure_ipc())
+        self.loop.create_task(self.pipe_loop())
 
         self.run(kwargs["token"])
 
@@ -104,8 +78,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
-        self.pipe.send(1)
-        self.pipe.close()
+        self.pipe.send("ready")
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")
@@ -168,7 +141,6 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def close(self, *args, **kwargs):
         self.log.info("shutting down")
-        await self.websocket.close()
         await super().close()
 
     async def reload_modules(self):
@@ -230,61 +202,38 @@ class ClusterBot(commands.AutoShardedBot):
                 self._last_result = ret
                 return f"{value}{ret}"
 
-    async def websocket_loop(self):
+    async def pipe_loop(self):
         while True:
+            msg = await self.loop.run_in_executor(None, self.pipe.recv)
+
             try:
-                msg = await self.websocket.recv()
-            except websockets.ConnectionClosed as exc:
-                if exc.code == 1000:
-                    return
-                raise
-
-            data = json.loads(msg)
-            if self.waiting and data.get("response"):
-                await self.responses.put(data)
-
-            cmd = data.get("command")
-            if not cmd:
-                continue
+                data = json.loads(msg)
+                cmd = data.get("command")
+            except json.decoder.JSONDecodeError:
+                cmd = msg
 
             if cmd == "ping":
                 self.log.info("received command [ping]")
-                ret = {"response": "pong"}
+                ret = "pong"
+
             elif cmd == "eval":
                 self.log.info(f"received command [eval] ({data['content']})")
                 content = data["content"]
                 data = await self.exec(content)
-                ret = {"response": str(data)}
+                ret = str(data)
+
             elif cmd == "reloadall":
                 self.log.info("received command [reloadall]")
                 try:
                     await self.reload_modules()
-                    ret = {"response": "reloaded all"}
+                    ret = "reloaded"
                 except Exception as error:
-                    ret = {"response": "error reloading"}
+                    ret = "error reloading"
                     traceback.print_exception(
                         type(error), error, error.__traceback__, file=sys.stderr
                     )
             else:
-                ret = {"response": "unknown command"}
+                ret = "unknown"
 
-            ret["author"] = self.cluster_name
             self.log.info(f"responding: {ret}")
-            try:
-                await self.websocket.send(json.dumps(ret))
-            except websockets.ConnectionClosed as exc:
-                if exc.code == 1000:
-                    return
-                raise
-
-    async def ensure_ipc(self):
-        self.websocket = w = await websockets.connect("ws://localhost:42069")
-        await w.send(self.cluster_name)
-        try:
-            await w.recv()
-            self.ws_task = self.loop.create_task(self.websocket_loop())
-            self.log.info("ws connection succeeded")
-        except websockets.ConnectionClosed as exc:
-            self.log.warning(f"! couldnt connect to ws: {exc.code} {exc.reason}")
-            self.websocket = None
-            raise
+            self.pipe.send(ret)

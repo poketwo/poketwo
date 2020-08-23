@@ -4,9 +4,9 @@ import sys
 import traceback
 from datetime import datetime
 
-import dbl
+import aiohttp
 import discord
-from discord.ext import commands, flags
+from discord.ext import commands, flags, tasks
 
 from helpers import checks, constants, converters, models, mongo
 
@@ -30,10 +30,8 @@ class Bot(commands.Cog):
         if not hasattr(self.bot, "prefixes"):
             self.bot.prefixes = {}
 
-        if not hasattr(self.bot, "dblpy"):
-            self.bot.dblpy = dbl.DBLClient(
-                self.bot, os.getenv("DBL_TOKEN"), autopost=True
-            )
+        self.post_count.start()
+        self.post_dbl.start()
 
     async def bot_check(self, ctx):
         if (
@@ -82,29 +80,82 @@ class Bot(commands.Cog):
             "Join Server: https://discord.gg/QyEWy4C"
         )
 
-    # @commands.command()
-    # async def stats(self, ctx: commands.Context):
-    #     """View interesting statistics about the bot."""
+    async def get_stats(self):
+        result = await self.bot.mongo.db.stats.aggregate(
+            [
+                {
+                    "$group": {
+                        "_id": None,
+                        "servers": {"$sum": "$servers"},
+                        "shards": {"$sum": "$shards"},
+                        "users": {"$sum": "$users"},
+                        "latency": {"$sum": "$latency"},
+                    }
+                }
+            ]
+        ).to_list(None)
+        result = result[0]
 
-    #     embed = discord.Embed()
-    #     embed.color = 0xF44336
-    #     embed.title = f"Pokétwo Statistics"
-    #     embed.set_thumbnail(url=self.bot.user.avatar_url)
+        return result
 
-    #     embed.add_field(name="Servers", value=len(self.bot.guilds), inline=False)
-    #     embed.add_field(name="Users", value=len(self.bot.users))
-    #     embed.add_field(
-    #         name="Trainers",
-    #         value=await self.bot.mongo.db.member.count_documents({}),
-    #         inline=False,
-    #     )
-    #     embed.add_field(
-    #         name="Latency",
-    #         value=f"{int(self.bot.latencies[0][1] * 1000)} ms",
-    #         inline=False,
-    #     )
+    @tasks.loop(minutes=5)
+    async def post_dbl(self):
+        await self.bot.wait_until_ready()
 
-    #     await ctx.send(embed=embed)
+        if self.bot.cluster_name != "Arbok":
+            return
+
+        result = await self.get_stats()
+
+        headers = {"Authorization": self.bot.dbl_token}
+        data = {"server_count": result["servers"], "shard_count": result["shards"]}
+        async with aiohttp.ClientSession(headers=headers) as sess:
+            r = await sess.post(
+                f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data
+            )
+
+    @tasks.loop(minutes=1)
+    async def post_count(self):
+        await self.bot.wait_until_ready()
+        await self.bot.mongo.db.stats.update_one(
+            {"_id": self.bot.cluster_name},
+            {
+                "$set": {
+                    "servers": len(self.bot.guilds),
+                    "shards": len(self.bot.shards),
+                    "users": sum(x.member_count for x in self.bot.guilds),
+                    "latency": sum(x[1] for x in self.bot.latencies),
+                }
+            },
+            upsert=True,
+        )
+
+    @commands.command()
+    async def stats(self, ctx: commands.Context):
+        """View interesting statistics about the bot."""
+
+        result = await self.get_stats()
+
+        embed = discord.Embed()
+        embed.color = 0xF44336
+        embed.title = f"Pokétwo Statistics"
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+
+        embed.add_field(name="Servers", value=result["servers"], inline=False)
+        embed.add_field(name="Shards", value=result["shards"], inline=False)
+        embed.add_field(name="Users", value=result["users"], inline=False)
+        embed.add_field(
+            name="Trainers",
+            value=await self.bot.mongo.db.member.estimated_document_count(),
+            inline=False,
+        )
+        embed.add_field(
+            name="Average Latency",
+            value=f"{int(result['latency'] * 1000 / result['shards'])} ms",
+            inline=False,
+        )
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def ping(self, ctx: commands.Context):
