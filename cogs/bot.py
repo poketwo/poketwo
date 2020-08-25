@@ -1,14 +1,10 @@
-import logging
-import os
-import sys
-import traceback
 from datetime import datetime
 
 import aiohttp
 import discord
-from discord.ext import commands, flags, tasks
+from discord.ext import commands, tasks
 
-from helpers import checks, constants, converters, models, mongo
+from helpers import checks, constants
 
 from .database import Database
 

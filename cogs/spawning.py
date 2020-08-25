@@ -5,12 +5,10 @@ import sys
 import time
 import traceback
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import aiohttp
 import discord
 from discord.ext import commands
-from PIL import Image
 
 from helpers import checks, models, mongo
 

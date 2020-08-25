@@ -7,7 +7,7 @@ from enum import Enum
 import discord
 from discord.ext import commands
 
-from helpers import checks, constants, converters, models, mongo, pagination
+from helpers import checks, constants, converters, pagination
 
 from .database import Database
 

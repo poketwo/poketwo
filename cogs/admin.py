@@ -5,7 +5,7 @@ from pymongo.errors import DuplicateKeyError
 import discord
 from discord.ext import commands
 
-from helpers import models, mongo
+from helpers import mongo
 
 from .database import Database
 

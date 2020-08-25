@@ -1,7 +1,5 @@
 from discord.ext import commands
 
-from . import mongo
-
 
 class MustHaveStarted(commands.CheckFailure):
     pass
