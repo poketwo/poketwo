@@ -5,7 +5,7 @@ from operator import itemgetter
 import discord
 from discord.ext import commands, flags
 
-from helpers import checks, constants, converters, models, mongo, pagination
+from helpers import checks, constants, converters, pagination
 
 from .database import Database
 

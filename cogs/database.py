@@ -2,8 +2,6 @@
 import discord
 from discord.ext import commands
 
-from helpers import mongo
-
 
 class Database(commands.Cog):
     """For database operations."""
