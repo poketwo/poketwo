@@ -29,6 +29,7 @@ class Paginator:
 
             await message.add_reaction("⏮️")
             await message.add_reaction("◀")
+            await message.add_reaction("⏹")
             await message.add_reaction("▶")
             await message.add_reaction("⏭️")
 
@@ -44,7 +45,9 @@ class Paginator:
                         await reaction.remove(user)
                     except:
                         pass
-
+                    if reaction.emoji == "⏹":
+                        await message.delete()
+                        del paginators[ctx.author.id]
                     pidx = {
                         "⏮️": 0,
                         "◀": pidx - 1,
