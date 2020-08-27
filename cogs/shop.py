@@ -55,8 +55,8 @@ class Shop(commands.Cog):
                 value=f"Current Streak: {member.vote_streak} votes!",
                 inline=False,
             )
-        later = member.last_voted + timedelta(hours=12)
-        if later < datetime.utcnow():
+
+        if (later := member.last_voted + timedelta(hours=12)) < datetime.utcnow():
             embed.add_field(name="Vote Timer", value="You can vote right now!")
         else:
             timespan = later - datetime.utcnow()
