@@ -1,4 +1,3 @@
-
 import discord
 from discord.ext import commands
 
@@ -14,9 +13,7 @@ class Database(commands.Cog):
             {"id": member.id}, {"pokemon": 0, "pokedex": 0}
         )
 
-    async def fetch_pokedex(
-        self, member: discord.Member, start: int, end: int
-    ):
+    async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
 
         filter_obj = {}
 
@@ -25,9 +22,7 @@ class Database(commands.Cog):
 
         return await self.bot.mongo.Member.find_one({"id": member.id}, filter_obj)
 
-    async def fetch_market_list(
-        self, skip: int, limit: int, aggregations=[]
-    ):
+    async def fetch_market_list(self, skip: int, limit: int, aggregations=[]):
         return await self.bot.mongo.db.listing.aggregate(
             [*aggregations, {"$skip": skip}, {"$limit": limit}], allowDiskUse=True
         ).to_list(None)
@@ -58,9 +53,7 @@ class Database(commands.Cog):
             allowDiskUse=True,
         ).to_list(None)
 
-    async def fetch_pokemon_count(
-        self, member: discord.Member, aggregations=[]
-    ):
+    async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
 
         result = await self.bot.mongo.db.member.aggregate(
             [
@@ -77,9 +70,7 @@ class Database(commands.Cog):
 
         return result[0]["num_matches"]
 
-    async def fetch_pokedex_count(
-        self, member: discord.Member, aggregations=[]
-    ):
+    async def fetch_pokedex_count(self, member: discord.Member, aggregations=[]):
 
         result = await self.bot.mongo.db.member.aggregate(
             [
@@ -98,9 +89,7 @@ class Database(commands.Cog):
 
         return result[0]["result"]
 
-    async def fetch_pokedex_sum(
-        self, member: discord.Member, aggregations=[]
-    ):
+    async def fetch_pokedex_sum(self, member: discord.Member, aggregations=[]):
 
         result = await self.bot.mongo.db.member.aggregate(
             [
@@ -147,9 +136,10 @@ class Database(commands.Cog):
         return guild
 
     async def update_guild(self, guild: discord.Guild, update):
-        return await self.bot.mongo.db.guild.update_one({"_id": guild.id}, update, upsert=True)
+        return await self.bot.mongo.db.guild.update_one(
+            {"_id": guild.id}, update, upsert=True
+        )
 
 
 def setup(bot: commands.Bot):
     bot.add_cog(Database(bot))
-

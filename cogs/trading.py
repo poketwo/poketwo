@@ -136,8 +136,9 @@ class Trading(commands.Cog):
                             dec += 1
 
                         if (
-                            evo := pokemon.species.trade_evolution
+                            pokemon.species.trade_evolution
                         ) and pokemon.held_item != 13001:
+                            evo = pokemon.species.trade_evolution
                             if (
                                 evo.trigger.item is None
                                 or evo.trigger.item.id == pokemon.held_item
@@ -493,7 +494,6 @@ class Trading(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
-
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -503,11 +503,9 @@ class Trading(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
-
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-
     # Trade add all
     @checks.has_started()
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)

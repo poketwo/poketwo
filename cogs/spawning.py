@@ -127,7 +127,8 @@ class Spawning(commands.Cog):
 
                     pokemon.level += 1
                     guild = await self.db.fetch_guild(message.channel.guild)
-                    if (evo := pokemon.get_next_evolution(guild.is_day)) is not None:
+                    if pokemon.get_next_evolution(guild.is_day) is not None:
+                        evo = pokemon.get_next_evolution(guild.is_day)
                         embed.add_field(
                             name=f"Your {name} is evolving!",
                             value=f"Your {name} has turned into a {evo}!",

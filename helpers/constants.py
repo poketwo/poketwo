@@ -135,7 +135,6 @@ NATURES = [
     "Timid",
 ]
 
-
 STARTER_GENERATION = {
     "Generation I (Kanto)": ("Bulbasaur", "Charmander", "Squirtle"),
     "Generation II (Johto)": ("Chikorita", "Cyndaquil", "Totodile"),
@@ -222,4 +221,3 @@ NATURE_MULTIPLIERS = {
     "Careful": {"hp": 1, "atk": 1, "defn": 1, "satk": 0.9, "sdef": 1.1, "spd": 1,},
     "Quirky": {"hp": 1, "atk": 1, "defn": 1, "satk": 1, "sdef": 1, "spd": 1,},
 }
-

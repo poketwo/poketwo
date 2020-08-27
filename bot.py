@@ -25,6 +25,8 @@ class ClusterBot(commands.AutoShardedBot):
         self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
         self.env = kwargs.pop("env")
+        self.embed_color = 0xF44336
+        self.battles = None
         self.dbl_token = kwargs.pop("dbl_token")
         loop = asyncio.new_event_loop()
 
