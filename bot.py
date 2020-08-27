@@ -70,6 +70,11 @@ class ClusterBot(commands.AutoShardedBot):
 
         self.run(kwargs["token"])
 
+    class Embed(discord.Embed):
+        def __init__(self, **kwargs):
+            color = kwargs.pop("color", 0xF44336)
+            super().__init__(**kwargs, color=color)
+
     async def do_startup_tasks(self):
         await self.wait_until_ready()
         self.data = helpers.data.make_data_manager()
