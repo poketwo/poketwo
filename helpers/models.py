@@ -269,8 +269,7 @@ class Evolution:
 
     @cached_property
     def text(self):
-        if getattr(self.target, f"evolution_{self.dir}") is not None:
-            pevo = getattr(self.target, f"evolution_{self.dir}")
+        if (pevo := getattr(self.target, f"evolution_{self.dir}")) is not None:
             return f"evolves {self.dir} {self.target} {self.trigger.text}, which {pevo.text}"
 
         return f"evolves {self.dir} {self.target} {self.trigger.text}"

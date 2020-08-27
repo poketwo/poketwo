@@ -56,8 +56,7 @@ class Shop(commands.Cog):
                 value=f"Current Streak: {member.vote_streak} votes!",
                 inline=False,
             )
-        later = member.last_voted + timedelta(hours=12)
-        if later < datetime.utcnow():
+        if (later := member.last_voted + timedelta(hours=12)) < datetime.utcnow():
             embed.add_field(name="Vote Timer", value="You can vote right now!")
         else:
             timespan = later - datetime.utcnow()
@@ -557,8 +556,7 @@ class Shop(commands.Cog):
 
             pokemon.level += qty
             guild = await self.db.fetch_guild(ctx.guild)
-            if pokemon.get_next_evolution(guild.is_day) is not None:
-                evo = pokemon.get_next_evolution(guild.is_day)
+            if (evo := pokemon.get_next_evolution(guild.is_day)) is not None:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",

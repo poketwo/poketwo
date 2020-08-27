@@ -621,10 +621,7 @@ class Battling(commands.Cog):
             ("Priority", "priority"),
             ("Type", "type"),
         ):
-            if getattr(move, x) is not None:
-                v = getattr(
-                    move, x
-                )  # yeah, i had to remove walrus op cuz its just too bad lol
+            if (v := getattr(move, x)) is not None:
                 embed.add_field(name=name, value=v)
             else:
                 embed.add_field(name=name, value="—")

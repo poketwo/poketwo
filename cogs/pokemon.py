@@ -286,8 +286,7 @@ class Pokemon(commands.Cog):
                     )
 
         if order_by is not None:
-            s = order_by[-1]
-            if order_by[-1] in "+-":
+            if (s := order_by[-1]) in "+-":
                 order_by, asc = order_by[:-1], 1 if s == "+" else -1
             else:
                 asc = -1 if order_by in ("iv", "level") else 1
