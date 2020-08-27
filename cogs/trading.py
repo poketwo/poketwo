@@ -1,6 +1,6 @@
 import asyncio
 import math
-
+from bot import ClusterBot
 import discord
 from discord.ext import commands, flags
 
@@ -12,7 +12,7 @@ from .database import Database
 class Trading(commands.Cog):
     """For trading."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
         if not hasattr(self.bot, "trades"):
@@ -43,8 +43,7 @@ class Trading(commands.Cog):
             execmsg = await ctx.send("Executing trade...")
 
         async def get_page(pidx, clear):
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Trade between {a.display_name} and {b.display_name}."
 
             if done:
@@ -143,8 +142,7 @@ class Trading(commands.Cog):
                                 evo.trigger.item is None
                                 or evo.trigger.item.id == pokemon.held_item
                             ):
-                                evo_embed = discord.Embed()
-                                evo_embed.color = 0xF44336
+                                evo_embed = self.bot.Embed()
                                 evo_embed.title = (
                                     f"Congratulations {omem.display_name}!"
                                 )
@@ -616,8 +614,7 @@ class Trading(commands.Cog):
         except StopIteration:
             return await ctx.send("Couldn't find that pokémon in the trade!")
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Level {pokemon.level} {pokemon.species}"
 
         if pokemon.nickname is not None:
@@ -662,5 +659,5 @@ class Trading(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Trading(bot))

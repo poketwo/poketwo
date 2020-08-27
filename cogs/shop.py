@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import discord
 import humanfriendly
 from discord.ext import commands
-
+from bot import ClusterBot
 from helpers import checks, constants, converters, models, mongo
 
 from .database import Database
@@ -13,7 +13,7 @@ from .database import Database
 class Shop(commands.Cog):
     """Shop-related commands."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
     @property
@@ -37,8 +37,7 @@ class Shop(commands.Cog):
 
         do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Voting Rewards"
 
         embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
@@ -135,8 +134,7 @@ class Shop(commands.Cog):
             "$push": {"pokemon": {"$each": []}},
         }
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         if do_emojis:
             embed.title = (
                 f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
@@ -313,8 +311,7 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Pokétwo Shop — {member.balance:,} Pokécoins"
 
         if page == 0:
@@ -503,8 +500,7 @@ class Shop(commands.Cog):
         )
 
         if "evolve" in item.action:
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Congratulations {ctx.author.display_name}!"
 
             name = str(pokemon.species)
@@ -544,8 +540,7 @@ class Shop(commands.Cog):
 
             # TODO this code is repeated too many times.
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Congratulations {ctx.author.display_name}!"
 
             name = str(pokemon.species)
@@ -627,8 +622,7 @@ class Shop(commands.Cog):
                     and form.form_item is not None
                     and form.form_item == item.id
                 ):
-                    embed = discord.Embed()
-                    embed.color = 0xF44336
+                    embed = self.bot.Embed()
                     embed.title = f"Congratulations {ctx.author.display_name}!"
 
                     name = str(pokemon.species)
@@ -658,8 +652,7 @@ class Shop(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Your Redeems: {member.redeems}"
             embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by supporting the bot on Patreon or through voting rewards."
 
@@ -721,8 +714,7 @@ class Shop(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Your Redeems: {member.redeems}"
             embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
 
@@ -766,5 +758,5 @@ class Shop(commands.Cog):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Shop(bot))

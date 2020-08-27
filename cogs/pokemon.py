@@ -1,7 +1,7 @@
 import asyncio
 import math
 from operator import itemgetter
-
+from bot import ClusterBot
 import discord
 from discord.ext import commands, flags
 
@@ -13,7 +13,7 @@ from .database import Database
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
     @property
@@ -90,8 +90,7 @@ class Pokemon(commands.Cog):
             if pokemon is None:
                 return await clear("Couldn't find that pokémon!")
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Level {pokemon.level} {pokemon.species}"
 
             if pokemon.nickname is not None:
@@ -363,8 +362,7 @@ class Pokemon(commands.Cog):
                 f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {idx + 1}? This action is irreversible! [y/N]"
             )
         else:
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = (
                 f"Are you sure you want to release the following pokémon? [y/N]"
             )
@@ -618,8 +616,7 @@ class Pokemon(commands.Cog):
 
             # Send embed
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Your pokémon"
             embed.description = "\n".join(page)[:2048]
 
@@ -717,8 +714,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = discord.Embed()
-                embed.color = 0xF44336
+                embed = self.bot.Embed()
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
@@ -786,8 +782,7 @@ class Pokemon(commands.Cog):
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"#{species.dex_number} — {species}"
 
             if species.description:
@@ -846,8 +841,7 @@ class Pokemon(commands.Cog):
         if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
             return await ctx.send("That pokémon can't be evolved!")
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
         name = str(pokemon.species)
@@ -916,5 +910,5 @@ class Pokemon(commands.Cog):
         await paginator.send(self.bot, ctx, pidx)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Pokemon(bot))

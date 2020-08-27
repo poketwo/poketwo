@@ -3,7 +3,7 @@ import typing
 import discord
 import geocoder
 from discord.ext import commands
-
+from bot import ClusterBot
 from .database import Database
 from helpers import checks
 
@@ -15,7 +15,7 @@ def geocode(location):
 class Configuration(commands.Cog):
     """Configuration commands to change bot behavior."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
     @property
@@ -131,8 +131,7 @@ class Configuration(commands.Cog):
     async def time(self, ctx: commands.Context):
         guild = await self.db.fetch_guild(ctx.guild)
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
 
         embed.description = (
@@ -147,5 +146,5 @@ class Configuration(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Configuration(bot))

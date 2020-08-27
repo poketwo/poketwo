@@ -3,7 +3,7 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, tasks
-
+from bot import ClusterBot
 from helpers import checks, constants
 
 from .database import Database
@@ -20,7 +20,7 @@ class CommandOnCooldown(commands.CommandOnCooldown):
 class Bot(commands.Cog):
     """For basic bot operation."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
         if not hasattr(self.bot, "prefixes"):
@@ -132,8 +132,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
 
@@ -165,8 +164,7 @@ class Bot(commands.Cog):
     async def start(self, ctx: commands.Context):
         """View the starter pokémon."""
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. "
 
@@ -210,8 +208,7 @@ class Bot(commands.Cog):
     async def profile(self, ctx: commands.Context):
         """View your profile."""
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"{ctx.author}"
 
         member = await self.db.fetch_member_info(ctx.author)
@@ -256,5 +253,5 @@ class Bot(commands.Cog):
         await ctx.send("Trying to heal schema...")
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Bot(bot))
