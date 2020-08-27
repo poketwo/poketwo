@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import multiprocessing
-import signal
 import os
+import signal
 import sys
 import time
 

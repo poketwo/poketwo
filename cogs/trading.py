@@ -1,6 +1,5 @@
 import asyncio
 import math
-from bot import ClusterBot
 import discord
 from discord.ext import commands, flags
 
@@ -12,7 +11,7 @@ from .database import Database
 class Trading(commands.Cog):
     """For trading."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
         if not hasattr(self.bot, "trades"):
@@ -659,5 +658,5 @@ class Trading(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Trading(bot))

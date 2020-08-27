@@ -1,7 +1,6 @@
 import asyncio
 
 from discord.ext import commands
-from bot import ClusterBot
 
 paginators = {}
 
@@ -11,56 +10,89 @@ class Paginator:
         self.num_pages = num_pages
         self.get_page = get_page
         self.last_page = None
+        self.message = None
+        self.author = None
 
-    async def send(self, bot: ClusterBot, ctx: commands.Context, pidx: int):
+    async def delete(self):
+        try:
+            await self.message.delete()
+        except:
+            pass
+
+    async def end(self):
+        try:
+            del paginators[self.author.id]
+        except:
+            pass
+
+    async def send(self, bot, ctx: commands.Context, pidx: int):
         async def clear(msg):
             return await ctx.send(msg)
 
-        paginators[ctx.author.id] = self
+        self.author = ctx.author
+
+        paginators[self.author.id] = self
 
         embed = await self.get_page(pidx, clear)
 
-        message = await ctx.send(embed=embed)
-
-        self.last_msg = message
+        self.message = await ctx.send(embed=embed)
         self.last_page = pidx
 
         if self.num_pages > 1:
 
-            await message.add_reaction("⏮️")
-            await message.add_reaction("◀")
-            await message.add_reaction("⏹")
-            await message.add_reaction("▶")
-            await message.add_reaction("⏭️")
+            await self.message.add_reaction("⏮️")
+            await self.message.add_reaction("◀")
+            await self.message.add_reaction("▶")
+            await self.message.add_reaction("⏭️")
+            await self.message.add_reaction("🔢")
+            await self.message.add_reaction("⏹")
 
             try:
                 while True:
                     reaction, user = await bot.wait_for(
                         "reaction_add",
-                        check=lambda r, u: r.message.id == message.id
-                        and u.id == ctx.author.id,
+                        check=lambda r, u: r.message.id == self.message.id
+                        and u.id == self.author.id,
                         timeout=120,
                     )
                     try:
                         await reaction.remove(user)
                     except:
                         pass
+
                     if reaction.emoji == "⏹":
-                        await message.delete()
-                        del paginators[ctx.author.id]
-                    pidx = {
-                        "⏮️": 0,
-                        "◀": pidx - 1,
-                        "▶": pidx + 1,
-                        "⏭️": self.num_pages - 1,
-                    }[reaction.emoji] % self.num_pages
+                        await self.delete()
+                        await self.end()
+                        return
+
+                    elif reaction.emoji == "🔢":
+                        await ctx.send("What page would you like to go to?")
+                        message = await bot.wait_for(
+                            "message",
+                            check=lambda m: m.author == self.author
+                            and m.channel == ctx.channel,
+                            timeout=30,
+                        )
+                        try:
+                            pidx = (int(message.content) - 1) % self.num_pages
+                        except ValueError:
+                            await ctx.send("That's not a valid page number!")
+                            continue
+
+                    else:
+                        pidx = {
+                            "⏮️": 0,
+                            "◀": pidx - 1,
+                            "▶": pidx + 1,
+                            "⏭️": self.num_pages - 1,
+                        }[reaction.emoji] % self.num_pages
 
                     embed = await self.get_page(pidx, clear)
-                    await message.edit(embed=embed)
+                    await self.message.edit(embed=embed)
 
             except asyncio.TimeoutError:
-                await message.add_reaction("❌")
+                await self.message.add_reaction("❌")
                 try:
-                    del paginators[ctx.author.id]
+                    del paginators[self.author.id]
                 except KeyError:
                     pass

@@ -3,7 +3,6 @@ import typing
 import discord
 import geocoder
 from discord.ext import commands
-from bot import ClusterBot
 from .database import Database
 from helpers import checks
 
@@ -15,7 +14,7 @@ def geocode(location):
 class Configuration(commands.Cog):
     """Configuration commands to change bot behavior."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
     @property
@@ -146,5 +145,5 @@ class Configuration(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Configuration(bot))

@@ -1,7 +1,6 @@
 import asyncio
 import math
 from operator import itemgetter
-from bot import ClusterBot
 import discord
 from discord.ext import commands, flags
 
@@ -13,7 +12,7 @@ from .database import Database
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
     @property
@@ -885,7 +884,7 @@ class Pokemon(commands.Cog):
 
         await ctx.send("Successfully switched back to normal form.")
 
-    @commands.command(aliases=["n"])
+    @commands.command(aliases=["n", "forward"])
     async def next(self, ctx: commands.Context):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
@@ -895,10 +894,11 @@ class Pokemon(commands.Cog):
         pidx = paginator.last_page + 1
         pidx %= paginator.num_pages
 
+        asyncio.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, pidx)
 
-    @commands.command(aliases=["b"])
-    async def back(self, ctx: commands.Context):
+    @commands.command(aliases=["prev", "back", "b"])
+    async def previous(self, ctx: commands.Context):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 
@@ -907,8 +907,9 @@ class Pokemon(commands.Cog):
         pidx = paginator.last_page - 1
         pidx %= paginator.num_pages
 
+        await paginator.message.delete()
         await paginator.send(self.bot, ctx, pidx)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Pokemon(bot))

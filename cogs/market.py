@@ -4,7 +4,6 @@ import math
 import bson
 import discord
 from discord.ext import commands, flags
-from bot import ClusterBot
 from helpers import checks, converters, pagination
 
 from .database import Database
@@ -13,7 +12,7 @@ from .database import Database
 class Market(commands.Cog):
     """A marketplace to buy and sell pokémon."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
     @property
@@ -362,5 +361,5 @@ class Market(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Market(bot))

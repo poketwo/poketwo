@@ -2,7 +2,6 @@ import itertools
 
 import discord
 from discord.ext import commands, flags
-from bot import ClusterBot
 from helpers import pagination
 
 
@@ -128,10 +127,10 @@ class CustomHelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.old_help_command = bot.help_command
     bot.help_command = CustomHelpCommand()
 
 
-def teardown(bot: ClusterBot):
+def teardown(bot):
     bot.help_command = bot.old_help_command

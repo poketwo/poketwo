@@ -3,7 +3,6 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, tasks
-from bot import ClusterBot
 from helpers import checks, constants
 
 from .database import Database
@@ -20,7 +19,7 @@ class CommandOnCooldown(commands.CommandOnCooldown):
 class Bot(commands.Cog):
     """For basic bot operation."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
         if not hasattr(self.bot, "prefixes"):
@@ -253,5 +252,5 @@ class Bot(commands.Cog):
         await ctx.send("Trying to heal schema...")
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Bot(bot))
