@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import discord
 import humanfriendly
 from discord.ext import commands
-from bot import ClusterBot
 from helpers import checks, constants, converters, models, mongo
 
 from .database import Database
@@ -13,7 +12,7 @@ from .database import Database
 class Shop(commands.Cog):
     """Shop-related commands."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
     @property
@@ -756,5 +755,5 @@ class Shop(commands.Cog):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Shop(bot))

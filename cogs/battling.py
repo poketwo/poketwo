@@ -3,7 +3,6 @@ import math
 import random
 import typing
 from enum import Enum
-from bot import ClusterBot
 import discord
 from discord.ext import commands
 
@@ -12,7 +11,7 @@ from helpers import checks, constants, converters, pagination
 from .database import Database
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Battling(bot))
 
 
@@ -30,7 +29,7 @@ class Stage(Enum):
 
 
 class Trainer:
-    def __init__(self, user: discord.Member, bot: ClusterBot):
+    def __init__(self, user: discord.Member, bot):
         self.user = user
         self.pokemon = []
         self.selected_idx = 0
@@ -331,7 +330,7 @@ class BattleManager:
 class Battling(commands.Cog):
     """For battling."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
         if not hasattr(self.bot, "battles") or self.bot.battles is None:
@@ -643,5 +642,5 @@ class Battling(commands.Cog):
         await ctx.send("The battle has been canceled.")
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Battling(bot))

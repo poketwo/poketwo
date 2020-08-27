@@ -12,7 +12,6 @@ import discord
 from discord.ext import commands
 
 from helpers import checks, models, mongo
-from bot import ClusterBot
 from .database import Database
 
 
@@ -26,7 +25,7 @@ def write_fp(data):
 class Spawning(commands.Cog):
     """For basic bot operation."""
 
-    def __init__(self, bot: ClusterBot):
+    def __init__(self, bot):
         self.bot = bot
 
         if not hasattr(self.bot, "spawns"):
@@ -462,5 +461,5 @@ class Spawning(commands.Cog):
         await ctx.send(f"You are now shiny hunting **{species}**.")
 
 
-def setup(bot: ClusterBot):
+def setup(bot):
     bot.add_cog(Spawning(bot))
