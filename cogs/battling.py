@@ -3,7 +3,7 @@ import math
 import random
 import typing
 from enum import Enum
-
+from bot import ClusterBot
 import discord
 from discord.ext import commands
 
@@ -12,7 +12,7 @@ from helpers import checks, constants, converters, pagination
 from .database import Database
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Battling(bot))
 
 
@@ -30,7 +30,7 @@ class Stage(Enum):
 
 
 class Trainer:
-    def __init__(self, user: discord.Member, bot: commands.Bot):
+    def __init__(self, user: discord.Member, bot: ClusterBot):
         self.user = user
         self.pokemon = []
         self.selected_idx = 0
@@ -44,10 +44,12 @@ class Trainer:
         return self.pokemon[self.selected_idx]
 
     async def send_selection(self):
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=self.bot.embed_color)
         embed.title = "Waiting for opponent..." if self.done else "Choose your party"
-        embed.description = "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers have chosen their party."
+        embed.description = (
+            "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
+            "have chosen their party. "
+        )
 
         if len(self.pokemon) > 0:
             embed.add_field(
@@ -70,9 +72,7 @@ class Trainer:
         await self.user.send(embed=embed)
 
     async def send_ready(self, opponent):
-        embed = discord.Embed()
-        embed.color = 0xF44336
-
+        embed = discord.Embed(color=self.bot.embed_color)
         embed.title = "💥 Ready to battle!"
         embed.description = "The battle will begin in 5 seconds."
         embed.add_field(
@@ -90,8 +90,7 @@ class Trainer:
         await self.user.send(embed=embed)
 
     async def get_action(self):
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=self.bot.embed_color)
         embed.title = f"What should {self.selected.species} do?"
 
         actions = {}
@@ -125,11 +124,11 @@ class Trainer:
 
         asyncio.create_task(add_reactions())
 
-        def check(reaction, u):
+        def check(react: discord.Reaction, u):
             return (
-                reaction.message.id == msg.id
+                react.message.id == msg.id
                 and u.id == self.user.id
-                and reaction.emoji in actions
+                and react.emoji in actions
             )
 
         try:
@@ -176,8 +175,7 @@ class Battle:
         for action, trainer, opponent in iterl:
             action["priority"] = get_priority(action, trainer.selected)
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=0xF44336)
         embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
         embed.set_footer(text="The next round will begin in 5 seconds.")
 
@@ -264,8 +262,7 @@ class Battle:
         await self.channel.send(embed=embed)
 
     async def send_battle(self):
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=0xF44336)
         embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
 
         if self.stage == Stage.PROGRESS:
@@ -332,10 +329,10 @@ class BattleManager:
 class Battling(commands.Cog):
     """For battling."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
-        if not hasattr(self.bot, "battles"):
+        if not hasattr(self.bot, "battles") or self.bot.battles is None:
             self.bot.battles = BattleManager()
 
     @property
@@ -346,6 +343,7 @@ class Battling(commands.Cog):
     @commands.command()
     async def reloadbattling(self, ctx: commands.Context):
         self.bot.battles = BattleManager()
+        await ctx.send("✅| Reloaded BattleManager")
 
     @checks.has_started()
     @commands.group(aliases=["duel"], invoke_without_command=True)
@@ -463,10 +461,12 @@ class Battling(commands.Cog):
 
         pokemon, idx = pokemon
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=self.bot.embed_color)
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
-        embed.description = f"Here are the moves your pokémon can learn right now. View all moves and how to get them using `{ctx.prefix}moveset`!"
+        embed.description = (
+            f"Here are the moves your pokémon can learn right now. View all moves and how to get "
+            f"them using `{ctx.prefix}moveset`!"
+        )
 
         embed.add_field(
             name="Available Moves",
@@ -481,9 +481,7 @@ class Battling(commands.Cog):
             name="Current Moves",
             value="No Moves"
             if len(pokemon.moves) == 0
-            else "\n".join(
-                self.bot.data.move_by_number(x).name for x in pokemon.moves
-            ),
+            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
         )
 
         await ctx.send(embed=embed)
@@ -519,10 +517,9 @@ class Battling(commands.Cog):
         if len(pokemon.moves) >= 4:
 
             await ctx.send(
-                "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, or anything else to abort:\n"
-                + "\n".join(
-                    self.bot.data.move_by_number(x).name for x in pokemon.moves
-                )
+                "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, "
+                "or anything else to abort:\n "
+                + "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves)
             )
 
             def check(m):
@@ -569,7 +566,8 @@ class Battling(commands.Cog):
 
         if species is None:
             raise converters.PokemonConversionError(
-                f"Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for a specific pokémon, `latest` for your latest pokémon."
+                f"Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for "
+                f"a specific pokémon, `latest` for your latest pokémon. "
             )
 
         async def get_page(pidx, clear):
@@ -578,8 +576,7 @@ class Battling(commands.Cog):
 
             # Send embed
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = discord.Embed(color=self.bot.embed_color)
             embed.title = f"{species} — Moveset"
 
             embed.set_footer(
@@ -608,8 +605,7 @@ class Battling(commands.Cog):
         if move is None:
             return await ctx.send("Couldn't find a move with that name!")
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = discord.Embed(color=self.bot.embed_color)
         embed.title = move.name
 
         embed.description = move.description
@@ -623,7 +619,10 @@ class Battling(commands.Cog):
             ("Priority", "priority"),
             ("Type", "type"),
         ):
-            if (v := getattr(move, x)) is not None:
+            if getattr(move, x) is not None:
+                v = getattr(
+                    move, x
+                )  # yeah, i had to remove walrus op cuz its just too bad lol
                 embed.add_field(name=name, value=v)
             else:
                 embed.add_field(name=name, value="—")
@@ -645,6 +644,5 @@ class Battling(commands.Cog):
         await ctx.send("The battle has been canceled.")
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Battling(bot))
-

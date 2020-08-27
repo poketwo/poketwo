@@ -1,7 +1,7 @@
 import asyncio
 
 from discord.ext import commands
-
+from bot import ClusterBot
 
 paginators = {}
 
@@ -12,7 +12,7 @@ class Paginator:
         self.get_page = get_page
         self.last_page = None
 
-    async def send(self, bot: commands.Bot, ctx: commands.Context, pidx: int):
+    async def send(self, bot: ClusterBot, ctx: commands.Context, pidx: int):
         async def clear(msg):
             return await ctx.send(msg)
 

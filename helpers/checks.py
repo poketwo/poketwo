@@ -17,7 +17,9 @@ def is_admin():
 
 def has_started():
     async def predicate(ctx: commands.Context):
-        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1})
+        member = await ctx.bot.mongo.Member.find_one(
+            {"id": ctx.author.id}, {"suspended": 1}
+        )
 
         if member is None:
             raise MustHaveStarted(
