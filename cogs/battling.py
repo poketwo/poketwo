@@ -44,7 +44,7 @@ class Trainer:
         return self.pokemon[self.selected_idx]
 
     async def send_selection(self):
-        embed = discord.Embed(color=self.bot.embed_color)
+        embed = self.bot.Embed()
         embed.title = "Waiting for opponent..." if self.done else "Choose your party"
         embed.description = (
             "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
@@ -72,7 +72,7 @@ class Trainer:
         await self.user.send(embed=embed)
 
     async def send_ready(self, opponent):
-        embed = discord.Embed(color=self.bot.embed_color)
+        embed = self.bot.Embed()
         embed.title = "💥 Ready to battle!"
         embed.description = "The battle will begin in 5 seconds."
         embed.add_field(
@@ -90,7 +90,7 @@ class Trainer:
         await self.user.send(embed=embed)
 
     async def get_action(self):
-        embed = discord.Embed(color=self.bot.embed_color)
+        embed = self.bot.Embed()
         embed.title = f"What should {self.selected.species} do?"
 
         actions = {}
@@ -149,8 +149,10 @@ class Battle:
         self, users: typing.List[discord.Member], ctx: commands.Context, manager
     ):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
-        self.channel = ctx.channel
+        self.channel = ctx.channel  # type: discord.TextChannel
         self.stage = Stage.SELECT
+        self.ctx = ctx
+        self.bot = ctx.bot  # type: ClusterBot
         self.manager = manager
 
     async def send_selection(self):
@@ -262,7 +264,7 @@ class Battle:
         await self.channel.send(embed=embed)
 
     async def send_battle(self):
-        embed = discord.Embed(color=0xF44336)
+        embed = self.bot.Embed()
         embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
 
         if self.stage == Stage.PROGRESS:

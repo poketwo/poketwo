@@ -2,7 +2,7 @@ import itertools
 
 import discord
 from discord.ext import commands, flags
-
+from bot import ClusterBot
 from helpers import pagination
 
 
@@ -19,8 +19,7 @@ class CustomHelpCommand(commands.HelpCommand):
     def make_page_embed(
         self, commands, title="Pokétwo Help", description=discord.Embed.Empty
     ):
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.context.bot.Embed()
         embed.title = title
         embed.description = description
         embed.set_footer(
@@ -116,8 +115,7 @@ class CustomHelpCommand(commands.HelpCommand):
         await ctx.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.context.bot.Embed()
         embed.title = self.clean_prefix + command.qualified_name
 
         if command.description:
@@ -130,10 +128,10 @@ class CustomHelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.old_help_command = bot.help_command
     bot.help_command = CustomHelpCommand()
 
 
-def teardown(bot: commands.Bot):
+def teardown(bot: ClusterBot):
     bot.help_command = bot.old_help_command

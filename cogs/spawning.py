@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 import random
@@ -11,7 +12,7 @@ import discord
 from discord.ext import commands
 
 from helpers import checks, models, mongo
-
+from bot import ClusterBot
 from .database import Database
 
 
@@ -25,7 +26,7 @@ def write_fp(data):
 class Spawning(commands.Cog):
     """For basic bot operation."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
         if not hasattr(self.bot, "spawns"):
@@ -109,8 +110,7 @@ class Spawning(commands.Cog):
                             f"pokemon.{member.selected}.level": pokemon.level + 1,
                         }
                     }
-                    embed = discord.Embed()
-                    embed.color = 0xF44336
+                    embed = self.bot.Embed()
                     embed.title = f"Congratulations {message.author.display_name}!"
 
                     name = str(pokemon.species)
@@ -248,8 +248,7 @@ class Spawning(commands.Cog):
 
         guild = await self.db.fetch_guild(channel.guild)
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"A wild pokémon has appeared!"
 
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
@@ -416,8 +415,7 @@ class Spawning(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Shiny Hunt ✨"
             embed.description = "You can select a specific pokémon to shiny hunt. Each time you catch that pokémon, your chain will increase. The longer your chain, the higher your chance of catching a shiny one!"
 
@@ -464,5 +462,5 @@ class Spawning(commands.Cog):
         await ctx.send(f"You are now shiny hunting **{species}**.")
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Spawning(bot))

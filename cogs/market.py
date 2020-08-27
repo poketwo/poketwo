@@ -4,7 +4,7 @@ import math
 import bson
 import discord
 from discord.ext import commands, flags
-
+from bot import ClusterBot
 from helpers import checks, converters, pagination
 
 from .database import Database
@@ -13,7 +13,7 @@ from .database import Database
 class Market(commands.Cog):
     """A marketplace to buy and sell pokémon."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: ClusterBot):
         self.bot = bot
 
     @property
@@ -130,8 +130,7 @@ class Market(commands.Cog):
 
             # Send embed
 
-            embed = discord.Embed()
-            embed.color = 0xF44336
+            embed = self.bot.Embed()
             embed.title = f"Pokétwo Marketplace"
             embed.description = "\n".join(page)[:2048]
 
@@ -321,8 +320,7 @@ class Market(commands.Cog):
 
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
 
-        embed = discord.Embed()
-        embed.color = 0xF44336
+        embed = self.bot.Embed()
         embed.title = f"Level {pokemon.level} {pokemon.species}"
 
         if pokemon.shiny:
@@ -364,5 +362,5 @@ class Market(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: ClusterBot):
     bot.add_cog(Market(bot))
