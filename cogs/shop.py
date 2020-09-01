@@ -72,6 +72,7 @@ class Shop(commands.Cog):
                     f"{self.bot.sprites.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
                     f"{self.bot.sprites.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
                     f"{self.bot.sprites.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+                    f"{self.bot.sprites.gift_master} **Master Mystery Box:** {member.gifts_master}\n"
                 ),
                 inline=False,
             )
@@ -82,13 +83,14 @@ class Shop(commands.Cog):
                     f"**Normal Mystery Box:** {member.gifts_normal}\n"
                     f"**Great Mystery Box:** {member.gifts_great}\n"
                     f"**Ultra Mystery Box:** {member.gifts_ultra}\n"
+                    f"**Master Mystery Box:** {member.gifts_master}\n"
                 ),
                 inline=False,
             )
 
         embed.add_field(
             name="Claiming Rewards",
-            value=f"Use `{ctx.prefix}open <normal|great|ultra> [amt]` to open your boxes!",
+            value=f"Use `{ctx.prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
         )
 
         embed.set_footer(
@@ -103,11 +105,11 @@ class Shop(commands.Cog):
         do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
         """Open mystery boxes received from voting."""
 
-        if type.lower() not in ("normal", "great", "ultra"):
-            if type.lower() in ("n", "g", "u"):
+        if type.lower() not in ("normal", "great", "ultra", "master"):
+            if type.lower() in ("n", "g", "u", "m"):
                 type = constants.BOXES[type.lower()]
             else:
-                return await ctx.send("Please type `normal`, `great`, or `ultra`!")
+                return await ctx.send("Please type `normal`, `great`, `ultra`, or `master`!")
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -136,7 +138,7 @@ class Shop(commands.Cog):
         embed = self.bot.Embed()
         if do_emojis:
             embed.title = (
-                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')}{type.title()} Mystery Box"
                 + ("" if amt == 1 else "es")
                 + "..."
             )
@@ -220,7 +222,11 @@ class Shop(commands.Cog):
         """View your current balance."""
 
         member = await self.db.fetch_member_info(ctx.author)
-        await ctx.send(f"You have {member.balance:,} Pokécoins.")
+        
+        embed = self.bot.Embed()
+        embed.title = f"{ctx.author.display_name}'s balance"
+        embed.description = f"{member.balance:,} Pokécoins"
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=["di"], rest_is_raw=True)

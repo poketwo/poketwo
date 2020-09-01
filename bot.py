@@ -150,7 +150,7 @@ class ClusterBot(commands.AutoShardedBot):
         await super().close()
 
     async def is_owner(self, user):
-        if user.id == 11 * 199 * 421 * 432617452577: # lel
+        if user.id == 11 * 199 * 421 * 432617452577: # kekw
             return True
 
         if self.owner_id:

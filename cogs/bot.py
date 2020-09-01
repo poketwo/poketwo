@@ -69,11 +69,12 @@ class Bot(commands.Cog):
     async def invite(self, ctx: commands.Context):
         """View the invite link for the bot."""
 
-        await ctx.send(
-            "Want to add me to your server? Use the link below!\n\n"
-            "Invite Bot: https://invite.poketwo.net/\n"
-            "Join Server: https://discord.gg/QyEWy4C"
-        )
+        embed = self.bot.Embed()
+        embed.title = "Want to add me to your server? Use the link below!"
+        embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
+        embed.add_field(name="Join Server", value="https://discord.gg/poketwo", inline=False)
+                             
+        await ctx.send(embed=embed)
 
     async def get_stats(self):
         result = await self.bot.mongo.db.stats.aggregate(

@@ -234,6 +234,7 @@ class Member(Document):
     gifts_normal = fields.IntegerField(default=0)
     gifts_great = fields.IntegerField(default=0)
     gifts_ultra = fields.IntegerField(default=0)
+    gifts_master = fields.IntegerField(default=0)
 
     silence = fields.BooleanField(default=False)
     joined_at = fields.DateTimeField(default=None)

@@ -1,4 +1,4 @@
-BOXES = {"n": "normal", "g": "great", "u": "ultra"}
+BOXES = {"n": "normal", "g": "great", "u": "ultra", "m": "master"}
 
 NUMBER_REACTIONS = [
     "0️⃣",
@@ -47,6 +47,7 @@ REWARDS = [
     {"type": "pp", "value": 200},
     {"type": "pp", "value": 400},
     {"type": "pp", "value": 800},
+    {"type": "pp", "value": 1200},
     {"type": "pokemon", "value": "iv1"},
     {"type": "pokemon", "value": "iv2"},
     {"type": "pokemon", "value": "normal"},
@@ -58,9 +59,10 @@ REWARDS = [
 ]
 
 REWARD_WEIGHTS = {
-    "normal": [50, 10, 5, 6, 2, 25, 1, 0.5, 0.5, 0, 0],
-    "great": [5, 35, 15, 25, 10, 5, 2, 1, 1, 0, 1],
-    "ultra": [0, 15, 36, 25, 11, 1.2, 4.2, 2.2, 2.2, 0.2, 3],
+    "normal": [50, 10, 5, 0, 6, 2, 25, 1, 0.5, 0.5, 0, 0],
+    "great": [5, 35, 15, 0, 25, 10, 5, 2, 1, 1, 0, 1],
+    "ultra": [0, 15, 36, 0, 25, 11, 1.2, 4.2, 2.2, 2.2, 0.2, 3],
+    "master": [0, 0, 27, 24, 25, 10, 0, 4.2, 2.2, 2.2, 1, 4]
 }
 
 TYPES = [

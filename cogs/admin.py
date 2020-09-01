@@ -99,7 +99,7 @@ class Administration(commands.Cog):
     ):
         """Give a user a vote."""
 
-        if box_type not in ("normal", "great", "ultra"):
+        if box_type not in ("normal", "great", "ultra", "master"):
             return await ctx.send("That's not a valid box type!")
 
         await self.db.update_member(
