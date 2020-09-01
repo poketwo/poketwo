@@ -22,6 +22,7 @@ class Configuration(commands.Cog):
         return self.bot.get_cog("Database")
 
     @checks.is_admin()
+    @commands.guild_only()
     @commands.command()
     async def prefix(self, ctx: commands.Context, *, prefix: str = None):
         """Change the bot prefix."""
