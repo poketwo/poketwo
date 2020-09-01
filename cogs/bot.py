@@ -12,10 +12,6 @@ class Blacklisted(commands.CheckFailure):
     pass
 
 
-class CommandOnCooldown(commands.CommandOnCooldown):
-    pass
-
-
 class Bot(commands.Cog):
     """For basic bot operation."""
 
@@ -28,12 +24,19 @@ class Bot(commands.Cog):
         self.post_count.start()
         self.post_dbl.start()
 
+        self.cd = commands.CooldownMapping.from_cooldown(5, 5, commands.BucketType.user)
+
     async def bot_check(self, ctx):
         if (
             await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
             > 0
         ):
             raise Blacklisted
+
+        bucket = self.cd.get_bucket(ctx.message)
+        retry_after = bucket.update_rate_limit()
+        if retry_after:
+            raise commands.CommandOnCooldown(bucket, retry_after)
 
         return True
 
