@@ -38,61 +38,61 @@ class Paginator:
         self.message = await ctx.send(embed=embed)
         self.last_page = pidx
 
-        if self.num_pages > 1:
+        # if self.num_pages > 1:
 
-            await self.message.add_reaction("⏮️")
-            await self.message.add_reaction("◀")
-            await self.message.add_reaction("▶")
-            await self.message.add_reaction("⏭️")
-            await self.message.add_reaction("🔢")
-            await self.message.add_reaction("⏹")
+        #     await self.message.add_reaction("⏮️")
+        #     await self.message.add_reaction("◀")
+        #     await self.message.add_reaction("▶")
+        #     await self.message.add_reaction("⏭️")
+        #     await self.message.add_reaction("🔢")
+        #     await self.message.add_reaction("⏹")
 
-            try:
-                while True:
-                    reaction, user = await bot.wait_for(
-                        "reaction_add",
-                        check=lambda r, u: r.message.id == self.message.id
-                        and u.id == self.author.id,
-                        timeout=120,
-                    )
-                    try:
-                        await reaction.remove(user)
-                    except:
-                        pass
+        #     try:
+        #         while True:
+        #             reaction, user = await bot.wait_for(
+        #                 "reaction_add",
+        #                 check=lambda r, u: r.message.id == self.message.id
+        #                 and u.id == self.author.id,
+        #                 timeout=120,
+        #             )
+        #             try:
+        #                 await reaction.remove(user)
+        #             except:
+        #                 pass
 
-                    if reaction.emoji == "⏹":
-                        await self.delete()
-                        await self.end()
-                        return
+        #             if reaction.emoji == "⏹":
+        #                 await self.delete()
+        #                 await self.end()
+        #                 return
 
-                    elif reaction.emoji == "🔢":
-                        await ctx.send("What page would you like to go to?")
-                        message = await bot.wait_for(
-                            "message",
-                            check=lambda m: m.author == self.author
-                            and m.channel == ctx.channel,
-                            timeout=30,
-                        )
-                        try:
-                            pidx = (int(message.content) - 1) % self.num_pages
-                        except ValueError:
-                            await ctx.send("That's not a valid page number!")
-                            continue
+        #             elif reaction.emoji == "🔢":
+        #                 await ctx.send("What page would you like to go to?")
+        #                 message = await bot.wait_for(
+        #                     "message",
+        #                     check=lambda m: m.author == self.author
+        #                     and m.channel == ctx.channel,
+        #                     timeout=30,
+        #                 )
+        #                 try:
+        #                     pidx = (int(message.content) - 1) % self.num_pages
+        #                 except ValueError:
+        #                     await ctx.send("That's not a valid page number!")
+        #                     continue
 
-                    else:
-                        pidx = {
-                            "⏮️": 0,
-                            "◀": pidx - 1,
-                            "▶": pidx + 1,
-                            "⏭️": self.num_pages - 1,
-                        }[reaction.emoji] % self.num_pages
+        #             else:
+        #                 pidx = {
+        #                     "⏮️": 0,
+        #                     "◀": pidx - 1,
+        #                     "▶": pidx + 1,
+        #                     "⏭️": self.num_pages - 1,
+        #                 }[reaction.emoji] % self.num_pages
 
-                    embed = await self.get_page(pidx, clear)
-                    await self.message.edit(embed=embed)
+        #             embed = await self.get_page(pidx, clear)
+        #             await self.message.edit(embed=embed)
 
-            except asyncio.TimeoutError:
-                await self.message.add_reaction("❌")
-                try:
-                    del paginators[self.author.id]
-                except KeyError:
-                    pass
+        #     except asyncio.TimeoutError:
+        #         await self.message.add_reaction("❌")
+        #         try:
+        #             del paginators[self.author.id]
+        #         except KeyError:
+        #             pass

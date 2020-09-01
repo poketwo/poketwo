@@ -45,7 +45,7 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
-    @commands.command(aliases=["f", "fav", "favourite"], rest_is_raw=True)
+    @commands.command(aliases=["fav", "favourite"], rest_is_raw=True)
     async def favorite(
         self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
     ):
@@ -884,6 +884,16 @@ class Pokemon(commands.Cog):
 
         await ctx.send("Successfully switched back to normal form.")
 
+    @commands.command(aliases=["f"])
+    async def first(self, ctx: commands.Context):
+        if ctx.author.id not in pagination.paginators:
+            return await ctx.send("Couldn't find a previous message.")
+
+        paginator = pagination.paginators[ctx.author.id]
+
+        asyncio.create_task(paginator.delete())
+        await paginator.send(self.bot, ctx, 0)
+
     @commands.command(aliases=["n", "forward"])
     async def next(self, ctx: commands.Context):
         if ctx.author.id not in pagination.paginators:
@@ -909,6 +919,26 @@ class Pokemon(commands.Cog):
 
         await paginator.message.delete()
         await paginator.send(self.bot, ctx, pidx)
+
+    @commands.command(aliases=["l"])
+    async def last(self, ctx: commands.Context):
+        if ctx.author.id not in pagination.paginators:
+            return await ctx.send("Couldn't find a previous message.")
+
+        paginator = pagination.paginators[ctx.author.id]
+
+        asyncio.create_task(paginator.delete())
+        await paginator.send(self.bot, ctx, paginator.num_pages - 1)
+
+    @commands.command(aliases=["page", "g"])
+    async def go(self, ctx: commands.Context, page: int):
+        if ctx.author.id not in pagination.paginators:
+            return await ctx.send("Couldn't find a previous message.")
+
+        paginator = pagination.paginators[ctx.author.id]
+
+        await paginator.message.delete()
+        await paginator.send(self.bot, ctx, page % paginator.num_pages)
 
 
 def setup(bot):

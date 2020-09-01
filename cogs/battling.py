@@ -488,7 +488,7 @@ class Battling(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["l"])
+    @commands.command()
     async def learn(self, ctx: commands.Context, *, search: str):
         """Learn moves for your pokémon to use in battle."""
 
