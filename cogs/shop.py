@@ -138,7 +138,7 @@ class Shop(commands.Cog):
         embed = self.bot.Embed()
         if do_emojis:
             embed.title = (
-                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')}{type.title()} Mystery Box"
+                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
                 + ("" if amt == 1 else "es")
                 + "..."
             )
