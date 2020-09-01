@@ -1,7 +1,6 @@
 # Pokétwo
 
 [![Discord](https://img.shields.io/discord/716390832034414685?logo=discord&style=for-the-badge)](https://discord.gg/QyEWy4C)
-[![Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2Fpoketwo&style=for-the-badge)](https://www.patreon.com/poketwo)
 ![Python](https://img.shields.io/github/pipenv/locked/python-version/oliver-ni/poketwo?style=for-the-badge)
 ![License](https://img.shields.io/github/license/oliver-ni/poketwo?style=for-the-badge)
 
