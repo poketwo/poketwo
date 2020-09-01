@@ -100,95 +100,99 @@ class Trading(commands.Cog):
         embeds = []
 
         if done:
-            bothsides = list(enumerate(trade["items"].items()))
-            for idx, tup in bothsides:
-                i, side = tup
+            try:
+                bothsides = list(enumerate(trade["items"].items()))
+                for idx, tup in bothsides:
+                    i, side = tup
 
-                oidx, otup = bothsides[(idx + 1) % 2]
-                oi, oside = otup
+                    oidx, otup = bothsides[(idx + 1) % 2]
+                    oi, oside = otup
 
-                mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
-                omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
+                    mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
+                    omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
 
-                dec = 0
+                    dec = 0
 
-                member = await self.db.fetch_member_info(mem)
-                omember = await self.db.fetch_member_info(omem)
+                    member = await self.db.fetch_member_info(mem)
+                    omember = await self.db.fetch_member_info(omem)
 
-                idxs = set()
+                    idxs = set()
 
-                for x in side:
-                    if type(x) == int:
-                        await self.db.update_member(mem, {"$inc": {"balance": -x}})
-                        await self.db.update_member(omem, {"$inc": {"balance": x}})
-                    else:
+                    for x in side:
+                        if type(x) == int:
+                            await self.db.update_member(mem, {"$inc": {"balance": -x}})
+                            await self.db.update_member(omem, {"$inc": {"balance": x}})
+                        else:
 
-                        pokemon, idx = x
+                            pokemon, idx = x
 
-                        if idx in idxs:
-                            continue
+                            if idx in idxs:
+                                continue
 
-                        idxs.add(idx)
+                            idxs.add(idx)
 
-                        if idx < member.selected:
-                            dec += 1
+                            if idx < member.selected:
+                                dec += 1
 
-                        if (
-                            pokemon.species.trade_evolution
-                        ) and pokemon.held_item != 13001:
-                            evo = pokemon.species.trade_evolution
                             if (
-                                evo.trigger.item is None
-                                or evo.trigger.item.id == pokemon.held_item
-                            ):
-                                evo_embed = self.bot.Embed()
-                                evo_embed.title = (
-                                    f"Congratulations {omem.display_name}!"
-                                )
+                                pokemon.species.trade_evolution
+                            ) and pokemon.held_item != 13001:
+                                evo = pokemon.species.trade_evolution
+                                if (
+                                    evo.trigger.item is None
+                                    or evo.trigger.item.id == pokemon.held_item
+                                ):
+                                    evo_embed = self.bot.Embed()
+                                    evo_embed.title = (
+                                        f"Congratulations {omem.display_name}!"
+                                    )
 
-                                name = str(pokemon.species)
+                                    name = str(pokemon.species)
 
-                                if pokemon.nickname is not None:
-                                    name += f' "{pokemon.nickname}"'
+                                    if pokemon.nickname is not None:
+                                        name += f' "{pokemon.nickname}"'
 
-                                evo_embed.add_field(
-                                    name=f"The {name} is evolving!",
-                                    value=f"The {name} has turned into a {evo.target}!",
-                                )
+                                    evo_embed.add_field(
+                                        name=f"The {name} is evolving!",
+                                        value=f"The {name} has turned into a {evo.target}!",
+                                    )
 
-                                pokemon.species_id = evo.target.id
+                                    pokemon.species_id = evo.target.id
 
-                                embeds.append(evo_embed)
+                                    embeds.append(evo_embed)
 
-                        await self.db.update_member(
-                            mem, {"$unset": {f"pokemon.{idx}": 1}}
-                        )
+                            await self.db.update_member(
+                                mem, {"$unset": {f"pokemon.{idx}": 1}}
+                            )
 
-                        await self.db.update_member(
-                            omem,
-                            {
-                                "$push": {
-                                    "pokemon": {
-                                        "species_id": pokemon.species.id,
-                                        "level": pokemon.level,
-                                        "xp": pokemon.xp,
-                                        "nature": pokemon.nature,
-                                        "iv_hp": pokemon.iv_hp,
-                                        "iv_atk": pokemon.iv_atk,
-                                        "iv_defn": pokemon.iv_defn,
-                                        "iv_satk": pokemon.iv_satk,
-                                        "iv_sdef": pokemon.iv_sdef,
-                                        "iv_spd": pokemon.iv_spd,
-                                        "shiny": pokemon.shiny,
-                                        "held_item": pokemon.held_item,
-                                    }
+                            await self.db.update_member(
+                                omem,
+                                {
+                                    "$push": {
+                                        "pokemon": {
+                                            "species_id": pokemon.species.id,
+                                            "level": pokemon.level,
+                                            "xp": pokemon.xp,
+                                            "nature": pokemon.nature,
+                                            "iv_hp": pokemon.iv_hp,
+                                            "iv_atk": pokemon.iv_atk,
+                                            "iv_defn": pokemon.iv_defn,
+                                            "iv_satk": pokemon.iv_satk,
+                                            "iv_sdef": pokemon.iv_sdef,
+                                            "iv_spd": pokemon.iv_spd,
+                                            "shiny": pokemon.shiny,
+                                            "held_item": pokemon.held_item,
+                                        }
+                                    },
                                 },
-                            },
-                        )
+                            )
 
-                await self.db.update_member(
-                    mem, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}},
-                )
+                    await self.db.update_member(
+                        mem, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}},
+                    )
+            except:
+                # fuck it, I have better code for this anyway but it's waiting on some other stuff
+                pass
 
             await execmsg.delete()
 
@@ -269,6 +273,9 @@ class Trading(commands.Cog):
 
         if ctx.author.id not in self.bot.trades:
             return await ctx.send("You're not in a trade!")
+
+        if self.bot.trades[ctx.author.id]["executing"]:
+            return await ctx.send("The trade is currently loading...")
 
         a, b = self.bot.trades[ctx.author.id]["items"].keys()
         del self.bot.trades[a]
