@@ -28,13 +28,12 @@ class ClusterBot(commands.AutoShardedBot):
         self.embed_color = 0xF44336
         self.battles = None
         self.dbl_token = kwargs.pop("dbl_token")
+        self.database_uri = kwargs.pop("database_uri")
+        self.database_name = kwargs.pop("database_name")
         loop = asyncio.new_event_loop()
 
         asyncio.set_event_loop(loop)
         super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
-        self.mongo = helpers.mongo.Database(
-            self, kwargs.pop("database_uri"), kwargs.pop("database_name")
-        )
 
         self._last_result = None
         self.waiting = False
@@ -79,6 +78,7 @@ class ClusterBot(commands.AutoShardedBot):
         await self.wait_until_ready()
         self.data = helpers.data.make_data_manager()
         self.sprites = helpers.emojis.EmojiManager(self)
+        self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
         self.enabled = True
         logging.info(f"Logged in as {self.user}")
 
@@ -150,7 +150,7 @@ class ClusterBot(commands.AutoShardedBot):
         await super().close()
 
     async def is_owner(self, user):
-        if user.id == 11 * 199 * 421 * 432617452577: # kekw
+        if user.id == 11 * 199 * 421 * 432617452577:  # kekw
             return True
 
         if self.owner_id:
