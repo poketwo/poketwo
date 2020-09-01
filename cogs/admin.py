@@ -70,7 +70,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Unsuspended {user.mention}.")
 
     @commands.is_owner()
-    @commands.command()
+    @commands.command(aliases=["addredeem"])
     async def giveredeem(
         self, ctx: commands.Context, user: discord.Member, *, num: int = 1
     ):
@@ -83,7 +83,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave {user.mention} {num} redeems.")
 
     @commands.is_owner()
-    @commands.command()
+    @commands.command(aliases=["givebal"])
     async def addbal(
         self, ctx: commands.Context, user: discord.Member, amt: int,
     ):
@@ -93,9 +93,9 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
 
     @commands.is_owner()
-    @commands.command()
+    @commands.command(aliases=["givevote"])
     async def addvote(
-        self, ctx: commands.Context, user: discord.Member, box_type: str,
+        self, ctx: commands.Context, user: discord.Member, box_type: str, amt: int = 1
     ):
         """Give a user a vote."""
 
@@ -106,11 +106,14 @@ class Administration(commands.Cog):
             user,
             {
                 "$set": {"last_voted": datetime.utcnow()},
-                "$inc": {"vote_total": 1, "vote_streak": 1, f"gifts_{box_type}": 1},
+                "$inc": {"vote_total": amt, "vote_streak": amt, f"gifts_{box_type}": amt},
             },
         )
-
-        await ctx.send(f"Gave {user.mention} an {box_type} box.")
+        
+        if (amt == 1):
+            await ctx.send(f"Gave {user.mention} an {box_type} box.")
+        else:
+            await ctx.send(f"Gave {user.mention} {amt} {box_type} boxes.")
 
     @commands.is_owner()
     @commands.command()
