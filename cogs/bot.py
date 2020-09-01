@@ -27,6 +27,9 @@ class Bot(commands.Cog):
         self.cd = commands.CooldownMapping.from_cooldown(5, 5, commands.BucketType.user)
 
     async def bot_check(self, ctx):
+        if ctx.invoked_with == "help":
+            return True
+
         if (
             await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
             > 0
