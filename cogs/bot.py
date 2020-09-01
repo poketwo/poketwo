@@ -201,11 +201,14 @@ class Bot(commands.Cog):
 
         starter = self.bot.mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
 
-        member = self.bot.mongo.Member(
-            id=ctx.author.id, pokemon=[starter], selected=0, joined_at=datetime.utcnow()
+        await self.bot.mongo.db.member.insert_one(
+            {
+                "_id": ctx.author.id,
+                "pokemon": [starter.to_mongo()],
+                "selected": 0,
+                "joined_at": datetime.utcnow(),
+            }
         )
-
-        await member.commit()
 
         await ctx.send(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"
