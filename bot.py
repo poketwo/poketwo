@@ -106,8 +106,7 @@ class ClusterBot(commands.AutoShardedBot):
             return
         elif isinstance(error, commands.CommandOnCooldown):
             logging.info(f"{ctx.author.id} hit cooldown")
-            await ctx.message.add_reaction("🆒")
-            await ctx.message.add_reaction("⬇️")
+            await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.DisabledCommand):
