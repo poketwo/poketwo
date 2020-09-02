@@ -21,6 +21,38 @@ class Configuration(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.guild_only()
+    @commands.command(aliases=["config", "configserverconfig"])
+    async def configuration(self, ctx: commands.Context):
+        guild = await self.db.fetch_guild(ctx.guild)
+        channels = [ctx.guild.get_channel(channel_id) for channel_id in guild.channels]
+
+        embed = self.bot.Embed()
+        embed.title = f"Server Configuration"
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+
+        embed.add_field(name="Prefix", value=f"`{guild.prefix}`", inline=True)
+        embed.add_field(
+            name="Display level-up messages?",
+            value=(("Show", "Hide")[guild.silence]),
+            inline=True,
+        )
+        embed.add_field(name="Location", value=guild.loc, inline=False)
+        embed.add_field(
+            name="Spawning Channels",
+            value="\n".join(map(lambda channel: channel.mention, channels)),
+            inline=False,
+        )
+        
+        # no image spawn? server admin can hangman game in place of spawns for fun?
+        # embed.add_field(
+        #     name="Spawn Mode",
+        #     value=("Hint Spawning", "Image Spawning")[guild.display_images],
+        #     inline=False,
+        # )
+        
+        await ctx.send(embed=embed)
+
     @checks.is_admin()
     @commands.guild_only()
     @commands.command()

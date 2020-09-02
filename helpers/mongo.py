@@ -277,6 +277,7 @@ class Guild(Document):
     channels = fields.ListField(fields.IntegerField, default=list)
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
+    display_images = fields.BooleanField(default=True)
 
     lat = fields.FloatField(default=37.7790262)
     lng = fields.FloatField(default=-122.4199061)
