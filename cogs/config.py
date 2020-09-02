@@ -22,13 +22,13 @@ class Configuration(commands.Cog):
         return self.bot.get_cog("Database")
 
     @commands.guild_only()
-    @commands.command(aliases=["config", "configserverconfig"])
+    @commands.command(aliases=["config", "serverconfig"])
     async def configuration(self, ctx: commands.Context):
         guild = await self.db.fetch_guild(ctx.guild)
         channels = [ctx.guild.get_channel(channel_id) for channel_id in guild.channels]
 
         embed = self.bot.Embed()
-        embed.title = f"Server Configuration"
+        embed.title = "Server Configuration"
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
         embed.add_field(name="Prefix", value=f"`{guild.prefix}`", inline=True)
