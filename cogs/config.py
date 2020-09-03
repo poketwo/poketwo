@@ -34,7 +34,7 @@ class Configuration(commands.Cog):
         embed.add_field(name="Prefix", value=f"`{guild.prefix}`", inline=True)
         embed.add_field(
             name="Display level-up messages?",
-            value=(("Show", "Hide")[guild.silence]),
+            value=(("Yes", "No")[guild.silence]),
             inline=True,
         )
         embed.add_field(name="Location", value=guild.loc, inline=False)
