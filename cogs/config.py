@@ -58,9 +58,9 @@ class Configuration(commands.Cog):
     @commands.command()
     async def prefix(self, ctx: commands.Context, *, prefix: str = None):
         """Change the bot prefix."""
-
         if prefix is None:
-            current = await self.bot.get_cog("Bot").determine_prefix(ctx.message)
+            guild = await self.db.fetch_guild(ctx.guild)
+            current = guild.prefix
             if type(current) == list:
                 current = current[0]
             return await ctx.send(f"My prefix is `{current}` in this server.")
