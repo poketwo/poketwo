@@ -59,7 +59,6 @@ class Market(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @market.command(aliases=["s"], cls=flags.FlagCommand)
-    @commands.bot_has_permissions(manage_messages=True)
     async def search(self, ctx: commands.Context, **flags):
         """Search pokémon from the marketplace."""
 

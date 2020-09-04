@@ -61,6 +61,18 @@ class ClusterBot(commands.AutoShardedBot):
                 self.load_extension(f"cogs.{i}")
 
         self.add_check(helpers.checks.enabled(self))
+        self.add_check(
+            commands.bot_has_permissions(
+                read_messages=True,
+                send_messages=True,
+                manage_messages=True,
+                embed_links=True,
+                attach_files=True,
+                read_message_history=True,
+                add_reactions=True,
+                external_emojis=True,
+            ).predicate
+        )
 
         # Run bot
 
@@ -99,7 +111,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         await self.process_commands(message)
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: commands.Context, error):
 
         if isinstance(error, cogs.bot.Blacklisted):
             logging.info(f"{ctx.author.id} is blacklisted")
@@ -116,12 +128,13 @@ class ClusterBot(commands.AutoShardedBot):
                 "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
                 for perm in error.missing_perms
             ]
-            if len(missing) > 2:
-                fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
-            else:
-                fmt = " and ".join(missing)
+            fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            await ctx.send(message)
+            botmember = self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
+            if ctx.channel.permissions_for(botmember).send_messages:
+                await ctx.send(message)
+            else:
+                await ctx.author.send(message)
         elif isinstance(
             error,
             (
