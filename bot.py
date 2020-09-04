@@ -130,7 +130,9 @@ class ClusterBot(commands.AutoShardedBot):
             ]
             fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            botmember = self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
+            botmember = (
+                self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
+            )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
             else:
@@ -265,6 +267,18 @@ class ClusterBot(commands.AutoShardedBot):
                     traceback.print_exception(
                         type(error), error, error.__traceback__, file=sys.stderr
                     )
+
+            elif cmd == "disable":
+                self.log.info("received command [disable]")
+                self.enabled = False
+                ret = "disabled"
+
+            elif cmd == "enable":
+                self.log.info("received command [enable]")
+                self.enabled = True
+                await self.reload_modules()
+                ret = "enabled"
+
             else:
                 ret = "unknown"
 
