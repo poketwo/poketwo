@@ -92,7 +92,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
         self.enabled = True
-        logging.info(f"Logged in as {self.user}")
+        self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
@@ -114,10 +114,10 @@ class ClusterBot(commands.AutoShardedBot):
     async def on_command_error(self, ctx: commands.Context, error):
 
         if isinstance(error, cogs.bot.Blacklisted):
-            logging.info(f"{ctx.author.id} is blacklisted")
+            self.log.info(f"{ctx.author.id} is blacklisted")
             return
         elif isinstance(error, commands.CommandOnCooldown):
-            logging.info(f"{ctx.author.id} hit cooldown")
+            self.log.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
