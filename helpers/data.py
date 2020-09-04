@@ -1,5 +1,6 @@
 import csv
 from pathlib import Path
+from collections import defaultdict
 
 from . import models
 
@@ -207,12 +208,23 @@ def get_effects(instance):
 
 def get_moves(instance):
     data = get_data_from("moves.csv")
+    meta = {x["move_id"]: x for x in get_data_from("move_meta.csv")}
+    meta_stats = defaultdict(list)
+    for x in get_data_from("move_meta_stat_changes.csv"):
+        meta_stats[x["move_id"]].append(x)
+        x.pop("move_id")
 
     moves = {}
 
     for row in data:
         if row["id"] > 10000:
             continue
+
+        mmeta = meta[row["id"]]
+        mmeta.pop("move_id")
+
+        stat_changes = meta_stats.get(row["id"], [])
+        stat_changes = [models.StatChange(**x) for x in stat_changes]
 
         moves[row["id"]] = models.Move(
             id=row["id"],
@@ -228,6 +240,7 @@ def get_moves(instance):
             effect_id=row["effect"],
             effect_chance=row.get("effect_chance", None),
             instance=instance,
+            meta=models.MoveMeta(**mmeta, stat_changes=stat_changes),
         )
 
     return moves

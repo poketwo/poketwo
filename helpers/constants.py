@@ -62,7 +62,7 @@ REWARD_WEIGHTS = {
     "normal": [50, 10, 5, 0, 6, 2, 25, 1, 0.5, 0.5, 0, 0],
     "great": [5, 35, 15, 0, 25, 10, 5, 2, 1, 1, 0, 1],
     "ultra": [0, 15, 36, 0, 25, 11, 1.2, 4.2, 2.2, 2.2, 0.2, 3],
-    "master": [0, 0, 15.4, 30, 25, 10, 0, 6.2, 4.2, 4.2, 1, 4]
+    "master": [0, 0, 15.4, 30, 25, 10, 0, 6.2, 4.2, 4.2, 1, 4],
 }
 
 TYPES = [
@@ -90,6 +90,30 @@ TYPES = [
 ]
 
 DAMAGE_CLASSES = [None, "Status", "Physical", "Special"]
+
+MOVE_AILMENTS = {
+    -1: "????",
+    0: "none",
+    1: "Paralysis",
+    2: "Sleep",
+    3: "Freeze",
+    4: "Burn",
+    5: "Poison",
+    6: "Confusion",
+    7: "Infatuation",
+    8: "Trap",
+    9: "Nightmare",
+    12: "Torment",
+    13: "Disable",
+    14: "Yawn",
+    15: "Heal Block",
+    17: "No type immunity",
+    18: "Leech Seed",
+    19: "Embargo",
+    20: "Perish Song",
+    21: "Ingrain",
+    24: "Silence",
+}
 
 MOVE_TARGETS = [
     None,
