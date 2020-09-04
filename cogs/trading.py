@@ -202,7 +202,7 @@ class Trading(commands.Cog):
         # Send msg
 
         paginator = pagination.Paginator(get_page, num_pages=num_pages)
-        asyncio.create_task(paginator.send(self.bot, ctx, 0))
+        self.bot.loop.create_task(paginator.send(self.bot, ctx, 0))
 
         for evo_embed in embeds:
             await ctx.send(embed=evo_embed)
