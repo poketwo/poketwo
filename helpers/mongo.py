@@ -44,6 +44,8 @@ class Pokemon(EmbeddedDocument):
 
     idx = None
     _hp = None
+    ailments = None
+    stages = None
 
     @classmethod
     def random(cls, **kwargs):
@@ -256,7 +258,7 @@ class Member(Document):
     @property
     def shiny_hunt_chance(self):
         # NOTE math.log is the natural log (log base e)
-        return (1 + math.log(self.shiny_streak / 30)) / 4096
+        return (1 + math.log(1 + self.shiny_streak / 30)) / 4096
 
     def determine_shiny(self, species):
         if self.shiny_hunt != species.dex_number:
