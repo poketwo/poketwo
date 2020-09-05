@@ -52,39 +52,28 @@ class Spawning(commands.Cog):
     async def handle_message(self, message: discord.Message):
         # TODO this method is wayyy too long.
 
-        if message.guild is None:
-            return
-
-        if not self.bot.enabled:
-            return
-
-        if message.author.bot:
+        if not self.bot.enabled or message.author.bot or message.guild is None:
             return
 
         current = time.time()
 
         # Spamcheck, every two seconds
-
         if self.bot.env != "dev":
             if current - self.bot.cooldown_users.get(message.author.id, 0) < 2:
                 return
-
         self.bot.cooldown_users[message.author.id] = current
 
         # Increase XP on selected pokemon
-
         member = await self.db.fetch_member_info(message.author)
 
         if member is not None:
 
             silence = member.silence
-
             if message.guild:
                 guild = await self.db.fetch_guild(message.guild)
                 silence = silence or guild and guild.silence
 
             pokemon = await self.db.fetch_pokemon(message.author, member.selected)
-
             if pokemon is not None and pokemon.held_item != 13002:
 
                 # TODO this stuff here needs to be refactored
@@ -94,7 +83,6 @@ class Spawning(commands.Cog):
 
                     if member.boost_active or message.guild.id == 716390832034414685:
                         xp_inc *= 2
-
                     pokemon.xp += xp_inc
 
                     await self.db.update_member(
@@ -232,6 +220,10 @@ class Spawning(commands.Cog):
         if species is None:
             species = self.bot.data.random_spawn()
 
+        botmember = channel.guild.get_member(self.bot.user.id)
+        if not channel.permissions_for(botmember).send_messages:
+            return
+
         # determine species & stats
 
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
@@ -270,7 +262,7 @@ class Spawning(commands.Cog):
                     else:
                         raise Exception("Server error")
             except Exception as error:
-                logging.error("Couldn't fetch spawn image")
+                self.log.error("Couldn't fetch spawn image")
                 traceback.print_exception(
                     type(error), error, error.__traceback__, file=sys.stderr
                 )

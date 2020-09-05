@@ -39,6 +39,37 @@ class MoveEffect:
 
 
 @dataclass
+class StatChange:
+    stat_id: int
+    change: int
+
+    @cached_property
+    def stat(self):
+        return ("hp", "atk", "defn", "satk", "sdef", "spd")[self.stat_id]
+
+
+@dataclass
+class MoveMeta:
+    meta_category_id: int
+    meta_ailment_id: int
+    drain: int
+    healing: int
+    crit_rate: int
+    ailment_chance: int
+    flinch_chance: int
+    stat_chance: int
+    min_hits: typing.Optional[int] = None
+    max_hits: typing.Optional[int] = None
+    min_turns: typing.Optional[int] = None
+    max_turns: typing.Optional[int] = None
+    stat_changes: typing.List[StatChange] = None
+
+    def __post_init__(self):
+        if self.stat_changes is None:
+            self.stat_changes = []
+
+
+@dataclass
 class Move:
     id: int
     slug: str
@@ -52,6 +83,7 @@ class Move:
     damage_class_id: int
     effect_id: int
     effect_chance: int
+    meta: MoveMeta
 
     instance: typing.Any = UnregisteredDataManager()
 

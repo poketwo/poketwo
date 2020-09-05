@@ -59,7 +59,6 @@ class Market(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @market.command(aliases=["s"], cls=flags.FlagCommand)
-    @commands.bot_has_permissions(manage_messages=True)
     async def search(self, ctx: commands.Context, **flags):
         """Search pokémon from the marketplace."""
 
@@ -134,7 +133,7 @@ class Market(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})" 
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
             )
 
             return embed
@@ -188,10 +187,15 @@ class Market(commands.Cog):
         )
         if counter is None:
             counter = {"next": 0}
-        listing = self.bot.mongo.Listing(
-            id=counter["next"], pokemon=pokemon, user_id=ctx.author.id, price=price
+
+        await self.bot.mongo.db.listing.insert_one(
+            {
+                "_id": counter["next"],
+                "pokemon": pokemon.to_mongo(),
+                "user_id": ctx.author.id,
+                "price": price,
+            }
         )
-        await listing.commit()
 
         await self.db.update_member(ctx.author, {"$unset": {f"pokemon.{idx}": 1}})
         await self.db.update_member(

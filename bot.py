@@ -61,6 +61,18 @@ class ClusterBot(commands.AutoShardedBot):
                 self.load_extension(f"cogs.{i}")
 
         self.add_check(helpers.checks.enabled(self))
+        self.add_check(
+            commands.bot_has_permissions(
+                read_messages=True,
+                send_messages=True,
+                manage_messages=True,
+                embed_links=True,
+                attach_files=True,
+                read_message_history=True,
+                add_reactions=True,
+                external_emojis=True,
+            ).predicate
+        )
 
         # Run bot
 
@@ -80,7 +92,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
         self.enabled = True
-        logging.info(f"Logged in as {self.user}")
+        self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
@@ -99,13 +111,13 @@ class ClusterBot(commands.AutoShardedBot):
 
         await self.process_commands(message)
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: commands.Context, error):
 
         if isinstance(error, cogs.bot.Blacklisted):
-            logging.info(f"{ctx.author.id} is blacklisted")
+            self.log.info(f"{ctx.author.id} is blacklisted")
             return
         elif isinstance(error, commands.CommandOnCooldown):
-            logging.info(f"{ctx.author.id} hit cooldown")
+            self.log.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
@@ -116,12 +128,15 @@ class ClusterBot(commands.AutoShardedBot):
                 "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
                 for perm in error.missing_perms
             ]
-            if len(missing) > 2:
-                fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
-            else:
-                fmt = " and ".join(missing)
+            fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            await ctx.send(message)
+            botmember = (
+                self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
+            )
+            if ctx.channel.permissions_for(botmember).send_messages:
+                await ctx.send(message)
+            else:
+                await ctx.author.send(message)
         elif isinstance(
             error,
             (
@@ -252,6 +267,18 @@ class ClusterBot(commands.AutoShardedBot):
                     traceback.print_exception(
                         type(error), error, error.__traceback__, file=sys.stderr
                     )
+
+            elif cmd == "disable":
+                self.log.info("received command [disable]")
+                self.enabled = False
+                ret = "disabled"
+
+            elif cmd == "enable":
+                self.log.info("received command [enable]")
+                self.enabled = True
+                await self.reload_modules()
+                ret = "enabled"
+
             else:
                 ret = "unknown"
 

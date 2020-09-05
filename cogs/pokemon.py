@@ -75,7 +75,6 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=["i"], rest_is_raw=True)
-    @commands.bot_has_permissions(manage_messages=True)
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
 
@@ -522,7 +521,6 @@ class Pokemon(commands.Cog):
     # Pokemon
     @checks.has_started()
     @flags.command(aliases=["p"])
-    @commands.bot_has_permissions(manage_messages=True)
     async def pokemon(self, ctx: commands.Context, **flags):
         """View or filter the pokémon in your collection."""
 
@@ -559,7 +557,7 @@ class Pokemon(commands.Cog):
 
         def nick(p):
             if p.species is None:
-                asyncio.create_task(fix_pokemon())
+                self.bot.loop.create_task(fix_pokemon())
                 return None
 
             name = str(p.species)
@@ -639,7 +637,6 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--type", type=str)
     @checks.has_started()
     @flags.command(aliases=["d", "dex"])
-    @commands.bot_has_permissions(manage_messages=True)
     async def pokedex(self, ctx: commands.Context, **flags):
         """View your pokédex, or search for a pokémon species."""
 
@@ -891,7 +888,7 @@ class Pokemon(commands.Cog):
 
         paginator = pagination.paginators[ctx.author.id]
 
-        asyncio.create_task(paginator.delete())
+        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, 0)
 
     @commands.command(aliases=["n", "forward"])
@@ -904,7 +901,7 @@ class Pokemon(commands.Cog):
         pidx = paginator.last_page + 1
         pidx %= paginator.num_pages
 
-        asyncio.create_task(paginator.delete())
+        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, pidx)
 
     @commands.command(aliases=["prev", "back", "b"])
@@ -927,7 +924,7 @@ class Pokemon(commands.Cog):
 
         paginator = pagination.paginators[ctx.author.id]
 
-        asyncio.create_task(paginator.delete())
+        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, paginator.num_pages - 1)
 
     @commands.command(aliases=["page", "g"])

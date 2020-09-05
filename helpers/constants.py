@@ -93,6 +93,30 @@ TYPES = [
 
 DAMAGE_CLASSES = [None, "Status", "Physical", "Special"]
 
+MOVE_AILMENTS = {
+    -1: "????",
+    0: "none",
+    1: "Paralysis",
+    2: "Sleep",
+    3: "Freeze",
+    4: "Burn",
+    5: "Poison",
+    6: "Confusion",
+    7: "Infatuation",
+    8: "Trap",
+    9: "Nightmare",
+    12: "Torment",
+    13: "Disable",
+    14: "Yawn",
+    15: "Heal Block",
+    17: "No type immunity",
+    18: "Leech Seed",
+    19: "Embargo",
+    20: "Perish Song",
+    21: "Ingrain",
+    24: "Silence",
+}
+
 MOVE_TARGETS = [
     None,
     "One specific move. How this move is chosen depends upon on the move being used.",

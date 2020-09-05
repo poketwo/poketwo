@@ -121,7 +121,7 @@ class Trainer:
             for k in actions:
                 await msg.add_reaction(k)
 
-        asyncio.create_task(add_reactions())
+        self.bot.loop.create_task(add_reactions())
 
         def check(react: discord.Reaction, u):
             return (
