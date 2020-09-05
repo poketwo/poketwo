@@ -35,6 +35,10 @@ class Paginator:
 
         embed = await self.get_page(pidx, clear)
 
+        embed.set_footer(
+            text=embed.footer.text + "\nUse p!n and p!b to navigate between pages."
+        )
+
         self.message = await ctx.send(embed=embed)
         self.last_page = pidx
 
