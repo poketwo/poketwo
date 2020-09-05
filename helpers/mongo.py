@@ -255,7 +255,8 @@ class Member(Document):
 
     @property
     def shiny_hunt_chance(self):
-        return (1 + 2 * math.tanh(self.shiny_streak / 100)) / 4096
+        # NOTE math.log is the natural log (log base e)
+        return (1 + math.log(self.shiny_streak / 30)) / 4096
 
     def determine_shiny(self, species):
         if self.shiny_hunt != species.dex_number:
