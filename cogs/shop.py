@@ -166,19 +166,24 @@ class Shop(commands.Cog):
                 shiny = reward["value"] == "shiny" or member.determine_shiny(species)
 
                 lower_bound = 0
+                absolute_lower_bound = 0
 
                 if reward["value"] == "iv1":
                     lower_bound = 21
 
                 if reward["value"] == "iv2":
                     lower_bound = 25
+                
+                if reward["value"] == "iv3":
+                    lower_bound = 25
+                    absolute_lower_bound = 10
 
                 ivs = [
                     random.randint(lower_bound, 31),
                     random.randint(lower_bound, 31),
                     random.randint(lower_bound, 31),
-                    random.randint(0, 31),
-                    random.randint(0, 31),
+                    random.randint(absolute_lower_bound, 31),
+                    random.randint(absolute_lower_bound, 31),
                     random.randint(0, 31),
                 ]
 

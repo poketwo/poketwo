@@ -44,25 +44,27 @@ LETTER_REACTIONS = [
 ]
 
 REWARDS = [
-    {"type": "pp", "value": 200},
-    {"type": "pp", "value": 400},
-    {"type": "pp", "value": 800},
-    {"type": "pp", "value": 1200},
-    {"type": "pokemon", "value": "iv1"},
-    {"type": "pokemon", "value": "iv2"},
-    {"type": "pokemon", "value": "normal"},
-    {"type": "pokemon", "value": "mythical"},
-    {"type": "pokemon", "value": "legendary"},
-    {"type": "pokemon", "value": "ultra_beast"},
-    {"type": "pokemon", "value": "shiny"},
-    {"type": "redeem", "value": 1},
+    {"type": "pp", "value": 200}, #1
+    {"type": "pp", "value": 400}, #2
+    {"type": "pp", "value": 800}, #3 
+    {"type": "pp", "value": 1200}, #4
+    {"type": "pokemon", "value": "iv1"}, #5
+    {"type": "pokemon", "value": "iv2"}, #6
+    {"type": "pokemon", "value": "iv3"}, #7
+    {"type": "pokemon", "value": "normal"}, #8
+    {"type": "pokemon", "value": "mythical"}, #9
+    {"type": "pokemon", "value": "legendary"}, #10
+    {"type": "pokemon", "value": "ultra_beast"}, #11
+    {"type": "pokemon", "value": "shiny"}, #12
+    {"type": "redeem", "value": 1}, #13
 ]
 
 REWARD_WEIGHTS = {
-    "normal": [50, 10, 5, 0, 6, 2, 25, 1, 0.5, 0.5, 0, 0],
-    "great": [5, 35, 15, 0, 25, 10, 5, 2, 1, 1, 0, 1],
-    "ultra": [0, 15, 36, 0, 25, 11, 1.2, 4.2, 2.2, 2.2, 0.2, 3],
-    "master": [0, 0, 15.4, 30, 25, 10, 0, 6.2, 4.2, 4.2, 1, 4],
+    #numbers   1   2   3   4   5   6   7   8   9  10   11   12   13 
+    "normal": [50, 10, 5 , 0 , 6 , 2 , 0 , 25, 1, 0.5, 0.5, 0.0, 0],
+    "great":  [5 , 35, 15, 0 , 25, 10, 0 , 5 , 2, 1.0, 1.0, 0.2, 1],
+    "ultra":  [0 , 15, 36, 0 , 25, 11, 1 , 1 , 4, 1.8, 2.0, 0.2, 3],
+    "master": [0 , 0 , 20, 35, 0 , 8 , 11, 0 , 7, 4.8, 4.2, 1.0, 4]
 }
 
 TYPES = [
