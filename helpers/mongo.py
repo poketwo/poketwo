@@ -15,12 +15,9 @@ random_nature = lambda: random.choice(constants.NATURES)
 # Instance
 
 
-class Pokemon(Document):
+class PokemonBase:
     class Meta:
         strict = False
-
-    id = fields.ObjectIdField(attribute="_id")
-    owner_id = fields.IntegerField(required=True)
 
     species_id = fields.IntegerField(required=True)
     level = fields.IntegerField(required=True)
@@ -208,12 +205,20 @@ class Pokemon(Document):
         return self.get_next_evolution() is not None
 
 
+class Pokemon(Document, PokemonBase):
+    id = fields.ObjectIdField(attribute="_id")
+    owner_id = fields.IntegerField(required=True)
+
+
+class EmbeddedPokemon(EmbeddedDocument, PokemonBase):
+    pass
+
+
 class Member(Document):
     class Meta:
         strict = False
 
     id = fields.IntegerField(attribute="_id")
-    pokemon = fields.ListField(fields.EmbeddedField(Pokemon), required=True)
 
     selected = fields.IntegerField(required=True)
 
@@ -269,7 +274,7 @@ class Member(Document):
 
 class Listing(Document):
     id = fields.IntegerField(attribute="_id")
-    pokemon = fields.EmbeddedField(Pokemon, required=True)
+    pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
     user_id = fields.IntegerField(required=True)
     price = fields.IntegerField(required=True)
 
@@ -320,15 +325,16 @@ class Database:
         self.db = AsyncIOMotorClient(host, io_loop=bot.loop)[dbname]
         instance = Instance(self.db)
 
-        self.Pokemon = instance.register(Pokemon)
-        self.Pokemon.bot = bot
-        self.Member = instance.register(Member)
-        self.Member.bot = bot
-        self.Listing = instance.register(Listing)
-        self.Listing.bot = bot
-        self.Guild = instance.register(Guild)
-        self.Guild.bot = bot
-        self.Counter = instance.register(Counter)
-        self.Counter.bot = bot
-        self.Blacklist = instance.register(Blacklist)
-        self.Blacklist.bot = bot
+        g = globals()
+
+        for x in (
+            "Pokemon",
+            "EmbeddedPokemon",
+            "Member",
+            "Listing",
+            "Guild",
+            "Counter",
+            "Blacklist",
+        ):
+            setattr(self, x, instance.register(g[x]))
+            getattr(self, x).bot = bot
