@@ -15,16 +15,16 @@ random_nature = lambda: random.choice(constants.NATURES)
 # Instance
 
 
-class Pokemon(EmbeddedDocument):
+class Pokemon(Document):
     class Meta:
         strict = False
 
     id = fields.ObjectIdField(attribute="_id")
-    species_id = fields.IntegerField(required=True)
+    owner_id = fields.IntegerField(required=True)
 
+    species_id = fields.IntegerField(required=True)
     level = fields.IntegerField(required=True)
     xp = fields.IntegerField(required=True)
-
     nature = fields.StringField(required=True)
 
     iv_hp = fields.IntegerField(required=True)
