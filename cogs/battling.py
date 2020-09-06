@@ -6,7 +6,7 @@ from enum import Enum
 import discord
 from discord.ext import commands
 
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters, pagination, models
 
 from .database import Database
 
@@ -17,7 +17,10 @@ def setup(bot):
 
 def get_priority(action, selected):
     if action["type"] == "move":
-        return action["value"].priority * 1e20 + selected.spd
+        return (
+            action["value"].priority * 1e20
+            + selected.spd * constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
+        )
 
     return 1e99
 
@@ -204,35 +207,49 @@ class Battle:
 
                 move = action["value"]
 
-                if move.damage_class_id == 1 or move.power is None:
-                    success = True
-                    damage = 0
-                else:
-                    success = random.randint(0, 99) <= move.accuracy
-
-                    if move.damage_class_id == 2:
-                        atk = trainer.selected.atk
-                        defn = opponent.selected.defn
-                    else:
-                        atk = trainer.selected.satk
-                        defn = opponent.selected.sdef
-
-                    damage = int(
-                        (2 * trainer.selected.level / 5 + 2)
-                        * move.power
-                        * atk
-                        / defn
-                        / 50
-                        + 2
-                    )
+                result = move.calculate_turn(trainer.selected, opponent.selected)
 
                 title = f"{trainer.selected.species} used {move.name}!"
-                text = f"{move.name} dealt {damage} damage!"
+                text = "\n".join(
+                    [f"{move.name} dealt {result.damage} damage!"] + result.messages
+                )
 
-                if success:
-                    opponent.selected.hp -= damage
+                if result.success:
+                    opponent.selected.hp -= result.damage
+                    trainer.selected.hp += result.healing
+
+                    if result.healing > 0:
+                        text += f"\n{trainer.selected.species} restored {result.healing} HP."
+                    elif result.healing < 0:
+                        text += f"\n{trainer.selected.species} took {-result.healing} damage."
+
+                    if result.ailment:
+                        text += f"\nIt inflicted {result.ailment}!"
+                        opponent.selected.ailments.add(result.ailment)
+
+                    for change in result.stat_changes:
+                        if move.target_id == 7:
+                            target = trainer.selected
+                            if change.change < 0:
+                                text += f"\nLowered the user's **{constants.STAT_NAMES[change.stat]}** by {-change.change} stages."
+                            else:
+                                text += f"\nRaised the user's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
+
+                        elif move.target_id == 10:
+                            target = opponent.selected
+                            if change.change < 0:
+                                text += f"\nLowered the opponent's **{constants.STAT_NAMES[change.stat]}** by {-change.change} stages."
+                            else:
+                                text += f"\nRaised the opponent's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
+
+                        setattr(
+                            target.stages,
+                            change.stat,
+                            getattr(target.stages, change.stat) + change.change,
+                        )
+
                 else:
-                    text = "Missed!"
+                    text = "It missed!"
 
                 # check if fainted
 
@@ -438,6 +455,8 @@ class Battling(commands.Cog):
 
             pokemon.idx = idx
             pokemon.hp = pokemon.hp
+            pokemon.stages = models.StatStages()
+            pokemon.ailments = set()
             trainer.pokemon.append(pokemon)
 
             if len(trainer.pokemon) == 3:

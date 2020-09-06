@@ -45,7 +45,41 @@ class StatChange:
 
     @cached_property
     def stat(self):
-        return ("hp", "atk", "defn", "satk", "sdef", "spd")[self.stat_id]
+        return ("hp", "atk", "defn", "satk", "sdef", "spd", "evasion", "accuracy")[
+            self.stat_id - 1
+        ]
+
+
+@dataclass
+class StatStages:
+    atk: int = 0
+    defn: int = 0
+    satk: int = 0
+    sdef: int = 0
+    spd: int = 0
+    evasion: int = 0
+    accuracy: int = 0
+    crit: int = 0
+
+    def update(self, stages):
+        self.atk += stages.atk
+        self.defn += stages.defn
+        self.satk += stages.satk
+        self.sdef += stages.sdef
+        self.spd += stages.spd
+        self.evasion += stages.evasion
+        self.accuracy += stages.accuracy
+        self.crit += stages.crit
+
+
+@dataclass
+class MoveResult:
+    success: bool
+    damage: int
+    healing: int
+    ailment: str
+    messages: typing.List[str]
+    stat_changes: typing.List[StatChange]
 
 
 @dataclass
@@ -67,6 +101,14 @@ class MoveMeta:
     def __post_init__(self):
         if self.stat_changes is None:
             self.stat_changes = []
+
+    @cached_property
+    def meta_category(self):
+        return constants.MOVE_META_CATEGORIES[self.meta_category_id]
+
+    @cached_property
+    def meta_ailment(self):
+        return constants.MOVE_AILMENTS[self.meta_ailment_id]
 
 
 @dataclass
@@ -109,6 +151,130 @@ class Move:
 
     def __str__(self):
         return self.name
+
+    def calculate_turn(
+        self, pokemon, opponent,
+    ):
+        if self.damage_class_id == 1 or self.power is None:
+            success = True
+            damage = 0
+            hits = 0
+        else:
+            success = (
+                random.randrange(100)
+                <= self.accuracy
+                * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy]
+                / constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion]
+                * 4
+                / 9
+            )
+
+            hits = random.randint(self.meta.min_hits or 1, self.meta.max_hits or 1)
+
+            if self.damage_class_id == 2:
+                atk = pokemon.atk * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.atk]
+                defn = (
+                    opponent.defn
+                    * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.defn]
+                )
+            else:
+                atk = (
+                    pokemon.satk * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.satk]
+                )
+                defn = (
+                    opponent.sdef
+                    * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.sdef]
+                )
+
+            damage = int((2 * pokemon.level / 5 + 2) * self.power * atk / defn / 50 + 2)
+
+        healing = damage * self.meta.drain / 100
+        healing += pokemon.max_hp * self.meta.healing / 100
+
+        for ailment in pokemon.ailments:
+            if ailment == "Paralysis":
+                pass
+            elif ailment == "Sleep":
+                if self.id not in (173, 214):
+                    success = False
+            elif ailment == "Freeze":
+                if self.id not in (588, 172, 221, 293, 503, 592):
+                    success = False
+            elif ailment == "Burn":
+                if self.damage_class_id == 2:
+                    damage /= 2
+                healing -= 1 / 16 * pokemon.max_hp
+            elif ailment == "Poison":
+                healing -= 1 / 8 * pokemon.max_hp
+
+            # elif ailment == "Confusion":
+            #     pass
+            # elif ailment == "Infatuation":
+            #     pass
+            # elif ailment == "Trap":
+            #     pass
+            # elif ailment == "Nightmare":
+            #     pass
+            # elif ailment == "Torment":
+            #     pass
+            # elif ailment == "Disable":
+            #     pass
+            # elif ailment == "Yawn":
+            #     pass
+            # elif ailment == "Heal Block":
+            #     pass
+            # elif ailment == "No type immunity":
+            #     pass
+            # elif ailment == "Leech Seed":
+            #     pass
+            # elif ailment == "Embargo":
+            #     pass
+            # elif ailment == "Perish Song":
+            #     pass
+            # elif ailment == "Ingrain":
+            #     pass
+            # elif ailment == "Silence":
+            #     pass
+
+        ailment = (
+            self.meta.meta_ailment
+            if random.randrange(100) < self.meta.ailment_chance
+            else None
+        )
+
+        typ_mult = 1
+        for typ in opponent.species.types:
+            typ_mult *= constants.TYPE_EFFICACY[self.type_id][
+                constants.TYPES.index(typ)
+            ]
+
+        damage *= typ_mult
+        messages = []
+
+        if typ_mult == 0:
+            messages.append("It's not effective...")
+        elif typ_mult > 1:
+            messages.append("It's super effective!")
+        elif typ_mult < 1:
+            messages.append("It's not very effective...")
+
+        if hits > 1:
+            messages.append(f"It hit {hits} times!")
+
+        changes = []
+
+        for change in self.meta.stat_changes:
+            if random.randrange(100) < self.meta.stat_chance:
+                changes.append(change)
+
+        return MoveResult(
+            success=success,
+            damage=damage,
+            healing=healing,
+            ailment=ailment,
+            messages=messages,
+            stat_changes=changes
+        )
 
 
 # Items

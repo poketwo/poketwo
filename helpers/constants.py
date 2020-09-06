@@ -44,27 +44,27 @@ LETTER_REACTIONS = [
 ]
 
 REWARDS = [
-    {"type": "pp", "value": 200}, #1
-    {"type": "pp", "value": 400}, #2
-    {"type": "pp", "value": 800}, #3 
-    {"type": "pp", "value": 1200}, #4
-    {"type": "pokemon", "value": "iv1"}, #5
-    {"type": "pokemon", "value": "iv2"}, #6
-    {"type": "pokemon", "value": "iv3"}, #7
-    {"type": "pokemon", "value": "normal"}, #8
-    {"type": "pokemon", "value": "mythical"}, #9
-    {"type": "pokemon", "value": "legendary"}, #10
-    {"type": "pokemon", "value": "ultra_beast"}, #11
-    {"type": "pokemon", "value": "shiny"}, #12
-    {"type": "redeem", "value": 1}, #13
+    {"type": "pp", "value": 200},  # 1
+    {"type": "pp", "value": 400},  # 2
+    {"type": "pp", "value": 800},  # 3
+    {"type": "pp", "value": 1200},  # 4
+    {"type": "pokemon", "value": "iv1"},  # 5
+    {"type": "pokemon", "value": "iv2"},  # 6
+    {"type": "pokemon", "value": "iv3"},  # 7
+    {"type": "pokemon", "value": "normal"},  # 8
+    {"type": "pokemon", "value": "mythical"},  # 9
+    {"type": "pokemon", "value": "legendary"},  # 10
+    {"type": "pokemon", "value": "ultra_beast"},  # 11
+    {"type": "pokemon", "value": "shiny"},  # 12
+    {"type": "redeem", "value": 1},  # 13
 ]
 
 REWARD_WEIGHTS = {
-    #numbers   1   2   3   4   5   6   7   8   9  10   11   12   13 
-    "normal": [50, 10, 5 , 0 , 6 , 2 , 0 , 25, 1, 0.5, 0.5, 0.0, 0],
-    "great":  [5 , 35, 15, 0 , 25, 10, 0 , 5 , 2, 1.0, 1.0, 0.2, 1],
-    "ultra":  [0 , 15, 36, 0 , 25, 11, 1 , 1 , 4, 1.8, 2.0, 0.2, 3],
-    "master": [0 , 0 , 20, 35, 0 , 8 , 11, 0 , 7, 4.8, 4.2, 1.0, 4]
+    # numbers   1   2   3   4   5   6   7   8   9  10   11   12   13
+    "normal": [50, 10, 5, 0, 6, 2, 0, 25, 1, 0.5, 0.5, 0.0, 0],
+    "great": [5, 35, 15, 0, 25, 10, 0, 5, 2, 1.0, 1.0, 0.2, 1],
+    "ultra": [0, 15, 36, 0, 25, 11, 1, 1, 4, 1.8, 2.0, 0.2, 3],
+    "master": [0, 0, 20, 35, 0, 8, 11, 0, 7, 4.8, 4.2, 1.0, 4],
 }
 
 TYPES = [
@@ -115,6 +115,73 @@ MOVE_AILMENTS = {
     20: "Perish Song",
     21: "Ingrain",
     24: "Silence",
+}
+
+TYPE_EFFICACY = [
+    None,
+    [None, 1, 1, 1, 1, 1, 0.5, 1, 0, 0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [None, 2, 1, 0.5, 0.5, 1, 2, 0.5, 0, 2, 1, 1, 1, 1, 0.5, 2, 1, 2, 0.5],
+    [None, 1, 2, 1, 1, 1, 0.5, 2, 1, 0.5, 1, 1, 2, 0.5, 1, 1, 1, 1, 1],
+    [None, 1, 1, 1, 0.5, 0.5, 0.5, 1, 0.5, 0, 1, 1, 2, 1, 1, 1, 1, 1, 2],
+    [None, 1, 1, 0, 2, 1, 2, 0.5, 1, 2, 2, 1, 0.5, 2, 1, 1, 1, 1, 1],
+    [None, 1, 0.5, 2, 1, 0.5, 1, 2, 1, 0.5, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+    [None, 1, 0.5, 0.5, 0.5, 1, 1, 1, 0.5, 0.5, 0.5, 1, 2, 1, 2, 1, 1, 2, 0.5],
+    [None, 0, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 0.5, 1],
+    [None, 1, 1, 1, 1, 1, 2, 1, 1, 0.5, 0.5, 0.5, 1, 0.5, 1, 2, 1, 1, 2],
+    [None, 1, 1, 1, 1, 1, 0.5, 2, 1, 2, 0.5, 0.5, 2, 1, 1, 2, 0.5, 1, 1],
+    [None, 1, 1, 1, 1, 2, 2, 1, 1, 1, 2, 0.5, 0.5, 1, 1, 1, 0.5, 1, 1],
+    [None, 1, 1, 0.5, 0.5, 2, 2, 0.5, 1, 0.5, 0.5, 2, 0.5, 1, 1, 1, 0.5, 1, 1],
+    [None, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 2, 0.5, 0.5, 1, 1, 0.5, 1, 1],
+    [None, 1, 2, 1, 2, 1, 1, 1, 1, 0.5, 1, 1, 1, 1, 0.5, 1, 1, 0, 1],
+    [None, 1, 1, 2, 1, 2, 1, 1, 1, 0.5, 0.5, 0.5, 2, 1, 1, 0.5, 2, 1, 1],
+    [None, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 1, 1, 1, 1, 1, 1, 2, 1, 0],
+    [None, 1, 0.5, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 0.5, 0.5],
+    [None, 1, 2, 1, 0.5, 1, 1, 1, 1, 0.5, 0.5, 1, 1, 1, 1, 1, 2, 2, 1],
+]
+
+MOVE_META_CATEGORIES = [
+    "Inflicts damage",
+    "No damage; inflicts status ailment",
+    "No damage; lowers target's stats or raises user's stats",
+    "No damage; heals the user",
+    "Inflicts damage; inflicts status ailment",
+    "No damage; inflicts status ailment; raises target's stats",
+    "Inflicts damage; lowers target's stats",
+    "Inflicts damage; raises user's stats",
+    "Inflicts damage; absorbs damage done to heal the user",
+    "One-hit KO",
+    "Effect on the whole field",
+    "Effect on one side of the field",
+    "Forces target to switch out",
+    "Unique effect",
+]
+
+STAT_STAGE_MULTIPLIERS = {
+    -6: 2 / 8,
+    -5: 2 / 7,
+    -4: 2 / 6,
+    -3: 2 / 5,
+    -2: 2 / 4,
+    -1: 2 / 3,
+    0: 2 / 2,
+    1: 3 / 2,
+    2: 4 / 2,
+    3: 5 / 2,
+    4: 6 / 2,
+    5: 7 / 2,
+    6: 8 / 2,
+}
+
+STAT_NAMES = {
+    "hp": "HP",
+    "atk": "Attack",
+    "defn": "Defense",
+    "satk": "Sp. Atk",
+    "sdef": "Sp. Def",
+    "spd": "Speed",
+    "evasion": "Evasion",
+    "accuracy": "Accuracy",
+    "crit": "Critical Hit",
 }
 
 MOVE_TARGETS = [

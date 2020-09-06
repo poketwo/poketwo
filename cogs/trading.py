@@ -194,7 +194,10 @@ class Trading(commands.Cog):
                 # fuck it, I have better code for this anyway but it's waiting on some other stuff
                 pass
 
-            await execmsg.delete()
+            try:
+                await execmsg.delete()
+            except:
+                pass
 
             del self.bot.trades[a.id]
             del self.bot.trades[b.id]

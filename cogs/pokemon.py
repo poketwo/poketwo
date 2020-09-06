@@ -536,7 +536,10 @@ class Pokemon(commands.Cog):
 
         # Filter pokemon
 
-        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        do_emojis = (
+            ctx.guild is None
+            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        )
 
         fixed_pokemon = False
 
@@ -888,7 +891,6 @@ class Pokemon(commands.Cog):
 
         paginator = pagination.paginators[ctx.author.id]
 
-        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, 0)
 
     @commands.command(aliases=["n", "forward"])
@@ -901,7 +903,6 @@ class Pokemon(commands.Cog):
         pidx = paginator.last_page + 1
         pidx %= paginator.num_pages
 
-        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, pidx)
 
     @commands.command(aliases=["prev", "back", "b"])
@@ -914,7 +915,6 @@ class Pokemon(commands.Cog):
         pidx = paginator.last_page - 1
         pidx %= paginator.num_pages
 
-        await paginator.message.delete()
         await paginator.send(self.bot, ctx, pidx)
 
     @commands.command(aliases=["l"])
@@ -923,8 +923,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous message.")
 
         paginator = pagination.paginators[ctx.author.id]
-
-        self.bot.loop.create_task(paginator.delete())
         await paginator.send(self.bot, ctx, paginator.num_pages - 1)
 
     @commands.command(aliases=["page", "g"])
@@ -933,8 +931,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous message.")
 
         paginator = pagination.paginators[ctx.author.id]
-
-        await paginator.message.delete()
         await paginator.send(self.bot, ctx, page % paginator.num_pages)
 
 

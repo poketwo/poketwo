@@ -65,7 +65,6 @@ class ClusterBot(commands.AutoShardedBot):
             commands.bot_has_permissions(
                 read_messages=True,
                 send_messages=True,
-                manage_messages=True,
                 embed_links=True,
                 attach_files=True,
                 read_message_history=True,
