@@ -223,7 +223,7 @@ class Shop(commands.Cog):
         embed.add_field(name="Rewards Received", value="\n".join(text))
 
         await self.db.update_member(ctx.author, update)
-        if len(pokemon) > 0:
+        if len(added_pokemon) > 0:
             await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
         await ctx.send(embed=embed)
 

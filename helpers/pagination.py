@@ -1,5 +1,6 @@
 import asyncio
 
+import discord
 from discord.ext import commands
 
 paginators = {}
@@ -34,6 +35,9 @@ class Paginator:
         paginators[self.author.id] = self
 
         embed = await self.get_page(pidx, clear)
+
+        if not isinstance(embed, discord.Embed):
+            return
 
         embed.set_footer(
             text=embed.footer.text + "\nUse p!n and p!b to navigate between pages."
