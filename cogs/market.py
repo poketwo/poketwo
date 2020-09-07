@@ -220,6 +220,7 @@ class Market(commands.Cog):
         if listing["user_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
 
+        del listing["pokemon"]["_id"]
         await self.bot.mongo.db.pokemon.insert_one(listing["pokemon"])
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
