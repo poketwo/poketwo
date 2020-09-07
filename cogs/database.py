@@ -45,6 +45,17 @@ class Database(commands.Cog):
         return await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
+                {
+                    "$lookup": {
+                        "from": "pokemon",
+                        "let": {"owner_id": "$_id"},
+                        "pipeline": [
+                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
+                            {"$sort": {"_id": 1}},
+                        ],
+                        "as": "pokemon",
+                    }
+                },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$skip": skip},
@@ -58,6 +69,17 @@ class Database(commands.Cog):
         result = await self.bot.mongo.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
+                {
+                    "$lookup": {
+                        "from": "pokemon",
+                        "let": {"owner_id": "$_id"},
+                        "pipeline": [
+                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
+                            {"$sort": {"_id": 1}},
+                        ],
+                        "as": "pokemon",
+                    }
+                },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$count": "num_matches"},
@@ -114,19 +136,30 @@ class Database(commands.Cog):
         return await self.bot.mongo.db.member.update_one({"_id": member}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
-        if idx == -1:
-            result = await self.bot.mongo.Member.find_one(
-                {"_id": member.id}, projection={"pokemon": {"$slice": -1}},
-            )
-        else:
-            result = await self.bot.mongo.Member.find_one(
-                {"_id": member.id}, projection={"pokemon": {"$slice": [idx, 1]}},
-            )
 
-        if len(result.pokemon) == 0:
+        result = await self.bot.mongo.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {
+                    "$lookup": {
+                        "from": "pokemon",
+                        "let": {"owner_id": "$_id"},
+                        "pipeline": [
+                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
+                            {"$sort": {"_id": 1}},
+                        ],
+                        "as": "pokemon",
+                    }
+                },
+                {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]},}},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
             return None
 
-        return result.pokemon[0]
+        return self.bot.mongo.Pokemon.build_from_mongo(result[0]["pokemon"])
 
     async def fetch_guild(self, guild: discord.Guild):
         guild = await self.bot.mongo.Guild.find_one({"id": guild.id})
