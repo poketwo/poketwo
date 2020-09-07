@@ -48,12 +48,9 @@ class Database(commands.Cog):
                 {
                     "$lookup": {
                         "from": "pokemon",
-                        "let": {"owner_id": "$_id"},
-                        "pipeline": [
-                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
-                            {"$sort": {"_id": 1}},
-                        ],
-                        "as": "pokemon",
+                        "localField": "_id",
+                        "foreignField": "owner_id",
+                        "as": "pokemont",
                     }
                 },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -72,12 +69,9 @@ class Database(commands.Cog):
                 {
                     "$lookup": {
                         "from": "pokemon",
-                        "let": {"owner_id": "$_id"},
-                        "pipeline": [
-                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
-                            {"$sort": {"_id": 1}},
-                        ],
-                        "as": "pokemon",
+                        "localField": "_id",
+                        "foreignField": "owner_id",
+                        "as": "pokemont",
                     }
                 },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -152,12 +146,9 @@ class Database(commands.Cog):
                 {
                     "$lookup": {
                         "from": "pokemon",
-                        "let": {"owner_id": "$_id"},
-                        "pipeline": [
-                            {"$match": {"$expr": {"$eq": ["$owner_id", "$$owner_id"]}}},
-                            {"$sort": {"_id": 1}},
-                        ],
-                        "as": "pokemon",
+                        "localField": "_id",
+                        "foreignField": "owner_id",
+                        "as": "pokemont",
                     }
                 },
                 {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]},}},
