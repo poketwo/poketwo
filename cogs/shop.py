@@ -136,7 +136,7 @@ class Shop(commands.Cog):
             "$inc": {"balance": 0, "redeems": 0},
         }
 
-        pokemon = []
+        added_pokemon = []
 
         embed = self.bot.Embed()
         if do_emojis:
@@ -218,13 +218,13 @@ class Shop(commands.Cog):
                         + (" ✨" if shiny else "")
                     )
 
-                pokemon.append(pokemon)
+                added_pokemon.append(pokemon)
 
         embed.add_field(name="Rewards Received", value="\n".join(text))
 
         await self.db.update_member(ctx.author, update)
         if len(pokemon) > 0:
-            await self.bot.mongo.db.pokemon.insert_many(pokemon)
+            await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
         await ctx.send(embed=embed)
 
     @checks.has_started()
@@ -254,8 +254,8 @@ class Shop(commands.Cog):
 
         num = await self.db.fetch_pokemon_count(ctx.author)
 
-        await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{idx}.held_item": None}},
+        await self.db.update_pokemon(
+            pokemon, {"$set": {f"held_item": None}},
         )
 
         name = str(pokemon.species)
@@ -296,14 +296,9 @@ class Shop(commands.Cog):
         from_idx = from_idx % num
         to_idx = to_idx % num
 
-        await self.db.update_member(
-            ctx.author,
-            {
-                "$set": {
-                    f"pokemon.{from_idx}.held_item": None,
-                    f"pokemon.{to_idx}.held_item": from_pokemon.held_item,
-                }
-            },
+        await self.db.update_pokemon(from_pokemon, {"$set": {f"held_item": None}})
+        await self.db.update_pokemon(
+            to_pokemon, {"$set": {f"held_item": from_pokemon.held_item}}
         )
 
         from_name = str(from_pokemon.species)
@@ -529,10 +524,7 @@ class Shop(commands.Cog):
                 value=f"Your {name} has turned into a {evoto}!",
             )
 
-            await self.db.update_member(
-                ctx.author,
-                {"$set": {f"pokemon.{member.selected}.species_id": evoto.id}},
-            )
+            await self.db.update_pokemon(pokemon, {"$set": {"species_id": evoto.id}})
 
             await ctx.send(embed=embed)
 
@@ -549,10 +541,7 @@ class Shop(commands.Cog):
             )
 
         if item.action == "level":
-            update = {
-                "$set": {f"pokemon.{member.selected}.xp": 0,},
-                "$inc": {f"pokemon.{member.selected}.level": qty},
-            }
+            update = {"$set": {"xp": 0}, "$inc": {"level": qty}}
 
             # TODO this code is repeated too many times.
 
@@ -585,7 +574,7 @@ class Shop(commands.Cog):
                 else:
                     embed.set_thumbnail(url=evo.image_url)
 
-                update["$set"][f"pokemon.{member.selected}.species_id"] = evo.id
+                update["$set"]["species_id"] = evo.id
 
                 if member.silence and pokemon.level < 99:
                     await ctx.author.send(embed=embed)
@@ -605,7 +594,7 @@ class Shop(commands.Cog):
                         name="‎", value="‎",
                     )
 
-            await self.db.update_member(ctx.author, update)
+            await self.db.update_pokemon(pokemon, update)
 
             if member.silence and pokemon.level == 99:
                 await ctx.author.send(embed=embed)
@@ -616,9 +605,8 @@ class Shop(commands.Cog):
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
-            await self.db.update_member(
-                ctx.author,
-                {"$set": {f"pokemon.{member.selected}.nature": constants.NATURES[idx]}},
+            await self.db.update_pokemon(
+                pokemon, {"$set": {"nature": constants.NATURES[idx]}}
             )
 
             await ctx.send(
@@ -626,9 +614,7 @@ class Shop(commands.Cog):
             )
 
         if item.action == "held_item":
-            await self.db.update_member(
-                ctx.author, {"$set": {f"pokemon.{member.selected}.held_item": item.id}},
-            )
+            await self.db.update_pokemon(pokemon, {"$set": {"held_item": item.id}})
 
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
@@ -651,9 +637,8 @@ class Shop(commands.Cog):
                         value=f"Your {name} has turned into a {form}!",
                     )
 
-                    await self.db.update_member(
-                        ctx.author,
-                        {"$set": {f"pokemon.{member.selected}.species_id": form.id}},
+                    await self.db.update_pokemon(
+                        pokemon, {"$set": {f"species_id": form.id}}
                     )
 
                     await ctx.send(embed=embed)

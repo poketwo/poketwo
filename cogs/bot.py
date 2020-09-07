@@ -252,18 +252,6 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.has_started()
-    @commands.command()
-    async def healschema(self, ctx: commands.Context, member: discord.User = None):
-        """Fix database schema if broken."""
-
-        await self.db.update_member(
-            member or ctx.author,
-            {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
-        )
-        await self.db.update_member(member or ctx.author, {"$pull": {f"pokemon": None}})
-        await ctx.send("Trying to heal schema...")
-
 
 def setup(bot):
     bot.add_cog(Bot(bot))

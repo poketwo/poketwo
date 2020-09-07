@@ -161,38 +161,21 @@ class Trading(commands.Cog):
 
                                     embeds.append(evo_embed)
 
-                            await self.db.update_member(
-                                mem, {"$unset": {f"pokemon.{idx}": 1}}
+                            pdict = pokemon.to_mongo()
+                            del pdict["_id"]
+
+                            await self.bot.mongo.db.pokemon.delete_one(
+                                {"_id": pokemon.id}
+                            )
+                            await self.bot.mongo.db.pokemon.insert_one(
+                                {**pdict, "owner_id": omem.id}
                             )
 
-                            await self.db.update_member(
-                                omem,
-                                {
-                                    "$push": {
-                                        "pokemon": {
-                                            "species_id": pokemon.species.id,
-                                            "level": pokemon.level,
-                                            "xp": pokemon.xp,
-                                            "nature": pokemon.nature,
-                                            "iv_hp": pokemon.iv_hp,
-                                            "iv_atk": pokemon.iv_atk,
-                                            "iv_defn": pokemon.iv_defn,
-                                            "iv_satk": pokemon.iv_satk,
-                                            "iv_sdef": pokemon.iv_sdef,
-                                            "iv_spd": pokemon.iv_spd,
-                                            "shiny": pokemon.shiny,
-                                            "held_item": pokemon.held_item,
-                                        }
-                                    },
-                                },
-                            )
-
-                    await self.db.update_member(
-                        mem, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}},
-                    )
+                    await self.db.update_member(mem, {"$inc": {f"selected": -dec}})
             except:
-                # fuck it, I have better code for this anyway but it's waiting on some other stuff
-                pass
+                del self.bot.trades[a.id]
+                del self.bot.trades[b.id]
+                raise
 
             try:
                 await execmsg.delete()
