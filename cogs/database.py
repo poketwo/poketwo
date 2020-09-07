@@ -50,7 +50,7 @@ class Database(commands.Cog):
                         "from": "pokemon",
                         "localField": "_id",
                         "foreignField": "owner_id",
-                        "as": "pokemont",
+                        "as": "pokemon",
                     }
                 },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -71,7 +71,7 @@ class Database(commands.Cog):
                         "from": "pokemon",
                         "localField": "_id",
                         "foreignField": "owner_id",
-                        "as": "pokemont",
+                        "as": "pokemon",
                     }
                 },
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
@@ -148,7 +148,7 @@ class Database(commands.Cog):
                         "from": "pokemon",
                         "localField": "_id",
                         "foreignField": "owner_id",
-                        "as": "pokemont",
+                        "as": "pokemon",
                     }
                 },
                 {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]},}},
