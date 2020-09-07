@@ -1,3 +1,8 @@
+"""
+This is a one-shot script used to migrate all Pokémon from array fields to a global collection.
+6 September 2020
+"""
+
 from pymongo import MongoClient
 import os
 
@@ -13,4 +18,5 @@ result = db["member"].aggregate(
         {"$replaceRoot": {"newRoot": "$pokemon"}},
         {"$out": "pokemon"},
     ],
+    allowDiskUse=True,
 )
