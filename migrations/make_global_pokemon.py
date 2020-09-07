@@ -14,6 +14,3 @@ result = db["member"].aggregate(
         {"$out": "pokemon"},
     ],
 )
-
-for i in result:
-    print(i)
