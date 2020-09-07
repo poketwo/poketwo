@@ -135,6 +135,15 @@ class Database(commands.Cog):
             member = member.id
         return await self.bot.mongo.db.member.update_one({"_id": member}, update)
 
+    async def update_pokemon(self, pokemon, update):
+        if hasattr(pokemon, "id"):
+            pokemon = pokemon.id
+        if hasattr(pokemon, "_id"):
+            pokemon = pokemon._id
+        if isinstance(pokemon, dict) and "_id" in pokemon:
+            pokemon = pokemon["_id"]
+        return await self.bot.mongo.db.pokemon.update_one({"_id": pokemon}, update)
+
     async def fetch_pokemon(self, member: discord.Member, idx: int):
 
         result = await self.bot.mongo.db.member.aggregate(
@@ -156,7 +165,7 @@ class Database(commands.Cog):
             allowDiskUse=True,
         ).to_list(None)
 
-        if len(result) == 0:
+        if len(result) == 0 or "pokemon" not in result[0]:
             return None
 
         return self.bot.mongo.Pokemon.build_from_mongo(result[0]["pokemon"])

@@ -85,18 +85,10 @@ class Spawning(commands.Cog):
                         xp_inc *= 2
                     pokemon.xp += xp_inc
 
-                    await self.db.update_member(
-                        message.author,
-                        {"$inc": {f"pokemon.{member.selected}.xp": xp_inc},},
-                    )
+                    await self.db.update_pokemon(pokemon, {"$inc": {"xp": xp_inc}})
 
                 if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
-                    update = {
-                        "$set": {
-                            f"pokemon.{member.selected}.xp": 0,
-                            f"pokemon.{member.selected}.level": pokemon.level + 1,
-                        }
-                    }
+                    update = {"$set": {f"xp": 0, f"level": pokemon.level + 1}}
                     embed = self.bot.Embed()
                     embed.title = f"Congratulations {message.author.display_name}!"
 
@@ -126,7 +118,7 @@ class Spawning(commands.Cog):
                         else:
                             embed.set_thumbnail(url=evo.image_url)
 
-                        update["$set"][f"pokemon.{member.selected}.species_id"] = evo.id
+                        update["$set"][f"species_id"] = evo.id
 
                     else:
                         c = 0
@@ -143,7 +135,7 @@ class Spawning(commands.Cog):
                                 name="‎", value="‎",
                             )
 
-                    await self.db.update_member(message.author, update)
+                    await self.db.update_pokemon(pokemon, update)
 
                     if silence and pokemon.level == 100:
                         await message.author.send(embed=embed)
@@ -152,9 +144,8 @@ class Spawning(commands.Cog):
                         await message.channel.send(embed=embed)
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
-                    await self.db.update_member(
-                        message.author,
-                        {"$set": {f"pokemon.{member.selected}.xp": pokemon.max_xp}},
+                    await self.db.update_pokemon(
+                        pokemon, {"$set": {"xp": pokemon.max_xp}}
                     )
 
         # Increment guild activity counter

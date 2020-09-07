@@ -557,12 +557,12 @@ class Battling(commands.Cog):
 
             idx = pokemon.moves.index(rep_move.id)
 
-            update["$set"] = {f"pokemon.{member.selected}.moves.{idx}": move.id}
+            update["$set"] = {f"moves.{idx}": move.id}
 
         else:
-            update["$push"] = {f"pokemon.{member.selected}.moves": move.id}
+            update["$push"] = {f"moves": move.id}
 
-        await self.db.update_member(ctx.author, update)
+        await self.db.update_pokemon(pokemon, update)
 
         return await ctx.send("Your pokémon has learned " + move.name + "!")
 

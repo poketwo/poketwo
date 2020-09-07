@@ -32,8 +32,8 @@ class Pokemon(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
 
-        await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{member.selected}.nickname": nickname}},
+        await self.db.update_pokemon(
+            pokemon, {"$set": {f"nickname": nickname}},
         )
 
         if nickname == None:
@@ -54,24 +54,32 @@ class Pokemon(commands.Cog):
         if len(args) == 0:
             args.append(await converters.Pokemon().convert(ctx, ""))
 
-        for pokemon, idx in args:
-            if pokemon is None:
-                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
-                continue
+        messages = []
 
-            await self.db.update_member(
-                ctx.author, {"$set": {f"pokemon.{idx}.favorite": not pokemon.favorite}},
-            )
+        async with ctx.typing():
 
-            name = str(pokemon.species)
+            for pokemon, idx in args:
+                if pokemon is None:
+                    await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
+                    continue
 
-            if pokemon.nickname is not None:
-                name += f' "{pokemon.nickname}"'
+                await self.db.update_pokemon(
+                    pokemon, {"$set": {f"favorite": not pokemon.favorite}},
+                )
 
-            if pokemon.favorite:
-                await ctx.send(f"Unfavorited your level {pokemon.level} {name}.")
-            else:
-                await ctx.send(f"Favorited your level {pokemon.level} {name}.")
+                name = str(pokemon.species)
+
+                if pokemon.nickname is not None:
+                    name += f' "{pokemon.nickname}"'
+
+                if pokemon.favorite:
+                    messages.append(f"Unfavorited your level {pokemon.level} {name}.")
+                else:
+                    messages.append(f"Favorited your level {pokemon.level} {name}.")
+
+            longmsg = "\n".join(messages)
+            for i in range(0, len(longmsg), 2000):
+                await ctx.send(longmsg[i : i + 2000])
 
     @checks.has_started()
     @commands.command(aliases=["i"], rest_is_raw=True)
@@ -322,7 +330,7 @@ class Pokemon(commands.Cog):
 
         dec = 0
 
-        idxs = set()
+        ids = set()
         mons = list()
 
         for pokemon, idx in args:
@@ -333,7 +341,7 @@ class Pokemon(commands.Cog):
 
             # can't release selected/fav
 
-            if idx in idxs:
+            if pokemon.id in ids:
                 continue
 
             if member.selected == idx:
@@ -344,7 +352,7 @@ class Pokemon(commands.Cog):
                 await ctx.send(f"{idx + 1}: You can't release favorited pokémon!")
                 continue
 
-            idxs.add(idx)
+            ids.add(pokemon.id)
             mons.append((pokemon, idx))
 
             if (idx % num) < member.selected:
@@ -384,17 +392,8 @@ class Pokemon(commands.Cog):
 
         # confirmed, release
 
-        unsets = {f"pokemon.{idx}": 1 for idx in idxs}
-
-        # mongo is bad so we have to do two steps here
-
-        await self.db.update_member(ctx.author, {"$unset": unsets})
-        await self.db.update_member(
-            ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
-        )
-        await self.db.update_member(
-            ctx.author, {"$pull": {"pokemon": None}, "$inc": {f"selected": -dec}}
-        )
+        await self.bot.mongo.db.pokemon.delete_many({"_id": {"$in": list(ids)}})
+        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
 
         await ctx.send(f"You released {len(mons)} pokémon.")
 
@@ -482,12 +481,11 @@ class Pokemon(commands.Cog):
 
         dec = len([x for x in pokemon if x["idx"] < member.selected])
 
-        pokemon = {f'pokemon.{x["idx"]}': 1 for x in pokemon}
-
-        await self.db.update_member(ctx.author, {"$unset": pokemon})
-        await self.db.update_member(
-            ctx.author, {"$inc": {f"selected": -dec}, "$pull": {"pokemon": None}}
+        print([x["pokemon"]["_id"] for x in pokemon])
+        await self.bot.mongo.db.pokemon.delete_many(
+            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}
         )
+        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
 
         await ctx.send(f"You have released {num} pokémon.")
 
@@ -543,24 +541,8 @@ class Pokemon(commands.Cog):
 
         fixed_pokemon = False
 
-        async def fix_pokemon():
-            # TODO This is janky way of removing bad database entries, I should fix this
-
-            nonlocal fixed_pokemon
-
-            if fixed_pokemon:
-                return
-
-            await self.db.update_member(
-                ctx.author, {"$pull": {f"pokemon": {"species_id": {"$exists": False}}}},
-            )
-            await self.db.update_member(ctx.author, {"$pull": {f"pokemon": None}})
-
-            fixed_pokemon = True
-
         def nick(p):
             if p.species is None:
-                self.bot.loop.create_task(fix_pokemon())
                 return None
 
             name = str(p.species)
@@ -858,8 +840,8 @@ class Pokemon(commands.Cog):
         else:
             embed.set_thumbnail(url=evo.image_url)
 
-        await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{idx}.species_id": evo.id}},
+        await self.db.update_pokemon(
+            pokemon, {"$set": {f"species_id": evo.id}},
         )
 
         await ctx.send(embed=embed)
@@ -878,8 +860,8 @@ class Pokemon(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        await self.db.update_member(
-            ctx.author, {"$set": {f"pokemon.{idx}.species_id": fr.id}},
+        await self.db.update_pokemon(
+            pokemon, {"$set": {f"species_id": fr.id}},
         )
 
         await ctx.send("Successfully switched back to normal form.")
