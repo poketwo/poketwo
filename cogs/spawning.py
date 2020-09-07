@@ -322,27 +322,24 @@ class Spawning(commands.Cog):
         if shiny is None:
             shiny = member.determine_shiny(species)
 
-        await self.db.update_member(
-            ctx.author,
+        await self.bot.mongo.db.pokemon.insert_one(
             {
-                "$inc": {"shinies_caught": 1 if shiny else 0},
-                "$push": {
-                    "pokemon": {
-                        "species_id": species.id,
-                        "level": level,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                        "shiny": shiny,
-                    }
-                },
-            },
+                "owner_id": ctx.author.id,
+                "species_id": species.id,
+                "level": level,
+                "xp": 0,
+                "nature": mongo.random_nature(),
+                "iv_hp": mongo.random_iv(),
+                "iv_atk": mongo.random_iv(),
+                "iv_defn": mongo.random_iv(),
+                "iv_satk": mongo.random_iv(),
+                "iv_sdef": mongo.random_iv(),
+                "iv_spd": mongo.random_iv(),
+                "shiny": shiny,
+            }
         )
+        if shiny:
+            await self.db.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 

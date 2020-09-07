@@ -109,7 +109,9 @@ class Shop(commands.Cog):
             if type.lower() in ("n", "g", "u", "m"):
                 type = constants.BOXES[type.lower()]
             else:
-                return await ctx.send("Please type `normal`, `great`, `ultra`, or `master`!")
+                return await ctx.send(
+                    "Please type `normal`, `great`, `ultra`, or `master`!"
+                )
 
         member = await self.db.fetch_member_info(ctx.author)
 
@@ -132,8 +134,9 @@ class Shop(commands.Cog):
 
         update = {
             "$inc": {"balance": 0, "redeems": 0},
-            "$push": {"pokemon": {"$each": []}},
         }
+
+        pokemon = []
 
         embed = self.bot.Embed()
         if do_emojis:
@@ -173,7 +176,7 @@ class Shop(commands.Cog):
 
                 if reward["value"] == "iv2":
                     lower_bound = 25
-                
+
                 if reward["value"] == "iv3":
                     lower_bound = 25
                     absolute_lower_bound = 10
@@ -190,6 +193,7 @@ class Shop(commands.Cog):
                 random.shuffle(ivs)
 
                 pokemon = {
+                    "owner_id": ctx.author.id,
                     "species_id": species.id,
                     "level": level,
                     "xp": 0,
@@ -214,11 +218,13 @@ class Shop(commands.Cog):
                         + (" ✨" if shiny else "")
                     )
 
-                update["$push"]["pokemon"]["$each"].append(pokemon)
+                pokemon.append(pokemon)
 
         embed.add_field(name="Rewards Received", value="\n".join(text))
 
         await self.db.update_member(ctx.author, update)
+        if len(pokemon) > 0:
+            await self.bot.mongo.db.pokemon.insert_many(pokemon)
         await ctx.send(embed=embed)
 
     @checks.has_started()
@@ -227,7 +233,7 @@ class Shop(commands.Cog):
         """View your current balance."""
 
         member = await self.db.fetch_member_info(ctx.author)
-        
+
         embed = self.bot.Embed()
         embed.title = f"{ctx.author.display_name}'s balance"
         embed.description = f"{member.balance:,} Pokécoins"
@@ -656,63 +662,21 @@ class Shop(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def redeem(self, ctx: commands.Context, *, species: str = None):
+    async def redeem(self, ctx: commands.Context):
         """Use a redeem to receive a pokémon of your choice."""
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        if species is None:
-            embed = self.bot.Embed()
-            embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by supporting the bot on Patreon or through voting rewards."
+        embed = self.bot.Embed()
+        embed.title = f"Your Redeems: {member.redeems}"
+        embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by supporting the bot on Patreon or through voting rewards."
 
-            embed.add_field(
-                name=f"{ctx.prefix}redeem <pokémon>",
-                value="Use a redeem to receive a pokémon of your choice.",
-            )
-
-            embed.add_field(
-                name=f"{ctx.prefix}redeemspawn <pokémon>",
-                value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
-            )
-
-            return await ctx.send(embed=embed)
-
-        if member.redeems == 0:
-            return await ctx.send("You don't have any redeems!")
-
-        species = self.bot.data.species_by_name(species)
-        if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
-
-        if not species.catchable or "Alolan" in species.name:
-            return await ctx.send("You can't redeem this pokémon!")
-
-        await self.db.update_member(
-            ctx.author,
-            {
-                "$inc": {"redeems": -1},
-                "$push": {
-                    "pokemon": {
-                        "species_id": species.id,
-                        "level": 1,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                        "shiny": member.determine_shiny(species),
-                    }
-                },
-            },
+        embed.add_field(
+            name=f"{ctx.prefix}redeemspawn <pokémon>",
+            value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
         )
 
-        await ctx.send(
-            f"You used a redeem and received a {species}! View it with `{ctx.prefix}info latest`."
-        )
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=["rs"])
@@ -727,11 +691,6 @@ class Shop(commands.Cog):
             embed = self.bot.Embed()
             embed.title = f"Your Redeems: {member.redeems}"
             embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
-
-            embed.add_field(
-                name=f"{ctx.prefix}redeem <pokémon>",
-                value="Use a redeem to receive a pokémon of your choice.",
-            )
 
             embed.add_field(
                 name=f"{ctx.prefix}redeemspawn <pokémon>",

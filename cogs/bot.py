@@ -24,7 +24,7 @@ class Bot(commands.Cog):
         self.post_count.start()
         self.post_dbl.start()
 
-        self.cd = commands.CooldownMapping.from_cooldown(3, 5, commands.BucketType.user)
+        self.cd = commands.CooldownMapping.from_cooldown(5, 5, commands.BucketType.user)
 
     async def bot_check(self, ctx):
         if ctx.invoked_with == "help":
@@ -202,15 +202,13 @@ class Bot(commands.Cog):
                 f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`."
             )
 
-        starter = self.bot.mongo.Pokemon.random(species_id=species.id, level=1, xp=0)
+        starter = self.bot.mongo.Pokemon.random(
+            owner_id=ctx.author.id, species_id=species.id, level=1, xp=0
+        )
 
+        await self.bot.mongo.db.pokemon.insert_one(starter.to_mongo())
         await self.bot.mongo.db.member.insert_one(
-            {
-                "_id": ctx.author.id,
-                "pokemon": [starter.to_mongo()],
-                "selected": 0,
-                "joined_at": datetime.utcnow(),
-            }
+            {"_id": ctx.author.id, "selected": 0, "joined_at": datetime.utcnow()}
         )
 
         await ctx.send(

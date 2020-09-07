@@ -110,7 +110,7 @@ class Market(commands.Cog):
 
             pokemon = [
                 (
-                    self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]),
+                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
                     x["_id"],
                     x["price"],
                 )
@@ -197,14 +197,7 @@ class Market(commands.Cog):
             }
         )
 
-        await self.db.update_member(ctx.author, {"$unset": {f"pokemon.{idx}": 1}})
-        await self.db.update_member(
-            ctx.author,
-            {
-                "$pull": {f"pokemon": None},
-                "$inc": {f"selected": -1 if idx < member.selected else 0},
-            },
-        )
+        await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
         message = f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {idx + 1}** on the market for **{price:,}** Pokécoins."
 
@@ -227,12 +220,10 @@ class Market(commands.Cog):
         if listing["user_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
 
-        await self.db.update_member(
-            ctx.author, {"$push": {f"pokemon": listing["pokemon"]}},
-        )
+        await self.bot.mongo.db.pokemon.insert_one(listing["pokemon"])
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
@@ -259,7 +250,7 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
         # confirm
 
@@ -288,12 +279,14 @@ class Market(commands.Cog):
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
         await self.db.update_member(
-            ctx.author,
-            {
-                "$push": {f"pokemon": listing["pokemon"]},
-                "$inc": {"balance": -listing["price"]},
-            },
+            ctx.author, {"$inc": {"balance": -listing["price"]}}
         )
+
+        del listing["pokemon"]["_id"]
+        await self.bot.mongo.db.pokemon.insert_one(
+            {**listing["pokemon"], "owner_id": ctx.author.id}
+        )
+
         await self.db.update_member(
             listing["user_id"], {"$inc": {"balance": listing["price"]}}
         )
@@ -321,7 +314,7 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
         embed = self.bot.Embed()
         embed.title = f"Level {pokemon.level} {pokemon.species}"

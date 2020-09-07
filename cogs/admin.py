@@ -106,11 +106,15 @@ class Administration(commands.Cog):
             user,
             {
                 "$set": {"last_voted": datetime.utcnow()},
-                "$inc": {"vote_total": amt, "vote_streak": amt, f"gifts_{box_type}": amt},
+                "$inc": {
+                    "vote_total": amt,
+                    "vote_streak": amt,
+                    f"gifts_{box_type}": amt,
+                },
             },
         )
-        
-        if (amt == 1):
+
+        if amt == 1:
             await ctx.send(f"Gave {user.mention} an {box_type} box.")
         else:
             await ctx.send(f"Gave {user.mention} {amt} {box_type} boxes.")
@@ -133,25 +137,21 @@ class Administration(commands.Cog):
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{species}`.")
 
-        await self.db.update_member(
-            user,
+        await self.bot.mongo.db.pokemon.insert_one(
             {
-                "$push": {
-                    "pokemon": {
-                        "species_id": species.id,
-                        "level": 1,
-                        "xp": 0,
-                        "nature": mongo.random_nature(),
-                        "iv_hp": mongo.random_iv(),
-                        "iv_atk": mongo.random_iv(),
-                        "iv_defn": mongo.random_iv(),
-                        "iv_satk": mongo.random_iv(),
-                        "iv_sdef": mongo.random_iv(),
-                        "iv_spd": mongo.random_iv(),
-                        "shiny": shiny,
-                    }
-                },
-            },
+                "owner_id": user.id,
+                "species_id": species.id,
+                "level": 1,
+                "xp": 0,
+                "nature": mongo.random_nature(),
+                "iv_hp": mongo.random_iv(),
+                "iv_atk": mongo.random_iv(),
+                "iv_defn": mongo.random_iv(),
+                "iv_satk": mongo.random_iv(),
+                "iv_sdef": mongo.random_iv(),
+                "iv_spd": mongo.random_iv(),
+                "shiny": shiny,
+            }
         )
 
         await ctx.send(f"Gave {user.mention} a {species}.")
@@ -166,12 +166,12 @@ class Administration(commands.Cog):
         member = await self.db.fetch_member_info(user)
 
         pokemon = []
-        pokedex = {}
 
         for i in range(num):
             spid = random.randint(1, 809)
             pokemon.append(
                 {
+                    "owner_id": user.id,
                     "species_id": spid,
                     "level": 80,
                     "xp": 0,
@@ -185,11 +185,8 @@ class Administration(commands.Cog):
                     "shiny": False,
                 }
             )
-            pokedex["pokedex." + str(spid)] = pokedex.get("pokedex." + str(spid), 0) + 1
 
-        await self.db.update_member(
-            user, {"$push": {"pokemon": {"$each": pokemon}}, "$inc": pokedex},
-        )
+        await self.bot.mongo.db.pokemon.insert_many(pokemon)
 
         await ctx.send(f"Gave {user.mention} {num} pokémon.")
 
