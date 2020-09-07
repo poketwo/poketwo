@@ -1,11 +1,11 @@
 import math
 import os
 import random
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
-from umongo import Document, EmbeddedDocument, Instance, fields
+from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
 
 from . import constants, models
 
@@ -15,9 +15,13 @@ random_nature = lambda: random.choice(constants.NATURES)
 # Instance
 
 
-class PokemonBase:
+class PokemonBase(MixinDocument):
     class Meta:
         strict = False
+        abstract = True
+
+    id = fields.ObjectIdField(attribute="_id")
+    owner_id = fields.IntegerField(required=True)
 
     species_id = fields.IntegerField(required=True)
     level = fields.IntegerField(required=True)
@@ -205,12 +209,11 @@ class PokemonBase:
         return self.get_next_evolution() is not None
 
 
-class Pokemon(Document, PokemonBase):
-    id = fields.ObjectIdField(attribute="_id")
-    owner_id = fields.IntegerField(required=True)
+class Pokemon(PokemonBase, Document):
+    pass
 
 
-class EmbeddedPokemon(EmbeddedDocument, PokemonBase):
+class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
     pass
 
 
@@ -328,6 +331,7 @@ class Database:
         g = globals()
 
         for x in (
+            "PokemonBase",
             "Pokemon",
             "EmbeddedPokemon",
             "Member",
