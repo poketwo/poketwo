@@ -324,7 +324,6 @@ class Battle:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
             t0 = self.trainers[1]  # switched on purpose because API is like that
             t1 = self.trainers[0]
-            print(t0.selected.shiny)
             image_query = {
                 "text0": t0.selected.species.name,
                 "text1": t1.selected.species.name,
