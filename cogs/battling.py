@@ -19,6 +19,9 @@ def setup(bot):
 
 def get_priority(action, selected):
     if action["type"] == "move":
+        s = selected.spd
+        if "Paralysis" in selected.ailments:
+            s *= 0.5
         return (
             action["value"].priority * 1e20
             + selected.spd * constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
@@ -130,7 +133,7 @@ class Trainer:
         # Send embed
 
         embed.description = "\n".join(
-            f"{k} {v['text']} • p!battle move {v['command']}"
+            f"{k} **{v['text']}** • `p!battle move {v['command']}`"
             for k, v in actions.items()
         )
         msg = await self.user.send(embed=embed)
@@ -178,7 +181,9 @@ class Trainer:
         except asyncio.TimeoutError:
             action = {"type": "pass", "text": "nothing. Passing turn..."}
 
-        await self.user.send(f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}")
+        await self.user.send(
+            f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}"
+        )
 
         return action
 
@@ -220,7 +225,16 @@ class Battle:
         embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
         embed.set_footer(text="The next round will begin in 5 seconds.")
 
+        for trainer in self.trainers:
+            if "Burn" in trainer.selected.ailments:
+                trainer.selected.hp -= 1 / 16 * trainer.selected.max_hp
+            if "Poison" in trainer.selected.ailments:
+                trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
+
         for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"]):
+            title = None
+            text = None
+
             if action["type"] == "flee":
                 # battle's over
                 await self.channel.send(
@@ -231,12 +245,8 @@ class Battle:
 
             elif action["type"] == "switch":
                 trainer.selected_idx = action["value"]
-
-                embed.add_field(
-                    name=f"{trainer.user.display_name} switched pokémon!",
-                    value=f"{trainer.selected.species} is now on the field!",
-                    inline=False,
-                )
+                title = (f"{trainer.user.display_name} switched pokémon!",)
+                text = f"{trainer.selected.species} is now on the field!"
 
             elif action["type"] == "move":
 
@@ -288,30 +298,28 @@ class Battle:
                 else:
                     text = "It missed!"
 
-                # check if fainted
+            # check if fainted
 
-                if opponent.selected.hp <= 0:
-                    opponent.selected.hp = 0
+            if opponent.selected.hp <= 0:
+                opponent.selected.hp = 0
+                title = title or "Fainted!"
+                text = (text or "") + f" {opponent.selected.species} has fainted."
 
-                    text += f" {opponent.selected.species} has fainted."
+                try:
+                    opponent.selected_idx = next(
+                        idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0
+                    )
+                except StopIteration:
+                    # battle's over
+                    self.end()
+                    opponent.selected_idx = -1
+                    await self.channel.send(f"{trainer.user.mention} won the battle!")
+                    return
 
-                    try:
-                        opponent.selected_idx = next(
-                            idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0
-                        )
+                embed.add_field(name=title, value=text, inline=False)
+                break
 
-                    except StopIteration:
-                        # battle's over
-                        self.end()
-                        opponent.selected_idx = -1
-                        await self.channel.send(
-                            f"{trainer.user.mention} won the battle!"
-                        )
-                        return
-
-                    embed.add_field(name=title, value=text, inline=False)
-                    break
-
+            if title is not None:
                 embed.add_field(name=title, value=text, inline=False)
 
         await self.channel.send(embed=embed)
@@ -333,7 +341,7 @@ class Battle:
                 "shiny1": 1 if t1.selected.shiny else 0,
                 "ball0": [0 if p.hp == 0 else 1 for p in t0.pokemon],
                 "ball1": [0 if p.hp == 0 else 1 for p in t1.pokemon],
-                "v": 100
+                "v": 100,
             }
             url = f"https://server.poketwo.net/battle/{t0.selected.species.id}/{t1.selected.species.id}?{urlencode(image_query, True)}"
             embed.set_image(url=url)

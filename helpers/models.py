@@ -162,10 +162,9 @@ class Move:
         else:
             success = (
                 random.randrange(100)
-                <= self.accuracy
-                * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy]
-                / constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion]
-                * 4
+                < self.accuracy
+                * (constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1)
+                / (constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion] * 2 + 1)
                 / 9
             )
 
@@ -193,7 +192,8 @@ class Move:
 
         for ailment in pokemon.ailments:
             if ailment == "Paralysis":
-                pass
+                if random.random() < 0.25:
+                    success = False
             elif ailment == "Sleep":
                 if self.id not in (173, 214):
                     success = False
@@ -203,9 +203,6 @@ class Move:
             elif ailment == "Burn":
                 if self.damage_class_id == 2:
                     damage /= 2
-                healing -= 1 / 16 * pokemon.max_hp
-            elif ailment == "Poison":
-                healing -= 1 / 8 * pokemon.max_hp
 
             # elif ailment == "Confusion":
             #     pass
@@ -273,7 +270,7 @@ class Move:
             healing=healing,
             ailment=ailment,
             messages=messages,
-            stat_changes=changes
+            stat_changes=changes,
         )
 
 
