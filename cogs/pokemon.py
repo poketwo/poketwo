@@ -481,7 +481,6 @@ class Pokemon(commands.Cog):
 
         dec = len([x for x in pokemon if x["idx"] < member.selected])
 
-        print([x["pokemon"]["_id"] for x in pokemon])
         await self.bot.mongo.db.pokemon.delete_many(
             {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}
         )

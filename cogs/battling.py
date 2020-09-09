@@ -454,7 +454,6 @@ class Battling(commands.Cog):
         await message.add_reaction("✅")
 
         def check(payload):
-            print(payload)
             return (
                 payload.message_id == message.id
                 and payload.user_id == user.id
