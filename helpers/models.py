@@ -160,13 +160,9 @@ class Move:
             damage = 0
             hits = 0
         else:
-            success = (
-                random.randrange(100)
-                < self.accuracy
-                * (constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1)
-                / (constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion] * 2 + 1)
-                / 9
-            )
+            success = random.randrange(100) < self.accuracy * (
+                constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1
+            ) / (constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion] * 2 + 1)
 
             hits = random.randint(self.meta.min_hits or 1, self.meta.max_hits or 1)
 
