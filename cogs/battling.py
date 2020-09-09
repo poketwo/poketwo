@@ -3,10 +3,12 @@ import math
 import random
 import typing
 from enum import Enum
+from urllib.parse import urlencode
+
 import discord
 from discord.ext import commands
 
-from helpers import checks, constants, converters, pagination, models
+from helpers import checks, constants, converters, models, pagination
 
 from .database import Database
 
@@ -91,7 +93,7 @@ class Trainer:
 
         await self.user.send(embed=embed)
 
-    async def get_action(self):
+    async def get_action(self, message):
         embed = self.bot.Embed()
         embed.title = f"What should {self.selected.species} do?"
 
@@ -102,6 +104,7 @@ class Trainer:
                 "type": "move",
                 "value": self.bot.data.move_by_number(x),
                 "text": f"Use {self.bot.data.move_by_number(x).name}",
+                "command": self.bot.data.move_by_number(x).name,
             }
 
         for idx, pokemon in enumerate(self.pokemon):
@@ -110,14 +113,26 @@ class Trainer:
                     "type": "switch",
                     "value": idx,
                     "text": f"Switch to {pokemon.iv_percentage:.2%} {pokemon.species}",
+                    "command": f"switch {idx + 1}",
                 }
 
-        actions["⏹️"] = {"type": "flee", "text": "Flee from the battle"}
-        actions["⏭️"] = {"type": "pass", "text": "Pass this turn and do nothing."}
+        actions["⏹️"] = {
+            "type": "flee",
+            "text": "Flee from the battle",
+            "command": "flee",
+        }
+        actions["⏭️"] = {
+            "type": "pass",
+            "text": "Pass this turn and do nothing.",
+            "command": "Pass",
+        }
 
         # Send embed
 
-        embed.description = "\n".join(f"{k} {v['text']}" for k, v in actions.items())
+        embed.description = "\n".join(
+            f"{k} {v['text']} • p!battle move {v['command']}"
+            for k, v in actions.items()
+        )
         msg = await self.user.send(embed=embed)
 
         async def add_reactions():
@@ -133,15 +148,37 @@ class Trainer:
                 and react.emoji in actions
             )
 
+        async def listen_for_reactions():
+            try:
+                reaction, _ = await self.bot.wait_for(
+                    "reaction_add", timeout=35, check=check
+                )
+                action = actions[reaction.emoji]
+                self.bot.dispatch("battle_move", self.user, action["command"])
+            except asyncio.TimeoutError:
+                pass
+
+        self.bot.loop.create_task(listen_for_reactions())
+
         try:
-            reaction, _ = await self.bot.wait_for(
-                "reaction_add", timeout=30, check=check
-            )
-            action = actions[reaction.emoji]
+            while True:
+                user, move_name = await self.bot.wait_for(
+                    "battle_move", timeout=35, check=lambda u, m: u.id == self.user.id
+                )
+                try:
+                    action = next(
+                        x
+                        for x in actions.values()
+                        if x["command"].lower() == move_name.lower()
+                    )
+                except StopIteration:
+                    await self.user.send("That's not a valid move here!")
+                else:
+                    break
         except asyncio.TimeoutError:
             action = {"type": "pass", "text": "nothing. Passing turn..."}
 
-        await self.user.send(f"You selected **{action['text']}**.")
+        await self.user.send(f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}")
 
         return action
 
@@ -166,12 +203,12 @@ class Battle:
         self.stage = Stage.END
         del self.manager[self.trainers[0].user]
 
-    async def run_step(self):
+    async def run_step(self, message):
         if self.stage != Stage.PROGRESS:
             return
 
         actions = await asyncio.gather(
-            self.trainers[0].get_action(), self.trainers[1].get_action()
+            self.trainers[0].get_action(message), self.trainers[1].get_action(message)
         )
 
         iterl = list(zip(actions, self.trainers, reversed(self.trainers)))
@@ -235,7 +272,7 @@ class Battle:
                             else:
                                 text += f"\nRaised the user's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
 
-                        elif move.target_id == 10:
+                        else:
                             target = opponent.selected
                             if change.change < 0:
                                 text += f"\nLowered the opponent's **{constants.STAT_NAMES[change.stat]}** by {-change.change} stages."
@@ -285,6 +322,23 @@ class Battle:
 
         if self.stage == Stage.PROGRESS:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
+            t0 = self.trainers[1]  # switched on purpose because API is like that
+            t1 = self.trainers[0]
+            print(t0.selected.shiny)
+            image_query = {
+                "text0": t0.selected.species.name,
+                "text1": t1.selected.species.name,
+                "hp0": t0.selected.hp / t0.selected.max_hp,
+                "hp1": t1.selected.hp / t1.selected.max_hp,
+                "shiny0": 1 if t0.selected.shiny else 0,
+                "shiny1": 1 if t1.selected.shiny else 0,
+                "ball0": [0 if p.hp == 0 else 1 for p in t0.pokemon],
+                "ball1": [0 if p.hp == 0 else 1 for p in t1.pokemon],
+                "v": 100
+            }
+            url = f"https://server.poketwo.net/battle/{t0.selected.species.id}/{t1.selected.species.id}?{urlencode(image_query, True)}"
+            embed.set_image(url=url)
+            print(url)
         else:
             embed.description = "The battle has ended."
 
@@ -299,7 +353,8 @@ class Battle:
                 ),
             )
 
-        await self.channel.send(embed=embed)
+        message = await self.channel.send(embed=embed)
+        return message
 
     async def run_battle(self):
         if self.stage != Stage.SELECT:
@@ -308,8 +363,8 @@ class Battle:
         self.stage = Stage.PROGRESS
         while self.stage != Stage.END:
             await asyncio.sleep(5)
-            await self.send_battle()
-            await self.run_step()
+            message = await self.send_battle()
+            await self.run_step(message)
         await self.send_battle()
 
 
@@ -473,6 +528,17 @@ class Battling(commands.Cog):
             await self.bot.battles[ctx.author].run_battle()
         else:
             await trainer.send_selection()
+
+    @checks.has_started()
+    @battle.command(aliases=["m"])
+    async def move(self, ctx: commands.Context, *, move):
+        """Move in a battle."""
+
+        if ctx.author not in self.bot.battles:
+            return await ctx.send("You're not in a battle!")
+
+        battle = self.bot.battles[ctx.author]
+        self.bot.dispatch("battle_move", ctx.author, move)
 
     @checks.has_started()
     @commands.command(aliases=["mv"], rest_is_raw=True)
