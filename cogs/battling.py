@@ -144,19 +144,19 @@ class Trainer:
 
         self.bot.loop.create_task(add_reactions())
 
-        def check(react: discord.Reaction, u):
+        def check(payload):
             return (
-                react.message.id == msg.id
-                and u.id == self.user.id
-                and react.emoji in actions
+                payload.message_id == msg.id
+                and payload.user_id == self.user.id
+                and payload.emoji.name in actions
             )
 
         async def listen_for_reactions():
             try:
-                reaction, _ = await self.bot.wait_for(
-                    "reaction_add", timeout=35, check=check
+                payload = await self.bot.wait_for(
+                    "raw_reaction_add", timeout=35, check=check
                 )
-                action = actions[reaction.emoji]
+                action = actions[payload.emoji.name]
                 self.bot.dispatch("battle_move", self.user, action["command"])
             except asyncio.TimeoutError:
                 pass
@@ -423,7 +423,7 @@ class Battling(commands.Cog):
     @commands.command()
     async def reloadbattling(self, ctx: commands.Context):
         self.bot.battles = BattleManager()
-        await ctx.send("✅| Reloaded BattleManager")
+        await ctx.send("Reloaded battle manager.")
 
     @checks.has_started()
     @commands.group(aliases=["duel"], invoke_without_command=True)
@@ -453,15 +453,16 @@ class Battling(commands.Cog):
         )
         await message.add_reaction("✅")
 
-        def check(reaction, u):
+        def check(payload):
+            print(payload)
             return (
-                reaction.message.id == message.id
-                and u == user
-                and str(reaction.emoji) == "✅"
+                payload.message_id == message.id
+                and payload.user_id == user.id
+                and payload.emoji.name == "✅"
             )
 
         try:
-            await self.bot.wait_for("reaction_add", timeout=30, check=check)
+            await self.bot.wait_for("raw_reaction_add", timeout=30, check=check)
         except asyncio.TimeoutError:
             await message.add_reaction("❌")
             await ctx.send("The challenge has timed out.")
