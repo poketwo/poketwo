@@ -313,6 +313,9 @@ class Spawning(commands.Cog):
         if shiny is None:
             shiny = member.determine_shiny(species)
 
+        moves = [x.move.id for x in species.moves if level >= x.method.level]
+        random.shuffle(moves)
+
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": ctx.author.id,
@@ -326,6 +329,7 @@ class Spawning(commands.Cog):
                 "iv_satk": mongo.random_iv(),
                 "iv_sdef": mongo.random_iv(),
                 "iv_spd": mongo.random_iv(),
+                "moves": moves[:4],
                 "shiny": shiny,
             }
         )
