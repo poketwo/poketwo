@@ -91,6 +91,7 @@ class Shop(commands.Cog):
         embed.add_field(
             name="Claiming Rewards",
             value=f"Use `{ctx.prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
+            inline=False,
         )
 
         embed.set_footer(
@@ -101,6 +102,7 @@ class Shop(commands.Cog):
             embed.add_field(
                 name="Server Voting",
                 value="You can also vote for our server [here](https://top.gg/servers/716390832034414685) to receive a colored role.",
+                inline=False,
             )
 
         await ctx.send(embed=embed)
