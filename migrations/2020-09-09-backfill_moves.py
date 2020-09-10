@@ -42,7 +42,7 @@ if __name__ == "__main__":
                 .limit(100000)
             )
 
-            requests = p.map(make_request, result)
+            requests = [x for x in p.imap(make_request, result, 100) if x is not None]
 
             print(f"Bulk writing {len(requests)} operations")
             db["pokemon"].bulk_write(requests, ordered=False)
