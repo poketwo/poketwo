@@ -101,7 +101,7 @@ class Shop(commands.Cog):
         if ctx.guild.id == 716390832034414685:
             embed.add_field(
                 name="Server Voting",
-                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685) to receive a colored role.",
+                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
                 inline=False,
             )
 
