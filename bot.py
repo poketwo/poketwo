@@ -10,7 +10,7 @@ from importlib import reload
 
 import discord
 from discord.ext import commands, flags
-from discord.ext.ipc import Server
+from discord.ext.ipc import Server, Client
 
 import cogs
 import helpers
@@ -111,7 +111,25 @@ class ClusterBot(commands.AutoShardedBot):
             except Exception as err:
                 return {"success": False, "error": err}
 
+        @self.ipc.route()
+        async def move_request(data):
+            self.dispatch(
+                "move_request",
+                data.cluster_idx,
+                data.user_id,
+                data.species_id,
+                data.actions,
+            )
+            return {"success": True}
+
+        @self.ipc.route()
+        async def move_decide(data):
+            self.dispatch("move_decide", data.user_id, data.action)
+            return {"success": True}
+
         self.ipc.start()
+
+        self.ipc_client = Client(secret_key=kwargs["secret_key"])
 
         self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
@@ -121,7 +139,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.data = helpers.data.make_data_manager()
         self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
-        # self.enabled = True
+        self.enabled = True
         self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
@@ -186,9 +204,7 @@ class ClusterBot(commands.AutoShardedBot):
         elif isinstance(error, (discord.errors.Forbidden, commands.CommandNotFound)):
             return
         else:
-            self.log.exception(
-                f"Ignoring exception in command {ctx.command}:", file=sys.stderr
-            )
+            self.log.exception(f"Ignoring exception in command {ctx.command}:")
 
     async def close(self, *args, **kwargs):
         self.log.info("shutting down")

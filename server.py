@@ -8,7 +8,7 @@ web_ipc = Client(secret_key=os.getenv("SECRET_KEY"))
 
 
 def req(idx, endpoint, **kwargs):
-    return web_ipc.request(endpoint, 8765 + idx)
+    return web_ipc.request(endpoint, 8765 + idx, **kwargs)
 
 
 @app.route("/stats")
@@ -53,6 +53,14 @@ async def cluster_reload(idx):
 async def cluster_stop(idx):
     try:
         return await req(idx, "stop")
+    except OSError:
+        return "Not Found", 404
+
+
+@app.route("/<int:idx>/move")
+async def cluster_battle_move(idx):
+    try:
+        return await req(idx, "battle_move", action={"test": 1})
     except OSError:
         return "Not Found", 404
 

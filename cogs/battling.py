@@ -1,4 +1,5 @@
 import asyncio
+import json
 import math
 import random
 import typing
@@ -50,62 +51,14 @@ class Trainer:
             return None
         return self.pokemon[self.selected_idx]
 
-    async def send_selection(self):
-        embed = self.bot.Embed()
-        embed.title = "Waiting for opponent..." if self.done else "Choose your party"
-        embed.description = (
-            "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
-            "have chosen their party. "
-        )
-
-        if len(self.pokemon) > 0:
-            embed.add_field(
-                name="Your Party",
-                value="\n".join(
-                    f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})"
-                    for x in self.pokemon
-                ),
-            )
-        else:
-            embed.add_field(name="Your Party", value="None")
-
-        embed.add_field(name="Opponent's Party", value="???\n???\n???")
-
-        if not self.done:
-            embed.set_footer(
-                text=f"Use `p!battle add <pokemon>` in this DM to add a pokémon to the party!"
-            )
-
-        await self.user.send(embed=embed)
-
-    async def send_ready(self, opponent):
-        embed = self.bot.Embed()
-        embed.title = "💥 Ready to battle!"
-        embed.description = "The battle will begin in 5 seconds."
-        embed.add_field(
-            name="Your Party",
-            value="\n".join(
-                f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})"
-                for x in self.pokemon
-            ),
-        )
-        embed.add_field(
-            name="Opponent's Party",
-            value="\n".join(f"{x.species}" for x in opponent.pokemon),
-        )
-
-        await self.user.send(embed=embed)
-
     async def get_action(self, message):
-        embed = self.bot.Embed()
-        embed.title = f"What should {self.selected.species} do?"
 
         actions = {}
 
         for idx, x in enumerate(self.selected.moves):
             actions[constants.NUMBER_REACTIONS[idx + 1]] = {
                 "type": "move",
-                "value": self.bot.data.move_by_number(x),
+                "value": x,
                 "text": f"Use {self.bot.data.move_by_number(x).name}",
                 "command": self.bot.data.move_by_number(x).name,
             }
@@ -130,60 +83,27 @@ class Trainer:
             "command": "Pass",
         }
 
-        # Send embed
+        # Send request
 
-        embed.description = "\n".join(
-            f"{k} **{v['text']}** • `p!battle move {v['command']}`"
-            for k, v in actions.items()
+        await self.bot.ipc_client.request(
+            "move_request",
+            8765,
+            cluster_idx=self.bot.cluster_idx,
+            user_id=self.user.id,
+            species_id=self.selected.species.id,
+            actions=actions,
         )
-        msg = await self.user.send(embed=embed)
 
-        async def add_reactions():
-            for k in actions:
-                await msg.add_reaction(k)
-
-        self.bot.loop.create_task(add_reactions())
-
-        def check(payload):
-            return (
-                payload.message_id == msg.id
-                and payload.user_id == self.user.id
-                and payload.emoji.name in actions
-            )
-
-        async def listen_for_reactions():
-            try:
-                payload = await self.bot.wait_for(
-                    "raw_reaction_add", timeout=35, check=check
-                )
-                action = actions[payload.emoji.name]
-                self.bot.dispatch("battle_move", self.user, action["command"])
-            except asyncio.TimeoutError:
-                pass
-
-        self.bot.loop.create_task(listen_for_reactions())
-
-        try:
-            while True:
-                user, move_name = await self.bot.wait_for(
-                    "battle_move", timeout=35, check=lambda u, m: u.id == self.user.id
-                )
-                try:
-                    action = next(
-                        x
-                        for x in actions.values()
-                        if x["command"].lower() == move_name.lower()
-                    )
-                except StopIteration:
-                    await self.user.send("That's not a valid move here!")
-                else:
-                    break
-        except asyncio.TimeoutError:
-            action = {"type": "pass", "text": "nothing. Passing turn..."}
+        uid, action = await self.bot.wait_for(
+            "move_decide", check=lambda u, a: u == self.user.id
+        )
 
         await self.user.send(
             f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}"
         )
+
+        if action["type"] == "move":
+            action["value"] = self.bot.data.move_by_number(action["value"])
 
         return action
 
@@ -199,10 +119,47 @@ class Battle:
         self.bot = ctx.bot  # type: ClusterBot
         self.manager = manager
 
-    async def send_selection(self):
-        await asyncio.gather(
-            self.trainers[0].send_selection(), self.trainers[1].send_selection(),
+    async def send_selection(self, ctx):
+        embed = self.bot.Embed()
+        embed.title = "Choose your party"
+        embed.description = (
+            "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
+            "have chosen their party. "
         )
+
+        for trainer in self.trainers:
+            if len(trainer.pokemon) > 0:
+                embed.add_field(
+                    name=f"{trainer.user}'s Party",
+                    value="\n".join(
+                        f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})"
+                        for x in trainer.pokemon
+                    ),
+                )
+            else:
+                embed.add_field(name=f"{trainer.user}'s Party", value="None")
+
+        embed.set_footer(
+            text=f"Use `{ctx.prefix}battle add <pokemon>` to add a pokémon to the party!"
+        )
+
+        await ctx.send(embed=embed)
+
+    async def send_ready(self):
+        embed = self.bot.Embed()
+        embed.title = "💥 Ready to battle!"
+        embed.description = "The battle will begin in 5 seconds."
+
+        for trainer in self.trainers:
+            embed.add_field(
+                name=f"{trainer.user}'s Party",
+                value="\n".join(
+                    f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})"
+                    for x in trainer.pokemon
+                ),
+            )
+
+        await self.channel.send(embed=embed)
 
     def end(self):
         self.stage = Stage.END
@@ -419,6 +376,67 @@ class Battling(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.Cog.listener()
+    async def on_move_request(self, cluster_idx, user_id, species_id, actions):
+        user = self.bot.get_user(user_id)
+        species = self.bot.data.species_by_number(species_id)
+
+        embed = self.bot.Embed()
+        embed.title = f"What should {species} do?"
+
+        embed.description = "\n".join(
+            f"{k} **{v['text']}** • `p!battle move {v['command']}`"
+            for k, v in actions.items()
+        )
+        msg = await user.send(embed=embed)
+
+        async def add_reactions():
+            for k in actions:
+                await msg.add_reaction(k)
+
+        self.bot.loop.create_task(add_reactions())
+
+        def check(payload):
+            return (
+                payload.message_id == msg.id
+                and payload.user_id == user.id
+                and payload.emoji.name in actions
+            )
+
+        async def listen_for_reactions():
+            try:
+                payload = await self.bot.wait_for(
+                    "raw_reaction_add", timeout=35, check=check
+                )
+                action = actions[payload.emoji.name]
+                self.bot.dispatch("battle_move", user, action["command"])
+            except asyncio.TimeoutError:
+                pass
+
+        self.bot.loop.create_task(listen_for_reactions())
+
+        try:
+            while True:
+                user, move_name = await self.bot.wait_for(
+                    "battle_move", timeout=35, check=lambda u, m: u.id == user.id
+                )
+                try:
+                    action = next(
+                        x
+                        for x in actions.values()
+                        if x["command"].lower() == move_name.lower()
+                    )
+                except StopIteration:
+                    await user.send("That's not a valid move here!")
+                else:
+                    break
+        except asyncio.TimeoutError:
+            action = {"type": "pass", "text": "nothing. Passing turn..."}
+
+        resp = await self.bot.ipc_client.request(
+            "move_decide", 8765 + cluster_idx, user_id=user.id, action=action
+        )
+
     @commands.is_owner()
     @commands.command()
     async def reloadbattling(self, ctx: commands.Context):
@@ -480,7 +498,7 @@ class Battling(commands.Cog):
             )
 
         battle = self.bot.battles.new(ctx.author, user, ctx)
-        await battle.send_selection()
+        await battle.send_selection(ctx)
 
     @checks.has_started()
     @battle.command(aliases=["a"])
@@ -530,11 +548,10 @@ class Battling(commands.Cog):
             return
 
         if trainer.done and opponent.done:
-            await trainer.send_ready(opponent)
-            await opponent.send_ready(trainer)
+            await self.bot.battles[ctx.author].send_ready()
             await self.bot.battles[ctx.author].run_battle()
         else:
-            await trainer.send_selection()
+            await self.bot.battles[ctx.author].send_selection(ctx)
 
     @checks.has_started()
     @battle.command(aliases=["m"])
