@@ -109,7 +109,7 @@ class Bot(commands.Cog):
     async def post_dbl(self):
         await self.bot.wait_until_ready()
 
-        if self.bot.cluster_name != "Arbok":
+        if self.bot.cluster_idx != 0:
             return
 
         result = await self.get_stats()
@@ -131,7 +131,7 @@ class Bot(commands.Cog):
                     "servers": len(self.bot.guilds),
                     "shards": len(self.bot.shards),
                     "users": sum(x.member_count for x in self.bot.guilds),
-                    "latency": sum(x[1] for x in self.bot.latencies),
+                    "latency": min(sum(x[1] for x in self.bot.latencies), 1),
                 }
             },
             upsert=True,

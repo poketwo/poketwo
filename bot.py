@@ -10,6 +10,7 @@ from importlib import reload
 
 import discord
 from discord.ext import commands, flags
+from discord.ext.ipc import Server
 
 import cogs
 import helpers
@@ -21,9 +22,15 @@ async def determine_prefix(bot, message):
 
 
 class ClusterBot(commands.AutoShardedBot):
+    class Embed(discord.Embed):
+        def __init__(self, **kwargs):
+            color = kwargs.pop("color", 0xF44336)
+            super().__init__(**kwargs, color=color)
+
     def __init__(self, **kwargs):
         self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
+        self.cluster_idx = kwargs.pop("cluster_idx")
         self.env = kwargs.pop("env")
         self.embed_color = 0xF44336
         self.battles = None
@@ -75,30 +82,58 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Run bot
 
+        self.ipc = Server(
+            self, "localhost", 8765 + self.cluster_idx, kwargs["secret_key"]
+        )
+
+        @self.ipc.route()
+        async def stop(data):
+            try:
+                await self.close()
+                return {"success": True}
+            except Exception as err:
+                return {"success": False, "error": err}
+
+        @self.ipc.route()
+        async def stats(data):
+            return {
+                "guild_count": len(self.guilds),
+                "shard_count": len(self.shards),
+                "user_count": sum(x.member_count for x in self.guilds),
+                "latency": sum(x[1] for x in self.latencies),
+            }
+
+        @self.ipc.route()
+        async def reload(data):
+            try:
+                await self.reload_modules()
+                return {"success": True}
+            except Exception as err:
+                return {"success": False, "error": err}
+
+        self.ipc.start()
+
         self.loop.create_task(self.do_startup_tasks())
-        self.loop.create_task(self.pipe_loop())
-
         self.run(kwargs["token"])
-
-    class Embed(discord.Embed):
-        def __init__(self, **kwargs):
-            color = kwargs.pop("color", 0xF44336)
-            super().__init__(**kwargs, color=color)
 
     async def do_startup_tasks(self):
         await self.wait_until_ready()
         self.data = helpers.data.make_data_manager()
         self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
-        self.enabled = True
+        # self.enabled = True
         self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
-        self.pipe.send("ready")
+        self.pipe.send(1)
+        self.pipe.close()
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")
+
+    async def on_ipc_ready(self):
+        self.log.info(f"[Cluster#{self.cluster_name}] IPC ready.")
 
     async def on_message(self, message: discord.Message):
         message.content = (
@@ -151,9 +186,8 @@ class ClusterBot(commands.AutoShardedBot):
         elif isinstance(error, (discord.errors.Forbidden, commands.CommandNotFound)):
             return
         else:
-            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
-            traceback.print_exception(
-                type(error), error, error.__traceback__, file=sys.stderr
+            self.log.exception(
+                f"Ignoring exception in command {ctx.command}:", file=sys.stderr
             )
 
     async def close(self, *args, **kwargs):
@@ -192,94 +226,3 @@ class ClusterBot(commands.AutoShardedBot):
                 self.reload_extension(f"cogs.{i}")
 
         await self.do_startup_tasks()
-
-    def cleanup_code(self, content):
-        """Automatically removes code blocks from the code."""
-        # remove ```py\n```
-        if content.startswith("```") and content.endswith("```"):
-            return "\n".join(content.split("\n")[1:-1])
-
-        # remove `foo`
-        return content.strip("` \n")
-
-    async def exec(self, code):
-        env = {"bot": self, "_": self._last_result}
-
-        env.update(globals())
-
-        body = self.cleanup_code(code)
-        stdout = io.StringIO()
-
-        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
-
-        try:
-            exec(to_compile, env)
-        except Exception as e:
-            return f"{e.__class__.__name__}: {e}"
-
-        func = env["func"]
-        try:
-            with redirect_stdout(stdout):
-                ret = await func()
-        except Exception as e:
-            value = stdout.getvalue()
-            f"{value}{traceback.format_exc()}"
-        else:
-            value = stdout.getvalue()
-
-            if ret is None:
-                if value:
-                    return str(value)
-                else:
-                    return "None"
-            else:
-                self._last_result = ret
-                return f"{value}{ret}"
-
-    async def pipe_loop(self):
-        while True:
-            msg = await self.loop.run_in_executor(None, self.pipe.recv)
-
-            try:
-                data = json.loads(msg)
-                cmd = data.get("command")
-            except json.decoder.JSONDecodeError:
-                cmd = msg
-
-            if cmd == "ping":
-                self.log.info("received command [ping]")
-                ret = "pong"
-
-            elif cmd == "eval":
-                self.log.info(f"received command [eval] ({data['content']})")
-                content = data["content"]
-                data = await self.exec(content)
-                ret = str(data)
-
-            elif cmd == "reloadall":
-                self.log.info("received command [reloadall]")
-                try:
-                    await self.reload_modules()
-                    ret = "reloaded"
-                except Exception as error:
-                    ret = "error reloading"
-                    traceback.print_exception(
-                        type(error), error, error.__traceback__, file=sys.stderr
-                    )
-
-            elif cmd == "disable":
-                self.log.info("received command [disable]")
-                self.enabled = False
-                ret = "disabled"
-
-            elif cmd == "enable":
-                self.log.info("received command [enable]")
-                self.enabled = True
-                await self.reload_modules()
-                ret = "enabled"
-
-            else:
-                ret = "unknown"
-
-            self.log.info(f"responding: {ret}")
-            self.pipe.send(ret)

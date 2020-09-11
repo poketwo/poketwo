@@ -60,7 +60,6 @@ class Launcher:
         log.info("Hello, world!")
         self.cluster_queue = []
         self.clusters = []
-        self.pipes = {}
 
         self.fut = None
         self.loop = loop
@@ -85,29 +84,10 @@ class Launcher:
         # return 16
         return content["shards"]
 
-    async def repl(self):
-        while True:
-            try:
-                cmd = await self.loop.run_in_executor(None, input, "$ ")
-            except EOFError:
-                log.info("not accepting input")
-                return
-
-            for name, pipe in self.pipes.items():
-                pipe.send(cmd)
-                try:
-                    response = await asyncio.wait_for(
-                        self.loop.run_in_executor(None, pipe.recv), timeout=5.0
-                    )
-                    print(f"{name}: {response}")
-                except asyncio.TimeoutError:
-                    print(f"{name}: [timed out]")
-
     def start(self):
         self.fut = asyncio.ensure_future(self.startup(), loop=self.loop)
 
         try:
-            self.loop.run_until_complete(self.repl())
             self.loop.run_forever()
         except KeyboardInterrupt:
             self.loop.run_until_complete(self.shutdown())
@@ -195,11 +175,13 @@ class Cluster:
             shard_ids=shard_ids,
             shard_count=max_shards,
             cluster_name=name,
+            cluster_idx=CLUSTER_NAMES.index(name),
             case_insensitive=True,
             fetch_offline_members=False,
             dbl_token=os.getenv("DBL_TOKEN"),
             database_uri=os.getenv("DATABASE_URI"),
             database_name=os.getenv("DATABASE_NAME"),
+            secret_key=os.getenv("SECRET_KEY"),
         )
         self.name = name
         self.log = logging.getLogger(f"Cluster#{name}")
@@ -240,10 +222,9 @@ class Cluster:
         self.process.start()
         self.log.info(f"Process started with PID {self.process.pid}")
 
-        if await self.launcher.loop.run_in_executor(None, stdout.recv) == "ready":
+        if await self.launcher.loop.run_in_executor(None, stdout.recv) == 1:
+            stdout.close()
             self.log.info("Process started successfully")
-
-        self.launcher.pipes[self.name] = stdout
 
         return True
 
