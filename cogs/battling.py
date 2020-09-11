@@ -305,7 +305,6 @@ class Battle:
             }
             url = f"https://server.poketwo.net/battle/{t0.selected.species.id}/{t1.selected.species.id}?{urlencode(image_query, True)}"
             embed.set_image(url=url)
-            print(url)
         else:
             embed.description = "The battle has ended."
 

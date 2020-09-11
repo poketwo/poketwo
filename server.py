@@ -33,6 +33,28 @@ async def all_reload():
     return resp
 
 
+@app.route("/disableall")
+async def all_disable():
+    resp = {}
+    for idx in range(100):
+        try:
+            resp[idx] = await req(idx, "disable")
+        except OSError:
+            break
+    return resp
+
+
+@app.route("/enableall")
+async def all_enable():
+    resp = {}
+    for idx in range(100):
+        try:
+            resp[idx] = await req(idx, "enable")
+        except OSError:
+            break
+    return resp
+
+
 @app.route("/<int:idx>/stats")
 async def cluster_stats(idx):
     try:
@@ -57,10 +79,18 @@ async def cluster_stop(idx):
         return "Not Found", 404
 
 
-@app.route("/<int:idx>/move")
-async def cluster_battle_move(idx):
+@app.route("/<int:idx>/disable")
+async def cluster_disable(idx):
     try:
-        return await req(idx, "battle_move", action={"test": 1})
+        return await req(idx, "disable")
+    except OSError:
+        return "Not Found", 404
+
+
+@app.route("/<int:idx>/enable")
+async def cluster_enable(idx):
+    try:
+        return await req(idx, "enable")
     except OSError:
         return "Not Found", 404
 

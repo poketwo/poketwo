@@ -112,6 +112,16 @@ class ClusterBot(commands.AutoShardedBot):
                 return {"success": False, "error": err}
 
         @self.ipc.route()
+        async def disable(data):
+            self.enabled = False
+            return {"success": True}
+
+        @self.ipc.route()
+        async def enable(data):
+            self.enabled = True
+            return {"success": True}
+
+        @self.ipc.route()
         async def move_request(data):
             self.dispatch(
                 "move_request",
