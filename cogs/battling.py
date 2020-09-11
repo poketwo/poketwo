@@ -221,6 +221,9 @@ class Battle:
                 if result.success:
                     opponent.selected.hp -= result.damage
                     trainer.selected.hp += result.healing
+                    trainer.selected.hp = min(
+                        trainer.selected.hp, trainer.selected.max_hp
+                    )
 
                     if result.healing > 0:
                         text += f"\n{trainer.selected.species} restored {result.healing} HP."
