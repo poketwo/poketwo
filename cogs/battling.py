@@ -188,7 +188,7 @@ class Battle:
             if "Poison" in trainer.selected.ailments:
                 trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
-        for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"]):
+        for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
             title = None
             text = None
 
