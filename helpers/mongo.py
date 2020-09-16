@@ -252,6 +252,8 @@ class Member(Document):
 
     suspended = fields.BooleanField(default=False)
 
+    premium_balance = fields.IntegerField(default=0)
+
     @property
     def selected_pokemon(self):
         try:

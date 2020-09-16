@@ -137,6 +137,11 @@ class ClusterBot(commands.AutoShardedBot):
             self.dispatch("move_decide", data.user_id, data.action)
             return {"success": True}
 
+        @self.ipc.route()
+        async def eval(data):
+            data = await self.exec(data.code)
+            return {"result": data}
+
         self.ipc.start()
 
         self.ipc_client = Client(secret_key=kwargs["secret_key"])
@@ -252,3 +257,42 @@ class ClusterBot(commands.AutoShardedBot):
                 self.reload_extension(f"cogs.{i}")
 
         await self.do_startup_tasks()
+
+    async def exec(self, code):
+        env = {"bot": self, "_": self._last_result}
+        env.update(globals())
+
+        body = self.cleanup_code(code)
+        stdout = io.StringIO()
+
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return f"{e.__class__.__name__}: {e}"
+
+        func = env["func"]
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            f"{value}{traceback.format_exc()}"
+        else:
+            value = stdout.getvalue()
+
+            if ret is None:
+                if value:
+                    return str(value)
+                else:
+                    return "None"
+            else:
+                self._last_result = ret
+                return f"{value}{ret}"
+
+    def cleanup_code(self, content):
+        if content.startswith("```") and content.endswith("```"):
+            return "\n".join(content.split("\n")[1:-1])
+
+        return content.strip("` \n")
