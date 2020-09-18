@@ -21,6 +21,7 @@ class PokemonBase(MixinDocument):
         abstract = True
 
     id = fields.ObjectIdField(attribute="_id")
+    timestamp = fields.DateTimeField(default=datetime.now)
     owner_id = fields.IntegerField(required=True)
 
     species_id = fields.IntegerField(required=True)
@@ -210,10 +211,14 @@ class PokemonBase(MixinDocument):
 
 
 class Pokemon(PokemonBase, Document):
+    class Meta:
+        strict = False
     pass
 
 
 class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
+    class Meta:
+        strict = False
     pass
 
 
