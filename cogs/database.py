@@ -1,4 +1,5 @@
 import discord
+import pymongo
 from discord.ext import commands
 
 
@@ -53,6 +54,14 @@ class Database(commands.Cog):
                         "as": "pokemon",
                     }
                 },
+                {"$unwind": "$pokemon"},
+                {
+                    "$sort": {
+                        "pokemon.timestamp": 1,
+                        "pokemon._id": 1,
+                    }
+                },
+                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$skip": skip},
@@ -74,6 +83,14 @@ class Database(commands.Cog):
                         "as": "pokemon",
                     }
                 },
+                {"$unwind": "$pokemon"},
+                {
+                    "$sort": {
+                        "pokemon.timestamp": 1,
+                        "pokemon._id": 1,
+                    }
+                },
+                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$count": "num_matches"},
@@ -151,7 +168,15 @@ class Database(commands.Cog):
                         "as": "pokemon",
                     }
                 },
-                {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]},}},
+                {"$unwind": "$pokemon"},
+                {
+                    "$sort": {
+                        "pokemon.timestamp": 1,
+                        "pokemon._id": 1,
+                    }
+                },
+                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
+                {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]}}},
             ],
             allowDiskUse=True,
         ).to_list(None)
