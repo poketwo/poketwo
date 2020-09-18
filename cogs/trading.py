@@ -306,6 +306,9 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
+        if len(args) == 0:
+            return
+
         self.bot.trades[ctx.author.id]["executing"] = True
 
         if len(args) <= 2 and (
@@ -419,6 +422,9 @@ class Trading(commands.Cog):
 
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
+
+        if len(args) == 0:
+            return
 
         trade = self.bot.trades[ctx.author.id]
 

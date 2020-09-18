@@ -10,7 +10,7 @@ from importlib import reload
 
 import discord
 from discord.ext import commands, flags
-from discord.ext.ipc import Server, Client
+from discord.ext.ipc import Client, Server
 
 import cogs
 import helpers
@@ -177,49 +177,6 @@ class ClusterBot(commands.AutoShardedBot):
         )
 
         await self.process_commands(message)
-
-    async def on_command_error(self, ctx: commands.Context, error):
-
-        if isinstance(error, cogs.bot.Blacklisted):
-            self.log.info(f"{ctx.author.id} is blacklisted")
-            return
-        elif isinstance(error, commands.CommandOnCooldown):
-            self.log.info(f"{ctx.author.id} hit cooldown")
-            await ctx.message.add_reaction("⛔")
-        elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("This command cannot be used in private messages.")
-        elif isinstance(error, commands.DisabledCommand):
-            await ctx.send("Sorry. This command is disabled and cannot be used.")
-        elif isinstance(error, commands.BotMissingPermissions):
-            missing = [
-                "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
-                for perm in error.missing_perms
-            ]
-            fmt = "\n".join(missing)
-            message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            botmember = (
-                self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
-            )
-            if ctx.channel.permissions_for(botmember).send_messages:
-                await ctx.send(message)
-            else:
-                await ctx.author.send(message)
-        elif isinstance(
-            error,
-            (
-                commands.CheckFailure,
-                helpers.converters.PokemonConversionError,
-                commands.UserInputError,
-                flags.ArgumentParsingError,
-            ),
-        ):
-            await ctx.send(error)
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send_help(ctx.command)
-        elif isinstance(error, (discord.errors.Forbidden, commands.CommandNotFound)):
-            return
-        else:
-            self.log.exception(f"Ignoring exception in command {ctx.command}:")
 
     async def close(self, *args, **kwargs):
         self.log.info("shutting down")
