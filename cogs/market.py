@@ -227,7 +227,7 @@ class Market(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     **listing["pokemon"],
-                    "timestamp": datetime.now(),
+                    "timestamp": datetime.utcnow(),
                 }
             )
         except pymongo.errors.DuplicateKeyError:
@@ -293,7 +293,7 @@ class Market(commands.Cog):
                 {
                     **listing["pokemon"],
                     "owner_id": ctx.author.id,
-                    "timestamp": datetime.now(),
+                    "timestamp": datetime.utcnow(),
                 }
             )
         except pymongo.errors.DuplicateKeyError:

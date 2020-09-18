@@ -168,7 +168,7 @@ class Trading(commands.Cog):
                                 {
                                     "$set": {
                                         "owner_id": omem.id,
-                                        "timestamp": datetime.now(),
+                                        "timestamp": datetime.utcnow(),
                                     }
                                 },
                             )
