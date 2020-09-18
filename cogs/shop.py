@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import discord
 import humanfriendly
 from discord.ext import commands
+
 from helpers import checks, constants, converters, models, mongo
 
 from .database import Database
@@ -30,7 +31,10 @@ class Shop(commands.Cog):
             days=2
         ):
             await self.db.update_member(
-                ctx.author, {"$set": {"vote_streak": 0},},
+                ctx.author,
+                {
+                    "$set": {"vote_streak": 0},
+                },
             )
             member = await self.db.fetch_member_info(ctx.author)
 
@@ -202,6 +206,7 @@ class Shop(commands.Cog):
 
                 pokemon = {
                     "owner_id": ctx.author.id,
+                    "timestamp": datetime.now(),
                     "species_id": species.id,
                     "level": level,
                     "xp": 0,
@@ -263,7 +268,8 @@ class Shop(commands.Cog):
         num = await self.db.fetch_pokemon_count(ctx.author)
 
         await self.db.update_pokemon(
-            pokemon, {"$set": {f"held_item": None}},
+            pokemon,
+            {"$set": {f"held_item": None}},
         )
 
         name = str(pokemon.species)
@@ -515,7 +521,10 @@ class Shop(commands.Cog):
         # OK to buy, go ahead
 
         await self.db.update_member(
-            ctx.author, {"$inc": {"balance": -item.cost * qty},},
+            ctx.author,
+            {
+                "$inc": {"balance": -item.cost * qty},
+            },
         )
 
         if "evolve" in item.action:
@@ -599,7 +608,8 @@ class Shop(commands.Cog):
 
                 for i in range(-c % 3):
                     embed.add_field(
-                        name="‎", value="‎",
+                        name="‎",
+                        value="‎",
                     )
 
             await self.db.update_pokemon(pokemon, update)
@@ -708,7 +718,8 @@ class Shop(commands.Cog):
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
         await self.db.update_member(
-            ctx.author, {"$inc": {"redeems": -1}},
+            ctx.author,
+            {"$inc": {"redeems": -1}},
         )
 
         try:

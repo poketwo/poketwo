@@ -1,9 +1,10 @@
 import random
-from datetime import datetime
 import typing
-from pymongo.errors import DuplicateKeyError
+from datetime import datetime
+
 import discord
 from discord.ext import commands
+from pymongo.errors import DuplicateKeyError
 
 from helpers import mongo
 
@@ -179,6 +180,7 @@ class Administration(commands.Cog):
             pokemon.append(
                 {
                     "owner_id": user.id,
+                    "timestamp": datetime.now(),
                     "species_id": spid,
                     "level": 80,
                     "xp": 0,
