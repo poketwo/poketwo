@@ -163,18 +163,14 @@ class Trading(commands.Cog):
 
                                     embeds.append(evo_embed)
 
-                            pdict = pokemon.to_mongo()
-                            del pdict["_id"]
-
-                            await self.bot.mongo.db.pokemon.delete_one(
-                                {"_id": pokemon.id}
-                            )
-                            await self.bot.mongo.db.pokemon.insert_one(
+                            await self.db.update_pokemon(
+                                pokemon,
                                 {
-                                    **pdict,
-                                    "owner_id": omem.id,
-                                    "timestamp": datetime.now(),
-                                }
+                                    "$set": {
+                                        "owner_id": omem.id,
+                                        "timestamp": datetime.now(),
+                                    }
+                                },
                             )
 
                     await self.db.update_member(mem, {"$inc": {f"selected": -dec}})

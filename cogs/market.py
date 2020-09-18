@@ -1,3 +1,4 @@
+import pymongo
 import asyncio
 import math
 from datetime import datetime
@@ -222,8 +223,16 @@ class Market(commands.Cog):
         if listing["user_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
 
-        del listing["pokemon"]["_id"]
-        await self.bot.mongo.db.pokemon.insert_one(listing["pokemon"])
+        try:
+            await self.bot.mongo.db.pokemon.insert_one(
+                {
+                    **listing["pokemon"],
+                    "timestamp": datetime.now(),
+                }
+            )
+        except pymongo.errors.DuplicateKeyError:
+            return await ctx.send("Couldn't remove that pokémon.")
+
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
@@ -279,19 +288,20 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
-        await self.bot.mongo.db.listing.delete_one({"_id": id})
+        try:
+            await self.bot.mongo.db.pokemon.insert_one(
+                {
+                    **listing["pokemon"],
+                    "owner_id": ctx.author.id,
+                    "timestamp": datetime.now(),
+                }
+            )
+        except pymongo.errors.DuplicateKeyError:
+            return await ctx.send("Couldn't buy that pokémon.")
 
+        await self.bot.mongo.db.listing.delete_one({"_id": id})
         await self.db.update_member(
             ctx.author, {"$inc": {"balance": -listing["price"]}}
-        )
-
-        del listing["pokemon"]["_id"]
-        await self.bot.mongo.db.pokemon.insert_one(
-            {
-                **listing["pokemon"],
-                "owner_id": ctx.author.id,
-                "timestamp": datetime.now(),
-            }
         )
 
         await self.db.update_member(
