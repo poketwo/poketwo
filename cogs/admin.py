@@ -48,7 +48,8 @@ class Administration(commands.Cog):
         """Suspend a user."""
 
         await self.db.update_member(
-            user, {"$set": {"suspended": True}},
+            user,
+            {"$set": {"suspended": True}},
         )
 
         await ctx.send(f"Suspended {user.mention}.")
@@ -64,7 +65,8 @@ class Administration(commands.Cog):
         """Suspend a user."""
 
         await self.db.update_member(
-            user, {"$set": {"suspended": False}},
+            user,
+            {"$set": {"suspended": False}},
         )
 
         await ctx.send(f"Unsuspended {user.mention}.")
@@ -77,7 +79,8 @@ class Administration(commands.Cog):
         """Give a redeem."""
 
         await self.db.update_member(
-            user, {"$inc": {"redeems": num}},
+            user,
+            {"$inc": {"redeems": num}},
         )
 
         await ctx.send(f"Gave {user.mention} {num} redeems.")
@@ -85,7 +88,10 @@ class Administration(commands.Cog):
     @commands.is_owner()
     @commands.command(aliases=["givebal"])
     async def addbal(
-        self, ctx: commands.Context, user: discord.Member, amt: int,
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        amt: int,
     ):
         """Add to a user's balance."""
 
@@ -140,6 +146,7 @@ class Administration(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": user.id,
+                "timestamp": datetime.now(),
                 "species_id": species.id,
                 "level": 1,
                 "xp": 0,

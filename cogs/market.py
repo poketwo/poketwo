@@ -285,7 +285,11 @@ class Market(commands.Cog):
 
         del listing["pokemon"]["_id"]
         await self.bot.mongo.db.pokemon.insert_one(
-            {**listing["pokemon"], "owner_id": ctx.author.id}
+            {
+                **listing["pokemon"],
+                "owner_id": ctx.author.id,
+                "timestamp": datetime.now(),
+            }
         )
 
         await self.db.update_member(

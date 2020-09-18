@@ -132,7 +132,8 @@ class Spawning(commands.Cog):
 
                         for i in range(-c % 3):
                             embed.add_field(
-                                name="‎", value="‎",
+                                name="‎",
+                                value="‎",
                             )
 
                     await self.db.update_pokemon(pokemon, update)
@@ -195,10 +196,10 @@ class Spawning(commands.Cog):
 
                 await self.spawn_pokemon(self.bot.get_channel(720944005856100452))
 
-                if channel2.id not in self.bot.redeem or datetime.utcnow() - self.bot.redeem[
-                    channel2.id
-                ] > timedelta(
-                    minutes=1
+                if (
+                    channel2.id not in self.bot.redeem
+                    or datetime.utcnow() - self.bot.redeem[channel2.id]
+                    > timedelta(minutes=1)
                 ):
                     await self.spawn_pokemon(channel2)
 
@@ -265,7 +266,8 @@ class Spawning(commands.Cog):
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
         await channel.send(
-            file=image, embed=embed,
+            file=image,
+            embed=embed,
         )
 
     @checks.has_started()
@@ -319,6 +321,7 @@ class Spawning(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": ctx.author.id,
+                "timestamp": datetime.now(),
                 "species_id": species.id,
                 "level": level,
                 "xp": 0,
@@ -374,7 +377,9 @@ class Spawning(commands.Cog):
 
             await self.db.update_member(
                 ctx.author,
-                {"$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},},
+                {
+                    "$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},
+                },
             )
 
         if member.shiny_hunt == species.dex_number:
@@ -439,7 +444,10 @@ class Spawning(commands.Cog):
                 return await ctx.send("Aborted.")
 
         await self.db.update_member(
-            ctx.author, {"$set": {"shiny_hunt": species.id, "shiny_streak": 0},},
+            ctx.author,
+            {
+                "$set": {"shiny_hunt": species.id, "shiny_streak": 0},
+            },
         )
 
         await ctx.send(f"You are now shiny hunting **{species}**.")

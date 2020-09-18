@@ -168,7 +168,11 @@ class Trading(commands.Cog):
                                 {"_id": pokemon.id}
                             )
                             await self.bot.mongo.db.pokemon.insert_one(
-                                {**pdict, "owner_id": omem.id}
+                                {
+                                    **pdict,
+                                    "owner_id": omem.id,
+                                    "timestamp": datetime.now(),
+                                }
                             )
 
                     await self.db.update_member(mem, {"$inc": {f"selected": -dec}})

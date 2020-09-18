@@ -203,7 +203,11 @@ class Bot(commands.Cog):
             )
 
         starter = self.bot.mongo.Pokemon.random(
-            owner_id=ctx.author.id, species_id=species.id, level=1, xp=0
+            owner_id=ctx.author.id,
+            timestamp=datetime.now(),
+            species_id=species.id,
+            level=1,
+            xp=0,
         )
 
         await self.bot.mongo.db.pokemon.insert_one(starter.to_mongo())
