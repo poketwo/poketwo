@@ -27,7 +27,7 @@ class Bot(commands.Cog):
         self.post_count.start()
         self.post_dbl.start()
 
-        self.cd = commands.CooldownMapping.from_cooldown(5, 5, commands.BucketType.user)
+        self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
 
     async def bot_check(self, ctx):
         if ctx.invoked_with == "help":
