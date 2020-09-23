@@ -50,10 +50,10 @@ class Bot(commands.Cog):
     async def on_command_error(self, ctx: commands.Context, error):
 
         if isinstance(error, Blacklisted):
-            self.log.info(f"{ctx.author.id} is blacklisted")
+            self.bot.log.info(f"{ctx.author.id} is blacklisted")
             return
         elif isinstance(error, commands.CommandOnCooldown):
-            self.log.info(f"{ctx.author.id} hit cooldown")
+            self.bot.log.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")

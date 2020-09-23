@@ -254,7 +254,7 @@ class Spawning(commands.Cog):
                     else:
                         raise Exception("Server error")
             except Exception as error:
-                self.log.error("Couldn't fetch spawn image")
+                self.bot.log.error("Couldn't fetch spawn image")
                 traceback.print_exception(
                     type(error), error, error.__traceback__, file=sys.stderr
                 )
