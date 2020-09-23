@@ -1,13 +1,24 @@
+import asyncio
 import hashlib
 import os
-
-from discord.ext.ipc import Client
-from quart import Quart, request
+from datetime import datetime, timedelta
 from functools import wraps
 
-app = Quart(__name__)
+from discord.ext.ipc import Client
+from motor.motor_asyncio import AsyncIOMotorClient
+from quart import Quart, request
 
+loop = asyncio.get_event_loop()
+
+
+app = Quart(__name__)
 web_ipc = Client(secret_key=os.getenv("SECRET_KEY"))
+db = AsyncIOMotorClient(os.getenv("DATABASE_URI"), io_loop=loop)[
+    os.getenv("DATABASE_NAME")
+]
+
+
+# IPC Routes
 
 
 def req(idx, endpoint, **kwargs):
@@ -141,5 +152,41 @@ async def cluster_eval(idx):
         return "Not Found", 404
 
 
+# Webhooks
+
+
+@app.route("/dbl", methods=["POST"])
+async def dbl():
+    json = await request.get_json()
+    res = await db.member.find_one({"_id": int(json["user"])})
+
+    streak = res.get("vote_streak", 0)
+    last_voted = res.get("last_voted", datetime.min)
+
+    if datetime.utcnow() - last_voted > timedelta(days=2):
+        streak = 0
+
+    streak += 1
+
+    if streak >= 40 and streak % 10 == 0:
+        box_type = "master"
+    elif streak >= 14:
+        box_type = "ultra"
+    elif streak >= 7:
+        box_type = "great"
+    else:
+        box_type = "normal"
+
+    await db.member.update_one(
+        {"_id": int(json["user"])},
+        {
+            "$set": {"vote_streak": streak, "last_voted": datetime.utcnow()},
+            "$inc": {"vote_total": 1, f"gifts_{box_type}": 1},
+        },
+    )
+
+    return "Success", 200
+
+
 if __name__ == "__main__":
-    app.run()
+    app.run(loop=loop)
