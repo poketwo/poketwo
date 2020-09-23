@@ -90,8 +90,6 @@ class Database(commands.Cog):
                         "pokemon._id": 1,
                     }
                 },
-                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
-                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -175,8 +173,8 @@ class Database(commands.Cog):
                         "pokemon._id": 1,
                     }
                 },
-                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
-                {"$project": {"pokemon": {"$arrayElemAt": ["$pokemon", idx]}}},
+                {"$skip": idx},
+                {"$limit": 1},
             ],
             allowDiskUse=True,
         ).to_list(None)
