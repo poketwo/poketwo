@@ -42,26 +42,16 @@ class Database(commands.Cog):
     async def fetch_pokemon_list(
         self, member: discord.Member, skip: int, limit: int, aggregations=[]
     ):
-
-        return await self.bot.mongo.db.member.aggregate(
+        return await self.bot.mongo.db.pokemon.aggregate(
             [
-                {"$match": {"_id": member.id}},
-                {
-                    "$lookup": {
-                        "from": "pokemon",
-                        "localField": "_id",
-                        "foreignField": "owner_id",
-                        "as": "pokemon",
-                    }
-                },
-                {"$unwind": "$pokemon"},
+                {"$match": {"owner_id": member.id}},
                 {
                     "$sort": {
-                        "pokemon.timestamp": 1,
-                        "pokemon._id": 1,
+                        "timestamp": 1,
+                        "_id": 1,
                     }
                 },
-                {"$group": {"_id": "$_id", "pokemon": {"$push": "$pokemon"}}},
+                {"$group": {"_id": None, "pokemon": {"$push": "$$ROOT"}}},
                 {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 *aggregations,
                 {"$skip": skip},
@@ -72,22 +62,12 @@ class Database(commands.Cog):
 
     async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
 
-        result = await self.bot.mongo.db.member.aggregate(
+        result = await self.bot.mongo.db.pokemon.aggregate(
             [
-                {"$match": {"_id": member.id}},
+                {"$match": {"owner_id": member.id}},
                 {
-                    "$lookup": {
-                        "from": "pokemon",
-                        "localField": "_id",
-                        "foreignField": "owner_id",
-                        "as": "pokemon",
-                    }
-                },
-                {"$unwind": "$pokemon"},
-                {
-                    "$sort": {
-                        "pokemon.timestamp": 1,
-                        "pokemon._id": 1,
+                    "$project": {
+                        "pokemon": "$$ROOT",
                     }
                 },
                 *aggregations,
@@ -155,24 +135,17 @@ class Database(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
 
-        result = await self.bot.mongo.db.member.aggregate(
+        result = await self.bot.mongo.db.pokemon.aggregate(
             [
-                {"$match": {"_id": member.id}},
-                {
-                    "$lookup": {
-                        "from": "pokemon",
-                        "localField": "_id",
-                        "foreignField": "owner_id",
-                        "as": "pokemon",
-                    }
-                },
-                {"$unwind": "$pokemon"},
+                {"$match": {"owner_id": member.id}},
                 {
                     "$sort": {
-                        "pokemon.timestamp": 1,
-                        "pokemon._id": 1,
+                        "timestamp": 1,
+                        "_id": 1,
                     }
                 },
+                {"$group": {"_id": None, "pokemon": {"$push": "$$ROOT"}}},
+                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
                 {"$skip": idx},
                 {"$limit": 1},
             ],
