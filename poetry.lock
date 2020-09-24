@@ -173,6 +173,7 @@ version = "1.1.2a0"
 reference = "2f5fc749cc6edb0fdef81f885d1f2d536616a458"
 type = "git"
 url = "https://github.com/poketwo/discord-ext-ipc"
+
 [[package]]
 category = "main"
 description = "A Discord.py extension allowing you to pass flags as arguments."
@@ -473,6 +474,7 @@ whoosh = ">=2.5,<2.7"
 reference = "b09929dfb636d2b0337edbfe6761496c7d435965"
 type = "git"
 url = "https://github.com/veekun/pokedex.git"
+
 [[package]]
 category = "main"
 description = "A pure-Python implementation of the HTTP/2 priority tree"
@@ -606,6 +608,17 @@ pymysql = ["pymysql"]
 
 [[package]]
 category = "main"
+description = "Python bindings for the Stripe API"
+name = "stripe"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "2.51.0"
+
+[package.dependencies]
+requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+
+[[package]]
+category = "main"
 description = "Simple sunset and sunrise time calculation python library"
 name = "suntime"
 optional = false
@@ -732,7 +745,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "fca8fec5b839c52181836312d415598d46997b24f3a2261f535bf63474a2461c"
+content-hash = "2c64a8158de9c7ef5e580b764c3979fe2f9e83b091088e7abd77013c6da4d8f9"
 lock-version = "1.1"
 python-versions = "^3.8"
 
@@ -1122,6 +1135,10 @@ sqlalchemy = [
     {file = "SQLAlchemy-1.3.19-cp38-cp38-win32.whl", hash = "sha256:b70bad2f1a5bd3460746c3fb3ab69e4e0eb5f59d977a23f9b66e5bdc74d97b86"},
     {file = "SQLAlchemy-1.3.19-cp38-cp38-win_amd64.whl", hash = "sha256:83469ad15262402b0e0974e612546bc0b05f379b5aa9072ebf66d0f8fef16bea"},
     {file = "SQLAlchemy-1.3.19.tar.gz", hash = "sha256:3bba2e9fbedb0511769780fe1d63007081008c5c2d7d715e91858c94dbaa260e"},
+]
+stripe = [
+    {file = "stripe-2.51.0-py2.py3-none-any.whl", hash = "sha256:67f9887ac80411a43fc0d20680760b10bd06506f03df0b7fade284d97ffa2bcf"},
+    {file = "stripe-2.51.0.tar.gz", hash = "sha256:ed0e58eeb2f154c7165225e64059145c7e0bd0a31607112f494db41e51effe7c"},
 ]
 suntime = [
     {file = "suntime-1.2.5-py3-none-any.whl", hash = "sha256:d957e9ca786ab3cd80bf624b007fed7d07f07c6fa33f3ccc5ec34c9bb0c380c6"},

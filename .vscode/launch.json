@@ -10,6 +10,13 @@
             "request": "launch",
             "program": "${workspaceRoot}/launcher.py",
             "console": "internalConsole"
+        },
+        {
+            "name": "Run Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceRoot}/server.py",
+            "console": "internalConsole"
         }
     ]
 }

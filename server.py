@@ -4,15 +4,29 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 
+import stripe
 from discord.ext.ipc import Client
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, request
 
-loop = asyncio.get_event_loop()
+# Constants
 
+purchase_amounts = {
+    500: 500,
+    1000: 1100,
+    2000: 2420,
+    4000: 5324,
+}
+
+# Setup
+
+stripe.api_key = os.getenv("STRIPE_KEY")
+endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 app = Quart(__name__)
 web_ipc = Client(secret_key=os.getenv("SECRET_KEY"))
+
+loop = asyncio.get_event_loop()
 db = AsyncIOMotorClient(os.getenv("DATABASE_URI"), io_loop=loop)[
     os.getenv("DATABASE_NAME")
 ]
@@ -184,6 +198,32 @@ async def dbl():
             "$inc": {"vote_total": 1, f"gifts_{box_type}": 1},
         },
     )
+
+    return "Success", 200
+
+
+@app.route("/purchase", methods=["POST"])
+async def purchase():
+    try:
+        event = stripe.Webhook.construct_event(
+            await request.get_data(),
+            request.headers["Stripe-Signature"],
+            endpoint_secret,
+        )
+    except ValueError as e:
+        return "Invalid Payload", 400
+    except stripe.error.SignatureVerificationError as e:
+        return "Invalid Signature", 400
+
+    if event.type != "payment_intent.succeeded":
+        return "Invalid Event", 400
+
+    session = event.data.object
+    uid = int(session["metadata"]["id"])
+    amount = session["amount"]
+    shards = purchase_amounts[amount]
+
+    await db.member.update_one({"_id": uid}, {"$inc": {"premium_balance": shards}})
 
     return "Success", 200
 
