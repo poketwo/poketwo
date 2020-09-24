@@ -172,7 +172,13 @@ async def cluster_eval(idx):
 @app.route("/dbl", methods=["POST"])
 async def dbl():
     json = await request.get_json()
-    res = await db.member.find_one({"_id": int(json["user"])})
+    uid = int(json["user"])
+
+    res = await db.member.find_one({"_id": uid})
+
+    if res is None:
+        print(f"VOTING: User {uid} not found")
+        return "Invalid User", 400
 
     streak = res.get("vote_streak", 0)
     last_voted = res.get("last_voted", datetime.min)
@@ -192,7 +198,7 @@ async def dbl():
         box_type = "normal"
 
     await db.member.update_one(
-        {"_id": int(json["user"])},
+        {"_id": uid},
         {
             "$set": {"vote_streak": streak, "last_voted": datetime.utcnow()},
             "$inc": {"vote_total": 1, f"gifts_{box_type}": 1},
