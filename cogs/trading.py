@@ -136,6 +136,13 @@ class Trading(commands.Cog):
                             if idx < member.selected:
                                 dec += 1
 
+                            update = {
+                                "$set": {
+                                    "owner_id": omem.id,
+                                    "timestamp": datetime.utcnow(),
+                                }
+                            }
+
                             if (
                                 pokemon.species.trade_evolution
                             ) and pokemon.held_item != 13001:
@@ -159,18 +166,13 @@ class Trading(commands.Cog):
                                         value=f"The {name} has turned into a {evo.target}!",
                                     )
 
-                                    pokemon.species_id = evo.target.id
+                                    update["$set"]["species_id"] = evo.target.id
 
                                     embeds.append(evo_embed)
 
                             await self.db.update_pokemon(
                                 pokemon,
-                                {
-                                    "$set": {
-                                        "owner_id": omem.id,
-                                        "timestamp": datetime.utcnow(),
-                                    }
-                                },
+                                update,
                             )
 
                     await self.db.update_member(mem, {"$inc": {f"selected": -dec}})
