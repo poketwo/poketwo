@@ -8,17 +8,17 @@ import sys
 from multiprocessing import Pool
 
 import bson
+import config
 from pymongo import MongoClient, UpdateOne
 
 sys.path.append(os.getcwd())
 
 import helpers
 
-
 data = helpers.data.make_data_manager()
 
-client = MongoClient(os.getenv("DATABASE_URI"))
-db = client[os.getenv("DATABASE_NAME")]
+client = MongoClient(config.DATABASE_URI)
+db = client[config.DATABASE_NAME]
 
 
 def make_request(i):

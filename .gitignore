@@ -1,3 +1,4 @@
+config.py
 .env
 **/.DS_Store
 logs/

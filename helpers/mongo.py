@@ -213,12 +213,14 @@ class PokemonBase(MixinDocument):
 class Pokemon(PokemonBase, Document):
     class Meta:
         strict = False
+
     pass
 
 
 class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
     class Meta:
         strict = False
+
     pass
 
 
@@ -329,9 +331,6 @@ class Blacklist(Document):
 
 class Database:
     def __init__(self, bot, host, dbname):
-        database_uri = os.getenv("DATABASE_URI")
-        database_name = os.getenv("DATABASE_NAME")
-
         self.db = AsyncIOMotorClient(host, io_loop=bot.loop)[dbname]
         instance = Instance(self.db)
 

@@ -9,6 +9,8 @@ from discord.ext.ipc import Client
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, request
 
+import config
+
 # Constants
 
 purchase_amounts = {
@@ -20,16 +22,14 @@ purchase_amounts = {
 
 # Setup
 
-stripe.api_key = os.getenv("STRIPE_KEY")
-endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+stripe.api_key = config.STRIPE_KEY
+endpoint_secret = config.STRIPE_WEBHOOK_SECRET
 
 app = Quart(__name__)
-web_ipc = Client(secret_key=os.getenv("SECRET_KEY"))
+web_ipc = Client(secret_key=config.SECRET_KEY)
 
 loop = asyncio.get_event_loop()
-db = AsyncIOMotorClient(os.getenv("DATABASE_URI"), io_loop=loop)[
-    os.getenv("DATABASE_NAME")
-]
+db = AsyncIOMotorClient(config.DATABASE_URI, io_loop=loop)[config.DATABASE_NAME]
 
 
 # IPC Routes
@@ -44,7 +44,7 @@ def login_required(func):
     async def pred():
         key = request.args.get("key", "")
         hashed = hashlib.sha224(key.encode("utf-8")).hexdigest()
-        if hashed != os.getenv("LOGIN_KEY"):
+        if hashed != config.LOGIN_KEY:
             return "Unauthorized", 401
         return await func()
 

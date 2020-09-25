@@ -8,9 +8,10 @@ import time
 
 import requests
 
+import config
 from bot import ClusterBot
 
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = config.BOT_TOKEN
 
 
 log = logging.getLogger("Cluster#Launcher")
@@ -171,17 +172,17 @@ class Cluster:
         self.process = None
         self.kwargs = dict(
             token=TOKEN,
-            env=os.getenv("ENV"),
+            env=config.ENV,
             shard_ids=shard_ids,
             shard_count=max_shards,
             cluster_name=name,
             cluster_idx=CLUSTER_NAMES.index(name),
             case_insensitive=True,
             fetch_offline_members=False,
-            dbl_token=os.getenv("DBL_TOKEN"),
-            database_uri=os.getenv("DATABASE_URI"),
-            database_name=os.getenv("DATABASE_NAME"),
-            secret_key=os.getenv("SECRET_KEY"),
+            dbl_token=config.DBL_TOKEN,
+            database_uri=config.DATABASE_URI,
+            database_name=config.DATABASE_NAME,
+            secret_key=config.SECRET_KEY,
         )
         self.name = name
         self.log = logging.getLogger(f"Cluster#{name}")
