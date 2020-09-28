@@ -23,23 +23,35 @@ class Configuration(commands.Cog):
 
     @commands.guild_only()
     @commands.command(aliases=["config", "serverconfig"])
-    async def configuration(self, ctx: commands.Context):
+    async def configuration(self, ctx: commands.Context, arg = "basic"):
         guild = await self.db.fetch_guild(ctx.guild)
+        prefix = guild.prefix if guild.prefix is not None else "p!"
         channels = [ctx.guild.get_channel(channel_id) for channel_id in guild.channels]
+
+        if arg == "help":
+            prefix_command = f"\n`{prefix}prefix <new prefix>`"
+            silence_command = f"\n`{prefix}serversilence`"
+            location_command = f"\n`{prefix}location <location>`"
+            redirect_command = f"\n`{prefix}redirect <channel 1> <channel 2> ...`"
+        else:
+            prefix_command = silence_command = location_command = redirect_command = ""
 
         embed = self.bot.Embed()
         embed.title = "Server Configuration"
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
-        embed.add_field(name="Prefix", value=f"`{guild.prefix}`", inline=True)
+        embed.add_field(name=f"Prefix {prefix_command}", value=f"`{prefix}`", inline=True)
+
         embed.add_field(
-            name="Display level-up messages?",
+            name=f"Display level-up messages? {silence_command}",
             value=(("Yes", "No")[guild.silence]),
             inline=True,
         )
-        embed.add_field(name="Location", value=guild.loc, inline=False)
+
+        embed.add_field(name=f"Location {location_command}", value=guild.loc, inline=False)
+
         embed.add_field(
-            name="Spawning Channels",
+            name=f"Spawning Channels {redirect_command}",
             value="\n".join(map(lambda channel: channel.mention, channels)),
             inline=False,
         )
