@@ -45,7 +45,7 @@ class Spawning(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(seconds=20)
     async def spawn_incense(self):
         channels = self.bot.mongo.db.channel.find(
             {"incense_expires": {"$gt": datetime.utcnow()}}

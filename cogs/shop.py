@@ -25,9 +25,18 @@ class Shop(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @property
+    def month_number(self):
+        now = datetime.utcnow()
+        return str(now.year * 12 + now.month)
+
     @commands.command()
     @checks.is_admin()
     async def stopincense(self, ctx: commands.Context):
+        channel = await self.db.fetch_channel(ctx.channel)
+        if not channel.incense_active:
+            return await ctx.send("There is no active incense in this channel!")
+
         message = await ctx.send(
             "Are you sure you want to cancel the incense? You can't undo this!"
         )
@@ -419,6 +428,9 @@ class Shop(commands.Cog):
                     if item.action in ("level", "shard", "redeem"):
                         value += " each"
 
+                if item.action == "redeem":
+                    name += f" [{20 - member.redeems_purchased.get(self.month_number, 0)} left this month]"
+
                 embed.add_field(name=name, value=value, inline=item.inline)
 
             if items[-1].inline:
@@ -595,6 +607,9 @@ class Shop(commands.Cog):
             await ctx.send(f"You purchased {qty:,} shards!")
 
         elif item.action == "redeem":
+            if member.redeems_purchased.get(self.month_number, 0) + qty > 20:
+                return await ctx.send("Sorry, you can't purchase that many redeems.")
+
             await ctx.send(f"You purchased {qty} redeems!")
 
         elif item.action == "shiny_charm":
@@ -608,6 +623,14 @@ class Shop(commands.Cog):
             )
 
         elif item.action == "incense":
+
+            permissions = ctx.channel.permissions_for(ctx.author)
+
+            if not permissions.administrator:
+                return await ctx.send(
+                    "You must have administrator permissions in order to do this!"
+                )
+
             channel = await self.db.fetch_channel(ctx.channel)
             if channel.incense_active:
                 return await ctx.send(
@@ -647,7 +670,15 @@ class Shop(commands.Cog):
             await self.db.update_member(ctx.author, {"$inc": {"premium_balance": qty}})
 
         if item.action == "redeem":
-            await self.db.update_member(ctx.author, {"$inc": {"redeems": qty}})
+            await self.db.update_member(
+                ctx.author,
+                {
+                    "$inc": {
+                        "redeems": qty,
+                        f"redeems_purchased.{self.month_number}": qty,
+                    }
+                },
+            )
 
         if item.action == "shiny_charm":
             await self.db.update_member(

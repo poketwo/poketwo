@@ -55,6 +55,12 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             self.bot.log.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("⛔")
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            name = error.per.name
+            suffix = "per %s" % name if error.per.name != "default" else "globally"
+            plural = "%s times %s" if error.number > 1 else "%s time %s"
+            fmt = plural % (error.number, suffix)
+            await ctx.send(f"This command can only be used {fmt} at the same time.")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.DisabledCommand):

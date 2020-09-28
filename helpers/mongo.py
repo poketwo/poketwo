@@ -259,8 +259,11 @@ class Member(Document):
     invites = fields.IntegerField(default=0)
 
     suspended = fields.BooleanField(default=False)
-
     premium_balance = fields.IntegerField(default=0)
+
+    redeems_purchased = fields.DictField(
+        fields.IntegerField(), fields.IntegerField(), default=dict
+    )
 
     @property
     def selected_pokemon(self):
