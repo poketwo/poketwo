@@ -73,7 +73,7 @@ class Bot(commands.Cog):
             fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
             botmember = (
-                self.user if ctx.guild is None else ctx.guild.get_member(self.user.id)
+                self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
