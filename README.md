@@ -1,7 +1,7 @@
 # Pokétwo
 
 [![Discord](https://img.shields.io/discord/716390832034414685?logo=discord&style=for-the-badge)](https://discord.gg/QyEWy4C)
-![Python](https://img.shields.io/badge/Python-3.7-red?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.8-red?style=for-the-badge)
 ![License](https://img.shields.io/github/license/oliver-ni/poketwo?style=for-the-badge)
 
 A Pokémon-oriented Discord bot that lets you collect pokémon. Catch pokémon in the wild, level your pokémon, compete with your friends, and more.
