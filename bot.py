@@ -138,6 +138,12 @@ class ClusterBot(commands.AutoShardedBot):
             return {"success": True}
 
         @self.ipc.route()
+        async def send_dm(data):
+            user = await self.fetch_user(data.user)
+            await user.send(data.message)
+            return {"success": True}
+
+        @self.ipc.route()
         async def eval(data):
             data = await self.exec(data.code)
             return {"result": data}

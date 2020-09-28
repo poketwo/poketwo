@@ -45,7 +45,7 @@ def enabled(bot):
 
         if not bot.enabled:
             raise ShuttingDown(
-                "The bot's currently disabled. It may be refresing for some quick updates, or down for another reason. Try again later and check the #status channel in the official server for more details."
+                "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. Try again later and check the #status channel in the official server for more details."
             )
 
         return True

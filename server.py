@@ -41,12 +41,12 @@ def req(idx, endpoint, **kwargs):
 
 def login_required(func):
     @wraps(func)
-    async def pred():
+    async def pred(*args, **kwargs):
         key = request.args.get("key", "")
         hashed = hashlib.sha224(key.encode("utf-8")).hexdigest()
         if hashed != config.LOGIN_KEY:
             return "Unauthorized", 401
-        return await func()
+        return await func(*args, **kwargs)
 
     return pred
 
@@ -162,6 +162,16 @@ async def cluster_eval(idx):
     code = request.args.get("code")
     try:
         return await req(idx, "eval", code=code)
+    except OSError:
+        return "Not Found", 404
+
+
+@app.route("/dm/<int:user>")
+@login_required
+async def send_dm(user):
+    message = request.args.get("message")
+    try:
+        return await req(0, "send_dm", user=user, message=message)
     except OSError:
         return "Not Found", 404
 
