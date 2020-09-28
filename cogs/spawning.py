@@ -318,7 +318,7 @@ class Spawning(commands.Cog):
 
         # Correct guess, add to database
 
-        if ctx.channel.id == 720944005856100452:
+        if ctx.channel.id == 759559123657293835:
             if ctx.author.id in users:
                 return await ctx.send("You have already caught this pokémon!")
 
