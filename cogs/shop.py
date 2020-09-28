@@ -25,6 +25,37 @@ class Shop(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.command()
+    @checks.is_admin()
+    async def stopincense(self, ctx: commands.Context):
+        message = await ctx.send(
+            "Are you sure you want to cancel the incense? You can't undo this!"
+        )
+        self.bot.loop.create_task(add_reactions(message, "✅", "❌"))
+        try:
+            r, u = await self.bot.wait_for(
+                "reaction_add",
+                check=lambda r, u: u == ctx.author
+                and r.message.id == message.id
+                and r.emoji in ("✅", "❌"),
+                timeout=60,
+            )
+        except asyncio.TimeoutError:
+            await ctx.send("Hurry up and make up your mind. Aborted.")
+            return
+
+        if r.emoji == "❌":
+            await ctx.send("OK, aborted.")
+            return
+
+        await self.db.update_channel(
+            ctx.channel,
+            {
+                "$set": {"incense_expires": datetime.utcnow()},
+            },
+        )
+        await ctx.send("Incense has been stopped.")
+
     @checks.has_started()
     @commands.command(aliases=["v", "daily", "boxes"])
     async def vote(self, ctx: commands.Context):
@@ -632,9 +663,7 @@ class Shop(commands.Cog):
             await self.db.update_channel(
                 ctx.channel,
                 {
-                    "$set": {
-                        "incense_expires": datetime.utcnow() + timedelta(hours=1)
-                    },
+                    "$set": {"incense_expires": datetime.utcnow() + timedelta(hours=1)},
                 },
             )
 
