@@ -9,9 +9,10 @@ from datetime import datetime, timedelta
 
 import aiohttp
 import discord
-from discord.ext import commands
-
+import humanfriendly
+from discord.ext import commands, tasks
 from helpers import checks, models, mongo
+
 from .database import Database
 
 
@@ -35,12 +36,24 @@ class Spawning(commands.Cog):
         self.bot.cooldown_guilds = {}
         self.bot.redeem = {}
 
+        self.spawn_incense.start()
+
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
 
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
+
+    @tasks.loop(seconds=15)
+    async def spawn_incense(self):
+        channels = self.bot.mongo.db.channel.find(
+            {"incense_expires": {"$gt": datetime.utcnow()}}
+        )
+        async for result in channels:
+            channel = self.bot.get_channel(result["_id"])
+            if channel is not None:
+                await self.spawn_pokemon(channel, incense=result["incense_expires"])
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -206,7 +219,7 @@ class Spawning(commands.Cog):
             ] > timedelta(minutes=1):
                 await self.spawn_pokemon(channel)
 
-    async def spawn_pokemon(self, channel, species=None, shiny=None):
+    async def spawn_pokemon(self, channel, species=None, shiny=None, incense=None):
         if species is None:
             species = self.bot.data.random_spawn()
 
@@ -260,6 +273,11 @@ class Spawning(commands.Cog):
                     f"data/images/{species.id}.png", filename="pokemon.png"
                 )
                 embed.set_image(url="attachment://pokemon.png")
+
+        if incense:
+            timespan = incense - datetime.utcnow()
+            timespan = humanfriendly.format_timespan(timespan.total_seconds())
+            embed.set_footer(text=f"Incense expires in {timespan}.")
 
         self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
 
@@ -449,6 +467,9 @@ class Spawning(commands.Cog):
         )
 
         await ctx.send(f"You are now shiny hunting **{species}**.")
+
+    def cog_unload(self):
+        self.spawn_incense.cancel()
 
 
 def setup(bot):

@@ -21,7 +21,7 @@ class PokemonBase(MixinDocument):
         abstract = True
 
     id = fields.ObjectIdField(attribute="_id")
-    timestamp = fields.DateTimeField(default=datetime.now)
+    timestamp = fields.DateTimeField(default=datetime.utcnow)
     owner_id = fields.IntegerField(required=True)
 
     species_id = fields.IntegerField(required=True)
@@ -244,6 +244,7 @@ class Member(Document):
     shiny_streak = fields.IntegerField(default=0)
 
     boost_expires = fields.DateTimeField(default=datetime.min)
+    shiny_charm_expires = fields.DateTimeField(default=datetime.min)
 
     last_voted = fields.DateTimeField(default=datetime.min)
     vote_total = fields.IntegerField(default=0)
@@ -273,15 +274,22 @@ class Member(Document):
         return datetime.utcnow() < self.boost_expires
 
     @property
-    def shiny_hunt_chance(self):
+    def shiny_charm_active(self):
+        return datetime.utcnow() < self.shiny_charm_expires
+
+    @property
+    def shiny_hunt_multiplier(self):
         # NOTE math.log is the natural log (log base e)
-        return (1 + math.log(1 + self.shiny_streak / 30)) / 4096
+        return 1 + math.log(1 + self.shiny_streak / 30)
 
     def determine_shiny(self, species):
-        if self.shiny_hunt != species.dex_number:
-            return random.randint(1, 4096) == 1
-        else:
-            return random.random() < self.shiny_hunt_chance
+        chance = 1 / 4096
+        if self.shiny_charm_active:
+            chance *= 1.2
+        if self.shiny_hunt == species.dex_number:
+            chance *= self.shiny_hunt_multiplier
+
+        return random.random() < chance
 
 
 class Listing(Document):
@@ -320,6 +328,15 @@ class Guild(Document):
         )
 
 
+class Channel(Document):
+    id = fields.IntegerField(attribute="_id")
+    incense_expires = fields.DateTimeField(default=datetime.min)
+
+    @property
+    def incense_active(self):
+        return datetime.utcnow() < self.incense_expires
+
+
 class Counter(Document):
     id = fields.StringField(attribute="_id")
     next = fields.IntegerField(default=0)
@@ -343,6 +360,7 @@ class Database:
             "Member",
             "Listing",
             "Guild",
+            "Channel",
             "Counter",
             "Blacklist",
         ):

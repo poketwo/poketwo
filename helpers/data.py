@@ -187,6 +187,7 @@ def get_items(instance):
             action=row["action"],
             inline=(not "separate" in row),
             emote=row.get("emote", None),
+            shard="shard" in row,
             instance=instance,
         )
 

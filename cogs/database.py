@@ -158,15 +158,27 @@ class Database(commands.Cog):
         return self.bot.mongo.Pokemon.build_from_mongo(result[0]["pokemon"])
 
     async def fetch_guild(self, guild: discord.Guild):
-        guild = await self.bot.mongo.Guild.find_one({"id": guild.id})
-        if guild is None:
-            guild = self.bot.mongo.Guild(id=guild.id)
-            await guild.commit()
-        return guild
+        g = await self.bot.mongo.Guild.find_one({"id": guild.id})
+        if g is None:
+            g = self.bot.mongo.Guild(id=guild.id)
+            await g.commit()
+        return g
 
     async def update_guild(self, guild: discord.Guild, update):
         return await self.bot.mongo.db.guild.update_one(
             {"_id": guild.id}, update, upsert=True
+        )
+
+    async def fetch_channel(self, channel: discord.TextChannel):
+        c = await self.bot.mongo.Channel.find_one({"id": channel.id})
+        if c is None:
+            c = self.bot.mongo.Channel(id=channel.id)
+            await c.commit()
+        return c
+
+    async def update_channel(self, channel: discord.TextChannel, update):
+        return await self.bot.mongo.db.channel.update_one(
+            {"_id": channel.id}, update, upsert=True
         )
 
 

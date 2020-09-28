@@ -306,6 +306,10 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    def cog_unload(self):
+        self.post_count.cancel()
+        self.post_dbl.cancel()
+
 
 def setup(bot):
     bot.add_cog(Bot(bot))

@@ -152,9 +152,7 @@ class Move:
     def __str__(self):
         return self.name
 
-    def calculate_turn(
-        self, pokemon, opponent,
-    ):
+    def calculate_turn(self, pokemon, opponent):
         if self.damage_class_id == 1 or self.power is None:
             success = True
             damage = 0
@@ -283,6 +281,7 @@ class Item:
     action: str
     inline: bool
     emote: str = None
+    shard: bool = False
 
     instance: typing.Any = UnregisteredDataManager()
 

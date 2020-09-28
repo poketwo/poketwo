@@ -1,13 +1,18 @@
+import asyncio
 import random
 from datetime import datetime, timedelta
 
 import discord
 import humanfriendly
 from discord.ext import commands
-
 from helpers import checks, constants, converters, models, mongo
 
 from .database import Database
+
+
+async def add_reactions(message, *emojis):
+    for emoji in emojis:
+        await message.add_reaction(emoji)
 
 
 class Shop(commands.Cog):
@@ -249,7 +254,9 @@ class Shop(commands.Cog):
 
         embed = self.bot.Embed()
         embed.title = f"{ctx.author.display_name}'s balance"
-        embed.description = f"{member.balance:,} Pokécoins"
+        embed.add_field(name="Pokécoins", value=f"{member.balance:,}")
+        embed.add_field(name="Shards", value=f"{member.premium_balance:,}")
+        embed.set_thumbnail(url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
     @checks.has_started()
@@ -350,6 +357,7 @@ class Shop(commands.Cog):
             embed.add_field(name="Page 4", value="Held Items", inline=False)
             embed.add_field(name="Page 5", value="Nature Mints", inline=False)
             embed.add_field(name="Page 6", value="Mega Evolutions", inline=False)
+            embed.add_field(name="Page 7", value="Shard Shop", inline=False)
 
         else:
             embed.description = f"We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `{ctx.prefix}buy <item>` to buy an item!"
@@ -362,33 +370,53 @@ class Shop(commands.Cog):
                 emote = ""
                 if do_emojis and item.emote is not None:
                     emote = getattr(self.bot.sprites, item.emote) + " "
+
+                name = f"{emote}{item.name}"
+                if item.action == "level":
+                    name = name[:-1] + "ies"
+                if item.action in ("shard", "redeem"):
+                    name += "s"
+
                 if item.description:
-                    embed.add_field(
-                        name=f"{emote}{item.name} – {item.cost} pc",
-                        value=f"{item.description}",
-                        inline=item.inline,
-                    )
+                    name += f" – {item.cost} {'shards' if item.shard else 'pc'}"
+                    if item.action in ("level", "shard", "redeem"):
+                        name += " each"
+                    value = item.description
+
                 else:
-                    embed.add_field(
-                        name=f"{emote}{item.name}",
-                        value=f"{item.cost} pc",
-                        inline=item.inline,
-                    )
+                    value = f"{item.cost} {'shards' if item.shard else 'pc'}"
+                    if item.action in ("level", "shard", "redeem"):
+                        value += " each"
+
+                embed.add_field(name=name, value=value, inline=item.inline)
 
             if items[-1].inline:
                 for i in range(-len(items) % 3):
                     embed.add_field(name="‎", value="‎")
 
+        footer_text = []
+
         if member.boost_active:
             timespan = member.boost_expires - datetime.utcnow()
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
-            embed.set_footer(
-                text=f"You have an XP Booster active that expires in {timespan}."
+            footer_text.append(
+                f"You have an XP Booster active that expires in {timespan}."
             )
+
+        if member.shiny_charm_active:
+            timespan = member.shiny_charm_expires - datetime.utcnow()
+            timespan = humanfriendly.format_timespan(timespan.total_seconds())
+            footer_text.append(
+                f"You have a shiny charm active that expires in {timespan}."
+            )
+
+        if len(footer_text) > 0:
+            embed.set_footer(text="\n".join(footer_text))
 
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @commands.command()
     async def buy(self, ctx: commands.Context, *args: str):
         """Purchase an item from the shop."""
@@ -408,11 +436,13 @@ class Shop(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
 
-        if qty > 1 and item.action != "level":
+        if qty > 1 and item.action not in ("level", "shard", "redeem"):
             return await ctx.send("You can't buy multiple of this item!")
 
-        if member.balance < item.cost * qty:
-            return await ctx.send("You don't have enough Pokécoins for that!")
+        if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
+            return await ctx.send(
+                f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!"
+            )
 
         # Check to make sure it's purchasable.
 
@@ -506,7 +536,60 @@ class Shop(commands.Cog):
                     "You already have an XP booster active! Please wait for it to expire before purchasing another one."
                 )
 
-            await ctx.send(f"You purchased {item.name}!")
+            await ctx.send(
+                f"You purchased {item.name}! Use `p!shop` to check how much time you have remaining."
+            )
+
+        elif item.action == "shard":
+            message = await ctx.send(
+                f"Are you sure you want to exchange **{item.cost * qty:,}** Pokécoins for **{qty:,}** shards? Shards are non-transferable and non-refundable!"
+            )
+            self.bot.loop.create_task(add_reactions(message, "✅", "❌"))
+            try:
+                r, u = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: u == ctx.author
+                    and r.message.id == message.id
+                    and r.emoji in ("✅", "❌"),
+                    timeout=60,
+                )
+            except asyncio.TimeoutError:
+                await ctx.send("Hurry up and make up your mind. Aborted.")
+                return
+
+            if r.emoji == "❌":
+                await ctx.send("OK, aborted.")
+                return
+
+            await ctx.send(f"You purchased {qty:,} shards!")
+
+        elif item.action == "redeem":
+            await ctx.send(f"You purchased {qty} redeems!")
+
+        elif item.action == "shiny_charm":
+            if member.shiny_charm_active:
+                return await ctx.send(
+                    "You already have a shiny charm active! Please wait for it to expire before purchasing another one."
+                )
+
+            await ctx.send(
+                f"You purchased a {item.name}! Use `p!shop` to check how much time you have remaining."
+            )
+
+        elif item.action == "incense":
+            channel = await self.db.fetch_channel(ctx.channel)
+            if channel.incense_active:
+                return await ctx.send(
+                    "This channel already has an incense active! Please wait for it to end before purchasing another one."
+                )
+
+            await ctx.send(f"You purchased an {item.name}!")
+
+        elif item.shard:
+            await ctx.send(
+                f"You purchased {'an' if item.name[0] in 'aeiou' else 'a'} {item.name}!"
+            )
+
         else:
             name = str(pokemon.species)
 
@@ -523,9 +606,37 @@ class Shop(commands.Cog):
         await self.db.update_member(
             ctx.author,
             {
-                "$inc": {"balance": -item.cost * qty},
+                "$inc": {
+                    "premium_balance" if item.shard else "balance": -item.cost * qty,
+                },
             },
         )
+
+        if item.action == "shard":
+            await self.db.update_member(ctx.author, {"$inc": {"premium_balance": qty}})
+
+        if item.action == "redeem":
+            await self.db.update_member(ctx.author, {"$inc": {"redeems": qty}})
+
+        if item.action == "shiny_charm":
+            await self.db.update_member(
+                ctx.author,
+                {
+                    "$set": {
+                        "shiny_charm_expires": datetime.utcnow() + timedelta(weeks=1)
+                    },
+                },
+            )
+
+        if item.action == "incense":
+            await self.db.update_channel(
+                ctx.channel,
+                {
+                    "$set": {
+                        "incense_expires": datetime.utcnow() + timedelta(hours=1)
+                    },
+                },
+            )
 
         if "evolve" in item.action:
             embed = self.bot.Embed()

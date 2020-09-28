@@ -100,6 +100,19 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
 
     @commands.is_owner()
+    @commands.command(aliases=["giveshard"])
+    async def addshard(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        amt: int,
+    ):
+        """Add to a user's shard balance."""
+
+        await self.db.update_member(user, {"$inc": {"premium_balance": amt}})
+        await ctx.send(f"Gave {user.mention} {amt} shards.")
+
+    @commands.is_owner()
     @commands.command(aliases=["givevote"])
     async def addvote(
         self, ctx: commands.Context, user: discord.Member, box_type: str, amt: int = 1
