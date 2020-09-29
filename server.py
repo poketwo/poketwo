@@ -245,6 +245,16 @@ async def purchase():
 
     await db.member.update_one({"_id": uid}, {"$inc": {"premium_balance": shards}})
 
+    try:
+        await req(
+            0,
+            "send_dm",
+            user=uid,
+            message=f"Thanks for donating! You received **{shards}** shards.",
+        )
+    except OSError:
+        pass
+
     return "Success", 200
 
 
@@ -263,8 +273,6 @@ async def sponsor():
         abort(403, description="Invalid Signature")
 
     data = await request.get_json()
-
-    print(data)
 
     sponsorship = data["sponsorship"]
     gh_id = sponsorship["sponsor"]["id"]
