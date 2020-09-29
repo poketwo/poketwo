@@ -349,6 +349,13 @@ class Blacklist(Document):
     id = fields.IntegerField(attribute="_id")
 
 
+class Sponsor(Document):
+    id = fields.IntegerField(attribute="_id")
+    discord_id = fields.IntegerField(default=None)
+    reward_date = fields.DateTimeField()
+    reward_tier = fields.IntegerField()
+
+
 class Database:
     def __init__(self, bot, host, dbname):
         self.db = AsyncIOMotorClient(host, io_loop=bot.loop)[dbname]
@@ -366,6 +373,7 @@ class Database:
             "Channel",
             "Counter",
             "Blacklist",
+            "Sponsor",
         ):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot

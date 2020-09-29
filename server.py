@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import hmac
 import os
 from datetime import datetime, timedelta
 from functools import wraps
@@ -7,7 +8,7 @@ from functools import wraps
 import stripe
 from discord.ext.ipc import Client
 from motor.motor_asyncio import AsyncIOMotorClient
-from quart import Quart, request
+from quart import Quart, abort, request
 
 import config
 
@@ -23,7 +24,8 @@ purchase_amounts = {
 # Setup
 
 stripe.api_key = config.STRIPE_KEY
-endpoint_secret = config.STRIPE_WEBHOOK_SECRET
+stripe_secret = config.STRIPE_WEBHOOK_SECRET
+github_secret = config.GITHUB_WEBHOOK_SECRET
 
 app = Quart(__name__)
 web_ipc = Client(secret_key=config.SECRET_KEY)
@@ -45,7 +47,7 @@ def login_required(func):
         key = request.args.get("key", "")
         hashed = hashlib.sha224(key.encode("utf-8")).hexdigest()
         if hashed != config.LOGIN_KEY:
-            return "Unauthorized", 401
+            abort(401)
         return await func(*args, **kwargs)
 
     return pred
@@ -117,7 +119,7 @@ async def cluster_stats(idx):
     try:
         return await req(idx, "stats")
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/<int:idx>/reload")
@@ -126,7 +128,7 @@ async def cluster_reload(idx):
     try:
         return await req(idx, "reload")
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/<int:idx>/stop")
@@ -135,7 +137,7 @@ async def cluster_stop(idx):
     try:
         return await req(idx, "stop")
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/<int:idx>/disable")
@@ -144,7 +146,7 @@ async def cluster_disable(idx):
     try:
         return await req(idx, "disable")
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/<int:idx>/enable")
@@ -153,7 +155,7 @@ async def cluster_enable(idx):
     try:
         return await req(idx, "enable")
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/<int:idx>/eval")
@@ -163,7 +165,7 @@ async def cluster_eval(idx):
     try:
         return await req(idx, "eval", code=code)
     except OSError:
-        return "Not Found", 404
+        abort(404)
 
 
 @app.route("/dm/<int:user>")
@@ -188,7 +190,7 @@ async def dbl():
 
     if res is None:
         print(f"VOTING: User {uid} not found")
-        return "Invalid User", 400
+        abort(400, description="Invalid User")
 
     streak = res.get("vote_streak", 0)
     last_voted = res.get("last_voted", datetime.min)
@@ -224,15 +226,15 @@ async def purchase():
         event = stripe.Webhook.construct_event(
             await request.get_data(),
             request.headers["Stripe-Signature"],
-            endpoint_secret,
+            stripe_secret,
         )
     except ValueError as e:
-        return "Invalid Payload", 400
+        abort(400, description="Invalid Payload")
     except stripe.error.SignatureVerificationError as e:
-        return "Invalid Signature", 400
+        abort(400, description="Invalid Signature")
 
     if event.type != "payment_intent.succeeded":
-        return "Invalid Event", 400
+        abort(400, description="Invalid Event")
 
     session = event.data.object
     uid = int(session["metadata"]["id"])
@@ -240,6 +242,51 @@ async def purchase():
     shards = purchase_amounts[amount]
 
     await db.member.update_one({"_id": uid}, {"$inc": {"premium_balance": shards}})
+
+    return "Success", 200
+
+
+def add_month(dt: datetime, months=1):
+    return dt.replace(month=(dt.month + month - 1) % 12 + 1)
+
+
+@app.route("/sponsor", methods=["POST"])
+async def sponsor():
+    digest = hmac.new(github_secret, request.data, digestmod="sha1").hexdigest()
+    given = request.headers.get("X-Hub-Signature")
+
+    if not hmac.compare_digest(digest, given):
+        abort(403, description="Invalid Signature")
+
+    payload = await request.get_data()
+
+    sponsorship = payload["sponsorship"]
+    gh_id = sponsorship["user"]["id"]
+    tier = sponsorship["tier"]["monthly_price_in_dollars"]
+
+    now = datetime.utcnow()
+    nextm = add_month(now)
+
+    if payload["event"] == "created":
+        await db.member.update_one(
+            {"_id": gh_id},
+            {"$set": {"sponsorship_date": nextm, "reward_tier": tier}},
+            upsert=True,
+        )
+
+    elif payload["event"] == "pending_cancellation":
+        await db.member.update_one(
+            {"_id": gh_id},
+            {"$set": {"reward_date": nextm, "reward_tier": None}},
+            upsert=True,
+        )
+
+    elif payload["event"] == "pending_tier_change":
+        await db.member.update_one(
+            {"_id": gh_id},
+            {"$set": {"reward_date": nextm, "reward_tier": tier}},
+            upsert=True,
+        )
 
     return "Success", 200
 
