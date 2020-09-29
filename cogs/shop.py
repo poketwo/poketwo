@@ -908,8 +908,7 @@ class Shop(commands.Cog):
         if not species.catchable or "Alolan" in species.name:
             return await ctx.send("You can't redeem this pokémon!")
 
-        if ctx.channel.id == 720944005856100452:
-            # Patreon channel
+        if ctx.channel.id == 759559123657293835:
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
         await self.db.update_member(
