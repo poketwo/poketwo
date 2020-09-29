@@ -39,6 +39,22 @@ class CustomHelpCommand(commands.HelpCommand):
             )
 
         return embed
+    
+    def make_default_embed(
+        self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty
+    ):
+        embed = self.context.bot.Embed()
+        embed.title = title
+        embed.description = description
+
+        counter = 0
+        for cog in cogs:
+            cog, description, commands = cog
+            description = f"{description or 'No Description'} \n {''.join([f'`{command.qualified_name}` ' for command in commands])}"
+            embed.add_field(name=cog.qualified_name, value=description, inline=False)
+            counter += 1
+
+        return embed
 
     async def send_bot_help(self, mapping):
         ctx = self.context
@@ -65,18 +81,19 @@ class CustomHelpCommand(commands.HelpCommand):
             pages.append((cog, description, commands))
 
         async def get_page(pidx, clear):
-            cog, description, commands = pages[pidx]
+            cogs = pages[min(len(pages)-1, pidx*6): min(len(pages)-1, pidx*6+6)]
 
-            embed = self.make_page_embed(
-                commands,
-                title=(cog and cog.qualified_name or "Other") + " Commands",
-                description=discord.Embed.Empty if cog is None else cog.description,
+            embed = self.make_default_embed(
+                cogs,
+                title= f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
+                description= f"Use `{self.clean_prefix}help command` for more info on a command. \n Use `{self.clean_prefix}help <category>` for more info on a category."
             )
-            embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
+
+            #embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
 
             return embed
 
-        paginator = pagination.Paginator(get_page, len(pages))
+        paginator = pagination.Paginator(get_page, len(pages)//6+1)
         await paginator.send(bot, ctx, 0)
 
     async def send_cog_help(self, cog):
