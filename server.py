@@ -276,7 +276,7 @@ async def sponsor():
     if data["action"] == "created":
         await db.sponsor.update_one(
             {"_id": gh_id},
-            {"$set": {"sponsorship_date": nextm, "reward_tier": tier}},
+            {"$set": {"sponsorship_date": now, "reward_tier": tier}},
             upsert=True,
         )
 
