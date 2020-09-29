@@ -377,6 +377,22 @@ class Shop(commands.Cog):
         )
 
     @checks.has_started()
+    @commands.command(aliases=["togglebal"])
+    async def togglebalance(self, ctx: commands.Context):
+        """Toggle showing balance in shop."""
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        await self.db.update_member(
+            ctx.author, {"$set": {"show_balance": not member.show_balance}}
+        )
+
+        if member.show_balance:
+            await ctx.send(f"Your balance is now hidden in shop pages.")
+        else:
+            await ctx.send("Your balance is no longer hidden in shop pages.")
+
+    @checks.has_started()
     @commands.command()
     async def shop(self, ctx: commands.Context, *, page: int = 0):
         """View the Pokétwo item shop."""
@@ -384,7 +400,12 @@ class Shop(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         embed = self.bot.Embed()
-        embed.title = f"Pokétwo Shop — {member.balance:,} Pokécoins"
+        embed.title = f"Pokétwo Shop"
+
+        if member.show_balance:
+            embed.title += f" — {member.balance:,} Pokécoins"
+            if page == 7:
+                embed.title += f", {member.premium_balance:,} Shards"
 
         if page == 0:
             embed.description = (
@@ -472,6 +493,9 @@ class Shop(commands.Cog):
             if qty <= 0:
                 return await ctx.send("Nice try...")
 
+        search = " ".join(args)
+        if search.lower() == "shards":
+            search = "shard"
         item = self.bot.data.item_by_name(" ".join(args))
         if item is None:
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")

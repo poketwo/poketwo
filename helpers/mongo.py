@@ -240,6 +240,8 @@ class Member(Document):
     balance = fields.IntegerField(default=0)
     redeems = fields.IntegerField(default=0)
 
+    show_balance = fields.BooleanField(default=True)
+
     shiny_hunt = fields.IntegerField(default=None)
     shiny_streak = fields.IntegerField(default=0)
 
