@@ -69,6 +69,7 @@ class Configuration(commands.Cog):
     @configuration.command(name = "help")
     async def advanced_configuration(self, ctx: commands.Context, arg = "basic"):
         guild = await self.db.fetch_guild(ctx.guild)
+        prefix = guild.prefix if guild.prefix is not None else "p!"
 
         commands = {"prefix_command" : f"\n`{prefix}prefix <new prefix>`",
                     "silence_command" : f"\n`{prefix}serversilence`",
