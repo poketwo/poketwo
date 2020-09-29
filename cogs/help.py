@@ -49,8 +49,8 @@ class CustomHelpCommand(commands.HelpCommand):
 
         counter = 0
         for cog in cogs:
-            cog, description, commands = cog
-            description = f"{description or 'No Description'} \n {''.join([f'`{command.qualified_name}` ' for command in commands])}"
+            cog, description, command_list = cog
+            description = f"{description or 'No Description'} \n {''.join([f'`{command.qualified_name}` ' for command in command_list])}"
             embed.add_field(name=cog.qualified_name, value=description, inline=False)
             counter += 1
 
@@ -77,7 +77,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             total += len(commands)
             cog = bot.get_cog(cog_name)
-            description = (cog and cog.description) or discord.Embed.Empty
+            description = (cog and cog.description) if (cog and cog.description) is not None else discord.Embed.Empty
             pages.append((cog, description, commands))
 
         async def get_page(pidx, clear):
@@ -86,7 +86,7 @@ class CustomHelpCommand(commands.HelpCommand):
             embed = self.make_default_embed(
                 cogs,
                 title= f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
-                description= f"Use `{self.clean_prefix}help command` for more info on a command. \n Use `{self.clean_prefix}help <category>` for more info on a category."
+                description= f'Use "{self.clean_prefix}help <command>" for more info on a command. \n Use "{self.clean_prefix}help <category>" for more info on a category.'
             )
 
             #embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
