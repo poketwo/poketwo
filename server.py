@@ -25,7 +25,7 @@ purchase_amounts = {
 
 stripe.api_key = config.STRIPE_KEY
 stripe_secret = config.STRIPE_WEBHOOK_SECRET
-github_secret = config.GITHUB_WEBHOOK_SECRET
+github_secret = config.GITHUB_WEBHOOK_SECRET.encode("utf-8")
 
 app = Quart(__name__)
 web_ipc = Client(secret_key=config.SECRET_KEY)
@@ -217,6 +217,8 @@ async def dbl():
         },
     )
 
+    print(json["user"], streak, box_type)
+
     return "Success", 200
 
 
@@ -247,42 +249,46 @@ async def purchase():
 
 
 def add_month(dt: datetime, months=1):
-    return dt.replace(month=(dt.month + month - 1) % 12 + 1)
+    return dt.replace(month=(dt.month + months - 1) % 12 + 1)
 
 
 @app.route("/sponsor", methods=["POST"])
 async def sponsor():
-    digest = hmac.new(github_secret, request.data, digestmod="sha1").hexdigest()
+    payload = await request.get_data()
+
+    digest = "sha1=" + hmac.new(github_secret, payload, digestmod="sha1").hexdigest()
     given = request.headers.get("X-Hub-Signature")
 
     if not hmac.compare_digest(digest, given):
         abort(403, description="Invalid Signature")
 
-    payload = await request.get_data()
+    data = await request.get_json()
 
-    sponsorship = payload["sponsorship"]
-    gh_id = sponsorship["user"]["id"]
+    print(data)
+
+    sponsorship = data["sponsorship"]
+    gh_id = sponsorship["sponsor"]["id"]
     tier = sponsorship["tier"]["monthly_price_in_dollars"]
 
     now = datetime.utcnow()
     nextm = add_month(now)
 
-    if payload["event"] == "created":
-        await db.member.update_one(
+    if data["action"] == "created":
+        await db.sponsor.update_one(
             {"_id": gh_id},
             {"$set": {"sponsorship_date": nextm, "reward_tier": tier}},
             upsert=True,
         )
 
-    elif payload["event"] == "pending_cancellation":
-        await db.member.update_one(
+    elif data["action"] == "pending_cancellation":
+        await db.sponsor.update_one(
             {"_id": gh_id},
             {"$set": {"reward_date": nextm, "reward_tier": None}},
             upsert=True,
         )
 
-    elif payload["event"] == "pending_tier_change":
-        await db.member.update_one(
+    elif data["action"] == "pending_tier_change":
+        await db.sponsor.update_one(
             {"_id": gh_id},
             {"$set": {"reward_date": nextm, "reward_tier": tier}},
             upsert=True,
@@ -292,4 +298,4 @@ async def sponsor():
 
 
 if __name__ == "__main__":
-    app.run(loop=loop)
+    app.run(host="0.0.0.0", loop=loop)
