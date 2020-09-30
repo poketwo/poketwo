@@ -8,6 +8,7 @@ import traceback
 from datetime import datetime, timedelta
 
 import aiohttp
+import discord
 import humanfriendly
 from discord.ext import commands, tasks
 from helpers import checks, models, mongo
