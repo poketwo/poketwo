@@ -47,6 +47,7 @@ class Spawning(commands.Cog):
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
+        await self.bot.wait_until_ready()
         channels = self.bot.mongo.db.channel.find(
             {"incense_expires": {"$gt": datetime.utcnow()}}
         )
