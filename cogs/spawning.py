@@ -53,10 +53,7 @@ class Spawning(commands.Cog):
         )
         async for result in channels:
             channel = self.bot.get_channel(result["_id"])
-            if channel is None:
-                continue
-            permissions = channel.permissions_for(channel.guild.me)
-            if permissions.send_messages and permissions.attach_files:
+            if channel is not None:
                 self.bot.loop.create_task(
                     self.spawn_pokemon(channel, incense=result["incense_expires"])
                 )
@@ -229,8 +226,12 @@ class Spawning(commands.Cog):
         if species is None:
             species = self.bot.data.random_spawn()
 
-        botmember = channel.guild.get_member(self.bot.user.id)
-        if not channel.permissions_for(botmember).send_messages:
+        permissions = channel.permissions_for(channel.guild.me)
+        if not (
+            permissions.send_messages
+            and permissions.attach_files
+            and permissions.embed_links
+        ):
             return
 
         # determine species & stats
