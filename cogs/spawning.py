@@ -8,7 +8,6 @@ import traceback
 from datetime import datetime, timedelta
 
 import aiohttp
-import discord
 import humanfriendly
 from discord.ext import commands, tasks
 from helpers import checks, models, mongo
@@ -53,7 +52,9 @@ class Spawning(commands.Cog):
         async for result in channels:
             channel = self.bot.get_channel(result["_id"])
             if channel is not None:
-                await self.spawn_pokemon(channel, incense=result["incense_expires"])
+                self.bot.loop.create_task(
+                    self.spawn_pokemon(channel, incense=result["incense_expires"])
+                )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
