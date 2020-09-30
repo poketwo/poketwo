@@ -52,7 +52,10 @@ class Spawning(commands.Cog):
         )
         async for result in channels:
             channel = self.bot.get_channel(result["_id"])
-            if channel is not None:
+            if channel is None:
+                continue
+            permissions = channel.permissions_for(channel.guild.me)
+            if permissions.send_messages and permissions.attach_files:
                 self.bot.loop.create_task(
                     self.spawn_pokemon(channel, incense=result["incense_expires"])
                 )
