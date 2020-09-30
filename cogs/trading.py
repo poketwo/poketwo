@@ -3,8 +3,8 @@ import math
 from datetime import datetime
 
 import discord
+from bson.dbref import DBRef
 from discord.ext import commands, flags
-
 from helpers import checks, pagination
 
 from .database import Database
@@ -186,6 +186,27 @@ class Trading(commands.Cog):
             except:
                 pass
 
+            try:
+                await self.bot.mongo.db.logs.insert_one(
+                    {
+                        "event": "trade",
+                        "users": [a.id, b.id],
+                        "items": {
+                            str(a.id): [
+                                x if type(x) == int else x[0].id
+                                for x in trade["items"][a.id]
+                            ],
+                            str(b.id): [
+                                x if type(x) == int else x[0].id
+                                for x in trade["items"][b.id]
+                            ],
+                        },
+                    }
+                )
+            except:
+                print("Error saving trading logs.")
+                pass
+
             del self.bot.trades[a.id]
             del self.bot.trades[b.id]
 
@@ -291,6 +312,7 @@ class Trading(commands.Cog):
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
         """Add an item to a trade."""
@@ -306,8 +328,6 @@ class Trading(commands.Cog):
 
         if len(args) == 0:
             return
-
-        self.bot.trades[ctx.author.id]["executing"] = True
 
         if len(args) <= 2 and (
             args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
@@ -325,13 +345,11 @@ class Trading(commands.Cog):
                 member = await self.db.fetch_member_info(ctx.author)
 
                 if current + int(what) > member.balance:
-                    self.bot.trades[ctx.author.id]["executing"] = False
                     return await ctx.send("You don't have enough Pokécoins for that!")
 
                 self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(int(what))
 
             else:
-                self.bot.trades[ctx.author.id]["executing"] = False
                 return await ctx.send("That's not a valid item to add to the trade!")
 
         else:
@@ -395,17 +413,16 @@ class Trading(commands.Cog):
                 await ctx.send("\n".join(lines)[:2048])
 
             if not updated:
-                self.bot.trades[ctx.author.id]["executing"] = False
                 return
 
         for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
-        self.bot.trades[ctx.author.id]["executing"] = False
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
         """Remove an item from a trade."""
@@ -508,6 +525,7 @@ class Trading(commands.Cog):
     @flags.add_flag("--limit", type=int)
     # Trade add all
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.member)
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)
     async def addall(self, ctx: commands.Context, **flags):
 
@@ -520,8 +538,6 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        self.bot.trades[ctx.author.id]["executing"] = True
-
         member = await self.db.fetch_member_info(ctx.author)
 
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
@@ -529,7 +545,6 @@ class Trading(commands.Cog):
         )
 
         if aggregations is None:
-            self.bot.trades[ctx.author.id]["executing"] = False
             return
 
         aggregations.extend(
@@ -542,7 +557,6 @@ class Trading(commands.Cog):
         num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            self.bot.trades[ctx.author.id]["executing"] = False
             return await ctx.send(
                 "Found no pokémon matching this search (excluding favorited and selected pokémon)."
             )
@@ -560,11 +574,9 @@ class Trading(commands.Cog):
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
             if msg.content.lower() != f"confirm trade {num}":
-                self.bot.trades[ctx.author.id]["executing"] = False
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
-            self.bot.trades[ctx.author.id]["executing"] = False
             return await ctx.send("Time's up. Aborted.")
 
         # confirmed, add all
@@ -590,7 +602,6 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
-        self.bot.trades[ctx.author.id]["executing"] = False
         await self.send_trade(ctx, ctx.author)
 
     @trade.command(aliases=["i"])

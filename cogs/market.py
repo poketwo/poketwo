@@ -318,6 +318,17 @@ class Market(commands.Cog):
             f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!"
         )
 
+        try:
+            await self.bot.mongo.db.logs.insert_one(
+                {
+                    "event": "market",
+                    "user": ctx.author.id,
+                    "item": listing["pokemon"]["_id"],
+                }
+            )
+        except:
+            print("Error trading market logs.")
+
     @checks.has_started()
     @market.command(aliases=["i"])
     async def info(self, ctx: commands.Context, id: int):
