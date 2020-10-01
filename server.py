@@ -217,7 +217,15 @@ async def dbl():
         },
     )
 
-    print(json["user"], streak, box_type)
+    try:
+        await req(
+            0,
+            "send_dm",
+            user=uid,
+            message=f"Thanks for voting! You received an **{box_type}** box.",
+        )
+    except OSError:
+        pass
 
     return "Success", 200
 
