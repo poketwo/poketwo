@@ -104,6 +104,19 @@ class Trading(commands.Cog):
         if done:
             try:
                 bothsides = list(enumerate(trade["items"].items()))
+
+                for idx, tup in bothsides:
+                    i, side = tup
+                    mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
+                    member = await self.db.fetch_member_info(mem)
+                    if member.balance < sum(x for x in side if type(x) == int):
+                        await ctx.send(
+                            "The trade could not be executed as one user does not have enough Pokécoins."
+                        )
+                        del self.bot.trades[a.id]
+                        del self.bot.trades[b.id]
+                        return
+
                 for idx, tup in bothsides:
                     i, side = tup
 
