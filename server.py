@@ -217,12 +217,14 @@ async def dbl():
         },
     )
 
+    article = "an" if box_type == "ultra" else "a"
+
     try:
         await req(
             0,
             "send_dm",
             user=uid,
-            message=f"Thanks for voting! You received an **{box_type}** box.",
+            message=f"Thanks for voting! You received {article} **{box_type} box**.",
         )
     except OSError:
         pass
