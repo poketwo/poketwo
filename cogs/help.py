@@ -96,7 +96,7 @@ class CustomHelpCommand(commands.HelpCommand):
                 title=f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
                 description=(
                     f"Use `{self.clean_prefix}help <command>` for more info on a command.\n"
-                    "Use `{self.clean_prefix}help <category>` for more info on a category."
+                    f"Use `{self.clean_prefix}help <category>` for more info on a category."
                 ),
             )
 
