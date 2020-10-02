@@ -35,11 +35,13 @@ class CustomHelpCommand(commands.HelpCommand):
             )
 
             embed.add_field(
-                name=signature, value=command.help or "No help found...", inline=False,
+                name=signature,
+                value=command.help or "No help found...",
+                inline=False,
             )
 
         return embed
-    
+
     def make_default_embed(
         self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty
     ):
@@ -77,23 +79,32 @@ class CustomHelpCommand(commands.HelpCommand):
 
             total += len(commands)
             cog = bot.get_cog(cog_name)
-            description = (cog and cog.description) if (cog and cog.description) is not None else discord.Embed.Empty
+            description = (
+                (cog and cog.description)
+                if (cog and cog.description) is not None
+                else discord.Embed.Empty
+            )
             pages.append((cog, description, commands))
 
         async def get_page(pidx, clear):
-            cogs = pages[min(len(pages)-1, pidx*6): min(len(pages)-1, pidx*6+6)]
+            cogs = pages[
+                min(len(pages) - 1, pidx * 6) : min(len(pages) - 1, pidx * 6 + 6)
+            ]
 
             embed = self.make_default_embed(
                 cogs,
-                title= f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
-                description= f'Use "{self.clean_prefix}help <command>" for more info on a command. \n Use "{self.clean_prefix}help <category>" for more info on a category.'
+                title=f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
+                description=(
+                    f"Use `{self.clean_prefix}help <command>` for more info on a command.\n"
+                    "Use `{self.clean_prefix}help <category>` for more info on a category."
+                ),
             )
 
-            #embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
+            # embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
 
             return embed
 
-        paginator = pagination.Paginator(get_page, len(pages)//6+1)
+        paginator = pagination.Paginator(get_page, len(pages) // 6 + 1)
         await paginator.send(bot, ctx, 0)
 
     async def send_cog_help(self, cog):

@@ -1,3 +1,4 @@
+import random
 import sys
 import traceback
 from datetime import datetime
@@ -5,7 +6,6 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
-
 from helpers import checks, constants, converters
 
 from .database import Database
@@ -73,7 +73,9 @@ class Bot(commands.Cog):
             fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
             botmember = (
-                self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
+                self.bot.user
+                if ctx.guild is None
+                else ctx.guild.get_member(self.bot.user.id)
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
@@ -143,6 +145,16 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def donate(self, ctx: commands.Context):
+        """Donate to receive shards."""
+
+        await ctx.send(
+            "Pokétwo relies on players like you to stay up and running. "
+            "You can help support the bot by donating to receive shards, which can be used to purchase redeems and other items in the shop.\n\n"
+            "**Donation Link:** https://poketwo.net/store\n\n"
+        )
+
     async def get_stats(self):
         result = await self.bot.mongo.db.stats.aggregate(
             [
@@ -193,9 +205,9 @@ class Bot(commands.Cog):
             upsert=True,
         )
 
-    @commands.command()
+    @commands.command(aliases=["botinfo"])
     async def stats(self, ctx: commands.Context):
-        """View interesting statistics about the bot."""
+        """View bot info."""
 
         result = await self.get_stats()
 
@@ -224,8 +236,17 @@ class Bot(commands.Cog):
         """View the bot's latency."""
 
         message = await ctx.send("Pong!")
-        ms = (message.created_at - ctx.message.created_at).total_seconds() * 1000
-        await message.edit(content=f"Pong! **{int(ms)} ms**")
+        ms = int((message.created_at - ctx.message.created_at).total_seconds() * 1000)
+
+        if ms > 300 and random.random() < 0.5:
+            await message.edit(
+                content=(
+                    f"Pong! **{ms} ms**\n\n"
+                    "Tired of bot slowdowns? Running a bot is expensive, but you can help! Donate at https://poketwo.net/store."
+                )
+            )
+        else:
+            await message.edit(content=f"Pong! **{ms} ms**")
 
     @commands.command()
     async def start(self, ctx: commands.Context):

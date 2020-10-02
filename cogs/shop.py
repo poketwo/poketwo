@@ -2,9 +2,10 @@ import asyncio
 import random
 from datetime import datetime, timedelta
 
+import aiohttp
 import discord
 import humanfriendly
-from discord.ext import commands
+from discord.ext import commands, tasks
 from helpers import checks, constants, converters, models, mongo
 
 from .database import Database
@@ -20,10 +21,19 @@ class Shop(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.check_weekend.start()
 
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
+
+    @tasks.loop(minutes=5)
+    async def check_weekend(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://discordbots.org/api/weekend") as r:
+                if r.status == 200:
+                    js = await r.json()
+                    self.weekend = js["is_weekend"]
 
     @property
     def month_number(self):
@@ -88,7 +98,10 @@ class Shop(commands.Cog):
         embed = self.bot.Embed()
         embed.title = f"Voting Rewards"
 
-        embed.description = "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
+        embed.description = (
+            "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! "
+            "You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
+        )
 
         if do_emojis:
             embed.add_field(
@@ -421,7 +434,18 @@ class Shop(commands.Cog):
             embed.add_field(name="Page 7", value="Shard Shop", inline=False)
 
         else:
-            embed.description = f"We have a variety of items you can buy in the shop. Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. Use `{ctx.prefix}buy <item>` to buy an item!"
+            embed.description = (
+                "We have a variety of items you can buy in the shop. "
+                "Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. "
+                f"Use `{ctx.prefix}buy <item>` to buy an item!"
+            )
+
+            if page == 7:
+                embed.description = (
+                    "Welcome to the shard shop! "
+                    "Shards are a type of premium currency that can be used to buy special items. "
+                    "Shards can be obtained by exchanging pokécoins or by purchasing them at https://poketwo.net/store."
+                )
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
@@ -923,6 +947,9 @@ class Shop(commands.Cog):
 
         self.bot.redeem[ctx.channel.id] = datetime.utcnow()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
+
+    def cog_unload(self):
+        self.check_weekend.cancel()
 
 
 def setup(bot):
