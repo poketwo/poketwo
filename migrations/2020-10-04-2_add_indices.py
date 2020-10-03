@@ -1,6 +1,6 @@
 """
-This is a one-shot script used to add timestamp fields to all pokemon.
-17 September 2020
+This is a one-shot script used to merge the idx fields into the pokemon collection.
+4 October 2020
 """
 
 import os
