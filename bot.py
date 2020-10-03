@@ -15,6 +15,11 @@ from discord.ext.ipc import Client, Server
 import cogs
 import helpers
 
+DEFAULT_DISABLED_MESSAGE = (
+    "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. "
+    "Try again later and check the #status channel in the official server for more details."
+)
+
 
 async def determine_prefix(bot, message):
     cog = bot.get_cog("Bot")
@@ -28,6 +33,7 @@ class ClusterBot(commands.AutoShardedBot):
             super().__init__(**kwargs, color=color)
 
     def __init__(self, **kwargs):
+        self.disabled_message = DEFAULT_DISABLED_MESSAGE
         self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
@@ -114,11 +120,16 @@ class ClusterBot(commands.AutoShardedBot):
         @self.ipc.route()
         async def disable(data):
             self.enabled = False
+            if hasattr(data, "message") and data.message is not None:
+                self.disabled_message = data.message
+            else:
+                self.disabled_message = DEFAULT_DISABLED_MESSAGE
             return {"success": True}
 
         @self.ipc.route()
         async def enable(data):
             self.enabled = True
+            self.disabled_message = DEFAULT_DISABLED_MESSAGE
             return {"success": True}
 
         @self.ipc.route()

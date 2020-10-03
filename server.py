@@ -80,9 +80,10 @@ async def all_reload():
 @login_required
 async def all_disable():
     resp = {}
+    message = request.args.get("message", None)
     for idx in range(100):
         try:
-            resp[idx] = await req(idx, "disable")
+            resp[idx] = await req(idx, "disable", message=message)
         except OSError:
             break
     return resp
@@ -143,8 +144,9 @@ async def cluster_stop(idx):
 @app.route("/<int:idx>/disable")
 @login_required
 async def cluster_disable(idx):
+    message = request.args.get("message", None)
     try:
-        return await req(idx, "disable")
+        return await req(idx, "disable", message=message)
     except OSError:
         abort(404)
 
