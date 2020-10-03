@@ -126,8 +126,6 @@ class Trading(commands.Cog):
                     mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
                     omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
 
-                    dec = 0
-
                     member = await self.db.fetch_member_info(mem)
                     omember = await self.db.fetch_member_info(omem)
 

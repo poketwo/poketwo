@@ -289,6 +289,9 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
+        if member.balance < listing["price"]:
+            return await ctx.send("You don't have enough Pokécoins for that!")
+
         try:
             await self.bot.mongo.db.pokemon.insert_one(
                 {

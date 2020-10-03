@@ -360,8 +360,6 @@ class Pokemon(commands.Cog):
 
         converter = converters.Pokemon(accept_blank=False)
 
-        dec = 0
-
         ids = set()
         mons = list()
 

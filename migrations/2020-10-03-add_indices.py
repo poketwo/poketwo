@@ -39,5 +39,6 @@ db["pokemon"].aggregate(
             }
         },
         {"$out": "new_pokemon"},
-    ]
+    ],
+    allowDiskUse=True,
 )
