@@ -281,15 +281,20 @@ class Bot(commands.Cog):
 
         starter = self.bot.mongo.Pokemon.random(
             owner_id=ctx.author.id,
-            timestamp=datetime.utcnow(),
             species_id=species.id,
             level=1,
             xp=0,
+            idx=0,
         )
 
-        await self.bot.mongo.db.pokemon.insert_one(starter.to_mongo())
+        result = await self.bot.mongo.db.pokemon.insert_one(starter.to_mongo())
         await self.bot.mongo.db.member.insert_one(
-            {"_id": ctx.author.id, "selected": 0, "joined_at": datetime.utcnow()}
+            {
+                "_id": ctx.author.id,
+                "selected_id": result.inserted_id,
+                "joined_at": datetime.utcnow(),
+                "next_idx": 1,
+            }
         )
 
         await ctx.send(
@@ -307,7 +312,6 @@ class Bot(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         pokemon_caught = []
-
         pokemon_caught.append(
             "**Total: **" + str(await self.db.fetch_pokedex_sum(ctx.author))
         )
@@ -326,7 +330,6 @@ class Bot(commands.Cog):
                     )
                 )
             )
-
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
 
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))

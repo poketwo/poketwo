@@ -60,12 +60,6 @@ class Spawning(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        try:
-            await self.handle_message(message)
-        except discord.Forbidden:
-            pass
-
-    async def handle_message(self, message: discord.Message):
         # TODO this method is wayyy too long.
 
         if not self.bot.enabled or message.author.bot or message.guild is None:
@@ -89,7 +83,7 @@ class Spawning(commands.Cog):
                 guild = await self.db.fetch_guild(message.guild)
                 silence = silence or guild and guild.silence
 
-            pokemon = await self.db.fetch_pokemon(message.author, member.selected)
+            pokemon = await self.db.fetch_pokemon(message.author, member.selected_id)
             if pokemon is not None and pokemon.held_item != 13002:
 
                 # TODO this stuff here needs to be refactored
@@ -344,7 +338,6 @@ class Spawning(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": ctx.author.id,
-                "timestamp": datetime.utcnow(),
                 "species_id": species.id,
                 "level": level,
                 "xp": 0,
@@ -357,6 +350,7 @@ class Spawning(commands.Cog):
                 "iv_spd": mongo.random_iv(),
                 "moves": moves[:4],
                 "shiny": shiny,
+                "idx": await self.db.fetch_next_idx(ctx.author),
             }
         )
         if shiny:

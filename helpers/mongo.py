@@ -23,6 +23,7 @@ class PokemonBase(MixinDocument):
     id = fields.ObjectIdField(attribute="_id")
     timestamp = fields.DateTimeField(default=datetime.utcnow)
     owner_id = fields.IntegerField(required=True)
+    idx = fields.IntegerField(required=True)
 
     species_id = fields.IntegerField(required=True)
     level = fields.IntegerField(required=True)
@@ -44,7 +45,6 @@ class PokemonBase(MixinDocument):
 
     moves = fields.ListField(fields.IntegerField, default=list)
 
-    idx = None
     _hp = None
     ailments = None
     stages = None
@@ -231,6 +231,7 @@ class Member(Document):
     id = fields.IntegerField(attribute="_id")
 
     selected = fields.IntegerField(required=True)
+    selected_id = fields.ObjectIdField(required=True)
 
     order_by = fields.StringField(default="number")
     pokedex = fields.DictField(

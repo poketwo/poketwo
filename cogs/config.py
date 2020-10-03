@@ -20,10 +20,8 @@ class Configuration(commands.Cog):
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
-    
-    def make_config_embed(
-        self, ctx, guild, commands = {}
-    ):
+
+    def make_config_embed(self, ctx, guild, commands={}):
         prefix = guild.prefix if guild.prefix is not None else "p!"
         channels = [ctx.guild.get_channel(channel_id) for channel_id in guild.channels]
 
@@ -31,7 +29,11 @@ class Configuration(commands.Cog):
         embed.title = "Server Configuration"
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
-        embed.add_field(name=f"Prefix {commands.get('prefix_command', '')}", value=f"`{prefix}`", inline=True)
+        embed.add_field(
+            name=f"Prefix {commands.get('prefix_command', '')}",
+            value=f"`{prefix}`",
+            inline=True,
+        )
 
         embed.add_field(
             name=f"Display level-up messages? {commands.get('silence_command', '')}",
@@ -39,7 +41,11 @@ class Configuration(commands.Cog):
             inline=True,
         )
 
-        embed.add_field(name=f"Location {commands.get('location_command', '')}", value=guild.loc, inline=False)
+        embed.add_field(
+            name=f"Location {commands.get('location_command', '')}",
+            value=guild.loc,
+            inline=False,
+        )
 
         embed.add_field(
             name=f"Spawning Channels {commands.get('redirect_command', '')}",
@@ -50,41 +56,40 @@ class Configuration(commands.Cog):
         return embed
 
     @commands.guild_only()
-    @commands.group(name = "configuration", aliases=["config", "serverconfig"], invoke_without_command = True)
-    async def configuration(self, ctx: commands.Context, arg = "basic"):
+    @commands.group(
+        name="configuration",
+        aliases=["config", "serverconfig"],
+        invoke_without_command=True,
+    )
+    async def configuration(self, ctx: commands.Context):
         guild = await self.db.fetch_guild(ctx.guild)
 
         embed = self.make_config_embed(ctx, guild)
-        
-        # no image spawn? server admin can hangman game in place of spawns for fun?
-        # embed.add_field(
-        #     name="Spawn Mode",
-        #     value=("Hint Spawning", "Image Spawning")[guild.display_images],
-        #     inline=False,
-        # )
-
         await ctx.send(embed=embed)
-    
+
     @commands.guild_only()
-    @configuration.command(name = "help")
-    async def advanced_configuration(self, ctx: commands.Context, arg = "basic"):
+    @configuration.command(name="help")
+    async def advanced_configuration(self, ctx: commands.Context):
         guild = await self.db.fetch_guild(ctx.guild)
         prefix = guild.prefix if guild.prefix is not None else "p!"
 
-        commands = {"prefix_command" : f"\n`{prefix}prefix <new prefix>`",
-                    "silence_command" : f"\n`{prefix}serversilence`",
-                    "location_command" : f"\n`{prefix}location <location>`",
-                    "redirect_command" :f"\n`{prefix}redirect <channel 1> <channel 2> ...`"}
-        
+        commands = {
+            "prefix_command": f"\n`{prefix}prefix <new prefix>`",
+            "silence_command": f"\n`{prefix}serversilence`",
+            "location_command": f"\n`{prefix}location <location>`",
+            "redirect_command": f"\n`{prefix}redirect <channel 1> <channel 2> ...`",
+        }
+
         embed = self.make_config_embed(ctx, guild, commands)
-        
-        await ctx.send(embed=embed)   
+
+        await ctx.send(embed=embed)
 
     @checks.is_admin()
     @commands.guild_only()
     @commands.command()
     async def prefix(self, ctx: commands.Context, *, prefix: str = None):
         """Change the bot prefix."""
+
         if prefix is None:
             guild = await self.db.fetch_guild(ctx.guild)
             current = guild.prefix

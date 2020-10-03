@@ -153,8 +153,6 @@ class Market(commands.Cog):
         if ctx.author.id in self.bot.trades:
             return await ctx.send("You can't do that in a trade!")
 
-        pokemon, idx = pokemon
-
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
@@ -169,7 +167,8 @@ class Market(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {idx + 1}** for **{price:,}** Pokécoins? [y/N]"
+            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon.species} "
+            f"No. {pokemon.idx}** for **{price:,}** Pokécoins? [y/N]"
         )
 
         def check(m):
@@ -202,9 +201,10 @@ class Market(commands.Cog):
 
         await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
-        message = f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {idx + 1}** on the market for **{price:,}** Pokécoins."
-
-        await ctx.send(message)
+        await ctx.send(
+            f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
+            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins."
+        )
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
@@ -227,7 +227,7 @@ class Market(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     **listing["pokemon"],
-                    "timestamp": datetime.utcnow(),
+                    "idx": await self.db.fetch_next_idx(ctx.author),
                 }
             )
         except pymongo.errors.DuplicateKeyError:
@@ -267,7 +267,8 @@ class Market(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon.species}** for **{listing['price']:,}** Pokécoins? [y/N]"
+            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon.species}** "
+            f"for **{listing['price']:,}** Pokécoins? [y/N]"
         )
 
         def check(m):
@@ -293,7 +294,7 @@ class Market(commands.Cog):
                 {
                     **listing["pokemon"],
                     "owner_id": ctx.author.id,
-                    "timestamp": datetime.utcnow(),
+                    "idx": await self.db.fetch_next_idx(ctx.author),
                 }
             )
         except pymongo.errors.DuplicateKeyError:

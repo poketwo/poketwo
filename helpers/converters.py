@@ -18,13 +18,13 @@ class Pokemon(commands.Converter):
         member = await db.fetch_member_info(ctx.author)
 
         if arg == "" and self.accept_blank:
-            number = member.selected
+            number = member.selected_id
         elif arg.isdigit():
-            number = int(arg) - 1
+            number = int(arg)
         elif arg.lower() == "latest":
             number = -1
         elif not self.raise_errors:
-            return None, None
+            return None
         elif self.accept_blank:
             raise PokemonConversionError(
                 "Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon.",
@@ -36,9 +36,4 @@ class Pokemon(commands.Converter):
                 original=ValueError(),
             )
 
-        count = await db.fetch_pokemon_count(ctx.author)
-
-        if number < 0:
-            number = number % count
-
-        return await db.fetch_pokemon(ctx.author, number), number
+        return await db.fetch_pokemon(ctx.author, number)

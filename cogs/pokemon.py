@@ -1,10 +1,11 @@
 import asyncio
 import math
 from operator import itemgetter
+
 import discord
 from discord.ext import commands, flags
-
 from helpers import checks, constants, converters, pagination
+from pymongo import UpdateOne
 
 from .database import Database
 
@@ -19,6 +20,32 @@ class Pokemon(commands.Cog):
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
+    @commands.command(aliases=["renumber"])
+    async def reindex(self, ctx: commands.Context):
+        """Re-number all pokémon in your collection."""
+
+        await ctx.send(
+            "Reindexing all your pokémon... please don't do anything else during this time."
+        )
+
+        num = await self.db.fetch_pokemon_count(ctx.author)
+        await self.db.reset_idx(ctx.author, value=num)
+        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id}).sort("idx")
+
+        ops = []
+
+        idx = 0
+        async for pokemon in mons:
+            ops.append(UpdateOne({"_id": pokemon["_id"]}, {"$set": {"idx": idx}}))
+            idx += 1
+
+            if len(ops) >= 1000:
+                await self.bot.mongo.db.pokemon.bulk_write(ops)
+                ops = []
+
+        await self.bot.mongo.db.pokemon.bulk_write(ops)
+        await ctx.send("Successfully reindexed all your pokémon!")
+
     @commands.command(aliases=["nick"])
     async def nickname(self, ctx: commands.Context, *, nickname: str):
         """Change the nickname for your pokémon."""
@@ -30,10 +57,11 @@ class Pokemon(commands.Cog):
             nickname = None
 
         member = await self.db.fetch_member_info(ctx.author)
-        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
 
         await self.db.update_pokemon(
-            pokemon, {"$set": {f"nickname": nickname}},
+            pokemon,
+            {"$set": {f"nickname": nickname}},
         )
 
         if nickname == None:
@@ -57,14 +85,13 @@ class Pokemon(commands.Cog):
         messages = []
 
         async with ctx.typing():
-
-            for pokemon, idx in args:
+            for pokemon in args:
                 if pokemon is None:
-                    await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
                     continue
 
                 await self.db.update_pokemon(
-                    pokemon, {"$set": {f"favorite": not pokemon.favorite}},
+                    pokemon,
+                    {"$set": {f"favorite": not pokemon.favorite}},
                 )
 
                 name = str(pokemon.species)
@@ -86,15 +113,20 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
 
-        pokemon, pidx = pokemon
-
         num = await self.db.fetch_pokemon_count(ctx.author)
 
-        async def get_page(pidx, clear):
-            pokemon = await self.db.fetch_pokemon(ctx.author, pidx)
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
 
-            if pokemon is None:
-                return await clear("Couldn't find that pokémon!")
+        shift = 0
+
+        async def get_page(pidx, clear, dir=0):
+            nonlocal shift
+
+            pokemon = await self.db.fetch_pokemon(ctx.author, pidx + shift)
+            while pokemon is None:
+                shift += 1
+                pokemon = await self.db.fetch_pokemon(ctx.author, pidx + shift)
 
             embed = self.bot.Embed()
             embed.title = f"Level {pokemon.level} {pokemon.species}"
@@ -138,12 +170,12 @@ class Pokemon(commands.Cog):
                     name="Held Item", value=f"{emote}{item.name}", inline=False
                 )
 
-            embed.set_footer(text=f"Displaying pokémon {pidx + 1} out of {num}.")
+            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.")
 
             return embed
 
         paginator = pagination.Paginator(get_page, num_pages=num)
-        await paginator.send(self.bot, ctx, pidx)
+        await paginator.send(self.bot, ctx, pokemon.idx)
 
     @checks.has_started()
     @commands.command(aliases=["s"], rest_is_raw=True)
@@ -152,19 +184,18 @@ class Pokemon(commands.Cog):
     ):
         """Select a specific pokémon from your collection."""
 
-        pokemon, idx = pokemon
-
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
         num = await self.db.fetch_pokemon_count(ctx.author)
 
         await self.db.update_member(
-            ctx.author, {"$set": {f"selected": idx}},
+            ctx.author,
+            {"$set": {f"selected_id": pokemon.id}},
         )
 
         await ctx.send(
-            f"You selected your level {pokemon.level} {pokemon.species}. No. {idx + 1}."
+            f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}."
         )
 
     @checks.has_started()
@@ -180,7 +211,8 @@ class Pokemon(commands.Cog):
             )
 
         await self.db.update_member(
-            ctx.author, {"$set": {f"order_by": sort}},
+            ctx.author,
+            {"$set": {f"order_by": sort}},
         )
 
         await ctx.send(f"Now ordering pokemon by `{sort}`.")
@@ -333,10 +365,9 @@ class Pokemon(commands.Cog):
         ids = set()
         mons = list()
 
-        for pokemon, idx in args:
+        for pokemon in args:
 
             if pokemon is None:
-                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
                 continue
 
             # can't release selected/fav
@@ -344,19 +375,18 @@ class Pokemon(commands.Cog):
             if pokemon.id in ids:
                 continue
 
-            if member.selected == idx:
-                await ctx.send(f"{idx + 1}: You can't release your selected pokémon!")
+            if member.selected_id == pokemon.id:
+                await ctx.send(
+                    f"{pokemon.idx}: You can't release your selected pokémon!"
+                )
                 continue
 
             if pokemon.favorite:
-                await ctx.send(f"{idx + 1}: You can't release favorited pokémon!")
+                await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
                 continue
 
             ids.add(pokemon.id)
-            mons.append((pokemon, idx))
-
-            if (idx % num) < member.selected:
-                dec += 1
+            mons.append(pokemon)
 
         # Confirmation msg
 
@@ -365,7 +395,7 @@ class Pokemon(commands.Cog):
 
         if len(args) == 1:
             await ctx.send(
-                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {idx + 1}? This action is irreversible! [y/N]"
+                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}? This action is irreversible! [y/N]"
             )
         else:
             embed = self.bot.Embed()
@@ -374,7 +404,7 @@ class Pokemon(commands.Cog):
             )
 
             embed.description = "\n".join(
-                f"Level {x[0].level} {x[0].species} ({x[1] + 1})" for x in mons
+                f"Level {x.level} {x.species} ({x.idx})" for x in mons
             )
 
             await ctx.send(embed=embed)
@@ -393,8 +423,6 @@ class Pokemon(commands.Cog):
         # confirmed, release
 
         await self.bot.mongo.db.pokemon.delete_many({"_id": {"$in": list(ids)}})
-        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
-
         await ctx.send(f"You released {len(mons)} pokémon.")
 
     # Filter
@@ -441,7 +469,7 @@ class Pokemon(commands.Cog):
 
         aggregations.extend(
             [
-                {"$match": {"idx": {"$not": {"$eq": member.selected}}}},
+                {"$match": {"_id": {"$not": {"$eq": member.selected_id}}}},
                 {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
             ]
         )
@@ -479,12 +507,9 @@ class Pokemon(commands.Cog):
             ctx.author, 0, num, aggregations=aggregations
         )
 
-        dec = len([x for x in pokemon if x["idx"] < member.selected])
-
         await self.bot.mongo.db.pokemon.delete_many(
             {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}
         )
-        await self.db.update_member(ctx.author, {"$inc": {f"selected": -dec}})
 
         await ctx.send(f"You have released {num} pokémon.")
 
@@ -564,8 +589,8 @@ class Pokemon(commands.Cog):
 
             return name
 
-        def padn(p, idx, n):
-            return " " * (len(str(n)) - len(str(idx))) + str(idx)
+        def padn(p, n):
+            return " " * (len(str(n)) - len(str(p.idx))) + str(p.idx)
 
         num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
@@ -580,18 +605,17 @@ class Pokemon(commands.Cog):
             )
 
             pokemon = [
-                (self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"] + 1)
-                for x in pokemon
+                self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon
             ]
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
 
-            maxn = max(idx for x, idx in pokemon)
+            maxn = max(x.idx for x in pokemon)
 
             page = [
-                f"`{padn(p, idx, maxn)}`　**{txt}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
-                for p, idx in pokemon
+                f"`{padn(p, maxn)}`　**{txt}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
+                for p in pokemon
                 if (txt := nick(p)) is not None
             ]
 
@@ -813,8 +837,6 @@ class Pokemon(commands.Cog):
     async def evolve(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Evolve a pokémon if it has reached the target level."""
 
-        pokemon, idx = pokemon
-
         member = await self.db.fetch_member_info(ctx.author)
         guild = await self.db.fetch_guild(ctx.guild)
 
@@ -840,7 +862,8 @@ class Pokemon(commands.Cog):
             embed.set_thumbnail(url=evo.image_url)
 
         await self.db.update_pokemon(
-            pokemon, {"$set": {f"species_id": evo.id}},
+            pokemon,
+            {"$set": {f"species_id": evo.id}},
         )
 
         await ctx.send(embed=embed)
@@ -850,17 +873,20 @@ class Pokemon(commands.Cog):
     async def unmega(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Switch a pokémon back to its non-mega form."""
 
-        pokemon, idx = pokemon
-
         fr = self.bot.data.species_by_number(pokemon.species.dex_number)
 
-        if pokemon.species not in (fr.mega, fr.mega_x, fr.mega_y,):
+        if pokemon.species not in (
+            fr.mega,
+            fr.mega_x,
+            fr.mega_y,
+        ):
             return await ctx.send("This pokémon is not in mega form!")
 
         member = await self.db.fetch_member_info(ctx.author)
 
         await self.db.update_pokemon(
-            pokemon, {"$set": {f"species_id": fr.id}},
+            pokemon,
+            {"$set": {f"species_id": fr.id}},
         )
 
         await ctx.send("Successfully switched back to normal form.")

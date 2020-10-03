@@ -65,18 +65,18 @@ class Trading(commands.Cog):
                     return await ctx.send("The trade has been canceled.")
 
                 try:
-                    maxn = max(x[1] + 1 for x in side if type(x) != int)
+                    maxn = max(x.idx for x in side if type(x) != int)
                 except ValueError:
                     maxn = 0
 
                 def padn(idx, n):
                     return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
-                def txt(x):
-                    val = f"`{padn(x[1] + 1, maxn)}`　**{x[0].species}**"
-                    if x[0].shiny:
+                def txt(p):
+                    val = f"`{padn(p.idx, maxn)}`　**{p.species}**"
+                    if p.shiny:
                         val += " ✨"
-                    val += f"　•　Lvl. {x[0].level}　•　{x[0].iv_percentage:.2%}"
+                    val += f"　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
                     return val
 
                 val = "\n".join(
@@ -133,28 +133,29 @@ class Trading(commands.Cog):
 
                     idxs = set()
 
+                    num_pokes = len(list(x for x in side if type(x) != int))
+                    idx = await self.db.fetch_next_idx(omem, num_pokes)
+
                     for x in side:
                         if type(x) == int:
                             await self.db.update_member(mem, {"$inc": {"balance": -x}})
                             await self.db.update_member(omem, {"$inc": {"balance": x}})
                         else:
 
-                            pokemon, idx = x
+                            pokemon = x
 
-                            if idx in idxs:
+                            if pokemon.idx in idxs:
                                 continue
 
-                            idxs.add(idx)
-
-                            if idx < member.selected:
-                                dec += 1
+                            idxs.add(pokemon.idx)
 
                             update = {
                                 "$set": {
                                     "owner_id": omem.id,
-                                    "timestamp": datetime.utcnow(),
+                                    "idx": idx,
                                 }
                             }
+                            idx += 1
 
                             if (
                                 pokemon.species.trade_evolution
@@ -188,7 +189,6 @@ class Trading(commands.Cog):
                                 update,
                             )
 
-                    await self.db.update_member(mem, {"$inc": {f"selected": -dec}})
             except:
                 del self.bot.trades[a.id]
                 del self.bot.trades[b.id]
@@ -206,11 +206,11 @@ class Trading(commands.Cog):
                         "users": [a.id, b.id],
                         "items": {
                             str(a.id): [
-                                x if type(x) == int else x[0].id
+                                x if type(x) == int else x.id
                                 for x in trade["items"][a.id]
                             ],
                             str(b.id): [
-                                x if type(x) == int else x[0].id
+                                x if type(x) == int else x.id
                                 for x in trade["items"][b.id]
                             ],
                         },
@@ -385,7 +385,7 @@ class Trading(commands.Cog):
                         if type(x) == int:
                             continue
 
-                        if x[1] + 1 == int(what):
+                        if x.idx == int(what):
                             lines.append(f"{what}: This item is already in the trade!")
                             skip = True
                             break
@@ -393,7 +393,7 @@ class Trading(commands.Cog):
                     if skip:
                         continue
 
-                    number = int(what) - 1
+                    number = int(what)
 
                     member = await self.db.fetch_member_info(ctx.author)
                     pokemon = await self.db.fetch_pokemon(ctx.author, number)
@@ -402,7 +402,7 @@ class Trading(commands.Cog):
                         lines.append(f"{what}: Couldn't find that pokémon!")
                         continue
 
-                    if member.selected == number:
+                    if member.selected_id == pokemon.id:
                         lines.append(f"{what}: You can't trade your selected pokémon!")
                         continue
 
@@ -411,7 +411,7 @@ class Trading(commands.Cog):
                         continue
 
                     self.bot.trades[ctx.author.id]["items"][ctx.author.id].append(
-                        (pokemon, number)
+                        pokemon
                     )
 
                     updated = True
@@ -491,7 +491,7 @@ class Trading(commands.Cog):
                         if type(x) == int:
                             continue
 
-                        if x[1] + 1 == int(what):
+                        if x.idx == int(what):
                             del trade["items"][ctx.author.id][idx]
                             updated = True
                             break
@@ -562,7 +562,7 @@ class Trading(commands.Cog):
 
         aggregations.extend(
             [
-                {"$match": {"idx": {"$not": {"$eq": member.selected}}}},
+                {"$match": {"_id": {"$not": {"$eq": member.selected_id}}}},
                 {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
             ]
         )
@@ -601,11 +601,11 @@ class Trading(commands.Cog):
         )
 
         self.bot.trades[ctx.author.id]["items"][ctx.author.id].extend(
-            (self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]), x["idx"])
+            self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"])
             for x in pokemon
             if all(
                 (
-                    type(i) == int or x["idx"] != i[1]
+                    type(i) == int or x.idx != i.idx
                     for i in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
                 )
             )
@@ -635,8 +635,8 @@ class Trading(commands.Cog):
             pokemon = next(
                 x
                 for x in self.bot.trades[ctx.author.id]["items"][other_id]
-                if type(x) != int and x[1] == number - 1
-            )[0]
+                if type(x) != int and x.idx == number
+            )
         except StopIteration:
             return await ctx.send("Couldn't find that pokémon in the trade!")
 

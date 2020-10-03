@@ -132,7 +132,7 @@ class Battle:
                 embed.add_field(
                     name=f"{trainer.user}'s Party",
                     value="\n".join(
-                        f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})"
+                        f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})"
                         for x in trainer.pokemon
                     ),
                 )
@@ -188,7 +188,9 @@ class Battle:
             if "Poison" in trainer.selected.ailments:
                 trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
-        for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
+        for action, trainer, opponent in sorted(
+            iterl, key=lambda x: x[0]["priority"], reverse=True
+        ):
             title = None
             text = None
 
@@ -519,23 +521,23 @@ class Battling(commands.Cog):
             self.bot.battles.get_opponent(ctx.author),
         )
 
-        for pokemon, idx in args:
+        for pokemon in args:
             if pokemon is None:
-                await ctx.send(f"{idx + 1}: Couldn't find that pokémon!")
-                return
+                continue
 
             if len(trainer.pokemon) >= 3:
                 await ctx.send(
-                    f"{idx + 1}: There are already enough pokémon in the party!"
+                    f"{pokemon.idx}: There are already enough pokémon in the party!"
                 )
                 return
 
             for x in trainer.pokemon:
-                if x.idx == idx:
-                    await ctx.send(f"{idx + 1}: This pokémon is already in the party!")
+                if x.id == pokemon.id:
+                    await ctx.send(
+                        f"{pokemon.idx}: This pokémon is already in the party!"
+                    )
                     return
 
-            pokemon.idx = idx
             pokemon.hp = pokemon.hp
             pokemon.stages = models.StatStages()
             pokemon.ailments = set()
@@ -570,8 +572,6 @@ class Battling(commands.Cog):
     @commands.command(aliases=["mv"], rest_is_raw=True)
     async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View current and available moves for your pokémon."""
-
-        pokemon, idx = pokemon
 
         embed = discord.Embed(color=self.bot.embed_color)
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
@@ -609,7 +609,7 @@ class Battling(commands.Cog):
             return await ctx.send("Couldn't find that move!")
 
         member = await self.db.fetch_member_info(ctx.author)
-        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
 
         if move.id in pokemon.moves:
             return await ctx.send("Your pokémon has already learned that move!")
@@ -672,14 +672,15 @@ class Battling(commands.Cog):
 
             if species is None:
                 converter = converters.Pokemon(raise_errors=False)
-                pokemon, idx = await converter.convert(ctx, search)
+                pokemon = await converter.convert(ctx, search)
                 if pokemon is not None:
                     species = pokemon.species
 
         if species is None:
             raise converters.PokemonConversionError(
                 f"Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for "
-                f"a specific pokémon, `latest` for your latest pokémon. "
+                f"a specific pokémon, `latest` for your latest pokémon. ",
+                original=ValueError(),
             )
 
         async def get_page(pidx, clear):
@@ -719,9 +720,7 @@ class Battling(commands.Cog):
 
         embed = discord.Embed(color=self.bot.embed_color)
         embed.title = move.name
-
         embed.description = move.description
-
         embed.add_field(name="Target", value=move.target_text, inline=False)
 
         for name, x in (

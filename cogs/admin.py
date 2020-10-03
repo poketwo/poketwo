@@ -48,11 +48,7 @@ class Administration(commands.Cog):
     async def suspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
-        await self.db.update_member(
-            user,
-            {"$set": {"suspended": True}},
-        )
-
+        await self.db.update_member(user, {"$set": {"suspended": True}})
         await ctx.send(f"Suspended {user.mention}.")
 
     @commands.is_owner()
@@ -65,11 +61,7 @@ class Administration(commands.Cog):
     async def unsuspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
-        await self.db.update_member(
-            user,
-            {"$set": {"suspended": False}},
-        )
-
+        await self.db.update_member(user, {"$set": {"suspended": False}})
         await ctx.send(f"Unsuspended {user.mention}.")
 
     @commands.is_owner()
@@ -79,11 +71,7 @@ class Administration(commands.Cog):
     ):
         """Give a redeem."""
 
-        await self.db.update_member(
-            user,
-            {"$inc": {"redeems": num}},
-        )
-
+        await self.db.update_member(user, {"$inc": {"redeems": num}})
         await ctx.send(f"Gave {user.mention} {num} redeems.")
 
     @commands.is_owner()
@@ -160,7 +148,6 @@ class Administration(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": user.id,
-                "timestamp": datetime.utcnow(),
                 "species_id": species.id,
                 "level": 1,
                 "xp": 0,
@@ -172,6 +159,7 @@ class Administration(commands.Cog):
                 "iv_sdef": mongo.random_iv(),
                 "iv_spd": mongo.random_iv(),
                 "shiny": shiny,
+                "idx": await self.db.fetch_next_idx(user),
             }
         )
 
@@ -187,13 +175,13 @@ class Administration(commands.Cog):
         member = await self.db.fetch_member_info(user)
 
         pokemon = []
+        idx = await self.db.fetch_next_idx(user, reserve=num)
 
         for i in range(num):
             spid = random.randint(1, 809)
             pokemon.append(
                 {
                     "owner_id": user.id,
-                    "timestamp": datetime.utcnow(),
                     "species_id": spid,
                     "level": 80,
                     "xp": 0,
@@ -205,11 +193,11 @@ class Administration(commands.Cog):
                     "iv_sdef": mongo.random_iv(),
                     "iv_spd": mongo.random_iv(),
                     "shiny": False,
+                    "idx": idx + i,
                 }
             )
 
         await self.bot.mongo.db.pokemon.insert_many(pokemon)
-
         await ctx.send(f"Gave {user.mention} {num} pokémon.")
 
 

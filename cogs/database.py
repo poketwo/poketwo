@@ -1,5 +1,6 @@
 import discord
 import pymongo
+from bson.objectid import ObjectId
 from discord.ext import commands
 
 
@@ -13,6 +14,18 @@ class Database(commands.Cog):
         return await self.bot.mongo.Member.find_one(
             {"id": member.id}, {"pokemon": 0, "pokedex": 0}
         )
+
+    async def fetch_next_idx(self, member: discord.Member, reserve=1):
+        result = await self.bot.mongo.db.member.find_one_and_update(
+            {"_id": member.id}, {"$inc": {"next_idx": reserve}}
+        )
+        return result["next_idx"]
+
+    async def reset_idx(self, member: discord.Member, value=1):
+        result = await self.bot.mongo.db.member.find_one_and_update(
+            {"_id": member.id}, {"$set": {"next_idx": value}}
+        )
+        return result["next_idx"]
 
     async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
 
@@ -45,14 +58,8 @@ class Database(commands.Cog):
         return await self.bot.mongo.db.pokemon.aggregate(
             [
                 {"$match": {"owner_id": member.id}},
-                {
-                    "$sort": {
-                        "timestamp": 1,
-                        "_id": 1,
-                    }
-                },
-                {"$group": {"_id": None, "pokemon": {"$push": "$$ROOT"}}},
-                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
+                {"$sort": {"idx": 1}},
+                {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                 *aggregations,
                 {"$skip": skip},
                 {"$limit": limit},
@@ -65,11 +72,7 @@ class Database(commands.Cog):
         result = await self.bot.mongo.db.pokemon.aggregate(
             [
                 {"$match": {"owner_id": member.id}},
-                {
-                    "$project": {
-                        "pokemon": "$$ROOT",
-                    }
-                },
+                {"$project": {"pokemon": "$$ROOT"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -135,27 +138,34 @@ class Database(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
 
-        result = await self.bot.mongo.db.pokemon.aggregate(
-            [
-                {"$match": {"owner_id": member.id}},
-                {
-                    "$sort": {
-                        "timestamp": 1,
-                        "_id": 1,
-                    }
-                },
-                {"$group": {"_id": None, "pokemon": {"$push": "$$ROOT"}}},
-                {"$unwind": {"path": "$pokemon", "includeArrayIndex": "idx"}},
-                {"$skip": idx},
-                {"$limit": 1},
-            ],
-            allowDiskUse=True,
-        ).to_list(None)
+        if isinstance(idx, ObjectId):
+            result = await self.bot.mongo.db.pokemon.find_one({"_id": idx})
+        elif idx == -1:
+            count = await self.fetch_pokemon_count(member)
+            result = await self.bot.mongo.db.pokemon.aggregate(
+                [
+                    {"$match": {"owner_id": member.id}},
+                    {"$sort": {"idx": 1}},
+                    {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
+                    {"$skip": count - 1},
+                    {"$limit": 1},
+                ],
+                allowDiskUse=True,
+            ).to_list(None)
 
-        if len(result) == 0 or "pokemon" not in result[0]:
+            if len(result) == 0 or "pokemon" not in result[0]:
+                result = None
+            else:
+                result = result[0]["pokemon"]
+        else:
+            result = await self.bot.mongo.db.pokemon.find_one(
+                {"owner_id": member.id, "idx": idx}
+            )
+
+        if result is None:
             return None
 
-        return self.bot.mongo.Pokemon.build_from_mongo(result[0]["pokemon"])
+        return self.bot.mongo.Pokemon.build_from_mongo(result)
 
     async def fetch_guild(self, guild: discord.Guild):
         g = await self.bot.mongo.Guild.find_one({"id": guild.id})

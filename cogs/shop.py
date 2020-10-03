@@ -264,7 +264,6 @@ class Shop(commands.Cog):
 
                 pokemon = {
                     "owner_id": ctx.author.id,
-                    "timestamp": datetime.utcnow(),
                     "species_id": species.id,
                     "level": level,
                     "xp": 0,
@@ -276,6 +275,7 @@ class Shop(commands.Cog):
                     "iv_sdef": ivs[4],
                     "iv_spd": ivs[5],
                     "shiny": shiny,
+                    "idx": await self.db.fetch_next_idx(ctx.author),
                 }
 
                 if do_emojis:
@@ -317,8 +317,6 @@ class Shop(commands.Cog):
     async def dropitem(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Drop a pokémon's held item."""
 
-        pokemon, idx = pokemon
-
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
@@ -354,9 +352,6 @@ class Shop(commands.Cog):
             converter = converters.Pokemon()
             from_pokemon = await converter.convert(ctx, "")
 
-        from_pokemon, from_idx = from_pokemon
-        to_pokemon, to_idx = to_pokemon
-
         if from_pokemon is None or to_pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
@@ -367,8 +362,6 @@ class Shop(commands.Cog):
             return await ctx.send("That pokémon is already holding an item!")
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        from_idx = from_idx % num
-        to_idx = to_idx % num
 
         await self.db.update_pokemon(from_pokemon, {"$set": {f"held_item": None}})
         await self.db.update_pokemon(
@@ -525,7 +518,7 @@ class Shop(commands.Cog):
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
 
         member = await self.db.fetch_member_info(ctx.author)
-        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected)
+        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
 
         if qty > 1 and item.action not in ("level", "shard", "redeem"):
             return await ctx.send("You can't buy multiple of this item!")
