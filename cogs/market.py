@@ -289,6 +289,7 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
+        member = await self.db.fetch_member_info(ctx.author)
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 

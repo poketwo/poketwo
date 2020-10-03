@@ -11,7 +11,7 @@ from pymongo import MongoClient
 client = MongoClient(config.DATABASE_URI)
 db = client[config.DATABASE_NAME]
 
-db["pokemon"].aggregate(
+result = db["pokemon"].aggregate(
     [
         {
             "$sort": {
@@ -22,23 +22,22 @@ db["pokemon"].aggregate(
         {
             "$group": {
                 "_id": "$owner_id",
-                "pokemon": {
-                    "$push": "$$ROOT",
+                "ids": {
+                    "$push": "$_id",
                 },
             }
         },
         {
             "$unwind": {
-                "path": "$pokemon",
-                "includeArrayIndex": "pokemon.idx",
+                "path": "$ids",
+                "includeArrayIndex": "idx",
             }
         },
-        {
-            "$replaceRoot": {
-                "newRoot": "$pokemon",
-            }
-        },
+        {"$project": {"_id": "$ids", "idx": "$idx"}},
         {"$out": "new_pokemon"},
     ],
     allowDiskUse=True,
 )
+
+for i in result:
+    print(i)
