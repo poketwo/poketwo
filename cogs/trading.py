@@ -603,7 +603,7 @@ class Trading(commands.Cog):
             for x in pokemon
             if all(
                 (
-                    type(i) == int or x.idx != i.idx
+                    type(i) == int or x["idx"] != i.idx
                     for i in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
                 )
             )
