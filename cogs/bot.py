@@ -271,7 +271,7 @@ class Bot(commands.Cog):
             species_id=species.id,
             level=1,
             xp=0,
-            idx=0,
+            idx=1,
         )
 
         result = await self.bot.mongo.db.pokemon.insert_one(starter.to_mongo())
@@ -280,7 +280,7 @@ class Bot(commands.Cog):
                 "_id": ctx.author.id,
                 "selected_id": result.inserted_id,
                 "joined_at": datetime.utcnow(),
-                "next_idx": 1,
+                "next_idx": 2,
             }
         )
 

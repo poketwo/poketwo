@@ -21,7 +21,7 @@ class Database(commands.Cog):
         )
         return result["next_idx"]
 
-    async def reset_idx(self, member: discord.Member, value=1):
+    async def reset_idx(self, member: discord.Member, value):
         result = await self.bot.mongo.db.member.find_one_and_update(
             {"_id": member.id}, {"$set": {"next_idx": value}}
         )

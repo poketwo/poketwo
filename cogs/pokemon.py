@@ -29,12 +29,12 @@ class Pokemon(commands.Cog):
         )
 
         num = await self.db.fetch_pokemon_count(ctx.author)
-        await self.db.reset_idx(ctx.author, value=num)
+        await self.db.reset_idx(ctx.author, value=num + 1)
         mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id}).sort("idx")
 
         ops = []
 
-        idx = 0
+        idx = 1
         async for pokemon in mons:
             ops.append(UpdateOne({"_id": pokemon["_id"]}, {"$set": {"idx": idx}}))
             idx += 1

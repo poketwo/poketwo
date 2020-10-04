@@ -19,9 +19,9 @@ class Pokemon(commands.Converter):
 
         if arg == "" and self.accept_blank:
             number = member.selected_id
-        elif arg.isdigit():
+        elif arg.isdigit() and arg != "0":
             number = int(arg)
-        elif arg.lower() == "latest":
+        elif arg.lower() in ["latest", "l", "0"]:
             number = -1
         elif not self.raise_errors:
             return None

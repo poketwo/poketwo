@@ -229,6 +229,7 @@ class Member(Document):
         strict = False
 
     id = fields.IntegerField(attribute="_id")
+    next_idx = fields.IntegerField(default=1)
 
     selected = fields.IntegerField(required=True)
     selected_id = fields.ObjectIdField(required=True)
