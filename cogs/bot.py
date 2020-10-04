@@ -11,10 +11,6 @@ from helpers import checks, constants, converters
 from .database import Database
 
 
-class Blacklisted(commands.CheckFailure):
-    pass
-
-
 class Bot(commands.Cog):
     """For basic bot operation."""
 
@@ -30,14 +26,8 @@ class Bot(commands.Cog):
         self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
 
     async def bot_check(self, ctx):
-        if ctx.invoked_with == "help":
+        if ctx.invoked_with.lower() == "help":
             return True
-
-        if (
-            await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
-            > 0
-        ):
-            raise Blacklisted
 
         bucket = self.cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
@@ -49,10 +39,7 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
 
-        if isinstance(error, Blacklisted):
-            self.bot.log.info(f"{ctx.author.id} is blacklisted")
-            return
-        elif isinstance(error, commands.CommandOnCooldown):
+        if isinstance(error, commands.CommandOnCooldown):
             self.bot.log.info(f"{ctx.author.id} hit cooldown")
             await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.MaxConcurrencyReached):
