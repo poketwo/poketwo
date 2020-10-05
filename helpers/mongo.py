@@ -15,21 +15,34 @@ random_nature = lambda: random.choice(constants.NATURES)
 # Instance
 
 
+def calc_stat(pokemon, stat):
+    base = getattr(pokemon.species.base_stats, stat)
+    iv = getattr(pokemon, f"iv_{stat}")
+    return math.floor(
+        ((2 * base + iv + 5) * pokemon.level // 100 + 5)
+        * constants.NATURE_MULTIPLIERS[pokemon.nature][stat]
+    )
+
+
 class PokemonBase(MixinDocument):
     class Meta:
         strict = False
         abstract = True
 
+    # General
     id = fields.ObjectIdField(attribute="_id")
     timestamp = fields.DateTimeField(default=datetime.utcnow)
     owner_id = fields.IntegerField(required=True)
     idx = fields.IntegerField(required=True)
 
+    # Details
     species_id = fields.IntegerField(required=True)
     level = fields.IntegerField(required=True)
     xp = fields.IntegerField(required=True)
     nature = fields.StringField(required=True)
+    shiny = fields.BooleanField(required=True)
 
+    # Stats
     iv_hp = fields.IntegerField(required=True)
     iv_atk = fields.IntegerField(required=True)
     iv_defn = fields.IntegerField(required=True)
@@ -37,12 +50,10 @@ class PokemonBase(MixinDocument):
     iv_sdef = fields.IntegerField(required=True)
     iv_spd = fields.IntegerField(required=True)
 
+    # Customization
     nickname = fields.StringField(default=None)
     favorite = fields.BooleanField(default=False)
-
-    shiny = fields.BooleanField(required=True)
     held_item = fields.IntegerField(default=None)
-
     moves = fields.ListField(fields.IntegerField, default=list)
 
     _hp = None
@@ -93,59 +104,23 @@ class PokemonBase(MixinDocument):
 
     @property
     def atk(self):
-        return math.floor(
-            (
-                (2 * self.species.base_stats.atk + self.iv_atk + 5) * self.level // 100
-                + 5
-            )
-            * constants.NATURE_MULTIPLIERS[self.nature]["atk"]
-        )
+        return calc_stat(self, "atk")
 
     @property
     def defn(self):
-        return math.floor(
-            (
-                (2 * self.species.base_stats.defn + self.iv_defn + 5)
-                * self.level
-                // 100
-                + 5
-            )
-            * constants.NATURE_MULTIPLIERS[self.nature]["defn"]
-        )
+        return calc_stat(self, "defn")
 
     @property
     def satk(self):
-        return math.floor(
-            (
-                (2 * self.species.base_stats.satk + self.iv_satk + 5)
-                * self.level
-                // 100
-                + 5
-            )
-            * constants.NATURE_MULTIPLIERS[self.nature]["satk"]
-        )
+        return calc_stat(self, "satk")
 
     @property
     def sdef(self):
-        return math.floor(
-            (
-                (2 * self.species.base_stats.sdef + self.iv_sdef + 5)
-                * self.level
-                // 100
-                + 5
-            )
-            * constants.NATURE_MULTIPLIERS[self.nature]["sdef"]
-        )
+        return calc_stat(self, "sdef")
 
     @property
     def spd(self):
-        return math.floor(
-            (
-                (2 * self.species.base_stats.spd + self.iv_spd + 5) * self.level // 100
-                + 5
-            )
-            * constants.NATURE_MULTIPLIERS[self.nature]["spd"]
-        )
+        return calc_stat(self, "spd")
 
     @property
     def iv_percentage(self):
@@ -214,42 +189,49 @@ class Pokemon(PokemonBase, Document):
     class Meta:
         strict = False
 
-    pass
-
 
 class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
     class Meta:
         strict = False
-
-    pass
 
 
 class Member(Document):
     class Meta:
         strict = False
 
+    # General
     id = fields.IntegerField(attribute="_id")
+    joined_at = fields.DateTimeField(default=None)
+    suspended = fields.BooleanField(default=False)
+
+    # Pokémon
     next_idx = fields.IntegerField(default=1)
-
-    selected = fields.IntegerField(required=True)
     selected_id = fields.ObjectIdField(required=True)
-
     order_by = fields.StringField(default="number")
+
+    # Pokédex
     pokedex = fields.DictField(
         fields.StringField(), fields.IntegerField(), default=dict
     )
     shinies_caught = fields.IntegerField(default=0)
+
+    # Shop
     balance = fields.IntegerField(default=0)
+    premium_balance = fields.IntegerField(default=0)
     redeems = fields.IntegerField(default=0)
+    redeems_purchased = fields.DictField(
+        fields.IntegerField(), fields.IntegerField(), default=dict
+    )
 
-    show_balance = fields.BooleanField(default=True)
-
+    # Shiny Hunt
     shiny_hunt = fields.IntegerField(default=None)
     shiny_streak = fields.IntegerField(default=0)
 
+    # Boosts
     boost_expires = fields.DateTimeField(default=datetime.min)
     shiny_charm_expires = fields.DateTimeField(default=datetime.min)
 
+    # Voting
     last_voted = fields.DateTimeField(default=datetime.min)
     vote_total = fields.IntegerField(default=0)
     vote_streak = fields.IntegerField(default=0)
@@ -258,16 +240,12 @@ class Member(Document):
     gifts_ultra = fields.IntegerField(default=0)
     gifts_master = fields.IntegerField(default=0)
 
+    # Settings
+    show_balance = fields.BooleanField(default=True)
     silence = fields.BooleanField(default=False)
-    joined_at = fields.DateTimeField(default=None)
-    invites = fields.IntegerField(default=0)
 
-    suspended = fields.BooleanField(default=False)
-    premium_balance = fields.IntegerField(default=0)
-
-    redeems_purchased = fields.DictField(
-        fields.IntegerField(), fields.IntegerField(), default=dict
-    )
+    # Events
+    halloween_tickets = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):

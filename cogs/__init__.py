@@ -4,6 +4,7 @@ from . import (
     bot,
     config,
     database,
+    halloween,
     help,
     market,
     pokemon,
