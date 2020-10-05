@@ -151,11 +151,17 @@ class Spawning(commands.Cog):
 
                     await self.db.update_pokemon(pokemon, update)
 
+                    if not silence:
+                        permissions = message.channel.permissions_for(message.guild.me)
+                        if (
+                            permissions.send_messages
+                            and permissions.attach_files
+                            and permissions.embed_links
+                        ):
+                            await message.channel.send(embed=embed)
+
                     if silence and pokemon.level == 100:
                         await message.author.send(embed=embed)
-
-                    if not silence:
-                        await message.channel.send(embed=embed)
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
                     await self.db.update_pokemon(
