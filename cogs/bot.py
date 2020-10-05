@@ -22,6 +22,7 @@ class Bot(commands.Cog):
 
         self.post_count.start()
         self.post_dbl.start()
+        self.update_status.start()
 
         self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
 
@@ -159,6 +160,17 @@ class Bot(commands.Cog):
         result = result[0]
 
         return result
+
+    @tasks.loop(minutes=1)
+    async def update_status(self):
+        await self.bot.wait_until_ready()
+        result = await self.get_stats()
+        await self.bot.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f"{result['servers']:,} servers",
+            )
+        )
 
     @tasks.loop(minutes=5)
     async def post_dbl(self):
@@ -326,6 +338,7 @@ class Bot(commands.Cog):
     def cog_unload(self):
         self.post_count.cancel()
         self.post_dbl.cancel()
+        self.update_status.cancel()
 
 
 def setup(bot):
