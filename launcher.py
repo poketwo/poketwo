@@ -6,6 +6,7 @@ import signal
 import sys
 import time
 
+import discord
 import requests
 
 import config
@@ -54,6 +55,9 @@ CLUSTER_NAMES = (
 )
 
 NAMES = iter(CLUSTER_NAMES)
+
+intents = discord.Intents.default()
+intents.members = True
 
 
 class Launcher:
@@ -183,6 +187,7 @@ class Cluster:
             database_uri=config.DATABASE_URI,
             database_name=config.DATABASE_NAME,
             secret_key=config.SECRET_KEY,
+            intents=intents,
         )
         self.name = name
         self.log = logging.getLogger(f"Cluster#{name}")

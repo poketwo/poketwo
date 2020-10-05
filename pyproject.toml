@@ -7,7 +7,7 @@ license = "GPLv3"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-"discord.py" = "^1.4.1"
+"discord.py" = "^1.5.0"
 pillow = "^7.2.0"
 umongo = "^3.0.0b8"
 motor = "^2.2.0"
