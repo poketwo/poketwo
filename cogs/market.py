@@ -79,7 +79,10 @@ class Market(commands.Cog):
 
         # Filter pokemon
 
-        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        do_emojis = (
+            ctx.guild is None
+            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        )
 
         def nick(p):
             name = f"L{p.level} {p.species}"

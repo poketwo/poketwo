@@ -672,7 +672,10 @@ class Pokemon(commands.Cog):
 
             num = await self.db.fetch_pokedex_count(ctx.author)
 
-            do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
+            do_emojis = (
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+            )
 
             member = await self.db.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex

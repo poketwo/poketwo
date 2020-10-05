@@ -93,7 +93,10 @@ class Shop(commands.Cog):
             )
             member = await self.db.fetch_member_info(ctx.author)
 
-        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        do_emojis = (
+            ctx.guild is None
+            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        )
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Voting Rewards"
@@ -177,8 +180,12 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["o"])
     async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
-        do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
         """Open mystery boxes received from voting."""
+
+        do_emojis = (
+            ctx.guild is None
+            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        )
 
         if type.lower() not in ("normal", "great", "ultra", "master"):
             if type.lower() in ("n", "g", "u", "m"):
@@ -447,7 +454,10 @@ class Shop(commands.Cog):
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
-            do_emojis = ctx.guild.me.permissions_in(ctx.channel).external_emojis
+            do_emojis = (
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+            )
 
             for item in items:
                 emote = ""
@@ -506,6 +516,9 @@ class Shop(commands.Cog):
     @commands.command()
     async def buy(self, ctx: commands.Context, *args: str):
         """Purchase an item from the shop."""
+
+        if len(args) == 0:
+            return
 
         qty = 1
 

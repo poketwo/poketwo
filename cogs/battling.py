@@ -382,7 +382,7 @@ class Battling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
-        user = self.bot.get_user(user_id)
+        user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
         species = self.bot.data.species_by_number(species_id)
 
         embed = self.bot.Embed(color=0xE67D23)

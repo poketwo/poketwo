@@ -273,7 +273,7 @@ class Bot(commands.Cog):
 
         species = self.bot.data.species_by_name(name)
 
-        if species.name.lower() not in constants.STARTER_POKEMON:
+        if species is None or species.name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(
                 f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`."
             )
