@@ -121,7 +121,7 @@ class Bot(commands.Cog):
     async def invite(self, ctx: commands.Context):
         """View the invite link for the bot."""
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = "Want to add me to your server? Use the link below!"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(
@@ -210,7 +210,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
 
@@ -251,7 +251,7 @@ class Bot(commands.Cog):
     async def start(self, ctx: commands.Context):
         """View the starter pokémon."""
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. "
 
@@ -305,7 +305,7 @@ class Bot(commands.Cog):
     async def profile(self, ctx: commands.Context):
         """View your profile."""
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"{ctx.author}"
 
         member = await self.db.fetch_member_info(ctx.author)

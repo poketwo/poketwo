@@ -26,7 +26,7 @@ class Halloween(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Spooktober Event"
         embed.description = "It's spooky season! Join us this month to earn special rewards, including exclusive event pokémon!"
         embed.set_thumbnail(url="https://i.imgur.com/3YB6ldP.png")

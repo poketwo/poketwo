@@ -44,7 +44,7 @@ class Trading(commands.Cog):
             execmsg = await ctx.send("Executing trade...")
 
         async def get_page(pidx, clear):
-            embed = self.bot.Embed()
+            embed = self.bot.Embed(color=0xE67D23)
             embed.title = f"Trade between {a.display_name} and {b.display_name}."
 
             if done:
@@ -163,7 +163,7 @@ class Trading(commands.Cog):
                                     evo.trigger.item is None
                                     or evo.trigger.item.id == pokemon.held_item
                                 ):
-                                    evo_embed = self.bot.Embed()
+                                    evo_embed = self.bot.Embed(color=0xE67D23)
                                     evo_embed.title = (
                                         f"Congratulations {omem.display_name}!"
                                     )
@@ -638,7 +638,7 @@ class Trading(commands.Cog):
         except StopIteration:
             return await ctx.send("Couldn't find that pokémon in the trade!")
 
-        embed = self.bot.Embed()
+        embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Level {pokemon.level} {pokemon.species}"
 
         if pokemon.nickname is not None:
