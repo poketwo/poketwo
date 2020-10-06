@@ -67,8 +67,6 @@ class Bot(commands.Cog):
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
-            else:
-                await ctx.author.send(message)
         elif isinstance(
             error,
             (
@@ -81,7 +79,7 @@ class Bot(commands.Cog):
             await ctx.send(error)
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send_help(ctx.command)
-        elif isinstance(error, (discord.errors.Forbidden, commands.CommandNotFound)):
+        elif isinstance(error, commands.CommandNotFound):
             return
         else:
             print(f"Ignoring exception in command {ctx.command}:")
