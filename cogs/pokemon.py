@@ -842,6 +842,9 @@ class Pokemon(commands.Cog):
     async def evolve(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Evolve a pokémon if it has reached the target level."""
 
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
         member = await self.db.fetch_member_info(ctx.author)
         guild = await self.db.fetch_guild(ctx.guild)
 
@@ -877,6 +880,9 @@ class Pokemon(commands.Cog):
     @commands.command(rest_is_raw=True)
     async def unmega(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Switch a pokémon back to its non-mega form."""
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
 
         fr = self.bot.data.species_by_number(pokemon.species.dex_number)
 

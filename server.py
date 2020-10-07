@@ -37,8 +37,14 @@ db = AsyncIOMotorClient(config.DATABASE_URI, io_loop=loop)[config.DATABASE_NAME]
 # IPC Routes
 
 
-def req(idx, endpoint, **kwargs):
-    return web_ipc.request(endpoint, 8765 + idx, **kwargs)
+async def req(idx, endpoint, **kwargs):
+    try:
+        resp = await asyncio.wait_for(
+            web_ipc.request(endpoint, 8765 + idx, **kwargs), timeout=5.0
+        )
+        return resp
+    except asyncio.TimeoutError:
+        return {"success": False, "error": "ipc_timeout"}
 
 
 def login_required(func):

@@ -103,6 +103,7 @@ class ClusterBot(commands.AutoShardedBot):
         @self.ipc.route()
         async def stats(data):
             return {
+                "success": True,
                 "guild_count": len(self.guilds),
                 "shard_count": len(self.shards),
                 "user_count": sum(x.member_count for x in self.guilds),
@@ -157,7 +158,7 @@ class ClusterBot(commands.AutoShardedBot):
         @self.ipc.route()
         async def eval(data):
             data = await self.exec(data.code)
-            return {"result": data}
+            return {"success": True, "result": data}
 
         self.ipc.start()
 
@@ -176,8 +177,11 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
-        self.pipe.send(1)
-        self.pipe.close()
+        try:
+            self.pipe.send(1)
+            self.pipe.close()
+        except OSError:
+            pass
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")

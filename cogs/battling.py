@@ -573,6 +573,9 @@ class Battling(commands.Cog):
     async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View current and available moves for your pokémon."""
 
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
         embed = discord.Embed(color=0xE67D23)
         embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
         embed.description = (

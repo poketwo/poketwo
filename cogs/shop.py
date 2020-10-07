@@ -364,6 +364,9 @@ class Shop(commands.Cog):
             converter = converters.Pokemon()
             from_pokemon = await converter.convert(ctx, "")
 
+        if to_pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
         if from_pokemon is None or to_pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 

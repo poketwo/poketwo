@@ -136,26 +136,16 @@ class Launcher:
 
     async def rebooter(self):
         while self.alive:
-            # log.info("Cycle!")
             if not self.clusters:
                 log.warning("All clusters appear to be dead")
                 asyncio.ensure_future(self.shutdown())
-            to_remove = []
             for cluster in self.clusters:
                 if not cluster.process.is_alive():
-                    if cluster.process.exitcode != 0:
-                        # ignore safe exits
-                        log.info(
-                            f"Cluster#{cluster.name} exited with code {cluster.process.exitcode}"
-                        )
-                        log.info(f"Restarting cluster#{cluster.name}")
-                        await cluster.start()
-                    else:
-                        log.info(f"Cluster#{cluster.name} found dead")
-                        to_remove.append(cluster)
-                        cluster.stop()  # ensure stopped
-            for rem in to_remove:
-                self.clusters.remove(rem)
+                    log.info(
+                        f"Cluster#{cluster.name} exited with code {cluster.process.exitcode}"
+                    )
+                    log.info(f"Restarting cluster#{cluster.name}")
+                    await cluster.start()
             await asyncio.sleep(5)
 
     async def start_cluster(self):
