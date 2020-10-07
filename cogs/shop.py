@@ -168,7 +168,7 @@ class Shop(commands.Cog):
             text="You will automatically receive your rewards when you vote."
         )
 
-        if ctx.guild.id == 716390832034414685:
+        if ctx.guild and ctx.guild.id == 716390832034414685:
             embed.add_field(
                 name="Server Voting",
                 value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
@@ -513,6 +513,7 @@ class Shop(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.guild_only()
     @commands.command()
     async def buy(self, ctx: commands.Context, *args: str):
         """Purchase an item from the shop."""
@@ -537,6 +538,9 @@ class Shop(commands.Cog):
 
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
+
+        if pokemon is None:
+            return await ctx.send("You must have a pokémon selected!")
 
         if qty > 1 and item.action not in ("level", "shard", "redeem"):
             return await ctx.send("You can't buy multiple of this item!")
@@ -912,6 +916,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @commands.guild_only()
     @commands.command(aliases=["rs"])
     async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""

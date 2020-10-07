@@ -21,8 +21,10 @@ class Bot(commands.Cog):
             self.bot.prefixes = {}
 
         self.post_count.start()
-        self.post_dbl.start()
         self.update_status.start()
+
+        if self.bot.cluster_idx == 0:
+            self.post_dbl.start()
 
         self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
 
@@ -82,10 +84,23 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
+            print(f"Ignoring exception in command {ctx.command}")
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr
+            )
+            print("\n\n")
+
+    @commands.Cog.listener()
+    async def on_error(self, ctx: commands.Context, error):
+
+        if isinstance(error, discord.NotFound):
+            return
+        else:
             print(f"Ignoring exception in command {ctx.command}:")
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
+            print("\n\n")
 
     @property
     def db(self) -> Database:
@@ -173,9 +188,6 @@ class Bot(commands.Cog):
     @tasks.loop(minutes=5)
     async def post_dbl(self):
         await self.bot.wait_until_ready()
-
-        if self.bot.cluster_idx != 0:
-            return
 
         result = await self.get_stats()
 
@@ -327,6 +339,7 @@ class Bot(commands.Cog):
                     )
                 )
             )
+
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
 
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
@@ -335,8 +348,10 @@ class Bot(commands.Cog):
 
     def cog_unload(self):
         self.post_count.cancel()
-        self.post_dbl.cancel()
         self.update_status.cancel()
+
+        if self.bot.cluster_idx == 0:
+            self.post_dbl.cancel()
 
 
 def setup(bot):

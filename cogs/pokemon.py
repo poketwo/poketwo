@@ -59,6 +59,9 @@ class Pokemon(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
 
+        if pokemon is None:
+            return await ctx.send("You must have a pokémon selected!")
+
         await self.db.update_pokemon(
             pokemon,
             {"$set": {f"nickname": nickname}},
@@ -834,6 +837,7 @@ class Pokemon(commands.Cog):
             await ctx.send(embed=embed)
 
     @checks.has_started()
+    @commands.guild_only()
     @commands.command(rest_is_raw=True)
     async def evolve(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """Evolve a pokémon if it has reached the target level."""
@@ -908,6 +912,9 @@ class Pokemon(commands.Cog):
 
         paginator = pagination.paginators[ctx.author.id]
 
+        if paginator.num_pages == 0:
+            return
+
         pidx = paginator.last_page + 1
         pidx %= paginator.num_pages
 
@@ -919,6 +926,9 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous message.")
 
         paginator = pagination.paginators[ctx.author.id]
+
+        if paginator.num_pages == 0:
+            return
 
         pidx = paginator.last_page - 1
         pidx %= paginator.num_pages
@@ -939,6 +949,10 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous message.")
 
         paginator = pagination.paginators[ctx.author.id]
+
+        if paginator.num_pages == 0:
+            return
+
         await paginator.send(self.bot, ctx, page % paginator.num_pages)
 
 

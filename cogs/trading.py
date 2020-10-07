@@ -230,6 +230,7 @@ class Trading(commands.Cog):
             await ctx.send(embed=evo_embed)
 
     @checks.has_started()
+    @commands.guild_only()
     @commands.group(aliases=["t"], invoke_without_command=True)
     async def trade(self, ctx: commands.Context, *, user: discord.Member):
         """Trade pokémon with another trainer."""
@@ -289,6 +290,7 @@ class Trading(commands.Cog):
             await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
+    @commands.guild_only()
     @trade.command(aliases=["x"])
     async def cancel(self, ctx: commands.Context):
         """Cancel a trade."""
@@ -306,6 +308,7 @@ class Trading(commands.Cog):
         await ctx.send("The trade has been canceled.")
 
     @checks.has_started()
+    @commands.guild_only()
     @trade.command(aliases=["c"])
     async def confirm(self, ctx: commands.Context):
         """Confirm a trade."""
@@ -324,6 +327,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.guild_only()
     @trade.command(aliases=["a"])
     async def add(self, ctx: commands.Context, *args):
         """Add an item to a trade."""
@@ -434,6 +438,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.guild_only()
     @trade.command(aliases=["r"])
     async def remove(self, ctx: commands.Context, *args):
         """Remove an item from a trade."""
@@ -537,6 +542,7 @@ class Trading(commands.Cog):
     # Trade add all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.guild_only()
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)
     async def addall(self, ctx: commands.Context, **flags):
 
@@ -615,6 +621,8 @@ class Trading(commands.Cog):
 
         await self.send_trade(ctx, ctx.author)
 
+    @checks.has_started()
+    @commands.guild_only()
     @trade.command(aliases=["i"])
     async def info(self, ctx: commands.Context, *, number: int):
         """View a pokémon from the trade."""

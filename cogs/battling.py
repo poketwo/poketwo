@@ -611,6 +611,9 @@ class Battling(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
         pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
 
+        if pokemon is None:
+            return await ctx.send("You must have a pokémon selected!")
+
         if move.id in pokemon.moves:
             return await ctx.send("Your pokémon has already learned that move!")
 

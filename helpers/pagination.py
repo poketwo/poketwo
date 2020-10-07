@@ -10,7 +10,7 @@ class Paginator:
     def __init__(self, get_page, num_pages):
         self.num_pages = num_pages
         self.get_page = get_page
-        self.last_page = None
+        self.last_page = 0
         self.message = None
         self.author = None
 

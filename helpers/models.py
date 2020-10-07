@@ -52,6 +52,7 @@ class StatChange:
 
 @dataclass
 class StatStages:
+    hp: int = 0
     atk: int = 0
     defn: int = 0
     satk: int = 0
@@ -62,6 +63,7 @@ class StatStages:
     crit: int = 0
 
     def update(self, stages):
+        self.hp += stages.hp
         self.atk += stages.atk
         self.defn += stages.defn
         self.satk += stages.satk
@@ -158,7 +160,7 @@ class Move:
             damage = 0
             hits = 0
         else:
-            success = random.randrange(100) < self.accuracy * (
+            success = random.randrange(100) < (self.accuracy or 0) * (
                 constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1
             ) / (constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion] * 2 + 1)
 
