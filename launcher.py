@@ -185,7 +185,7 @@ class Cluster:
         hdlr.setFormatter(
             logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s")
         )
-        fhdlr = logging.FileHandler("logs/cluster-Launcher.log", encoding="utf-8")
+        fhdlr = logging.FileHandler("logs/launcher.log", encoding="utf-8")
         fhdlr.setFormatter(
             logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s")
         )

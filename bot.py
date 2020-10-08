@@ -53,18 +53,31 @@ class ClusterBot(commands.AutoShardedBot):
         self.enabled = False
         self.sprites = None
 
-        log = logging.getLogger(f"Cluster#{self.cluster_name}")
-        log.setLevel(logging.DEBUG)
-        log.handlers = [
-            logging.FileHandler(
-                f"logs/cluster-{self.cluster_name}.log", encoding="utf-8", mode="a"
-            )
-        ]
+        self.log = logging.getLogger(f"Cluster#{self.cluster_name}")
+        self.log.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(
+            filename=f"logs/commands-{self.cluster_name}.log",
+            encoding="utf-8",
+            mode="a",
+        )
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+        )
+        self.log.handlers = [handler]
 
-        log.info(
+        discord_logger = logging.getLogger("discord")
+        discord_logger.setLevel(logging.DEBUG)
+        discord_handler = logging.FileHandler(
+            filename=f"logs/discord-{self.cluster_name}.log", encoding="utf-8", mode="a"
+        )
+        discord_handler.setFormatter(
+            logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+        )
+        discord_logger.addHandler(discord_handler)
+
+        self.log.info(
             f'[Cluster#{self.cluster_name}] {kwargs["shard_ids"]}, {kwargs["shard_count"]}'
         )
-        self.log = log
 
         # Load extensions
 

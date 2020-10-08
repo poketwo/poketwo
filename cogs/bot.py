@@ -40,6 +40,12 @@ class Bot(commands.Cog):
         return True
 
     @commands.Cog.listener()
+    async def on_command(self, ctx):
+        self.bot.log.info(
+            f'COMMAND {ctx.author.id} {ctx.command.qualified_name}: {ctx.author} "{ctx.message.content}"'
+        )
+
+    @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
 
         if isinstance(error, commands.CommandOnCooldown):
