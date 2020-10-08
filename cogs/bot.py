@@ -164,7 +164,6 @@ class Bot(commands.Cog):
                         "_id": None,
                         "servers": {"$sum": "$servers"},
                         "shards": {"$sum": "$shards"},
-                        "users": {"$sum": "$users"},
                         "latency": {"$sum": "$latency"},
                     }
                 }
@@ -207,7 +206,6 @@ class Bot(commands.Cog):
                 "$set": {
                     "servers": len(self.bot.guilds),
                     "shards": len(self.bot.shards),
-                    "users": sum(x.member_count for x in self.bot.guilds),
                     "latency": min(sum(x[1] for x in self.bot.latencies), 1),
                 }
             },
@@ -226,7 +224,6 @@ class Bot(commands.Cog):
 
         embed.add_field(name="Servers", value=result["servers"], inline=False)
         embed.add_field(name="Shards", value=result["shards"], inline=False)
-        embed.add_field(name="Users", value=result["users"], inline=False)
         embed.add_field(
             name="Trainers",
             value=await self.bot.mongo.db.member.estimated_document_count(),
