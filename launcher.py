@@ -57,7 +57,6 @@ CLUSTER_NAMES = (
 NAMES = iter(CLUSTER_NAMES)
 
 intents = discord.Intents.default()
-intents.members = True
 
 
 class Launcher:
