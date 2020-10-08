@@ -66,7 +66,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.log.handlers = [handler]
 
         discord_logger = logging.getLogger("discord")
-        discord_logger.setLevel(logging.DEBUG)
+        discord_logger.setLevel(logging.INFO)
         discord_handler = logging.FileHandler(
             filename=f"logs/discord-{self.cluster_name}.log", encoding="utf-8", mode="a"
         )
