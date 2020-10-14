@@ -464,7 +464,7 @@ class Auctions(commands.Cog):
     @flags.add_flag(
         "--order",
         choices=["iv+", "iv-", "bid+", "bid-", "level+", "level-"],
-        default="bid+",
+        default="bid-",
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
