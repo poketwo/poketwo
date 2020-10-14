@@ -284,6 +284,18 @@ class Listing(Document):
     price = fields.IntegerField(required=True)
 
 
+class Auction(Document):
+    id = fields.IntegerField(attribute="_id")
+    guild_id = fields.IntegerField(required=True)
+    message_id = fields.IntegerField(required=True)
+    pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
+    user_id = fields.IntegerField(required=True)
+    current_bid = fields.IntegerField(required=True)
+    bid_increment = fields.IntegerField(required=True)
+    bidder_id = fields.IntegerField(default=None)
+    ends = fields.DateTimeField(required=True)
+
+
 class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
@@ -291,6 +303,7 @@ class Guild(Document):
     prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
     display_images = fields.BooleanField(default=True)
+    auction_channel = fields.IntegerField(default=None)
 
     lat = fields.FloatField(default=37.7790262)
     lng = fields.FloatField(default=-122.4199061)
@@ -351,6 +364,7 @@ class Database:
             "Channel",
             "Counter",
             "Sponsor",
+            "Auction",
         ):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot

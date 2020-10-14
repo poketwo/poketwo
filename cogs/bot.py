@@ -29,7 +29,7 @@ class Bot(commands.Cog):
         self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
 
     async def bot_check(self, ctx):
-        if ctx.invoked_with.lower() == "help":
+        if ctx.invoked_with.lower() in ("help", "market", "auction"):
             return True
 
         bucket = self.cd.get_bucket(ctx.message)

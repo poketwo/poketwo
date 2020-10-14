@@ -173,6 +173,7 @@ version = "1.1.2a0"
 reference = "2f5fc749cc6edb0fdef81f885d1f2d536616a458"
 type = "git"
 url = "https://github.com/poketwo/discord-ext-ipc"
+
 [[package]]
 category = "main"
 description = "A Discord.py extension allowing you to pass flags as arguments."
@@ -213,6 +214,14 @@ dnssec = ["cryptography (>=2.6)"]
 doh = ["requests", "requests-toolbelt"]
 idna = ["idna (>=2.1)"]
 trio = ["trio (>=0.14.0)", "sniffio (>=1.1)"]
+
+[[package]]
+category = "main"
+description = "A python durations parsing library."
+name = "durations-nlp"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "1.0.1"
 
 [[package]]
 category = "main"
@@ -472,6 +481,7 @@ whoosh = ">=2.5,<2.7"
 reference = "b09929dfb636d2b0337edbfe6761496c7d435965"
 type = "git"
 url = "https://github.com/veekun/pokedex.git"
+
 [[package]]
 category = "main"
 description = "A pure-Python implementation of the HTTP/2 priority tree"
@@ -742,7 +752,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "dff53acb1d47ba840c02b8a7e52ee3c31d0e0ca4140fcc840257ec63619cfcab"
+content-hash = "b1807cef8902fc6ee60acccc9cc0a5a7b18716f2d3143f4299cb4bf3d7e25d00"
 lock-version = "1.1"
 python-versions = "^3.8"
 
@@ -827,6 +837,10 @@ discord-flags = [
 dnspython = [
     {file = "dnspython-2.0.0-py3-none-any.whl", hash = "sha256:40bb3c24b9d4ec12500f0124288a65df232a3aa749bb0c39734b782873a2544d"},
     {file = "dnspython-2.0.0.zip", hash = "sha256:044af09374469c3a39eeea1a146e8cac27daec951f1f1f157b1962fc7cb9d1b7"},
+]
+durations-nlp = [
+    {file = "durations_nlp-1.0.1-py3-none-any.whl", hash = "sha256:91b411a2d92986c63c125c81b91181aed9ba70f5c9efded9401387783631f022"},
+    {file = "durations_nlp-1.0.1.tar.gz", hash = "sha256:25a87a372ddabf5fb45ed1da8fc711a53a0236c2954dc9c51590cee35dbf3136"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},

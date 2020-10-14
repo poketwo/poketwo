@@ -1,5 +1,6 @@
 from . import (
     admin,
+    auctions,
     battling,
     bot,
     config,

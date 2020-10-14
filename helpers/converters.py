@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from discord.ext import commands
+from durations_nlp import Duration
 
 
 class PokemonConversionError(commands.ConversionError):
@@ -27,13 +30,23 @@ class Pokemon(commands.Converter):
             return None
         elif self.accept_blank:
             raise PokemonConversionError(
-                "Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon.",
-                original=ValueError(),
+                self,
+                original=ValueError(
+                    "Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon."
+                ),
             )
         else:
             raise PokemonConversionError(
-                "Please either enter a number for a specific pokémon, or `latest` for your latest pokémon.",
-                original=ValueError(),
+                self,
+                original=ValueError(
+                    "Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
+                ),
             )
 
         return await db.fetch_pokemon(ctx.author, number)
+
+
+class TimeDelta(commands.Converter):
+    async def convert(self, ctx, arg):
+        duration = Duration(arg)
+        return timedelta(seconds=duration.to_seconds())
