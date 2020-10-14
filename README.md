@@ -6,7 +6,7 @@
 
 A Pokémon-oriented Discord bot that lets you collect pokémon. Catch pokémon in the wild, level your pokémon, compete with your friends, and more.
 
-The source code here is provided for educational purposes. I would recommend against running your own instance of this bot. Instead, use `p!invite` and click the link to add the bot to your server.
+The source code here is provided for educational purposes. I would recommend against running your own instance of this bot. Instead, use `p!invite` and [click the link](https://invite.poketwo.net) to add the bot to your server.
 
 ## Contributing
 
