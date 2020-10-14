@@ -20,6 +20,7 @@ class Auctions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.check_auctions.start()
+        self.sem = asyncio.Semaphore(1)
 
     @property
     def db(self) -> Database:
@@ -350,73 +351,88 @@ class Auctions(commands.Cog):
         if msg.content.lower() != "y":
             return await ctx.send("Aborted.")
 
-        member = await self.db.fetch_member_info(ctx.author)
-        if member.balance < bid:
-            return await ctx.send("You don't have enough Pokécoins for that!")
+        # go!
 
-        # send embed
-
-        host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
-            auction.user_id
-        )
-
-        embed = self.make_base_embed(host, auction.pokemon, auction.id)
-
-        auction_info = (
-            f"**Current Bid:** {bid:,} Pokécoins",
-            f"**Bidder:** {ctx.author.mention}",
-            f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
-        )
-        embed.add_field(name="Auction Details", value="\n".join(auction_info))
-        embed.set_footer(
-            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
-        )
-        embed.timestamp = auction.ends
-
-        auction_channel = ctx.guild.get_channel(guild.auction_channel)
-        try:
-            prev = await auction_channel.fetch_message(auction.message_id)
-            await prev.delete()
-        except Exception as e:
-            print(e)
-        message = await auction_channel.send(embed=embed)
-
-        if auction.bidder_id is not None:
-            old_bidder = self.bot.get_user(
-                auction.bidder_id
-            ) or await self.bot.fetch_user(auction.bidder_id)
-
-        update = {
-            "$set": {
-                "current_bid": bid,
-                "bidder_id": ctx.author.id,
-                "message_id": message.id,
-            }
-        }
-
-        if datetime.utcnow() + timedelta(minutes=5) > auction.ends:
-            update["$set"]["ends"] = datetime.utcnow() + timedelta(minutes=5)
-
-        # ok, bid
-
-        if auction.bidder_id is not None:
-            await self.db.update_member(
-                old_bidder, {"$inc": {"balance": auction.current_bid}}
+        async with self.sem:
+            auction = await self.bot.mongo.Auction.find_one(
+                {"guild_id": ctx.guild.id, "_id": auction_id}
             )
-        await self.bot.mongo.db.auction.update_one({"_id": auction.id}, update)
-        await self.db.update_member(ctx.author, {"$inc": {"balance": -bid}})
 
-        if auction.bidder_id is not None:
+            if auction is None:
+                return await ctx.send("Couldn't find that auction!")
+
+            if bid < auction.current_bid + auction.bid_increment:
+                return await ctx.send(
+                    f"Your bid must be at least {auction.current_bid + auction.bid_increment:,} Pokécoins."
+                )
+
+            member = await self.db.fetch_member_info(ctx.author)
+            if member.balance < bid:
+                return await ctx.send("You don't have enough Pokécoins for that!")
+
+            # send embed
+
+            host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
+                auction.user_id
+            )
+
+            embed = self.make_base_embed(host, auction.pokemon, auction.id)
+
+            auction_info = (
+                f"**Current Bid:** {bid:,} Pokécoins",
+                f"**Bidder:** {ctx.author.mention}",
+                f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
+            )
+            embed.add_field(name="Auction Details", value="\n".join(auction_info))
+            embed.set_footer(
+                text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
+            )
+            embed.timestamp = auction.ends
+
+            auction_channel = ctx.guild.get_channel(guild.auction_channel)
+            try:
+                prev = await auction_channel.fetch_message(auction.message_id)
+                await prev.delete()
+            except Exception as e:
+                print(e)
+            message = await auction_channel.send(embed=embed)
+
+            if auction.bidder_id is not None:
+                old_bidder = self.bot.get_user(
+                    auction.bidder_id
+                ) or await self.bot.fetch_user(auction.bidder_id)
+
+            update = {
+                "$set": {
+                    "current_bid": bid,
+                    "bidder_id": ctx.author.id,
+                    "message_id": message.id,
+                }
+            }
+
+            if datetime.utcnow() + timedelta(minutes=5) > auction.ends:
+                update["$set"]["ends"] = datetime.utcnow() + timedelta(minutes=5)
+
+            # ok, bid
+
+            if auction.bidder_id is not None:
+                await self.db.update_member(
+                    old_bidder, {"$inc": {"balance": auction.current_bid}}
+                )
+            await self.bot.mongo.db.auction.update_one({"_id": auction.id}, update)
+            await self.db.update_member(ctx.author, {"$inc": {"balance": -bid}})
+
+            if auction.bidder_id is not None:
+                self.bot.loop.create_task(
+                    old_bidder.send(
+                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
+                    )
+                )
             self.bot.loop.create_task(
-                old_bidder.send(
-                    f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
+                ctx.send(
+                    f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
                 )
             )
-        self.bot.loop.create_task(
-            ctx.send(
-                f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
-            )
-        )
 
     def cog_unload(self):
         self.check_auctions.cancel()
