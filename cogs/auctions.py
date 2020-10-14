@@ -536,7 +536,7 @@ class Auctions(commands.Cog):
 
             maxn = max(idx for x, idx, price, _ in pokemon)
             page = [
-                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} / BI: {bid_interval:,} pc"
+                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} pc　•　BI: {bid_interval:,} pc"
                 for p, idx, current_bid, bid_interval in pokemon
             ]
 
