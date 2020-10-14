@@ -43,13 +43,6 @@ class Auctions(commands.Cog):
 
         guild = await self.db.fetch_guild(auction_guild)
 
-        auction_channel = auction_guild.get_channel(guild.auction_channel)
-        try:
-            prev = await auction_channel.fetch_message(auction.message_id)
-            await prev.delete()
-        except:
-            pass
-
         if auction.bidder_id is None:
             auction.bidder_id = auction.user_id
             auction.current_bid = 0
@@ -70,6 +63,7 @@ class Auctions(commands.Cog):
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(text=f"The auction has ended.")
 
+        auction_channel = auction_guild.get_channel(guild.auction_channel)
         message = await auction_channel.send(embed=embed)
 
         # ok, bid
@@ -229,7 +223,6 @@ class Auctions(commands.Cog):
             {
                 "_id": counter["next"],
                 "guild_id": ctx.guild.id,
-                "message_id": message.id,
                 "pokemon": pokemon.to_mongo(),
                 "user_id": ctx.author.id,
                 "current_bid": starting_bid - bid_increment,
@@ -285,19 +278,14 @@ class Auctions(commands.Cog):
         embed.timestamp = auction.ends
 
         auction_channel = ctx.guild.get_channel(guild.auction_channel)
-        try:
-            prev = await auction_channel.fetch_message(auction.message_id)
-            await prev.delete()
-        except Exception as e:
-            print(e)
-        message = await auction_channel.send(embed=embed)
+        if auction_channel is not None:
+            message = await auction_channel.send(embed=embed)
 
         await self.bot.mongo.db.auction.update_one(
             {"_id": auction.id},
             {
                 "$set": {
                     "current_bid": new_start - auction.bid_increment,
-                    "message_id": message.id,
                 }
             },
         )
@@ -391,12 +379,8 @@ class Auctions(commands.Cog):
             embed.timestamp = auction.ends
 
             auction_channel = ctx.guild.get_channel(guild.auction_channel)
-            try:
-                prev = await auction_channel.fetch_message(auction.message_id)
-                await prev.delete()
-            except Exception as e:
-                print(e)
-            message = await auction_channel.send(embed=embed)
+            if auction_channel is not None:
+                message = await auction_channel.send(embed=embed)
 
             if auction.bidder_id is not None:
                 old_bidder = self.bot.get_user(
@@ -407,7 +391,6 @@ class Auctions(commands.Cog):
                 "$set": {
                     "current_bid": bid,
                     "bidder_id": ctx.author.id,
-                    "message_id": message.id,
                 }
             }
 
@@ -571,12 +554,15 @@ class Auctions(commands.Cog):
         host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
             auction.user_id
         )
+        bidder = self.bot.get_user(auction.bidder_id) or await self.bot.fetch_user(
+            auction.bidder_id
+        )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
 
         auction_info = (
             f"**Current Bid:** {auction.current_bid:,} Pokécoins",
-            f"**Bidder:** {ctx.author.mention}",
+            f"**Bidder:** {bidder.mention}",
             f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
