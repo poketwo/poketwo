@@ -52,6 +52,33 @@ class Database(commands.Cog):
 
         return result[0]["num_matches"]
 
+    async def fetch_auction_list(self, guild, skip: int, limit: int, aggregations=[]):
+        return await self.bot.mongo.db.auction.aggregate(
+            [
+                {"$match": {"guild_id": guild.id}},
+                *aggregations,
+                {"$skip": skip},
+                {"$limit": limit},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+    async def fetch_auction_count(self, guild, aggregations=[]):
+
+        result = await self.bot.mongo.db.auction.aggregate(
+            [
+                {"$match": {"guild_id": guild.id}},
+                *aggregations,
+                {"$count": "num_matches"},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
     async def fetch_pokemon_list(
         self, member: discord.Member, skip: int, limit: int, aggregations=[]
     ):

@@ -1,4 +1,5 @@
 import asyncio
+import math
 import random
 import sys
 import traceback
@@ -9,7 +10,7 @@ import discord
 import humanfriendly
 import pymongo
 from discord.ext import commands, flags, tasks
-from helpers import checks, constants, converters
+from helpers import checks, constants, converters, pagination
 
 from .database import Database
 
@@ -433,6 +434,158 @@ class Auctions(commands.Cog):
                     f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
                 )
             )
+
+    # Filter
+    @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
+    # Market
+    @flags.add_flag(
+        "--order",
+        choices=["iv+", "iv-", "bid+", "bid-", "level+", "level-"],
+        default="bid+",
+    )
+    @flags.add_flag("--mine", "--listings", action="store_true")
+    @checks.has_started()
+    @auction.command(aliases=["s"], cls=flags.FlagCommand)
+    async def search(self, ctx: commands.Context, **flags):
+        """Search pokémon from the marketplace."""
+
+        if flags["page"] < 1:
+            return await ctx.send("Page must be positive!")
+
+        member = await self.db.fetch_member_info(ctx.author)
+
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(
+            flags, ctx, order_by=flags["order"]
+        )
+
+        if aggregations is None:
+            return
+
+        # Filter pokemon
+
+        do_emojis = (
+            ctx.guild is None
+            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        )
+
+        def nick(p):
+            name = f"L{p.level} {p.species}"
+
+            if do_emojis:
+                name = (
+                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
+                    + " "
+                    + name
+                )
+
+            if p.shiny:
+                name += " ✨"
+
+            return name
+
+        def padn(p, idx, n):
+            return " " * (len(str(n)) - len(str(idx))) + str(idx)
+
+        num = await self.db.fetch_auction_count(ctx.guild, aggregations=aggregations)
+
+        if num == 0:
+            return await ctx.send("Found no pokémon matching this search.")
+
+        async def get_page(pidx, clear):
+
+            pgstart = pidx * 20
+            pokemon = await self.db.fetch_auction_list(
+                ctx.guild, pgstart, 20, aggregations=aggregations
+            )
+
+            pokemon = [
+                (
+                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
+                    x["_id"],
+                    x["current_bid"],
+                    x["bid_increment"],
+                )
+                for x in pokemon
+            ]
+
+            if len(pokemon) == 0:
+                return await clear("There are no pokémon on this page!")
+
+            maxn = max(idx for x, idx, price, _ in pokemon)
+            page = [
+                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} / BI: {bid_interval:,} pc"
+                for p, idx, current_bid, bid_interval in pokemon
+            ]
+
+            # Send embed
+
+            embed = self.bot.Embed(color=0xE67D23)
+            embed.title = f"Auctions in {ctx.guild.name}"
+            embed.description = "\n".join(page)[:2048]
+
+            embed.set_footer(
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+            )
+
+            return embed
+
+        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
+        await paginator.send(self.bot, ctx, flags["page"] - 1)
+
+    @checks.has_started()
+    @auction.command(aliases=["i"])
+    async def info(self, ctx: commands.Context, id: int):
+        """View a pokémon from the market."""
+
+        auction = await self.bot.mongo.db.auction.find_one(
+            {"_id": id, "guild_id": ctx.guild.id}
+        )
+        auction = self.bot.mongo.Auction.build_from_mongo(auction)
+
+        if auction is None:
+            return await ctx.send("Couldn't find that auction!")
+
+        host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
+            auction.user_id
+        )
+
+        embed = self.make_base_embed(host, auction.pokemon, auction.id)
+
+        auction_info = (
+            f"**Current Bid:** {auction.current_bid:,} Pokécoins",
+            f"**Bidder:** {ctx.author.mention}",
+            f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
+        )
+        embed.add_field(name="Auction Details", value="\n".join(auction_info))
+        embed.set_footer(
+            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
+        )
+        embed.timestamp = auction.ends
+
+        await ctx.send(embed=embed)
 
     def cog_unload(self):
         self.check_auctions.cancel()
