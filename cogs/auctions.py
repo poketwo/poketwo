@@ -557,7 +557,7 @@ class Auctions(commands.Cog):
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
 
-        if auction.bidder_id is not None:
+        if auction.bidder_id is None:
             auction_info = (
                 f"**Starting Bid:** {auction.current_bid + auction.bid_increment:,} Pokécoins",
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
