@@ -554,17 +554,23 @@ class Auctions(commands.Cog):
         host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
             auction.user_id
         )
-        bidder = self.bot.get_user(auction.bidder_id) or await self.bot.fetch_user(
-            auction.bidder_id
-        )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
 
-        auction_info = (
-            f"**Current Bid:** {auction.current_bid:,} Pokécoins",
-            f"**Bidder:** {bidder.mention}",
-            f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
-        )
+        if auction.bidder_id is not None:
+            auction_info = (
+                f"**Starting Bid:** {auction.current_bid + auction.bid_increment:,} Pokécoins",
+                f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
+            )
+        else:
+            bidder = self.bot.get_user(auction.bidder_id) or await self.bot.fetch_user(
+                auction.bidder_id
+            )
+            auction_info = (
+                f"**Current Bid:** {auction.current_bid:,} Pokécoins",
+                f"**Bidder:** {bidder.mention}",
+                f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
+            )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
             text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
