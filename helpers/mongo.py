@@ -61,17 +61,17 @@ class PokemonBase(MixinDocument):
     stages = None
 
     def __format__(self, spec):
-        if "l" in spec:
-            name = f"Level {self.level} "
+        if self.shiny:
+            name = "✨ "
         else:
             name = ""
+
+        if "l" in spec:
+            name += f"Level {self.level} "
 
         if self.bot.sprites.status and "i" in spec:
             sprite = self.bot.sprites.get(self.species.dex_number, shiny=self.shiny)
             name = sprite + " " + name
-
-        if self.shiny:
-            name += "✨ "
 
         name += str(self.species)
 

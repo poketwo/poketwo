@@ -113,7 +113,7 @@ class Market(commands.Cog):
 
             maxn = max(idx for x, idx, price in pokemon)
             page = [
-                f"`{padn(p, idx, maxn)}`　**{p:lni}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
+                f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
                 for p, idx, price in pokemon
             ]
 
