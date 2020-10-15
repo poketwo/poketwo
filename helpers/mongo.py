@@ -60,6 +60,32 @@ class PokemonBase(MixinDocument):
     ailments = None
     stages = None
 
+    def __format__(self, spec):
+        if "l" in spec:
+            name = f"Level {self.level} "
+        else:
+            name = ""
+
+        if self.bot.sprites.status and "i" in spec:
+            sprite = self.bot.sprites.get(self.species.dex_number, shiny=self.shiny)
+            name = sprite + " " + name
+
+        if self.shiny:
+            name += "✨ "
+
+        name += str(self.species)
+
+        if self.nickname is not None and "n" in spec:
+            name += ' "' + self.nickname + '"'
+
+        if self.favorite and "f" in spec:
+            name += " ❤️"
+
+        return name
+
+    def __str__(self):
+        return f"{self}"
+
     @classmethod
     def random(cls, **kwargs):
         return cls(

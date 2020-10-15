@@ -75,7 +75,7 @@ class Trading(commands.Cog):
                 def txt(p):
                     val = f"`{padn(p.idx, maxn)}`　**{p.species}**"
                     if p.shiny:
-                        val = "✨ " + val
+                        val = f"`{padn(p.idx, maxn)}`　**✨ {p.species}**"
                     val += f"　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
                     return val
 
@@ -647,13 +647,9 @@ class Trading(commands.Cog):
             return await ctx.send("Couldn't find that pokémon in the trade!")
 
         embed = self.bot.Embed(color=0xE67D23)
-        embed.title = f"Level {pokemon.level} {pokemon.species}"
-
-        if pokemon.nickname is not None:
-            embed.title += f' "{pokemon.nickname}"'
+        embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:
-            embed.title = "✨" + embed.title
             embed.set_image(url=pokemon.species.shiny_image_url)
         else:
             embed.set_image(url=pokemon.species.image_url)

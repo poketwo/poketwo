@@ -84,21 +84,6 @@ class Market(commands.Cog):
             or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
-        def nick(p):
-            name = f"L{p.level} {p.species}"
-
-            if do_emojis:
-                name = (
-                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
-                    + " "
-                    + name
-                )
-
-            if p.shiny:
-                name = "✨ " + name
-
-            return name
-
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
@@ -128,7 +113,7 @@ class Market(commands.Cog):
 
             maxn = max(idx for x, idx, price in pokemon)
             page = [
-                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
+                f"`{padn(p, idx, maxn)}`　**{p:lni}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
                 for p, idx, price in pokemon
             ]
 
@@ -353,10 +338,9 @@ class Market(commands.Cog):
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
         embed = self.bot.Embed(color=0xE67D23)
-        embed.title = f"Level {pokemon.level} {pokemon.species}"
+        embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:
-            embed.title = "✨ " + embed.title
             embed.set_image(url=pokemon.species.shiny_image_url)
         else:
             embed.set_image(url=pokemon.species.image_url)

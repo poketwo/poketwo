@@ -290,18 +290,7 @@ class Shop(commands.Cog):
                     "idx": await self.db.fetch_next_idx(ctx.author),
                 }
 
-                if do_emojis:
-                    text.append(
-                        f"{self.bot.sprites.get(species.dex_number, shiny=shiny)} Level {level} "
-                        + ("✨ " if shiny else "")
-                        + f"{species} ({sum(ivs) / 186:.2%} IV)"
-                    )
-                else:
-                    text.append(
-                        f"Level {level} "
-                        + ("✨ " if shiny else "")
-                        + f"{species} ({sum(ivs) / 186:.2%} IV)"
-                    )
+                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni}")
 
                 added_pokemon.append(pokemon)
 

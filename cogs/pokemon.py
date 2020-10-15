@@ -132,13 +132,9 @@ class Pokemon(commands.Cog):
                 pokemon = await self.db.fetch_pokemon(ctx.author, pidx + shift)
 
             embed = self.bot.Embed(color=0xE67D23)
-            embed.title = f"Level {pokemon.level} {pokemon.species}"
-
-            if pokemon.nickname is not None:
-                embed.title += f' "{pokemon.nickname}"'
+            embed.title = f"{pokemon:lnf}"
 
             if pokemon.shiny:
-                embed.title = "✨ " + embed.title
                 embed.set_image(url=pokemon.species.shiny_image_url)
             else:
                 embed.set_image(url=pokemon.species.image_url)
@@ -566,30 +562,6 @@ class Pokemon(commands.Cog):
 
         fixed_pokemon = False
 
-        def nick(p):
-            if p.species is None:
-                return None
-
-            name = str(p.species)
-
-            if do_emojis:
-                name = (
-                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
-                    + " "
-                    + name
-                )
-
-            if p.shiny:
-                name = "✨" + name
-
-            if p.nickname is not None:
-                name += ' "' + p.nickname + '"'
-
-            if p.favorite:
-                name += " ❤️"
-
-            return name
-
         def padn(p, n):
             return " " * (len(str(n)) - len(str(p.idx))) + str(p.idx)
 
@@ -615,9 +587,8 @@ class Pokemon(commands.Cog):
             maxn = max(x.idx for x in pokemon)
 
             page = [
-                f"`{padn(p, maxn)}`　**{txt}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
+                f"`{padn(p, maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
                 for p in pokemon
-                if (txt := nick(p)) is not None
             ]
 
             # Send embed
@@ -802,7 +773,7 @@ class Pokemon(commands.Cog):
                 )
 
             if shiny:
-                embed.title = "✨" + embed.title
+                embed.title = f"#{species.dex_number} — ✨ {species}"
                 embed.set_image(url=species.shiny_image_url)
             else:
                 embed.set_image(url=species.image_url)

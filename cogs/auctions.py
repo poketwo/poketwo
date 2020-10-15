@@ -95,12 +95,9 @@ class Auctions(commands.Cog):
     def make_base_embed(self, author, pokemon, auction_id):
         embed = discord.Embed(color=0xE67D23)
         embed.set_author(name=str(author), icon_url=author.avatar_url)
-        embed.title = f"Auction #{auction_id} • Level {pokemon.level} {pokemon.species}"
-        if pokemon.nickname is not None:
-            embed.title += f' "{pokemon.nickname}"'
+        embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
         if pokemon.shiny:
-            embed.title = "✨ " + embed.title
             embed.set_thumbnail(url=pokemon.species.shiny_image_url)
         else:
             embed.set_thumbnail(url=pokemon.species.image_url)
@@ -474,21 +471,6 @@ class Auctions(commands.Cog):
             or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
-        def nick(p):
-            name = f"L{p.level} {p.species}"
-
-            if do_emojis:
-                name = (
-                    self.bot.sprites.get(p.species.dex_number, shiny=p.shiny)
-                    + " "
-                    + name
-                )
-
-            if p.shiny:
-                name = "✨ " + name
-
-            return name
-
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
@@ -519,7 +501,7 @@ class Auctions(commands.Cog):
 
             maxn = max(idx for x, idx, price, _ in pokemon)
             page = [
-                f"`{padn(p, idx, maxn)}`　**{nick(p)}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} pc　•　BI: {bid_interval:,} pc"
+                f"`{padn(p, idx, maxn)}`　**{p:lni}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} pc　•　BI: {bid_interval:,} pc"
                 for p, idx, current_bid, bid_interval in pokemon
             ]
 
