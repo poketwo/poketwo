@@ -100,7 +100,7 @@ class Auctions(commands.Cog):
             embed.title += f' "{pokemon.nickname}"'
 
         if pokemon.shiny:
-            embed.title += " ✨"
+            embed.title = "✨ " + embed.title
             embed.set_thumbnail(url=pokemon.species.shiny_image_url)
         else:
             embed.set_thumbnail(url=pokemon.species.image_url)
@@ -485,7 +485,7 @@ class Auctions(commands.Cog):
                 )
 
             if p.shiny:
-                name += " ✨"
+                name = "✨ " + name
 
             return name
 

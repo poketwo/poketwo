@@ -138,7 +138,7 @@ class Pokemon(commands.Cog):
                 embed.title += f' "{pokemon.nickname}"'
 
             if pokemon.shiny:
-                embed.title += " ✨"
+                embed.title = "✨ " + embed.title
                 embed.set_image(url=pokemon.species.shiny_image_url)
             else:
                 embed.set_image(url=pokemon.species.image_url)
@@ -580,7 +580,7 @@ class Pokemon(commands.Cog):
                 )
 
             if p.shiny:
-                name += " ✨"
+                name = "✨" + name
 
             if p.nickname is not None:
                 name += ' "' + p.nickname + '"'
@@ -802,7 +802,7 @@ class Pokemon(commands.Cog):
                 )
 
             if shiny:
-                embed.title += " ✨"
+                embed.title = "✨" + embed.title
                 embed.set_image(url=species.shiny_image_url)
             else:
                 embed.set_image(url=species.image_url)

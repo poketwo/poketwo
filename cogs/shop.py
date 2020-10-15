@@ -292,13 +292,15 @@ class Shop(commands.Cog):
 
                 if do_emojis:
                     text.append(
-                        f"{self.bot.sprites.get(species.dex_number, shiny=shiny)} Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
-                        + (" ✨" if shiny else "")
+                        f"{self.bot.sprites.get(species.dex_number, shiny=shiny)} Level {level} "
+                        + ("✨ " if shiny else "")
+                        + f"{species} ({sum(ivs) / 186:.2%} IV)"
                     )
                 else:
                     text.append(
-                        f"Level {level} {species} ({sum(ivs) / 186:.2%} IV)"
-                        + (" ✨" if shiny else "")
+                        f"Level {level} "
+                        + ("✨ " if shiny else "")
+                        + f"{species} ({sum(ivs) / 186:.2%} IV)"
                     )
 
                 added_pokemon.append(pokemon)

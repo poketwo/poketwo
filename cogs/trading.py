@@ -75,7 +75,7 @@ class Trading(commands.Cog):
                 def txt(p):
                     val = f"`{padn(p.idx, maxn)}`　**{p.species}**"
                     if p.shiny:
-                        val += " ✨"
+                        val = "✨ " + val
                     val += f"　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
                     return val
 
@@ -653,7 +653,7 @@ class Trading(commands.Cog):
             embed.title += f' "{pokemon.nickname}"'
 
         if pokemon.shiny:
-            embed.title += " ✨"
+            embed.title = "✨" + embed.title
             embed.set_image(url=pokemon.species.shiny_image_url)
         else:
             embed.set_image(url=pokemon.species.image_url)

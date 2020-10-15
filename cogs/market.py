@@ -95,7 +95,7 @@ class Market(commands.Cog):
                 )
 
             if p.shiny:
-                name += " ✨"
+                name = "✨ " + name
 
             return name
 
@@ -356,7 +356,7 @@ class Market(commands.Cog):
         embed.title = f"Level {pokemon.level} {pokemon.species}"
 
         if pokemon.shiny:
-            embed.title += " ✨"
+            embed.title = "✨ " + embed.title
             embed.set_image(url=pokemon.species.shiny_image_url)
         else:
             embed.set_image(url=pokemon.species.image_url)
