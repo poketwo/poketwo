@@ -290,7 +290,7 @@ class Shop(commands.Cog):
                     "idx": await self.db.fetch_next_idx(ctx.author),
                 }
 
-                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni}")
+                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
 
                 added_pokemon.append(pokemon)
 
