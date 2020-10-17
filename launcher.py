@@ -12,9 +12,6 @@ import requests
 import config
 from bot import ClusterBot
 
-TOKEN = config.BOT_TOKEN
-
-
 log = logging.getLogger("Cluster#Launcher")
 log.setLevel(logging.INFO)
 hdlr = logging.StreamHandler()
@@ -76,7 +73,7 @@ class Launcher:
         data = requests.get(
             "https://discordapp.com/api/v7/gateway/bot",
             headers={
-                "Authorization": "Bot " + TOKEN,
+                "Authorization": "Bot " + config.BOT_TOKEN,
                 "User-Agent": "DiscordBot (https://github.com/Rapptz/discord.py 1.4.1) Python/3.7 aiohttp/3.6.1",
             },
         )
@@ -164,18 +161,13 @@ class Cluster:
         self.launcher = launcher
         self.process = None
         self.kwargs = dict(
-            token=TOKEN,
-            env=config.ENV,
+            token=config.BOT_TOKEN,
             shard_ids=shard_ids,
             shard_count=max_shards,
             cluster_name=name,
             cluster_idx=CLUSTER_NAMES.index(name),
             case_insensitive=True,
             fetch_offline_members=False,
-            dbl_token=config.DBL_TOKEN,
-            database_uri=config.DATABASE_URI,
-            database_name=config.DATABASE_NAME,
-            secret_key=config.SECRET_KEY,
             intents=intents,
         )
         self.name = name

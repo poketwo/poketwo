@@ -150,7 +150,7 @@ class Auctions(commands.Cog):
     ):
         """Start an auction."""
 
-        if ctx.author.id in self.bot.trades:
+        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:

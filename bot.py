@@ -1,18 +1,18 @@
 import asyncio
 import io
-import json
 import logging
-import sys
 import textwrap
 import traceback
 from contextlib import redirect_stdout
 from importlib import reload
 
 import discord
-from discord.ext import commands, flags
+import redis
+from discord.ext import commands
 from discord.ext.ipc import Client, Server
 
 import cogs
+import config
 import helpers
 
 DEFAULT_DISABLED_MESSAGE = (
@@ -37,16 +37,18 @@ class ClusterBot(commands.AutoShardedBot):
         self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
-        self.env = kwargs.pop("env")
         self.embed_color = 0xF44336
+
         self.battles = None
-        self.dbl_token = kwargs.pop("dbl_token")
-        self.database_uri = kwargs.pop("database_uri")
-        self.database_name = kwargs.pop("database_name")
+        self.dbl_token = config.DBL_TOKEN
+        self.database_uri = config.DATABASE_URI
+        self.database_name = config.DATABASE_NAME
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
+        self.redis = redis.Redis(**config.REDIS_CONF, decode_responses=True)
 
         self._last_result = None
         self.waiting = False
@@ -101,9 +103,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Run bot
 
-        self.ipc = Server(
-            self, "localhost", 8765 + self.cluster_idx, kwargs["secret_key"]
-        )
+        self.ipc = Server(self, "localhost", 8765 + self.cluster_idx, config.SECRET_KEY)
 
         @self.ipc.route()
         async def stop(data):
@@ -175,13 +175,14 @@ class ClusterBot(commands.AutoShardedBot):
 
         self.ipc.start()
 
-        self.ipc_client = Client(secret_key=kwargs["secret_key"])
+        self.ipc_client = Client(secret_key=config.SECRET_KEY)
 
         self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
 
     async def do_startup_tasks(self):
         await self.wait_until_ready()
+        self.redis = redis.Redis(**config.REDIS_CONF, decode_responses=True)
         self.data = helpers.data.make_data_manager()
         self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)

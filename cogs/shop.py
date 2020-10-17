@@ -955,7 +955,6 @@ class Shop(commands.Cog):
         except:
             pass
 
-        self.bot.redeem[ctx.channel.id] = datetime.utcnow()
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
 
     def cog_unload(self):

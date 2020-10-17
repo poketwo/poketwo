@@ -4,8 +4,8 @@ DATABASE_NAME = None
 
 # Bot Configuration
 BOT_TOKEN = None
-ENV = "dev"
 SECRET_KEY = None
+REDIS_CONF = {}
 
 # DBL
 DBL_TOKEN = None

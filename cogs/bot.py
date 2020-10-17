@@ -50,7 +50,7 @@ class Bot(commands.Cog):
 
         if isinstance(error, commands.CommandOnCooldown):
             self.bot.log.info(f"{ctx.author.id} hit cooldown")
-            await ctx.message.add_reaction("⛔")
+            await ctx.message.add_reaction("⏲️")
         elif isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
             suffix = "per %s" % name if error.per.name != "default" else "globally"

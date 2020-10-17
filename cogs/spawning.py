@@ -5,6 +5,7 @@ import random
 import sys
 import time
 import traceback
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -29,12 +30,9 @@ class Spawning(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        if not hasattr(self.bot, "spawns"):
-            self.bot.spawns = {}
-
+        self.caught_users = defaultdict(list)
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
-        self.bot.redeem = {}
 
         self.spawn_incense.start()
 
@@ -71,9 +69,8 @@ class Spawning(commands.Cog):
         current = time.time()
 
         # Spamcheck, every two seconds
-        if self.bot.env != "dev":
-            if current - self.bot.cooldown_users.get(message.author.id, 0) < 2:
-                return
+        if current - self.bot.cooldown_users.get(message.author.id, 0) < 2:
+            return
         self.bot.cooldown_users[message.author.id] = current
 
         # Increase XP on selected pokemon
@@ -173,18 +170,15 @@ class Spawning(commands.Cog):
         if not message.guild:
             return
 
-        if self.bot.env != "dev":
-            if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1.5:
-                return
+        if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1.5:
+            return
 
         self.bot.cooldown_guilds[message.guild.id] = current
         self.bot.guild_counter[message.guild.id] = (
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
-        if self.bot.guild_counter[message.guild.id] >= (
-            5 if self.bot.env == "dev" else 15
-        ):
+        if self.bot.guild_counter[message.guild.id] >= 15:
             self.bot.guild_counter[message.guild.id] = 0
 
             guild = await self.db.fetch_guild(message.guild)
@@ -197,7 +191,7 @@ class Spawning(commands.Cog):
             if channel is None:
                 return
 
-            if message.guild.id == 716390832034414685 and self.bot.env != "dev":
+            if message.guild.id == 716390832034414685:
                 channel, channel2 = [
                     self.bot.get_channel(x)
                     for x in random.sample(
@@ -213,19 +207,11 @@ class Spawning(commands.Cog):
                     )
                 ]
 
-                if (
-                    channel2.id not in self.bot.redeem
-                    or datetime.utcnow() - self.bot.redeem[channel2.id]
-                    > timedelta(minutes=1)
-                ):
-                    await self.spawn_pokemon(channel2)
+                await self.spawn_pokemon(channel2)
 
-            if channel.id not in self.bot.redeem or datetime.utcnow() - self.bot.redeem[
-                channel.id
-            ] > timedelta(minutes=1):
-                await self.spawn_pokemon(channel)
+            await self.spawn_pokemon(channel)
 
-    async def spawn_pokemon(self, channel, species=None, shiny=None, incense=None):
+    async def spawn_pokemon(self, channel, species=None, incense=None):
         if species is None:
             species = self.bot.data.random_spawn()
 
@@ -236,17 +222,6 @@ class Spawning(commands.Cog):
             and permissions.embed_links
         ):
             return
-
-        # determine species & stats
-
-        level = min(max(int(random.normalvariate(20, 10)), 1), 100)
-        inds = [i for i, x in enumerate(species.name) if x.isalpha()]
-        blanks = random.sample(inds, len(inds) // 2)
-
-        # get hint
-
-        main = self.bot.data.species_by_number(species.dex_number)
-        hint = "".join(x if i in blanks else "\\_" for i, x in enumerate(main.name))
 
         # spawn
 
@@ -289,22 +264,32 @@ class Spawning(commands.Cog):
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
             embed.set_footer(text=f"Incense expires in {timespan}.")
 
-        self.bot.spawns[channel.id] = (species, level, hint, shiny, [])
-
         await channel.send(
             file=image,
             embed=embed,
         )
 
+        self.caught_users[channel.id] = set()
+        self.bot.redis.hset("wild", channel.id, species.id)
+
     @checks.has_started()
+    @commands.cooldown(1, 20, commands.BucketType.channel)
     @commands.command(aliases=["h"])
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
-        if ctx.channel.id not in self.bot.spawns:
-            return
+        if not self.bot.redis.hexists("wild", ctx.channel.id):
+            return await ctx.send("There is no wild pokémon in this channel!")
 
-        hint = self.bot.spawns[ctx.channel.id][2]
+        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species = self.bot.data.species_by_number(int(species_id))
+
+        inds = [i for i, x in enumerate(species.name) if x.isalpha()]
+        blanks = random.sample(inds, len(inds) // 2)
+        hint = " ".join(
+            "".join(x if i in blanks else "\\_" for i, x in enumerate(x))
+            for x in species.name.split()
+        )
 
         await ctx.send(f"The pokémon is {hint}.")
 
@@ -315,10 +300,11 @@ class Spawning(commands.Cog):
 
         # Retrieve correct species and level from tracker
 
-        if ctx.channel.id not in self.bot.spawns:
-            return
+        if not self.bot.redis.hexists("wild", ctx.channel.id):
+            return await ctx.send("There is no wild pokémon in this channel!")
 
-        species, level, hint, shiny, users = self.bot.spawns[ctx.channel.id]
+        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species = self.bot.data.species_by_number(int(species_id))
 
         if (
             models.deaccent(guess.lower().replace("′", "'"))
@@ -329,18 +315,16 @@ class Spawning(commands.Cog):
         # Correct guess, add to database
 
         if ctx.channel.id == 759559123657293835:
-            if ctx.author.id in users:
+            if ctx.author.id in self.caught_users[ctx.channel.id]:
                 return await ctx.send("You have already caught this pokémon!")
 
-            users.append(ctx.author.id)
+            self.caught_users[ctx.channel.id].add(ctx.author.id)
         else:
-            del self.bot.spawns[ctx.channel.id]
+            self.bot.redis.hdel("wild", ctx.channel.id)
 
         member = await self.db.fetch_member_info(ctx.author)
-
-        if shiny is None:
-            shiny = member.determine_shiny(species)
-
+        shiny = member.determine_shiny(species)
+        level = min(max(int(random.normalvariate(20, 10)), 1), 100)
         moves = [x.move.id for x in species.moves if level >= x.method.level]
         random.shuffle(moves)
 
