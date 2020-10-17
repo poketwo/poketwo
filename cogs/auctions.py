@@ -194,6 +194,9 @@ class Auctions(commands.Cog):
 
         # create auction
 
+        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+
         counter = await self.bot.mongo.db.counter.find_one_and_update(
             {"_id": f"auction"}, {"$inc": {"next": 1}}, upsert=True
         )

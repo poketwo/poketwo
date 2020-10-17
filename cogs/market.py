@@ -170,6 +170,9 @@ class Market(commands.Cog):
         if msg.content.lower() != "y":
             return await ctx.send("Aborted.")
 
+        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+
         # create listing
 
         counter = await self.bot.mongo.db.counter.find_one_and_update(
