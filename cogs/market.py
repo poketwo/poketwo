@@ -70,18 +70,15 @@ class Market(commands.Cog):
         member = await self.db.fetch_member_info(ctx.author)
 
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
-            flags, ctx, order_by=flags["order"]
-        )
+            flags, ctx, order_by=flags["order"])
 
         if aggregations is None:
             return
 
         # Filter pokemon
 
-        do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
-        )
+        do_emojis = (ctx.guild is None or ctx.guild.me.permissions_in(
+            ctx.channel).external_emojis)
 
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
@@ -95,17 +92,13 @@ class Market(commands.Cog):
 
             pgstart = pidx * 20
             pokemon = await self.db.fetch_market_list(
-                pgstart, 20, aggregations=aggregations
-            )
+                pgstart, 20, aggregations=aggregations)
 
-            pokemon = [
-                (
-                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
-                    x["_id"],
-                    x["price"],
-                )
-                for x in pokemon
-            ]
+            pokemon = [(
+                self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
+                x["_id"],
+                x["price"],
+            ) for x in pokemon]
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
@@ -123,18 +116,21 @@ class Market(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+                text=
+                f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
             )
 
             return embed
 
-        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
+        paginator = pagination.Paginator(get_page,
+                                         num_pages=math.ceil(num / 20))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["list", "a", "l"])
-    async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
+    async def add(self, ctx: commands.Context, pokemon: converters.Pokemon,
+                  price: int):
         """List a pokémon on the marketplace."""
 
         if self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -155,8 +151,7 @@ class Market(commands.Cog):
 
         await ctx.send(
             f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon.species} "
-            f"No. {pokemon.idx}** for **{price:,}** Pokécoins? [y/N]"
-        )
+            f"No. {pokemon.idx}** for **{price:,}** Pokécoins? [y/N]")
 
         def check(m):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
@@ -175,26 +170,28 @@ class Market(commands.Cog):
         # create listing
 
         counter = await self.bot.mongo.db.counter.find_one_and_update(
-            {"_id": "listing"}, {"$inc": {"next": 1}}, upsert=True
-        )
+            {"_id": "listing"}, {"$inc": {
+                "next": 1
+            }}, upsert=True)
         if counter is None:
             counter = {"next": 0}
 
-        await self.bot.mongo.db.listing.insert_one(
-            {
-                "_id": counter["next"],
-                "pokemon": pokemon.to_mongo(),
-                "user_id": ctx.author.id,
-                "price": price,
-            }
-        )
+        await self.bot.mongo.db.listing.insert_one({
+            "_id":
+            counter["next"],
+            "pokemon":
+            pokemon.to_mongo(),
+            "user_id":
+            ctx.author.id,
+            "price":
+            price,
+        })
 
         await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
         await ctx.send(
             f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
-            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins."
-        )
+            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins.")
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
@@ -217,8 +214,7 @@ class Market(commands.Cog):
         pokemon = listing["pokemon"]
         await ctx.send(
             f"Are you sure you want to remove this listing **{pokemon.iv_percentage:.2%} {pokemon.species}** "
-            f"for **{listing['price']:,}** Pokécoins? [y/N]"
-        )
+            f"for **{listing['price']:,}** Pokécoins? [y/N]")
 
         def check(m):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
@@ -232,18 +228,18 @@ class Market(commands.Cog):
             return await ctx.send("Aborted.")
 
         try:
-            await self.bot.mongo.db.pokemon.insert_one(
-                {
-                    **listing["pokemon"],
-                    "idx": await self.db.fetch_next_idx(ctx.author),
-                }
-            )
+            await self.bot.mongo.db.pokemon.insert_one({
+                **listing["pokemon"],
+                "idx":
+                await self.db.fetch_next_idx(ctx.author),
+            })
         except pymongo.errors.DuplicateKeyError:
             return await ctx.send("Couldn't remove that pokémon.")
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
+            listing["pokemon"])
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
@@ -270,14 +266,14 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
+            listing["pokemon"])
 
         # confirm
 
         await ctx.send(
             f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon.species}** "
-            f"for **{listing['price']:,}** Pokécoins? [y/N]"
-        )
+            f"for **{listing['price']:,}** Pokécoins? [y/N]")
 
         def check(m):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
@@ -302,43 +298,46 @@ class Market(commands.Cog):
             return await ctx.send("You don't have enough Pokécoins for that!")
 
         try:
-            await self.bot.mongo.db.pokemon.insert_one(
-                {
-                    **listing["pokemon"],
-                    "owner_id": ctx.author.id,
-                    "idx": await self.db.fetch_next_idx(ctx.author),
-                }
-            )
+            await self.bot.mongo.db.pokemon.insert_one({
+                **listing["pokemon"],
+                "owner_id":
+                ctx.author.id,
+                "idx":
+                await self.db.fetch_next_idx(ctx.author),
+            })
         except pymongo.errors.DuplicateKeyError:
             return await ctx.send("Couldn't buy that pokémon.")
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
-        await self.db.update_member(
-            ctx.author, {"$inc": {"balance": -listing["price"]}}
-        )
+        await self.db.update_member(ctx.author,
+                                    {"$inc": {
+                                        "balance": -listing["price"]
+                                    }})
 
-        await self.db.update_member(
-            listing["user_id"], {"$inc": {"balance": listing["price"]}}
-        )
+        await self.db.update_member(listing["user_id"],
+                                    {"$inc": {
+                                        "balance": listing["price"]
+                                    }})
         await ctx.send(
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )
 
-        seller = self.bot.get_user(listing["user_id"]) or await self.bot.fetch_user(
-            listing["user_id"]
-        )
+        seller = self.bot.get_user(
+            listing["user_id"]) or await self.bot.fetch_user(listing["user_id"]
+                                                             )
         await seller.send(
             f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!"
         )
 
         try:
-            await self.bot.mongo.db.logs.insert_one(
-                {
-                    "event": "market",
-                    "user": ctx.author.id,
-                    "item": listing["pokemon"]["_id"],
-                }
-            )
+            await self.bot.mongo.db.logs.insert_one({
+                "event":
+                "market",
+                "user":
+                ctx.author.id,
+                "item":
+                listing["pokemon"]["_id"],
+            })
         except:
             print("Error trading market logs.")
 
@@ -355,7 +354,8 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
+            listing["pokemon"])
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"{pokemon:ln}"
@@ -391,7 +391,9 @@ class Market(commands.Cog):
             emote = ""
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
-            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
+            embed.add_field(name="Held Item",
+                            value=f"{emote}{item.name}",
+                            inline=False)
 
         embed.set_footer(text=f"Displaying listing {id} from market.")
 
