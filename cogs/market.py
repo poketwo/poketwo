@@ -214,12 +214,27 @@ class Market(commands.Cog):
         if listing["user_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
 
+        # confirm
+        pokemon = listing["pokemon"]
+        await ctx.send(
+            f"Are you sure you want to remove this listing **{pokemon.iv_percentage:.2%} {pokemon.species}** "
+            f"for **{listing['price']:,}** Pokécoins? [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted removal of listing.")
+
+        if msg.content.lower() != "n":
+            return await ctx.send("Aborted.")
+
         try:
             await self.bot.mongo.db.pokemon.insert_one(
-                {
-                    **listing["pokemon"],
-                    "idx": await self.db.fetch_next_idx(ctx.author),
-                }
+                {**listing["pokemon"], "idx": await self.db.fetch_next_idx(ctx.author),}
             )
         except pymongo.errors.DuplicateKeyError:
             return await ctx.send("Couldn't remove that pokémon.")
