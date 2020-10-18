@@ -229,7 +229,7 @@ class Market(commands.Cog):
         except asyncio.TimeoutError:
             return await ctx.send("Time's up. Aborted removal of listing.")
 
-        if msg.content.lower() != "n":
+        if msg.content.lower() != "y":
             return await ctx.send("Aborted.")
 
         try:
