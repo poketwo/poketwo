@@ -98,8 +98,7 @@ class Market(commands.Cog):
 
             pokemon = [
                 (
-                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(
-                        x["pokemon"]),
+                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
                     x["_id"],
                     x["price"],
                 )
@@ -127,8 +126,7 @@ class Market(commands.Cog):
 
             return embed
 
-        paginator = pagination.Paginator(
-            get_page, num_pages=math.ceil(num / 20))
+        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
@@ -233,15 +231,17 @@ class Market(commands.Cog):
 
         try:
             await self.bot.mongo.db.pokemon.insert_one(
-                {**listing["pokemon"], "idx": await self.db.fetch_next_idx(ctx.author), }
+                {
+                    **listing["pokemon"],
+                    "idx": await self.db.fetch_next_idx(ctx.author),
+                }
             )
         except pymongo.errors.DuplicateKeyError:
             return await ctx.send("Couldn't remove that pokémon.")
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
-            listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
@@ -268,8 +268,7 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
-            listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
         # confirm
 
@@ -354,8 +353,7 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(
-            listing["pokemon"])
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"{pokemon:ln}"
@@ -391,8 +389,7 @@ class Market(commands.Cog):
             emote = ""
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
-            embed.add_field(name="Held Item",
-                            value=f"{emote}{item.name}", inline=False)
+            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
         embed.set_footer(text=f"Displaying listing {id} from market.")
 
