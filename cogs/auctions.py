@@ -495,6 +495,7 @@ class Auctions(commands.Cog):
                     x["_id"],
                     x["current_bid"],
                     x["bid_increment"],
+                    x.get("bidder_id", None),
                 )
                 for x in pokemon
             ]
@@ -502,10 +503,12 @@ class Auctions(commands.Cog):
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
 
-            maxn = max(idx for x, idx, price, _ in pokemon)
+            maxn = max(idx for x, idx, price, _, bidder_id in pokemon)
             page = [
                 f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} pc　•　BI: {bid_interval:,} pc"
-                for p, idx, current_bid, bid_interval in pokemon
+                if bidder_id is not None
+                else f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　SB: {current_bid + bid_interval:,} pc"
+                for p, idx, current_bid, bid_interval, bidder_id in pokemon
             ]
 
             # Send embed
