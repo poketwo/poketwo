@@ -5,11 +5,13 @@ from datetime import datetime
 import bson
 import discord
 import pymongo
-from discord.ext import commands, flags
-
-from helpers import checks, converters, pagination
+from discord.ext import commands
+from discord.ext import flags
 
 from .database import Database
+from helpers import checks
+from helpers import converters
+from helpers import pagination
 
 
 class Market(commands.Cog):
