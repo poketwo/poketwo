@@ -23,25 +23,25 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def blacklist(self, ctx: commands.Context, user: discord.User):
+    async def blacklist(self, ctx: commands.Context, id: int):
         """Blacklist a user."""
 
         try:
-            await self.bot.mongo.db.blacklist.insert_one({"_id": user.id})
-            await ctx.send(f"Blacklisted {user.mention}.")
+            await self.bot.mongo.db.blacklist.insert_one({"_id": id})
+            await ctx.send(f"Blacklisted {id}.")
         except DuplicateKeyError:
-            await ctx.send("That user is already blacklisted!")
+            await ctx.send("That ID is already blacklisted!")
 
     @commands.is_owner()
     @commands.command()
-    async def unblacklist(self, ctx: commands.Context, user: discord.User):
+    async def unblacklist(self, ctx: commands.Context, id: int):
         """Unblacklist a user."""
 
-        result = await self.bot.mongo.db.blacklist.delete_one({"_id": user.id})
+        result = await self.bot.mongo.db.blacklist.delete_one({"_id": id})
         if result.deleted_count == 0:
-            await ctx.send("That user is not blacklisted!")
+            await ctx.send("That ID is not blacklisted!")
         else:
-            await ctx.send(f"Unblacklisted {user.mention}.")
+            await ctx.send(f"Unblacklisted {id}.")
 
     @commands.is_owner()
     @commands.command()
