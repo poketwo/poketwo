@@ -281,7 +281,7 @@ class Spawning(commands.Cog):
         """Get a hint for the wild pokémon."""
 
         if not self.bot.redis.hexists("wild", ctx.channel.id):
-            return await ctx.send("There is no wild pokémon in this channel!")
+            return
 
         species_id = self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
@@ -303,7 +303,7 @@ class Spawning(commands.Cog):
         # Retrieve correct species and level from tracker
 
         if not self.bot.redis.hexists("wild", ctx.channel.id):
-            return await ctx.send("There is no wild pokémon in this channel!")
+            return
 
         species_id = self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
