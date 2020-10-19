@@ -272,6 +272,12 @@ class Member(Document):
 
     # Events
     halloween_tickets = fields.IntegerField(default=0)
+    hquests = fields.DictField(
+        fields.StringField(), fields.BooleanField(), default=dict
+    )
+    hquest_progress = fields.DictField(
+        fields.StringField(), fields.IntegerField(), default=dict
+    )
 
     @property
     def selected_pokemon(self):

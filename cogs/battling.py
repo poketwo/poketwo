@@ -328,6 +328,7 @@ class Battle:
         if self.stage != Stage.SELECT:
             return
 
+        self.bot.dispatch("battle_start", self)
         self.stage = Stage.PROGRESS
         while self.stage != Stage.END:
             await asyncio.sleep(5)

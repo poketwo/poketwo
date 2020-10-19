@@ -845,6 +845,8 @@ class Pokemon(commands.Cog):
             {"$set": {f"species_id": evo.id}},
         )
 
+        self.bot.dispatch("evolve", ctx.author, pokemon, evo)
+
         await ctx.send(embed=embed)
 
     @checks.has_started()

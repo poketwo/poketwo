@@ -130,6 +130,8 @@ class Spawning(commands.Cog):
 
                         update["$set"][f"species_id"] = evo.id
 
+                        self.bot.dispatch("evolve", message.author, pokemon, evo)
+
                     else:
                         c = 0
                         for move in pokemon.species.moves:
@@ -403,6 +405,7 @@ class Spawning(commands.Cog):
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
+        self.bot.dispatch("catch", ctx.author, species)
         await ctx.send(message)
 
     @checks.has_started()

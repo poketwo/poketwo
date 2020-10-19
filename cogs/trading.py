@@ -35,6 +35,7 @@ class Trading(commands.Cog):
 
     def end_trade(self, user_id):
         a, b = self.bot.trades[user_id]["items"].keys()
+        self.bot.dispatch("trade", self.bot.trades[user_id])
         del self.bot.trades[a]
         del self.bot.trades[b]
         self.bot.redis.hdel("trade", a, b)
@@ -180,7 +181,7 @@ class Trading(commands.Cog):
                                 ):
                                     evo_embed = self.bot.Embed(color=0xE67D23)
                                     evo_embed.title = (
-                                        f"Congratulations {omem.display_name}!"
+                                        f"Congratulations {mem.display_name}!"
                                     )
 
                                     name = str(pokemon.species)
@@ -192,6 +193,9 @@ class Trading(commands.Cog):
                                         name=f"The {name} is evolving!",
                                         value=f"The {name} has turned into a {evo.target}!",
                                     )
+
+                                    self.bot.dispatch("evolve", mem, pokemon, evo.target)
+                                    self.bot.dispatch("evolve", omem, pokemon, evo.target)
 
                                     update["$set"]["species_id"] = evo.target.id
 

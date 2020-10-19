@@ -314,6 +314,8 @@ class Market(commands.Cog):
             f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!"
         )
 
+        self.bot.dispatch("market_buy", ctx.author, listing)
+
         try:
             await self.bot.mongo.db.logs.insert_one(
                 {

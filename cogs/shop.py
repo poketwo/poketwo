@@ -290,7 +290,9 @@ class Shop(commands.Cog):
                     "idx": await self.db.fetch_next_idx(ctx.author),
                 }
 
-                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
+                text.append(
+                    f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
+                )
 
                 added_pokemon.append(pokemon)
 
@@ -769,6 +771,8 @@ class Shop(commands.Cog):
                 value=f"Your {name} has turned into a {evoto}!",
             )
 
+            self.bot.dispatch("evolve", ctx.author, pokemon, evoto)
+
             await self.db.update_pokemon(pokemon, {"$set": {"species_id": evoto.id}})
 
             await ctx.send(embed=embed)
@@ -823,6 +827,8 @@ class Shop(commands.Cog):
 
                 if member.silence and pokemon.level < 99:
                     await ctx.author.send(embed=embed)
+
+                self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
             else:
                 c = 0
