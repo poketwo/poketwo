@@ -194,16 +194,17 @@ class Halloween(commands.Cog):
         quests = await self.get_quests(ctx.author)
         for q in quests:
             if q["id"] == quest - 1:
-                await self.db.update_member(
-                    ctx.author,
-                    {
-                        "$set": {f"hquests.{q['id']}": True},
-                        "$inc": {"halloween_tickets": q["reward"]},
-                    },
-                )
-                return await ctx.send(
-                    f"You have claimed **{q['reward']} Halloween Candies**."
-                )
+                if q["progress"] >= q["count"]:
+                    await self.db.update_member(
+                        ctx.author,
+                        {
+                            "$set": {f"hquests.{q['id']}": True},
+                            "$inc": {"halloween_tickets": q["reward"]},
+                        },
+                    )
+                    return await ctx.send(
+                        f"You have claimed **{q['reward']} Halloween Candies**."
+                    )
 
         await ctx.send(f"You can't claim that reward!")
 
