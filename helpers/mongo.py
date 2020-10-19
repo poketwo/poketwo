@@ -372,6 +372,10 @@ class Counter(Document):
     next = fields.IntegerField(default=0)
 
 
+class Blacklist(Document):
+    id = fields.IntegerField(attribute="_id")
+
+
 class Sponsor(Document):
     id = fields.IntegerField(attribute="_id")
     discord_id = fields.IntegerField(default=None)
@@ -395,6 +399,7 @@ class Database:
             "Guild",
             "Channel",
             "Counter",
+            "Blacklist",
             "Sponsor",
             "Auction",
         ):
