@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 from importlib import reload
 
 import discord
-import redis
+import aioredis
 from discord.ext import commands
 from discord.ext.ipc import Client, Server
 
@@ -48,7 +48,6 @@ class ClusterBot(commands.AutoShardedBot):
         asyncio.set_event_loop(loop)
         super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
-        self.redis = redis.Redis(**config.REDIS_CONF, decode_responses=True)
 
         self._last_result = None
         self.waiting = False
@@ -181,11 +180,12 @@ class ClusterBot(commands.AutoShardedBot):
         self.run(kwargs["token"])
 
     async def do_startup_tasks(self):
-        await self.wait_until_ready()
-        self.redis = redis.Redis(**config.REDIS_CONF, decode_responses=True)
+        self.redis = await aioredis.create_redis_pool(**config.REDIS_CONF)
         self.data = helpers.data.make_data_manager()
-        self.sprites = helpers.emojis.EmojiManager(self)
         self.mongo = helpers.mongo.Database(self, self.database_uri, self.database_name)
+        await self.get_cog("Trading").clear_trades()
+        await self.wait_until_ready()
+        self.sprites = helpers.emojis.EmojiManager(self)
         self.enabled = True
         self.log.info(f"Logged in as {self.user}")
 

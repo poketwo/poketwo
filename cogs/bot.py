@@ -88,11 +88,12 @@ class Bot(commands.Cog):
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
+        elif isinstance(error, converters.PokemonConversionError):
+            await ctx.send(error.original)
         elif isinstance(
             error,
             (
                 commands.CheckFailure,
-                converters.PokemonConversionError,
                 commands.UserInputError,
                 flags.ArgumentParsingError,
             ),

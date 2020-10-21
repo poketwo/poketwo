@@ -14,31 +14,28 @@ class Trading(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        if not hasattr(self.bot, "trades"):
-            self.clear_trades()
-
     @property
     def db(self) -> Database:
         return self.bot.get_cog("Database")
 
-    def clear_trades(self):
+    async def clear_trades(self):
         todel = []
-        for key, val in self.bot.redis.hscan_iter("trade"):
+        async for key, val in self.bot.redis.ihscan("trade"):
             if val == str(self.bot.cluster_idx):
                 todel.append(key)
         if len(todel) > 0:
-            self.bot.redis.hdel("trade", *todel)
+            await self.bot.redis.hdel("trade", *todel)
         self.bot.trades = {}
 
     def is_in_trade(self, user):
         return self.bot.redis.hexists("trade", user.id)
 
-    def end_trade(self, user_id):
+    async def end_trade(self, user_id):
         a, b = self.bot.trades[user_id]["items"].keys()
         self.bot.dispatch("trade", self.bot.trades[user_id])
         del self.bot.trades[a]
         del self.bot.trades[b]
-        self.bot.redis.hdel("trade", a, b)
+        await self.bot.redis.hdel("trade", a, b)
 
     async def send_trade(self, ctx: commands.Context, user: discord.Member):
         # TODO this code is pretty shit. although it does work
@@ -130,7 +127,7 @@ class Trading(commands.Cog):
                         await ctx.send(
                             "The trade could not be executed as one user does not have enough Pokécoins."
                         )
-                        self.end_trade(a.id)
+                        await self.end_trade(a.id)
                         return
 
                 for idx, tup in bothsides:
@@ -194,8 +191,12 @@ class Trading(commands.Cog):
                                         value=f"The {name} has turned into a {evo.target}!",
                                     )
 
-                                    self.bot.dispatch("evolve", mem, pokemon, evo.target)
-                                    self.bot.dispatch("evolve", omem, pokemon, evo.target)
+                                    self.bot.dispatch(
+                                        "evolve", mem, pokemon, evo.target
+                                    )
+                                    self.bot.dispatch(
+                                        "evolve", omem, pokemon, evo.target
+                                    )
 
                                     update["$set"]["species_id"] = evo.target.id
 
@@ -207,7 +208,7 @@ class Trading(commands.Cog):
                             )
 
             except:
-                self.end_trade(a.id)
+                await self.end_trade(a.id)
                 raise
 
             try:
@@ -236,7 +237,7 @@ class Trading(commands.Cog):
                 print("Error saving trading logs.")
                 pass
 
-            self.end_trade(a.id)
+            await self.end_trade(a.id)
 
         # Send msg
 
@@ -255,10 +256,10 @@ class Trading(commands.Cog):
         if user == ctx.author:
             return await ctx.send("Nice try...")
 
-        if self.is_in_trade(ctx.author):
+        if await self.is_in_trade(ctx.author):
             return await ctx.send("You are already in a trade!")
 
-        if self.is_in_trade(user):
+        if await self.is_in_trade(user):
             return await ctx.send(f"**{user}** is already in a trade!")
 
         member = await self.bot.mongo.Member.find_one({"id": user.id})
@@ -284,12 +285,12 @@ class Trading(commands.Cog):
             await message.add_reaction("❌")
             await ctx.send("The request to trade has timed out.")
         else:
-            if self.is_in_trade(ctx.author):
+            if await self.is_in_trade(ctx.author):
                 return await ctx.send(
                     "Sorry, the user who sent the request is already in another trade."
                 )
 
-            if self.is_in_trade(user):
+            if await self.is_in_trade(user):
                 return await ctx.send(
                     "Sorry, you can't accept a trade while you're already in one!"
                 )
@@ -303,8 +304,8 @@ class Trading(commands.Cog):
             }
             self.bot.trades[ctx.author.id] = trade
             self.bot.trades[user.id] = trade
-            self.bot.redis.hset("trade", ctx.author.id, self.bot.cluster_idx)
-            self.bot.redis.hset("trade", user.id, self.bot.cluster_idx)
+            await self.bot.redis.hset("trade", ctx.author.id, self.bot.cluster_idx)
+            await self.bot.redis.hset("trade", user.id, self.bot.cluster_idx)
 
             await self.send_trade(ctx, ctx.author)
 
@@ -314,7 +315,7 @@ class Trading(commands.Cog):
     async def cancel(self, ctx: commands.Context):
         """Cancel a trade."""
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         if ctx.author.id not in self.bot.trades:
@@ -323,7 +324,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        self.end_trade(ctx.author.id)
+        await self.end_trade(ctx.author.id)
 
         await ctx.send("The trade has been canceled.")
 
@@ -333,7 +334,7 @@ class Trading(commands.Cog):
     async def confirm(self, ctx: commands.Context):
         """Confirm a trade."""
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         if self.bot.trades[ctx.author.id]["executing"]:
@@ -352,7 +353,7 @@ class Trading(commands.Cog):
     async def add(self, ctx: commands.Context, *args):
         """Add an item to a trade."""
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
@@ -465,7 +466,7 @@ class Trading(commands.Cog):
 
         # TODO this shares a lot of code with the add command
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
@@ -566,7 +567,7 @@ class Trading(commands.Cog):
     @trade.command(aliases=["aa"], cls=flags.FlagCommand)
     async def addall(self, ctx: commands.Context, **flags):
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
@@ -647,7 +648,7 @@ class Trading(commands.Cog):
     async def info(self, ctx: commands.Context, *, number: int):
         """View a pokémon from the trade."""
 
-        if not self.is_in_trade(ctx.author):
+        if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
         other_id = next(

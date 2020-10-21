@@ -272,7 +272,7 @@ class Spawning(commands.Cog):
         )
 
         self.caught_users[channel.id] = set()
-        self.bot.redis.hset("wild", channel.id, species.id)
+        await self.bot.redis.hset("wild", channel.id, species.id)
 
     @checks.has_started()
     @commands.cooldown(1, 20, commands.BucketType.channel)
@@ -280,10 +280,10 @@ class Spawning(commands.Cog):
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
-        if not self.bot.redis.hexists("wild", ctx.channel.id):
+        if not await self.bot.redis.hexists("wild", ctx.channel.id):
             return
 
-        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
@@ -302,10 +302,10 @@ class Spawning(commands.Cog):
 
         # Retrieve correct species and level from tracker
 
-        if not self.bot.redis.hexists("wild", ctx.channel.id):
+        if not await self.bot.redis.hexists("wild", ctx.channel.id):
             return
 
-        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
         if (
@@ -322,7 +322,7 @@ class Spawning(commands.Cog):
 
             self.caught_users[ctx.channel.id].add(ctx.author.id)
         else:
-            self.bot.redis.hdel("wild", ctx.channel.id)
+            await self.bot.redis.hdel("wild", ctx.channel.id)
 
         member = await self.db.fetch_member_info(ctx.author)
         shiny = member.determine_shiny(species)
