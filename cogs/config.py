@@ -1,9 +1,6 @@
-import typing
-
 import discord
 import geocoder
 from discord.ext import commands
-from .database import Database
 from helpers import checks
 
 
@@ -16,10 +13,6 @@ class Configuration(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     def make_config_embed(self, ctx, guild, commands={}):
         prefix = guild.prefix if guild.prefix is not None else "p!"
@@ -62,7 +55,7 @@ class Configuration(commands.Cog):
         invoke_without_command=True,
     )
     async def configuration(self, ctx: commands.Context):
-        guild = await self.db.fetch_guild(ctx.guild)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         embed = self.make_config_embed(ctx, guild)
         await ctx.send(embed=embed)
@@ -70,7 +63,7 @@ class Configuration(commands.Cog):
     @commands.guild_only()
     @configuration.command(name="help")
     async def advanced_configuration(self, ctx: commands.Context):
-        guild = await self.db.fetch_guild(ctx.guild)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
         prefix = guild.prefix if guild.prefix is not None else "p!"
 
         commands = {
@@ -91,14 +84,14 @@ class Configuration(commands.Cog):
         """Change the bot prefix."""
 
         if prefix is None:
-            guild = await self.db.fetch_guild(ctx.guild)
+            guild = await self.bot.mongo.fetch_guild(ctx.guild)
             current = guild.prefix
             if type(current) == list:
                 current = current[0]
             return await ctx.send(f"My prefix is `{current}` in this server.")
 
         if prefix in ("reset", "p!", "P!"):
-            await self.db.update_guild(ctx.guild, {"$set": {"prefix": None}})
+            await self.bot.mongo.update_guild(ctx.guild, {"$set": {"prefix": None}})
             self.bot.prefixes[ctx.guild.id] = None
 
             return await ctx.send("Reset prefix to `p!` for this server.")
@@ -106,7 +99,7 @@ class Configuration(commands.Cog):
         if len(prefix) > 100:
             return await ctx.send("Prefix must not be longer than 100 characters.")
 
-        await self.db.update_guild(ctx.guild, {"$set": {"prefix": prefix}})
+        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"prefix": prefix}})
         self.bot.prefixes[ctx.guild.id] = prefix
 
         await ctx.send(f"Changed prefix to `{prefix}` for this server.")
@@ -116,9 +109,9 @@ class Configuration(commands.Cog):
     async def silence(self, ctx: commands.Context):
         """Silence level up messages for yourself."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             ctx.author, {"$set": {"silence": not member.silence}}
         )
 
@@ -134,9 +127,11 @@ class Configuration(commands.Cog):
     async def serversilence(self, ctx: commands.Context):
         """Silence level up messages server-wide."""
 
-        guild = await self.db.fetch_guild(ctx.guild)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        await self.db.update_guild(ctx.guild, {"$set": {"silence": not guild.silence}})
+        await self.bot.mongo.update_guild(
+            ctx.guild, {"$set": {"silence": not guild.silence}}
+        )
 
         if guild.silence:
             await ctx.send(f"Level up messages are no longer disabled in this server.")
@@ -155,7 +150,7 @@ class Configuration(commands.Cog):
         if len(channels) == 0:
             return await ctx.send("Please specify channels to redirect to!")
 
-        await self.db.update_guild(
+        await self.bot.mongo.update_guild(
             ctx.guild, {"$set": {"channels": [x.id for x in channels]}}
         )
         await ctx.send(
@@ -167,14 +162,14 @@ class Configuration(commands.Cog):
     async def reset(self, ctx: commands.Context):
         """Reset channel redirect."""
 
-        await self.db.update_guild(ctx.guild, {"$set": {"channels": []}})
+        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": []}})
         await ctx.send(f"No longer redirecting spawns.")
 
     @checks.is_admin()
     @commands.command(aliases=["timezone", "tz"])
     async def location(self, ctx: commands.Context, *, location: str = None):
         if location is None:
-            guild = await self.db.fetch_guild(ctx.guild)
+            guild = await self.bot.mongo.fetch_guild(ctx.guild)
             return await ctx.send(
                 f"The server's current location is **{guild.loc}** ({guild.lat}, {guild.lng})."
             )
@@ -186,14 +181,14 @@ class Configuration(commands.Cog):
                 return await ctx.send("Couldn't find that location!")
 
             lat, lng = g.latlng
-            await self.db.update_guild(
+            await self.bot.mongo.update_guild(
                 ctx.guild, {"$set": {"lat": lat, "lng": lng, "loc": g.address}}
             )
             await ctx.send(f"Set server location to **{g.address}** ({lat}, {lng}).")
 
     @commands.command()
     async def time(self, ctx: commands.Context):
-        guild = await self.db.fetch_guild(ctx.guild)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         embed = self.bot.Embed()
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"

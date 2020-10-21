@@ -8,10 +8,7 @@ from urllib.parse import urlencode
 
 import discord
 from discord.ext import commands
-
 from helpers import checks, constants, converters, models, pagination
-
-from .database import Database
 
 
 def setup(bot):
@@ -85,7 +82,7 @@ class Trainer:
 
         # Send request
 
-        await self.bot.ipc_client.request(
+        await self.bot.ipc.client.request(
             "move_request",
             8765,
             cluster_idx=self.bot.cluster_idx,
@@ -113,10 +110,10 @@ class Battle:
         self, users: typing.List[discord.Member], ctx: commands.Context, manager
     ):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
-        self.channel = ctx.channel  # type: discord.TextChannel
+        self.channel = ctx.channel
         self.stage = Stage.SELECT
         self.ctx = ctx
-        self.bot = ctx.bot  # type: ClusterBot
+        self.bot = ctx.bot
         self.manager = manager
 
     async def send_selection(self, ctx):
@@ -374,12 +371,8 @@ class Battling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        if not hasattr(self.bot, "battles") or self.bot.battles is None:
+        if not hasattr(self.bot, "battles"):
             self.bot.battles = BattleManager()
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
@@ -438,7 +431,7 @@ class Battling(commands.Cog):
         except asyncio.TimeoutError:
             action = {"type": "pass", "text": "nothing. Passing turn..."}
 
-        resp = await self.bot.ipc_client.request(
+        resp = await self.bot.ipc.client.request(
             "move_decide", 8765 + cluster_idx, user_id=user.id, action=action
         )
 
@@ -612,8 +605,8 @@ class Battling(commands.Cog):
         if move is None:
             return await ctx.send("Couldn't find that move!")
 
-        member = await self.db.fetch_member_info(ctx.author)
-        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
 
         if pokemon is None:
             return await ctx.send("You must have a pokémon selected!")
@@ -661,7 +654,7 @@ class Battling(commands.Cog):
         else:
             update["$push"] = {f"moves": move.id}
 
-        await self.db.update_pokemon(pokemon, update)
+        await self.bot.mongo.update_pokemon(pokemon, update)
 
         return await ctx.send("Your pokémon has learned " + move.name + "!")
 

@@ -5,27 +5,27 @@ import discord
 from discord.ext import commands, flags
 from helpers import checks, pagination
 
-from .database import Database
-
 
 class Trading(commands.Cog):
     """For trading."""
 
     def __init__(self, bot):
         self.bot = bot
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
+        self.ready = False
+        self.bot.loop.create_task(self.clear_trades())
 
     async def clear_trades(self):
+        await self.bot.wait_until_ready()
+
         todel = []
         async for key, val in self.bot.redis.ihscan("trade"):
             if val == str(self.bot.cluster_idx):
                 todel.append(key)
         if len(todel) > 0:
             await self.bot.redis.hdel("trade", *todel)
+
         self.bot.trades = {}
+        self.ready = True
 
     def is_in_trade(self, user):
         return self.bot.redis.hexists("trade", user.id)
@@ -122,7 +122,7 @@ class Trading(commands.Cog):
                 for idx, tup in bothsides:
                     i, side = tup
                     mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
-                    member = await self.db.fetch_member_info(mem)
+                    member = await self.bot.mongo.fetch_member_info(mem)
                     if member.balance < sum(x for x in side if type(x) == int):
                         await ctx.send(
                             "The trade could not be executed as one user does not have enough Pokécoins."
@@ -139,18 +139,22 @@ class Trading(commands.Cog):
                     mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
                     omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
 
-                    member = await self.db.fetch_member_info(mem)
-                    omember = await self.db.fetch_member_info(omem)
+                    member = await self.bot.mongo.fetch_member_info(mem)
+                    omember = await self.bot.mongo.fetch_member_info(omem)
 
                     idxs = set()
 
                     num_pokes = len(list(x for x in side if type(x) != int))
-                    idx = await self.db.fetch_next_idx(omem, num_pokes)
+                    idx = await self.bot.mongo.fetch_next_idx(omem, num_pokes)
 
                     for x in side:
                         if type(x) == int:
-                            await self.db.update_member(mem, {"$inc": {"balance": -x}})
-                            await self.db.update_member(omem, {"$inc": {"balance": x}})
+                            await self.bot.mongo.update_member(
+                                mem, {"$inc": {"balance": -x}}
+                            )
+                            await self.bot.mongo.update_member(
+                                omem, {"$inc": {"balance": x}}
+                            )
                         else:
 
                             pokemon = x
@@ -202,7 +206,7 @@ class Trading(commands.Cog):
 
                                     embeds.append(evo_embed)
 
-                            await self.db.update_pokemon(
+                            await self.bot.mongo.update_pokemon(
                                 pokemon,
                                 update,
                             )
@@ -378,7 +382,7 @@ class Trading(commands.Cog):
                     if type(x) == int
                 )
 
-                member = await self.db.fetch_member_info(ctx.author)
+                member = await self.bot.mongo.fetch_member_info(ctx.author)
 
                 if current + int(what) > member.balance:
                     return await ctx.send("You don't have enough Pokécoins for that!")
@@ -418,8 +422,8 @@ class Trading(commands.Cog):
 
                     number = int(what)
 
-                    member = await self.db.fetch_member_info(ctx.author)
-                    pokemon = await self.db.fetch_pokemon(ctx.author, number)
+                    member = await self.bot.mongo.fetch_member_info(ctx.author)
+                    pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, number)
 
                     if pokemon is None:
                         lines.append(f"{what}: Couldn't find that pokémon!")
@@ -576,7 +580,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
             flags, ctx, order_by=member.order_by
@@ -592,7 +596,9 @@ class Trading(commands.Cog):
             ]
         )
 
-        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
 
         if num == 0:
             return await ctx.send(
@@ -621,7 +627,7 @@ class Trading(commands.Cog):
 
         await ctx.send(f"Adding {num} pokémon, this might take a while...")
 
-        pokemon = await self.db.fetch_pokemon_list(
+        pokemon = await self.bot.mongo.fetch_pokemon_list(
             ctx.author, 0, num, aggregations=aggregations
         )
 

@@ -6,9 +6,8 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
+from discord.ext.commands.errors import CheckFailure
 from helpers import checks, constants, converters
-
-from .database import Database
 
 
 class Blacklisted(commands.CheckFailure):
@@ -122,10 +121,6 @@ class Bot(commands.Cog):
             )
             print("\n\n")
 
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
-
     async def determine_prefix(self, guild):
         if guild:
             if guild.id not in self.bot.prefixes:
@@ -210,7 +205,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        headers = {"Authorization": self.bot.dbl_token}
+        headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
         async with aiohttp.ClientSession(headers=headers) as sess:
             r = await sess.post(
@@ -291,7 +286,7 @@ class Bot(commands.Cog):
     async def pick(self, ctx: commands.Context, *, name: str):
         """Pick a starter pokémon to get started."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member is not None:
             return await ctx.send(
@@ -335,11 +330,11 @@ class Bot(commands.Cog):
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"{ctx.author}"
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         pokemon_caught = []
         pokemon_caught.append(
-            "**Total: **" + str(await self.db.fetch_pokedex_sum(ctx.author))
+            "**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author))
         )
 
         for name, filt in (
@@ -350,7 +345,7 @@ class Bot(commands.Cog):
             pokemon_caught.append(
                 f"**{name}: **"
                 + str(
-                    await self.db.fetch_pokedex_sum(
+                    await self.bot.mongo.fetch_pokedex_sum(
                         ctx.author,
                         [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
                     )

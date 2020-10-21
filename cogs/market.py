@@ -1,15 +1,10 @@
-import pymongo
 import asyncio
 import math
-from datetime import datetime
 
 import bson
-import discord
+import pymongo
 from discord.ext import commands, flags
-
 from helpers import checks, converters, pagination
-
-from .database import Database
 
 
 class Market(commands.Cog):
@@ -17,10 +12,6 @@ class Market(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
     async def market(self, ctx: commands.Context, **flags):
@@ -68,8 +59,6 @@ class Market(commands.Cog):
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
 
-        member = await self.db.fetch_member_info(ctx.author)
-
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
             flags, ctx, order_by=flags["order"]
         )
@@ -79,15 +68,10 @@ class Market(commands.Cog):
 
         # Filter pokemon
 
-        do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
-        )
-
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
-        num = await self.db.fetch_market_count(aggregations=aggregations)
+        num = await self.bot.mongo.fetch_market_count(aggregations=aggregations)
 
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
@@ -95,7 +79,7 @@ class Market(commands.Cog):
         async def get_page(pidx, clear):
 
             pgstart = pidx * 20
-            pokemon = await self.db.fetch_market_list(
+            pokemon = await self.bot.mongo.fetch_market_list(
                 pgstart, 20, aggregations=aggregations
             )
 
@@ -150,7 +134,7 @@ class Market(commands.Cog):
         if price > 1000000000:
             return await ctx.send("Price is too high!")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         # confirm
 
@@ -218,7 +202,7 @@ class Market(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     **listing["pokemon"],
-                    "idx": await self.db.fetch_next_idx(ctx.author),
+                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )
         except pymongo.errors.DuplicateKeyError:
@@ -245,7 +229,7 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if listing["user_id"] == ctx.author.id:
             return await ctx.send("You can't purchase your own listing!")
@@ -280,7 +264,7 @@ class Market(commands.Cog):
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
@@ -289,18 +273,18 @@ class Market(commands.Cog):
                 {
                     **listing["pokemon"],
                     "owner_id": ctx.author.id,
-                    "idx": await self.db.fetch_next_idx(ctx.author),
+                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )
         except pymongo.errors.DuplicateKeyError:
             return await ctx.send("Couldn't buy that pokémon.")
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             ctx.author, {"$inc": {"balance": -listing["price"]}}
         )
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             listing["user_id"], {"$inc": {"balance": listing["price"]}}
         )
         await ctx.send(

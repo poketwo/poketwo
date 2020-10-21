@@ -6,9 +6,7 @@ import discord
 from discord.ext import commands
 from pymongo.errors import DuplicateKeyError
 
-from helpers import mongo
-
-from .database import Database
+from . import mongo
 
 
 class Administration(commands.Cog):
@@ -16,10 +14,6 @@ class Administration(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     @commands.is_owner()
     @commands.command()
@@ -48,7 +42,7 @@ class Administration(commands.Cog):
     async def suspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
-        await self.db.update_member(user, {"$set": {"suspended": True}})
+        await self.bot.mongo.update_member(user, {"$set": {"suspended": True}})
         await ctx.send(f"Suspended {user.mention}.")
 
     @commands.is_owner()
@@ -61,7 +55,7 @@ class Administration(commands.Cog):
     async def unsuspend(self, ctx: commands.Context, user: discord.User):
         """Suspend a user."""
 
-        await self.db.update_member(user, {"$set": {"suspended": False}})
+        await self.bot.mongo.update_member(user, {"$set": {"suspended": False}})
         await ctx.send(f"Unsuspended {user.mention}.")
 
     @commands.is_owner()
@@ -71,7 +65,7 @@ class Administration(commands.Cog):
     ):
         """Give a redeem."""
 
-        await self.db.update_member(user, {"$inc": {"redeems": num}})
+        await self.bot.mongo.update_member(user, {"$inc": {"redeems": num}})
         await ctx.send(f"Gave {user.mention} {num} redeems.")
 
     @commands.is_owner()
@@ -84,7 +78,7 @@ class Administration(commands.Cog):
     ):
         """Add to a user's balance."""
 
-        await self.db.update_member(user, {"$inc": {"balance": amt}})
+        await self.bot.mongo.update_member(user, {"$inc": {"balance": amt}})
         await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
 
     @commands.is_owner()
@@ -97,7 +91,7 @@ class Administration(commands.Cog):
     ):
         """Add to a user's shard balance."""
 
-        await self.db.update_member(user, {"$inc": {"premium_balance": amt}})
+        await self.bot.mongo.update_member(user, {"$inc": {"premium_balance": amt}})
         await ctx.send(f"Gave {user.mention} {amt} shards.")
 
     @commands.is_owner()
@@ -110,7 +104,7 @@ class Administration(commands.Cog):
         if box_type not in ("normal", "great", "ultra", "master"):
             return await ctx.send("That's not a valid box type!")
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             user,
             {
                 "$set": {"last_voted": datetime.utcnow()},
@@ -131,8 +125,6 @@ class Administration(commands.Cog):
     @commands.command()
     async def give(self, ctx: commands.Context, user: discord.Member, *, species: str):
         """Give a pokémon."""
-
-        member = await self.db.fetch_member_info(user)
 
         shiny = False
 
@@ -159,7 +151,7 @@ class Administration(commands.Cog):
                 "iv_sdef": mongo.random_iv(),
                 "iv_spd": mongo.random_iv(),
                 "shiny": shiny,
-                "idx": await self.db.fetch_next_idx(user),
+                "idx": await self.bot.mongo.fetch_next_idx(user),
             }
         )
 
@@ -172,10 +164,8 @@ class Administration(commands.Cog):
 
         # This is for development purposes.
 
-        member = await self.db.fetch_member_info(user)
-
         pokemon = []
-        idx = await self.db.fetch_next_idx(user, reserve=num)
+        idx = await self.bot.mongo.fetch_next_idx(user, reserve=num)
 
         for i in range(num):
             spid = random.randint(1, 809)

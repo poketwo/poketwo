@@ -1,8 +1,9 @@
 import csv
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
-from . import models
+from discord.ext import commands
+from helpers import models
 
 
 def isnumber(v):
@@ -247,12 +248,18 @@ def get_moves(instance):
     return moves
 
 
-def make_data_manager():
-    instance = models.DataManager()
+class Data(commands.Cog):
+    """For game data."""
 
-    instance.moves = get_moves(instance)
-    instance.pokemon = get_pokemon(instance)
-    instance.items = get_items(instance)
-    instance.effects = get_effects(instance)
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    return instance
+        self.instance = models.DataManager()
+        self.instance.moves = get_moves(self.instance)
+        self.instance.pokemon = get_pokemon(self.instance)
+        self.instance.items = get_items(self.instance)
+        self.instance.effects = get_effects(self.instance)
+
+
+def setup(bot):
+    bot.add_cog(Data(bot))

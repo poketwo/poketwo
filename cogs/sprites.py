@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from discord.ext import commands
+
 PokemonEmojis = namedtuple("PokemonEmojis", ("normal", "shiny"))
 
 servers = PokemonEmojis(
@@ -1735,9 +1737,14 @@ other = {
 enable_emojis_for = (716390085896962058, 717112814535442432)
 
 
-class EmojiManager:
+class Sprites(commands.Cog):
     def __init__(self, bot):
-        self.status = bot.user.id in enable_emojis_for
+        self.bot = bot
+        self.ready = True
+
+    @property
+    def status(self):
+        return self.bot.user.id in enable_emojis_for
 
     def __getattr__(self, key):
         if self.status:
@@ -1751,3 +1758,7 @@ class EmojiManager:
                 return f"<:_:{pokemon.shiny[idx]}>"
             return f"<:_:{pokemon.normal[idx]}>"
         return ""
+
+
+def setup(bot):
+    bot.add_cog(Sprites(bot))

@@ -5,8 +5,6 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from helpers import checks
 
-from .database import Database
-
 QUESTS = [
     {
         "event": "catch",
@@ -101,12 +99,8 @@ class Halloween(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
-
     async def get_quests(self, user):
-        member = await self.db.fetch_member_info(user)
+        member = await self.bot.mongo.fetch_member_info(user)
         ret = []
         for idx, quest in enumerate(QUESTS):
             if not member.hquests.get(str(idx), False):
@@ -145,7 +139,7 @@ class Halloween(commands.Cog):
     async def halloween(self, ctx: commands.Context):
         """View halloween event information."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Spooktober Event"
@@ -195,7 +189,7 @@ class Halloween(commands.Cog):
         for q in quests:
             if q["id"] == quest - 1:
                 if q["progress"] >= q["count"]:
-                    await self.db.update_member(
+                    await self.bot.mongo.update_member(
                         ctx.author,
                         {
                             "$set": {f"hquests.{q['id']}": True},
@@ -230,7 +224,7 @@ class Halloween(commands.Cog):
                 incs[f"hquest_progress.{q['id']}"] += 1
 
         if len(incs) > 0:
-            await self.db.update_member(user, {"$inc": incs})
+            await self.bot.mongo.update_member(user, {"$inc": incs})
 
     @commands.Cog.listener()
     async def on_market_buy(self, user, listing):
@@ -247,7 +241,7 @@ class Halloween(commands.Cog):
                 incs[f"hquest_progress.{q['id']}"] += 1
 
         if len(incs) > 0:
-            await self.db.update_member(user, {"$inc": incs})
+            await self.bot.mongo.update_member(user, {"$inc": incs})
 
     @commands.Cog.listener()
     async def on_trade(self, trade):
@@ -271,7 +265,7 @@ class Halloween(commands.Cog):
                             incs[f"hquest_progress.{q['id']}"] += 1
 
             if len(incs) > 0:
-                await self.db.update_member(user, {"$inc": incs})
+                await self.bot.mongo.update_member(user, {"$inc": incs})
 
     @commands.Cog.listener()
     async def on_battle_start(self, battle):
@@ -287,7 +281,7 @@ class Halloween(commands.Cog):
                         incs[f"hquest_progress.{q['id']}"] += 1
 
             if len(incs) > 0:
-                await self.db.update_member(trainer.user, {"$inc": incs})
+                await self.bot.mongo.update_member(trainer.user, {"$inc": incs})
 
     @commands.Cog.listener()
     async def on_evolve(self, user, pokemon, evo):
@@ -301,7 +295,7 @@ class Halloween(commands.Cog):
                 incs[f"hquest_progress.{q['id']}"] += 1
 
         if len(incs) > 0:
-            await self.db.update_member(user, {"$inc": incs})
+            await self.bot.mongo.update_member(user, {"$inc": incs})
 
 
 def setup(bot):

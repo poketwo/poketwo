@@ -16,9 +16,7 @@ class Pokemon(commands.Converter):
     async def convert(self, ctx, arg):
         arg = arg.strip()
 
-        db = ctx.bot.get_cog("Database")
-
-        member = await db.fetch_member_info(ctx.author)
+        member = await ctx.bot.mongo.fetch_member_info(ctx.author)
 
         if arg == "" and self.accept_blank:
             number = member.selected_id
@@ -43,7 +41,7 @@ class Pokemon(commands.Converter):
                 ),
             )
 
-        return await db.fetch_pokemon(ctx.author, number)
+        return await ctx.bot.mongo.fetch_pokemon(ctx.author, number)
 
 
 class TimeDelta(commands.Converter):

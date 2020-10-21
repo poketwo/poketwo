@@ -80,7 +80,7 @@ class Launcher:
         data.raise_for_status()
         content = data.json()
         log.info(
-            f"Successfully got shard count of {content['shards']} ({data.status_code, data.reason})"
+            f"Successfully got shard count of {content['shards']} ({data.status_code}, {data.reason})"
         )
         # return 16
         return content["shards"]
@@ -97,8 +97,6 @@ class Launcher:
 
     def cleanup(self):
         self.loop.stop()
-        if sys.platform == "win32":
-            print("press ^C again")
         self.loop.close()
 
     def task_complete(self, task):
