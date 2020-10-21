@@ -295,6 +295,7 @@ class Spawning(commands.Cog):
         await ctx.send(f"The pokémon is {hint}.")
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.command(aliases=["c"])
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
