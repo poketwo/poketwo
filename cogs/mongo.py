@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timedelta, timezone
 
 import discord
+import pymongo
 from bson.objectid import ObjectId
 from discord.ext import commands
 from helpers import constants, models
@@ -598,7 +599,10 @@ class Mongo(commands.Cog):
         g = await self.Guild.find_one({"id": guild.id})
         if g is None:
             g = self.Guild(id=guild.id)
-            await g.commit()
+            try:
+                await g.commit()
+            except pymongo.DuplicateKeyError:
+                pass
         return g
 
     async def update_guild(self, guild: discord.Guild, update):

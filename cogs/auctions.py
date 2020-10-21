@@ -145,7 +145,7 @@ class Auctions(commands.Cog):
     ):
         """Start an auction."""
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:
@@ -187,7 +187,7 @@ class Auctions(commands.Cog):
 
         # create auction
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         counter = await self.bot.mongo.db.counter.find_one_and_update(

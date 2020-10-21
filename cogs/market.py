@@ -122,7 +122,7 @@ class Market(commands.Cog):
     async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
         """List a pokémon on the marketplace."""
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:
@@ -154,7 +154,7 @@ class Market(commands.Cog):
         if msg.content.lower() != "y":
             return await ctx.send("Aborted.")
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         # create listing
