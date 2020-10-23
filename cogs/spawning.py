@@ -50,7 +50,7 @@ class Spawning(commands.Cog):
 
         channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
         if channel is None:
-            self.spawn_threshold = max(self.spawn_threshold / 1.1, MIN_SPAWN_THRESHOLD)
+            self.spawn_threshold = max(self.spawn_threshold / 1.2, MIN_SPAWN_THRESHOLD)
             return
 
         channel = self.bot.get_channel(int(channel))
