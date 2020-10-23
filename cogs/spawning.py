@@ -16,6 +16,9 @@ from helpers import checks, models
 from . import mongo
 
 
+MIN_SPAWN_THRESHOLD = 15
+
+
 def write_fp(data):
     arr = io.BytesIO()
     arr.write(data)
@@ -28,6 +31,7 @@ class Spawning(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.spawn_threshold = MIN_SPAWN_THRESHOLD * 2
 
         self.caught_users = defaultdict(list)
         self.bot.cooldown_users = {}
@@ -45,8 +49,11 @@ class Spawning(commands.Cog):
         await self.bot.wait_until_ready()
 
         channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
-        if channel is not None:
-            channel = self.bot.get_channel(int(channel))
+        if channel is None:
+            self.spawn_threshold = max(self.spawn_threshold / 1.1, MIN_SPAWN_THRESHOLD)
+            return
+
+        channel = self.bot.get_channel(int(channel))
         if channel is None:
             return
         await self.spawn_pokemon(channel)
@@ -192,7 +199,7 @@ class Spawning(commands.Cog):
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
-        if self.bot.guild_counter[message.guild.id] >= 15:
+        if self.bot.guild_counter[message.guild.id] >= self.spawn_threshold:
             self.bot.guild_counter[message.guild.id] = 0
 
             guild = await self.bot.mongo.fetch_guild(message.guild)
@@ -224,6 +231,8 @@ class Spawning(commands.Cog):
                 await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel2.id)
 
             await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel.id)
+
+            self.spawn_threshold *= 1.1
 
     async def spawn_pokemon(self, channel, species=None, incense=None):
         if species is None:
