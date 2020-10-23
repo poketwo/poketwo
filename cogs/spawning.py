@@ -34,9 +34,22 @@ class Spawning(commands.Cog):
         self.bot.cooldown_guilds = {}
 
         self.spawn_incense.start()
+        self.send_spawns.start()
 
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
+
+    @tasks.loop(seconds=1)
+    async def send_spawns(self):
+        await self.bot.get_cog("Redis").wait_until_ready()
+        await self.bot.wait_until_ready()
+
+        channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
+        if channel is not None:
+            channel = self.bot.get_channel(int(channel))
+        if channel is None:
+            return
+        await self.spawn_pokemon(channel)
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -208,9 +221,9 @@ class Spawning(commands.Cog):
                     )
                 ]
 
-                await self.spawn_pokemon(channel2)
+                await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel2.id)
 
-            await self.spawn_pokemon(channel)
+            await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel.id)
 
     async def spawn_pokemon(self, channel, species=None, incense=None):
         if species is None:
@@ -473,6 +486,7 @@ class Spawning(commands.Cog):
 
     def cog_unload(self):
         self.spawn_incense.cancel()
+        self.send_spawns.cancel()
 
 
 def setup(bot):

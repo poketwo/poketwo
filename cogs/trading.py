@@ -15,6 +15,7 @@ class Trading(commands.Cog):
         self.bot.loop.create_task(self.clear_trades())
 
     async def clear_trades(self):
+        await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
 
         todel = []
