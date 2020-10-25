@@ -50,14 +50,18 @@ class Spawning(commands.Cog):
 
         channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
         if channel is None:
-            self.spawn_threshold = max(self.spawn_threshold / 1.2, MIN_SPAWN_THRESHOLD)
+            self.spawn_threshold = MIN_SPAWN_THRESHOLD
             return
 
         channel = self.bot.get_channel(int(channel))
         if channel is None:
             return
 
-        self.bot.loop.create_task(self.spawn_pokemon(channel))
+        try:
+            await asyncio.wait_for(self.spawn_pokemon(channel), 2)
+            self.bot.log.info(f"SPAWN {channel.id}")
+        except asyncio.TimeoutError:
+            self.bot.log.error(f"SPAWN TIMEOUT {channel.id}")
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -238,6 +242,8 @@ class Spawning(commands.Cog):
     async def spawn_pokemon(self, channel, species=None, incense=None):
         if species is None:
             species = self.bot.data.random_spawn()
+
+        self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
 
         permissions = channel.permissions_for(channel.guild.me)
         if not (
