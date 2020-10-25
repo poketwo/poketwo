@@ -56,7 +56,8 @@ class Spawning(commands.Cog):
         channel = self.bot.get_channel(int(channel))
         if channel is None:
             return
-        await self.spawn_pokemon(channel)
+
+        self.bot.loop.create_task(self.spawn_pokemon(channel))
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):

@@ -601,7 +601,7 @@ class Mongo(commands.Cog):
             g = self.Guild(id=guild.id)
             try:
                 await g.commit()
-            except pymongo.DuplicateKeyError:
+            except pymongo.errors.DuplicateKeyError:
                 pass
         return g
 
