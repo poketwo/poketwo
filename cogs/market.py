@@ -215,7 +215,7 @@ class Market(commands.Cog):
             return await ctx.send("That's not your listing!")
 
         # confirm
-        pokemon = listing["pokemon"]
+        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"Are you sure you want to remove this listing **{pokemon.iv_percentage:.2%} {pokemon.species}** "
             f"for **{listing['price']:,}** Pokécoins? [y/N]"
@@ -241,7 +241,6 @@ class Market(commands.Cog):
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
         )
