@@ -1,14 +1,6 @@
 from discord.ext import commands
 
 
-class MustHaveStarted(commands.CheckFailure):
-    pass
-
-
-class Suspended(commands.CheckFailure):
-    pass
-
-
 def is_admin():
     return commands.check_any(
         commands.is_owner(), commands.has_permissions(administrator=True)
@@ -22,30 +14,13 @@ def has_started():
         )
 
         if member is None:
-            raise MustHaveStarted(
+            raise commands.CheckFailure(
                 f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
             )
 
         if member.suspended:
-            raise Suspended("Your account has been suspended.")
+            raise commands.CheckFailure("Your account has been suspended.")
 
         return True
 
     return commands.check(predicate)
-
-
-class ShuttingDown(commands.CheckFailure):
-    pass
-
-
-def enabled(bot):
-    async def predicate(ctx: commands.Context):
-        if ctx.author.id == 398686833153933313:
-            return True
-
-        if not bot.enabled:
-            raise ShuttingDown(bot.disabled_message)
-
-        return True
-
-    return predicate

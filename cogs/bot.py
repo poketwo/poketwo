@@ -6,9 +6,12 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
+from discord.ext.commands.errors import CheckFailure
 from helpers import checks, constants, converters
 
-from .database import Database
+
+class Blacklisted(commands.CheckFailure):
+    pass
 
 
 class Bot(commands.Cog):
@@ -26,11 +29,17 @@ class Bot(commands.Cog):
         if self.bot.cluster_idx == 0:
             self.post_dbl.start()
 
-        self.cd = commands.CooldownMapping.from_cooldown(8, 5, commands.BucketType.user)
+        self.cd = commands.CooldownMapping.from_cooldown(2, 3, commands.BucketType.user)
 
     async def bot_check(self, ctx):
         if ctx.invoked_with.lower() in ("help", "market", "auction"):
             return True
+
+        if (
+            await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
+            > 0
+        ):
+            raise Blacklisted
 
         bucket = self.cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
@@ -48,9 +57,12 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
 
-        if isinstance(error, commands.CommandOnCooldown):
+        if isinstance(error, Blacklisted):
+            self.bot.log.info(f"{ctx.author.id} is blacklisted")
+            return
+        elif isinstance(error, commands.CommandOnCooldown):
             self.bot.log.info(f"{ctx.author.id} hit cooldown")
-            await ctx.message.add_reaction("⏲️")
+            await ctx.message.add_reaction("⛔")
         elif isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
             suffix = "per %s" % name if error.per.name != "default" else "globally"
@@ -75,11 +87,12 @@ class Bot(commands.Cog):
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
+        elif isinstance(error, converters.PokemonConversionError):
+            await ctx.send(error.original)
         elif isinstance(
             error,
             (
                 commands.CheckFailure,
-                converters.PokemonConversionError,
                 commands.UserInputError,
                 flags.ArgumentParsingError,
             ),
@@ -107,10 +120,6 @@ class Bot(commands.Cog):
                 type(error), error, error.__traceback__, file=sys.stderr
             )
             print("\n\n")
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     async def determine_prefix(self, guild):
         if guild:
@@ -196,7 +205,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        headers = {"Authorization": self.bot.dbl_token}
+        headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
         async with aiohttp.ClientSession(headers=headers) as sess:
             r = await sess.post(
@@ -277,7 +286,7 @@ class Bot(commands.Cog):
     async def pick(self, ctx: commands.Context, *, name: str):
         """Pick a starter pokémon to get started."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member is not None:
             return await ctx.send(
@@ -321,11 +330,11 @@ class Bot(commands.Cog):
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"{ctx.author}"
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         pokemon_caught = []
         pokemon_caught.append(
-            "**Total: **" + str(await self.db.fetch_pokedex_sum(ctx.author))
+            "**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author))
         )
 
         for name, filt in (
@@ -336,7 +345,7 @@ class Bot(commands.Cog):
             pokemon_caught.append(
                 f"**{name}: **"
                 + str(
-                    await self.db.fetch_pokedex_sum(
+                    await self.bot.mongo.fetch_pokedex_sum(
                         ctx.author,
                         [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
                     )

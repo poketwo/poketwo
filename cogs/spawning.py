@@ -1,20 +1,22 @@
 import asyncio
 import io
-import logging
 import random
 import sys
 import time
 import traceback
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import aiohttp
 import discord
 import humanfriendly
 from discord.ext import commands, tasks
-from helpers import checks, models, mongo
+from helpers import checks, models
 
-from .database import Database
+from . import mongo
+
+
+MIN_SPAWN_THRESHOLD = 15
 
 
 def write_fp(data):
@@ -29,19 +31,37 @@ class Spawning(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.spawn_threshold = MIN_SPAWN_THRESHOLD * 2
 
         self.caught_users = defaultdict(list)
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
 
         self.spawn_incense.start()
+        self.send_spawns.start()
 
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
 
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
+    @tasks.loop(seconds=1)
+    async def send_spawns(self):
+        await self.bot.get_cog("Redis").wait_until_ready()
+        await self.bot.wait_until_ready()
+
+        channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
+        if channel is None:
+            self.spawn_threshold = MIN_SPAWN_THRESHOLD
+            return
+
+        channel = self.bot.get_channel(int(channel))
+        if channel is None:
+            return
+
+        try:
+            await asyncio.wait_for(self.spawn_pokemon(channel), 2)
+            self.bot.log.info(f"SPAWN {channel.id}")
+        except asyncio.TimeoutError:
+            self.bot.log.error(f"SPAWN TIMEOUT {channel.id}")
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -74,16 +94,18 @@ class Spawning(commands.Cog):
         self.bot.cooldown_users[message.author.id] = current
 
         # Increase XP on selected pokemon
-        member = await self.db.fetch_member_info(message.author)
+        member = await self.bot.mongo.fetch_member_info(message.author)
 
         if member is not None:
 
             silence = member.silence
             if message.guild:
-                guild = await self.db.fetch_guild(message.guild)
+                guild = await self.bot.mongo.fetch_guild(message.guild)
                 silence = silence or guild and guild.silence
 
-            pokemon = await self.db.fetch_pokemon(message.author, member.selected_id)
+            pokemon = await self.bot.mongo.fetch_pokemon(
+                message.author, member.selected_id
+            )
             if pokemon is not None and pokemon.held_item != 13002:
 
                 # TODO this stuff here needs to be refactored
@@ -95,7 +117,9 @@ class Spawning(commands.Cog):
                         xp_inc *= 2
                     pokemon.xp += xp_inc
 
-                    await self.db.update_pokemon(pokemon, {"$inc": {"xp": xp_inc}})
+                    await self.bot.mongo.update_pokemon(
+                        pokemon, {"$inc": {"xp": xp_inc}}
+                    )
 
                 if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
                     update = {"$set": {f"xp": 0, f"level": pokemon.level + 1}}
@@ -115,7 +139,7 @@ class Spawning(commands.Cog):
                         embed.set_thumbnail(url=pokemon.species.image_url)
 
                     pokemon.level += 1
-                    guild = await self.db.fetch_guild(message.channel.guild)
+                    guild = await self.bot.mongo.fetch_guild(message.channel.guild)
                     if pokemon.get_next_evolution(guild.is_day) is not None:
                         evo = pokemon.get_next_evolution(guild.is_day)
                         embed.add_field(
@@ -129,6 +153,8 @@ class Spawning(commands.Cog):
                             embed.set_thumbnail(url=evo.image_url)
 
                         update["$set"][f"species_id"] = evo.id
+
+                        self.bot.dispatch("evolve", message.author, pokemon, evo)
 
                     else:
                         c = 0
@@ -146,7 +172,7 @@ class Spawning(commands.Cog):
                                 value="‎",
                             )
 
-                    await self.db.update_pokemon(pokemon, update)
+                    await self.bot.mongo.update_pokemon(pokemon, update)
 
                     if not silence:
                         permissions = message.channel.permissions_for(message.guild.me)
@@ -161,7 +187,7 @@ class Spawning(commands.Cog):
                         await message.author.send(embed=embed)
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
-                    await self.db.update_pokemon(
+                    await self.bot.mongo.update_pokemon(
                         pokemon, {"$set": {"xp": pokemon.max_xp}}
                     )
 
@@ -178,10 +204,10 @@ class Spawning(commands.Cog):
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
-        if self.bot.guild_counter[message.guild.id] >= 15:
+        if self.bot.guild_counter[message.guild.id] >= self.spawn_threshold:
             self.bot.guild_counter[message.guild.id] = 0
 
-            guild = await self.db.fetch_guild(message.guild)
+            guild = await self.bot.mongo.fetch_guild(message.guild)
 
             if len(guild.channels) > 0:
                 channel = message.guild.get_channel(random.choice(guild.channels))
@@ -207,13 +233,17 @@ class Spawning(commands.Cog):
                     )
                 ]
 
-                await self.spawn_pokemon(channel2)
+                await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel2.id)
 
-            await self.spawn_pokemon(channel)
+            await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel.id)
+
+            self.spawn_threshold *= 1.1
 
     async def spawn_pokemon(self, channel, species=None, incense=None):
         if species is None:
             species = self.bot.data.random_spawn()
+
+        self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
 
         permissions = channel.permissions_for(channel.guild.me)
         if not (
@@ -225,7 +255,7 @@ class Spawning(commands.Cog):
 
         # spawn
 
-        guild = await self.db.fetch_guild(channel.guild)
+        guild = await self.bot.mongo.fetch_guild(channel.guild)
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"A wild pokémon has appeared!"
@@ -270,7 +300,7 @@ class Spawning(commands.Cog):
         )
 
         self.caught_users[channel.id] = set()
-        self.bot.redis.hset("wild", channel.id, species.id)
+        await self.bot.redis.hset("wild", channel.id, species.id)
 
     @checks.has_started()
     @commands.cooldown(1, 20, commands.BucketType.channel)
@@ -278,10 +308,10 @@ class Spawning(commands.Cog):
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
 
-        if not self.bot.redis.hexists("wild", ctx.channel.id):
-            return await ctx.send("There is no wild pokémon in this channel!")
+        if not await self.bot.redis.hexists("wild", ctx.channel.id):
+            return
 
-        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
@@ -294,16 +324,17 @@ class Spawning(commands.Cog):
         await ctx.send(f"The pokémon is {hint}.")
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.channel, wait=True)
     @commands.command(aliases=["c"])
     async def catch(self, ctx: commands.Context, *, guess: str):
         """Catch a wild pokémon."""
 
         # Retrieve correct species and level from tracker
 
-        if not self.bot.redis.hexists("wild", ctx.channel.id):
-            return await ctx.send("There is no wild pokémon in this channel!")
+        if not await self.bot.redis.hexists("wild", ctx.channel.id):
+            return
 
-        species_id = self.bot.redis.hget("wild", ctx.channel.id)
+        species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
         if (
@@ -320,9 +351,9 @@ class Spawning(commands.Cog):
 
             self.caught_users[ctx.channel.id].add(ctx.author.id)
         else:
-            self.bot.redis.hdel("wild", ctx.channel.id)
+            await self.bot.redis.hdel("wild", ctx.channel.id)
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
         shiny = member.determine_shiny(species)
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
         moves = [x.move.id for x in species.moves if level >= x.method.level]
@@ -343,22 +374,24 @@ class Spawning(commands.Cog):
                 "iv_spd": mongo.random_iv(),
                 "moves": moves[:4],
                 "shiny": shiny,
-                "idx": await self.db.fetch_next_idx(ctx.author),
+                "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
             }
         )
         if shiny:
-            await self.db.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
+            await self.bot.mongo.update_member(
+                ctx.author, {"$inc": {"shinies_caught": 1}}
+            )
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
-        memberp = await self.db.fetch_pokedex(
+        memberp = await self.bot.mongo.fetch_pokedex(
             ctx.author, species.dex_number, species.dex_number + 1
         )
 
         if str(species.dex_number) not in memberp.pokedex:
             message += " Added to Pokédex. You received 35 Pokécoins!"
 
-            await self.db.update_member(
+            await self.bot.mongo.update_member(
                 ctx.author,
                 {
                     "$set": {f"pokedex.{species.dex_number}": 1},
@@ -385,7 +418,7 @@ class Spawning(commands.Cog):
                 )
                 inc_bal = 35000
 
-            await self.db.update_member(
+            await self.bot.mongo.update_member(
                 ctx.author,
                 {
                     "$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},
@@ -395,14 +428,19 @@ class Spawning(commands.Cog):
         if member.shiny_hunt == species.dex_number:
             if shiny:
                 message += f"\n\nShiny streak reset."
-                await self.db.update_member(ctx.author, {"$set": {"shiny_streak": 0}})
+                await self.bot.mongo.update_member(
+                    ctx.author, {"$set": {"shiny_streak": 0}}
+                )
             else:
                 message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
-                await self.db.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
+                await self.bot.mongo.update_member(
+                    ctx.author, {"$inc": {"shiny_streak": 1}}
+                )
 
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
+        self.bot.dispatch("catch", ctx.author, species)
         await ctx.send(message)
 
     @checks.has_started()
@@ -410,7 +448,7 @@ class Spawning(commands.Cog):
     async def shinyhunt(self, ctx: commands.Context, *, species: str = None):
         """Hunt for a shiny pokémon species."""
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if species is None:
             embed = self.bot.Embed(color=0xE67D23)
@@ -453,7 +491,7 @@ class Spawning(commands.Cog):
             if msg.content.lower() != "y":
                 return await ctx.send("Aborted.")
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             ctx.author,
             {
                 "$set": {"shiny_hunt": species.id, "shiny_streak": 0},
@@ -464,6 +502,7 @@ class Spawning(commands.Cog):
 
     def cog_unload(self):
         self.spawn_incense.cancel()
+        self.send_spawns.cancel()
 
 
 def setup(bot):

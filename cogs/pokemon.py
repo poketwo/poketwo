@@ -2,12 +2,9 @@ import asyncio
 import math
 from operator import itemgetter
 
-import discord
 from discord.ext import commands, flags
 from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
-
-from .database import Database
 
 
 class Pokemon(commands.Cog):
@@ -15,10 +12,6 @@ class Pokemon(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
-    @property
-    def db(self) -> Database:
-        return self.bot.get_cog("Database")
 
     @commands.command(aliases=["renumber"])
     async def reindex(self, ctx: commands.Context):
@@ -28,8 +21,8 @@ class Pokemon(commands.Cog):
             "Reindexing all your pokémon... please don't do anything else during this time."
         )
 
-        num = await self.db.fetch_pokemon_count(ctx.author)
-        await self.db.reset_idx(ctx.author, value=num + 1)
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
+        await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
         mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id}).sort("idx")
 
         ops = []
@@ -56,13 +49,13 @@ class Pokemon(commands.Cog):
         if nickname == "reset":
             nickname = None
 
-        member = await self.db.fetch_member_info(ctx.author)
-        pokemon = await self.db.fetch_pokemon(ctx.author, member.selected_id)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
 
         if pokemon is None:
             return await ctx.send("You must have a pokémon selected!")
 
-        await self.db.update_pokemon(
+        await self.bot.mongo.update_pokemon(
             pokemon,
             {"$set": {f"nickname": nickname}},
         )
@@ -92,7 +85,7 @@ class Pokemon(commands.Cog):
                 if pokemon is None:
                     continue
 
-                await self.db.update_pokemon(
+                await self.bot.mongo.update_pokemon(
                     pokemon,
                     {"$set": {f"favorite": not pokemon.favorite}},
                 )
@@ -116,7 +109,7 @@ class Pokemon(commands.Cog):
     async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
         """View a specific pokémon from your collection."""
 
-        num = await self.db.fetch_pokemon_count(ctx.author)
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
@@ -126,10 +119,10 @@ class Pokemon(commands.Cog):
         async def get_page(pidx, clear, dir=0):
             nonlocal shift
 
-            pokemon = await self.db.fetch_pokemon(ctx.author, pidx + shift)
+            pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
             while pokemon is None:
                 shift += 1
-                pokemon = await self.db.fetch_pokemon(ctx.author, pidx + shift)
+                pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
 
             embed = self.bot.Embed(color=0xE67D23)
             embed.title = f"{pokemon:lnf}"
@@ -186,9 +179,9 @@ class Pokemon(commands.Cog):
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        num = await self.db.fetch_pokemon_count(ctx.author)
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             ctx.author,
             {"$set": {f"selected_id": pokemon.id}},
         )
@@ -209,7 +202,7 @@ class Pokemon(commands.Cog):
                 "Please specify either `number`, `IV`, `level`, or `pokedex`."
             )
 
-        await self.db.update_member(
+        await self.bot.mongo.update_member(
             ctx.author,
             {"$set": {f"order_by": sort}},
         )
@@ -351,11 +344,11 @@ class Pokemon(commands.Cog):
     ):
         """Release pokémon from your collection."""
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
-        member = await self.db.fetch_member_info(ctx.author)
-        num = await self.db.fetch_pokemon_count(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
         converter = converters.Pokemon(accept_blank=False)
 
@@ -454,7 +447,7 @@ class Pokemon(commands.Cog):
     async def releaseall(self, ctx: commands.Context, **flags):
         """Mass release pokémon from your collection."""
 
-        if self.bot.get_cog("Trading").is_in_trade(ctx.author):
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
         aggregations = await self.create_filter(flags, ctx)
@@ -462,7 +455,7 @@ class Pokemon(commands.Cog):
         if aggregations is None:
             return
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         aggregations.extend(
             [
@@ -471,7 +464,9 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
 
         if num == 0:
             return await ctx.send(
@@ -500,7 +495,7 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"Releasing {num} pokémon, this might take a while...")
 
-        pokemon = await self.db.fetch_pokemon_list(
+        pokemon = await self.bot.mongo.fetch_pokemon_list(
             ctx.author, 0, num, aggregations=aggregations
         )
 
@@ -546,7 +541,7 @@ class Pokemon(commands.Cog):
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
@@ -565,7 +560,9 @@ class Pokemon(commands.Cog):
         def padn(p, n):
             return " " * (len(str(n)) - len(str(p.idx))) + str(p.idx)
 
-        num = await self.db.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
 
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
@@ -573,7 +570,7 @@ class Pokemon(commands.Cog):
         async def get_page(pidx, clear):
 
             pgstart = pidx * 20
-            pokemon = await self.db.fetch_pokemon_list(
+            pokemon = await self.bot.mongo.fetch_pokemon_list(
                 ctx.author, pgstart, 20, aggregations=aggregations
             )
 
@@ -644,14 +641,14 @@ class Pokemon(commands.Cog):
             if pgstart >= 809 or pgstart < 0:
                 return await ctx.send("There are no pokémon on this page.")
 
-            num = await self.db.fetch_pokedex_count(ctx.author)
+            num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
             do_emojis = (
                 ctx.guild is None
                 or ctx.guild.me.permissions_in(ctx.channel).external_emojis
             )
 
-            member = await self.db.fetch_pokedex(ctx.author, 0, 810)
+            member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 810)
             pokedex = member.pokedex
 
             if not flags["uncaught"] and not flags["caught"]:
@@ -757,7 +754,7 @@ class Pokemon(commands.Cog):
                         f"Could not find a pokemon matching `{search_or_page}`."
                     )
 
-            member = await self.db.fetch_pokedex(
+            member = await self.bot.mongo.fetch_pokedex(
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
@@ -816,8 +813,8 @@ class Pokemon(commands.Cog):
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        member = await self.db.fetch_member_info(ctx.author)
-        guild = await self.db.fetch_guild(ctx.guild)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
             return await ctx.send("That pokémon can't be evolved!")
@@ -840,10 +837,12 @@ class Pokemon(commands.Cog):
         else:
             embed.set_thumbnail(url=evo.image_url)
 
-        await self.db.update_pokemon(
+        await self.bot.mongo.update_pokemon(
             pokemon,
             {"$set": {f"species_id": evo.id}},
         )
+
+        self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
         await ctx.send(embed=embed)
 
@@ -864,9 +863,9 @@ class Pokemon(commands.Cog):
         ):
             return await ctx.send("This pokémon is not in mega form!")
 
-        member = await self.db.fetch_member_info(ctx.author)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        await self.db.update_pokemon(
+        await self.bot.mongo.update_pokemon(
             pokemon,
             {"$set": {f"species_id": fr.id}},
         )

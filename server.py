@@ -111,7 +111,6 @@ async def all_enable():
 @login_required
 async def all_eval():
     code = request.args.get("code")
-    print(code)
     resp = {}
     for idx in range(100):
         try:

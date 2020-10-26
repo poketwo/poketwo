@@ -1,13 +1,15 @@
 import math
-import os
 import random
 from datetime import datetime, timedelta, timezone
 
+import discord
+import pymongo
+from bson.objectid import ObjectId
+from discord.ext import commands
+from helpers import constants, models
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
-
-from . import constants, models
 
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(constants.NATURES)
@@ -272,6 +274,12 @@ class Member(Document):
 
     # Events
     halloween_tickets = fields.IntegerField(default=0)
+    hquests = fields.DictField(
+        fields.StringField(), fields.BooleanField(), default=dict
+    )
+    hquest_progress = fields.DictField(
+        fields.StringField(), fields.IntegerField(), default=dict
+    )
 
     @property
     def selected_pokemon(self):
@@ -366,6 +374,10 @@ class Counter(Document):
     next = fields.IntegerField(default=0)
 
 
+class Blacklist(Document):
+    id = fields.IntegerField(attribute="_id")
+
+
 class Sponsor(Document):
     id = fields.IntegerField(attribute="_id")
     discord_id = fields.IntegerField(default=None)
@@ -373,9 +385,14 @@ class Sponsor(Document):
     reward_tier = fields.IntegerField()
 
 
-class Database:
-    def __init__(self, bot, host, dbname):
-        self.db = AsyncIOMotorClient(host, io_loop=bot.loop)[dbname]
+class Mongo(commands.Cog):
+    """For database operations."""
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.db = AsyncIOMotorClient(bot.config.DATABASE_URI, io_loop=bot.loop)[
+            bot.config.DATABASE_NAME
+        ]
         instance = Instance(self.db)
 
         g = globals()
@@ -389,8 +406,220 @@ class Database:
             "Guild",
             "Channel",
             "Counter",
+            "Blacklist",
             "Sponsor",
             "Auction",
         ):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot
+
+    async def fetch_member_info(self, member: discord.Member):
+        return await self.Member.find_one(
+            {"id": member.id}, {"pokemon": 0, "pokedex": 0}
+        )
+
+    async def fetch_next_idx(self, member: discord.Member, reserve=1):
+        result = await self.db.member.find_one_and_update(
+            {"_id": member.id}, {"$inc": {"next_idx": reserve}}
+        )
+        return result["next_idx"]
+
+    async def reset_idx(self, member: discord.Member, value):
+        result = await self.db.member.find_one_and_update(
+            {"_id": member.id}, {"$set": {"next_idx": value}}
+        )
+        return result["next_idx"]
+
+    async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
+
+        filter_obj = {}
+
+        for i in range(start, end):
+            filter_obj[f"pokedex.{i}"] = 1
+
+        return await self.Member.find_one({"id": member.id}, filter_obj)
+
+    async def fetch_market_list(self, skip: int, limit: int, aggregations=[]):
+        return await self.db.listing.aggregate(
+            [*aggregations, {"$skip": skip}, {"$limit": limit}], allowDiskUse=True
+        ).to_list(None)
+
+    async def fetch_market_count(self, aggregations=[]):
+
+        result = await self.db.listing.aggregate(
+            [*aggregations, {"$count": "num_matches"}], allowDiskUse=True
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
+    async def fetch_auction_list(self, guild, skip: int, limit: int, aggregations=[]):
+        return await self.db.auction.aggregate(
+            [
+                {"$match": {"guild_id": guild.id}},
+                *aggregations,
+                {"$skip": skip},
+                {"$limit": limit},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+    async def fetch_auction_count(self, guild, aggregations=[]):
+
+        result = await self.db.auction.aggregate(
+            [
+                {"$match": {"guild_id": guild.id}},
+                *aggregations,
+                {"$count": "num_matches"},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
+    async def fetch_pokemon_list(
+        self, member: discord.Member, skip: int, limit: int, aggregations=[]
+    ):
+        return await self.db.pokemon.aggregate(
+            [
+                {"$match": {"owner_id": member.id}},
+                {"$sort": {"idx": 1}},
+                {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
+                *aggregations,
+                {"$skip": skip},
+                {"$limit": limit},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+    async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
+
+        result = await self.db.pokemon.aggregate(
+            [
+                {"$match": {"owner_id": member.id}},
+                {"$project": {"pokemon": "$$ROOT"}},
+                *aggregations,
+                {"$count": "num_matches"},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["num_matches"]
+
+    async def fetch_pokedex_count(self, member: discord.Member, aggregations=[]):
+
+        result = await self.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
+                {"$unwind": {"path": "$pokedex"}},
+                {"$replaceRoot": {"newRoot": "$pokedex"}},
+                *aggregations,
+                {"$group": {"_id": "count", "result": {"$sum": 1}}},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["result"]
+
+    async def fetch_pokedex_sum(self, member: discord.Member, aggregations=[]):
+
+        result = await self.db.member.aggregate(
+            [
+                {"$match": {"_id": member.id}},
+                {"$project": {"pokedex": {"$objectToArray": "$pokedex"}}},
+                {"$unwind": {"path": "$pokedex"}},
+                {"$replaceRoot": {"newRoot": "$pokedex"}},
+                *aggregations,
+                {"$group": {"_id": "sum", "result": {"$sum": "$v"}}},
+            ],
+            allowDiskUse=True,
+        ).to_list(None)
+
+        if len(result) == 0:
+            return 0
+
+        return result[0]["result"]
+
+    async def update_member(self, member, update):
+        if hasattr(member, "id"):
+            member = member.id
+        return await self.db.member.update_one({"_id": member}, update)
+
+    async def update_pokemon(self, pokemon, update):
+        if hasattr(pokemon, "id"):
+            pokemon = pokemon.id
+        if hasattr(pokemon, "_id"):
+            pokemon = pokemon._id
+        if isinstance(pokemon, dict) and "_id" in pokemon:
+            pokemon = pokemon["_id"]
+        return await self.db.pokemon.update_one({"_id": pokemon}, update)
+
+    async def fetch_pokemon(self, member: discord.Member, idx: int):
+
+        if isinstance(idx, ObjectId):
+            result = await self.db.pokemon.find_one({"_id": idx})
+        elif idx == -1:
+            count = await self.fetch_pokemon_count(member)
+            result = await self.db.pokemon.aggregate(
+                [
+                    {"$match": {"owner_id": member.id}},
+                    {"$sort": {"idx": 1}},
+                    {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
+                    {"$skip": count - 1},
+                    {"$limit": 1},
+                ],
+                allowDiskUse=True,
+            ).to_list(None)
+
+            if len(result) == 0 or "pokemon" not in result[0]:
+                result = None
+            else:
+                result = result[0]["pokemon"]
+        else:
+            result = await self.db.pokemon.find_one({"owner_id": member.id, "idx": idx})
+
+        if result is None:
+            return None
+
+        return self.Pokemon.build_from_mongo(result)
+
+    async def fetch_guild(self, guild: discord.Guild):
+        g = await self.Guild.find_one({"id": guild.id})
+        if g is None:
+            g = self.Guild(id=guild.id)
+            try:
+                await g.commit()
+            except pymongo.errors.DuplicateKeyError:
+                pass
+        return g
+
+    async def update_guild(self, guild: discord.Guild, update):
+        return await self.db.guild.update_one({"_id": guild.id}, update, upsert=True)
+
+    async def fetch_channel(self, channel: discord.TextChannel):
+        c = await self.Channel.find_one({"id": channel.id})
+        if c is None:
+            c = self.Channel(id=channel.id)
+            await c.commit()
+        return c
+
+    async def update_channel(self, channel: discord.TextChannel, update):
+        return await self.db.channel.update_one(
+            {"_id": channel.id}, update, upsert=True
+        )
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Mongo(bot))
