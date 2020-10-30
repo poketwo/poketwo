@@ -41,7 +41,8 @@ class Paginator:
 
         try:
             embed.set_footer(
-                text=embed.footer.text + f"\nUse {ctx.prefix}n and {ctx.prefix}b to navigate between pages."
+                text=embed.footer.text
+                + f"\nUse {ctx.prefix}n and {ctx.prefix}b to navigate between pages."
             )
         except TypeError:
             embed.set_footer(

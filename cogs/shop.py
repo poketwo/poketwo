@@ -940,7 +940,7 @@ class Shop(commands.Cog):
 
             return await ctx.send(embed=embed)
 
-        if member.redeems == 0:
+        if member.redeems <= 0:
             return await ctx.send("You don't have any redeems!")
 
         species = self.bot.data.species_by_name(species)

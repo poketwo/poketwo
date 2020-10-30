@@ -6,7 +6,7 @@ formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
 
 
 class Logging(commands.Cog):
-    """For redis."""
+    """For logging."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
