@@ -746,7 +746,7 @@ class Pokemon(commands.Cog):
                 species = self.bot.data.species_by_name(search)
                 if species is None:
                     return await ctx.send(
-                        f"Could not find a pokemon matching `{search_or_page}`."
+                        f"Could not find a pokemon matching `{search_or_page.replace('@', '@ ')}`."
                     )
 
             member = await self.bot.mongo.fetch_pokedex(
