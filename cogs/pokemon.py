@@ -60,7 +60,7 @@ class Pokemon(commands.Cog):
             {"$set": {f"nickname": nickname}},
         )
 
-        if nickname == None:
+        if nickname is None:
             await ctx.send(
                 f"Removed nickname for your level {pokemon.level} {pokemon.species}."
             )

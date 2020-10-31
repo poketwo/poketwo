@@ -166,6 +166,7 @@ class Cluster:
             cluster_idx=CLUSTER_NAMES.index(name),
             case_insensitive=True,
             fetch_offline_members=False,
+            allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
             intents=intents,
         )
         self.name = name
