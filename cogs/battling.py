@@ -10,10 +10,6 @@ from discord.ext import commands
 from helpers import checks, constants, converters, models, pagination
 
 
-def setup(bot):
-    bot.add_cog(Battling(bot))
-
-
 def get_priority(action, selected):
     if action["type"] == "move":
         s = selected.spd
