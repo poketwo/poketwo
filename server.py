@@ -1,16 +1,14 @@
 import asyncio
 import hashlib
 import hmac
-import os
 from datetime import datetime, timedelta
 from functools import wraps
 
+import config
 import stripe
 from discord.ext.ipc import Client
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, abort, request
-
-import config
 
 # Constants
 

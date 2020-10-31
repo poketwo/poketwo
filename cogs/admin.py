@@ -1,5 +1,4 @@
 import random
-import typing
 from datetime import datetime
 
 import discord
@@ -61,7 +60,7 @@ class Administration(commands.Cog):
     @commands.is_owner()
     @commands.command(aliases=["addredeem"])
     async def giveredeem(
-        self, ctx: commands.Context, user: discord.Member, *, num: int = 1
+            self, ctx: commands.Context, user: discord.Member, *, num: int = 1
     ):
         """Give a redeem."""
 
@@ -71,10 +70,10 @@ class Administration(commands.Cog):
     @commands.is_owner()
     @commands.command(aliases=["givebal"])
     async def addbal(
-        self,
-        ctx: commands.Context,
-        user: discord.Member,
-        amt: int,
+            self,
+            ctx: commands.Context,
+            user: discord.Member,
+            amt: int,
     ):
         """Add to a user's balance."""
 
@@ -84,10 +83,10 @@ class Administration(commands.Cog):
     @commands.is_owner()
     @commands.command(aliases=["giveshard"])
     async def addshard(
-        self,
-        ctx: commands.Context,
-        user: discord.Member,
-        amt: int,
+            self,
+            ctx: commands.Context,
+            user: discord.Member,
+            amt: int,
     ):
         """Add to a user's shard balance."""
 
@@ -97,7 +96,7 @@ class Administration(commands.Cog):
     @commands.is_owner()
     @commands.command(aliases=["givevote"])
     async def addvote(
-        self, ctx: commands.Context, user: discord.Member, box_type: str, amt: int = 1
+            self, ctx: commands.Context, user: discord.Member, box_type: str, amt: int = 1
     ):
         """Give a user a vote."""
 

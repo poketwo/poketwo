@@ -6,13 +6,15 @@ import discord
 import pymongo
 from bson.objectid import ObjectId
 from discord.ext import commands
-from helpers import constants, models
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
 
+from helpers import constants, models
+
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(constants.NATURES)
+
 
 # Instance
 
@@ -115,9 +117,9 @@ class PokemonBase(MixinDocument):
         if self.species_id == 292:
             return 1
         return (
-            (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100
-            + self.level
-            + 10
+                (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100
+                + self.level
+                + 10
         )
 
     @property
@@ -153,13 +155,13 @@ class PokemonBase(MixinDocument):
     @property
     def iv_percentage(self):
         return (
-            self.iv_hp / 31
-            + self.iv_atk / 31
-            + self.iv_defn / 31
-            + self.iv_satk / 31
-            + self.iv_sdef / 31
-            + self.iv_spd / 31
-        ) / 6
+                       self.iv_hp / 31
+                       + self.iv_atk / 31
+                       + self.iv_defn / 31
+                       + self.iv_satk / 31
+                       + self.iv_sdef / 31
+                       + self.iv_spd / 31
+               ) / 6
 
     def get_next_evolution(self, is_day):
         if self.species.evolution_to is None or self.held_item == 13001:
@@ -180,17 +182,17 @@ class PokemonBase(MixinDocument):
             if evo.trigger.move_id and evo.trigger.move_id not in self.moves:
                 can = False
             if evo.trigger.move_type_id and not any(
-                [
-                    self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id
-                    for x in self.moves
-                ]
+                    [
+                        self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id
+                        for x in self.moves
+                    ]
             ):
                 can = False
             if (
-                evo.trigger.time == "day"
-                and not is_day
-                or evo.trigger.time == "night"
-                and is_day
+                    evo.trigger.time == "day"
+                    and not is_day
+                    or evo.trigger.time == "night"
+                    and is_day
             ):
                 can = False
 
@@ -354,9 +356,9 @@ class Guild(Document):
 
         now = datetime.now(timezone.utc)
         return (
-            sunrise < now < sunset
-            or sunrise < now + timedelta(days=1) < sunset
-            or sunrise < now + timedelta(days=-1) < sunset
+                sunrise < now < sunset
+                or sunrise < now + timedelta(days=1) < sunset
+                or sunrise < now + timedelta(days=-1) < sunset
         )
 
 
@@ -398,17 +400,17 @@ class Mongo(commands.Cog):
         g = globals()
 
         for x in (
-            "PokemonBase",
-            "Pokemon",
-            "EmbeddedPokemon",
-            "Member",
-            "Listing",
-            "Guild",
-            "Channel",
-            "Counter",
-            "Blacklist",
-            "Sponsor",
-            "Auction",
+                "PokemonBase",
+                "Pokemon",
+                "EmbeddedPokemon",
+                "Member",
+                "Listing",
+                "Guild",
+                "Channel",
+                "Counter",
+                "Blacklist",
+                "Sponsor",
+                "Auction",
         ):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot
@@ -483,7 +485,7 @@ class Mongo(commands.Cog):
         return result[0]["num_matches"]
 
     async def fetch_pokemon_list(
-        self, member: discord.Member, skip: int, limit: int, aggregations=[]
+            self, member: discord.Member, skip: int, limit: int, aggregations=[]
     ):
         return await self.db.pokemon.aggregate(
             [

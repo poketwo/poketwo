@@ -1,11 +1,11 @@
 import asyncio
 from importlib import reload
 
+import config
 import discord
 from discord.ext import commands
 
 import cogs
-import config
 import helpers
 
 DEFAULT_DISABLED_MESSAGE = (
@@ -132,9 +132,9 @@ class ClusterBot(commands.AutoShardedBot):
     async def on_message(self, message: discord.Message):
         message.content = (
             message.content.replace("—", "--")
-            .replace("'", "′")
-            .replace("‘", "′")
-            .replace("’", "′")
+                .replace("'", "′")
+                .replace("‘", "′")
+                .replace("’", "′")
         )
 
         await self.process_commands(message)

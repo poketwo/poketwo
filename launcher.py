@@ -3,13 +3,12 @@ import logging
 import multiprocessing
 import os
 import signal
-import sys
 import time
 
+import config
 import discord
 import requests
 
-import config
 from bot import ClusterBot
 
 log = logging.getLogger("Cluster#Launcher")
@@ -107,7 +106,7 @@ class Launcher:
 
     async def startup(self):
         shards = list(range(self.get_shard_count()))
-        size = [shards[x : x + 4] for x in range(0, len(shards), 4)]
+        size = [shards[x: x + 4] for x in range(0, len(shards), 4)]
         log.info(f"Preparing {len(size)} clusters")
         for shard_ids in size:
             self.cluster_queue.append(
@@ -117,7 +116,7 @@ class Launcher:
         await self.start_cluster()
         self.keep_alive = self.loop.create_task(self.rebooter())
         self.keep_alive.add_done_callback(self.task_complete)
-        log.info(f"Startup completed in {time.perf_counter()-self.init}s")
+        log.info(f"Startup completed in {time.perf_counter() - self.init}s")
 
     async def shutdown(self):
         log.info("Shutting down clusters")

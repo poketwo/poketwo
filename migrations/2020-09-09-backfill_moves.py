@@ -7,7 +7,6 @@ import random
 import sys
 from multiprocessing import Pool
 
-import bson
 import config
 from pymongo import MongoClient, UpdateOne
 
@@ -38,8 +37,8 @@ if __name__ == "__main__":
             requests = []
             result = (
                 db["pokemon"]
-                .find({"$or": [{"moves": {"$exists": False}}, {"moves": []}]})
-                .limit(100000)
+                    .find({"$or": [{"moves": {"$exists": False}}, {"moves": []}]})
+                    .limit(100000)
             )
 
             requests = [x for x in p.imap(make_request, result, 100) if x is not None]

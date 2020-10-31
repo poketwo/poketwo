@@ -1,6 +1,7 @@
 import discord
 import geocoder
 from discord.ext import commands
+
 from helpers import checks
 
 
@@ -143,7 +144,7 @@ class Configuration(commands.Cog):
     @checks.is_admin()
     @commands.group(invoke_without_command=True)
     async def redirect(
-        self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]
+            self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]
     ):
         """Redirect pokémon catches to one or more channels."""
 
@@ -194,9 +195,9 @@ class Configuration(commands.Cog):
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
 
         embed.description = (
-            "It is currently "
-            + ("day" if guild.is_day else "night")
-            + "time in this server."
+                "It is currently "
+                + ("day" if guild.is_day else "night")
+                + "time in this server."
         )
         embed.add_field(
             name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}"

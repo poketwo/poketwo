@@ -2,6 +2,7 @@ import itertools
 
 import discord
 from discord.ext import commands, flags
+
 from helpers import pagination
 
 
@@ -16,7 +17,7 @@ class CustomHelpCommand(commands.HelpCommand):
             await ctx.send(str(error.original))
 
     def make_page_embed(
-        self, commands, title="Pokétwo Help", description=discord.Embed.Empty
+            self, commands, title="Pokétwo Help", description=discord.Embed.Empty
     ):
         embed = self.context.bot.Embed(color=0xE67D23)
         embed.title = title
@@ -43,7 +44,7 @@ class CustomHelpCommand(commands.HelpCommand):
         return embed
 
     def make_default_embed(
-        self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty
+            self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty
     ):
         embed = self.context.bot.Embed(color=0xE67D23)
         embed.title = title
@@ -88,12 +89,12 @@ class CustomHelpCommand(commands.HelpCommand):
 
         async def get_page(pidx, clear):
             cogs = pages[
-                min(len(pages) - 1, pidx * 6) : min(len(pages) - 1, pidx * 6 + 6)
-            ]
+                   min(len(pages) - 1, pidx * 6): min(len(pages) - 1, pidx * 6 + 6)
+                   ]
 
             embed = self.make_default_embed(
                 cogs,
-                title=f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
+                title=f"Pokétwo Command Categories (Page {pidx + 1}/{len(pages) // 6 + 1})",
                 description=(
                     f"Use `{self.clean_prefix}help <command>` for more info on a command.\n"
                     f"Use `{self.clean_prefix}help <category>` for more info on a category."

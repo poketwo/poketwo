@@ -1,11 +1,10 @@
-import typing
 import random
+import typing
 import unicodedata
 from abc import ABC
 from dataclasses import dataclass
 from functools import cached_property
-from pathlib import Path
-from typing import ClassVar, List, Union, overload
+from typing import Union
 
 from . import constants
 
@@ -47,7 +46,7 @@ class StatChange:
     def stat(self):
         return ("hp", "atk", "defn", "satk", "sdef", "spd", "evasion", "accuracy")[
             self.stat_id - 1
-        ]
+            ]
 
 
 @dataclass
@@ -161,7 +160,7 @@ class Move:
             hits = 0
         else:
             success = random.randrange(100) < (self.accuracy or 0) * (
-                constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1
+                    constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.accuracy] * 2 + 1
             ) / (constants.STAT_STAGE_MULTIPLIERS[opponent.stages.evasion] * 2 + 1)
 
             hits = random.randint(self.meta.min_hits or 1, self.meta.max_hits or 1)
@@ -169,16 +168,16 @@ class Move:
             if self.damage_class_id == 2:
                 atk = pokemon.atk * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.atk]
                 defn = (
-                    opponent.defn
-                    * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.defn]
+                        opponent.defn
+                        * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.defn]
                 )
             else:
                 atk = (
-                    pokemon.satk * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.satk]
+                        pokemon.satk * constants.STAT_STAGE_MULTIPLIERS[pokemon.stages.satk]
                 )
                 defn = (
-                    opponent.sdef
-                    * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.sdef]
+                        opponent.sdef
+                        * constants.STAT_STAGE_MULTIPLIERS[opponent.stages.sdef]
                 )
 
             damage = int((2 * pokemon.level / 5 + 2) * self.power * atk / defn / 50 + 2)
@@ -656,9 +655,9 @@ class DataManager:
     @cached_property
     def list_mega(self):
         return (
-            [v.mega_id for v in self.pokemon.values() if v.mega_id is not None]
-            + [v.mega_x_id for v in self.pokemon.values() if v.mega_x_id is not None]
-            + [v.mega_y_id for v in self.pokemon.values() if v.mega_y_id is not None]
+                [v.mega_id for v in self.pokemon.values() if v.mega_id is not None]
+                + [v.mega_x_id for v in self.pokemon.values() if v.mega_x_id is not None]
+                + [v.mega_y_id for v in self.pokemon.values() if v.mega_y_id is not None]
         )
 
     def list_type(self, type: str):
@@ -695,7 +694,7 @@ class DataManager:
             return next(
                 filter(
                     lambda x: deaccent(name.lower().replace("′", "'"))
-                    in x.correct_guesses,
+                              in x.correct_guesses,
                     self.pokemon.values(),
                 )
             )
@@ -713,7 +712,7 @@ class DataManager:
             return next(
                 filter(
                     lambda x: deaccent(name.lower().replace("′", "'"))
-                    == x.name.lower(),
+                              == x.name.lower(),
                     self.items.values(),
                 )
             )
@@ -731,7 +730,7 @@ class DataManager:
             return next(
                 filter(
                     lambda x: deaccent(name.lower().replace("′", "'"))
-                    == x.name.lower(),
+                              == x.name.lower(),
                     self.moves.values(),
                 )
             )

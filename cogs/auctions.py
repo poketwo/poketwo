@@ -6,6 +6,7 @@ import discord
 import humanfriendly
 import pymongo
 from discord.ext import commands, flags, tasks
+
 from helpers import checks, converters, pagination
 
 
@@ -136,12 +137,12 @@ class Auctions(commands.Cog):
     @checks.has_started()
     @auction.command()
     async def start(
-        self,
-        ctx: commands.Context,
-        pokemon: converters.Pokemon,
-        duration: converters.TimeDelta,
-        starting_bid: int,
-        bid_increment: int,
+            self,
+            ctx: commands.Context,
+            pokemon: converters.Pokemon,
+            duration: converters.TimeDelta,
+            starting_bid: int,
+            bid_increment: int,
     ):
         """Start an auction."""
 
@@ -159,8 +160,8 @@ class Auctions(commands.Cog):
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
         if (
-            guild.auction_channel is None
-            or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None
+                guild.auction_channel is None
+                or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None
         ):
             return await ctx.send("Auctions have not been set up in this server.")
 
@@ -421,7 +422,6 @@ class Auctions(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
-
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -431,11 +431,9 @@ class Auctions(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
-
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-
     # Market
     @flags.add_flag(
         "--order",
@@ -463,8 +461,8 @@ class Auctions(commands.Cog):
         # Filter pokemon
 
         do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
         def padn(p, idx, n):
@@ -513,7 +511,7 @@ class Auctions(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx + 1} of {math.ceil(num / 20)})"
             )
 
             return embed

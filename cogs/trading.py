@@ -3,6 +3,7 @@ import math
 
 import discord
 from discord.ext import commands, flags
+
 from helpers import checks, pagination
 
 
@@ -74,7 +75,7 @@ class Trading(commands.Cog):
             for i, fullside in trade["items"].items():
                 mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
 
-                side = fullside[pidx * 20 : (pidx + 1) * 20]
+                side = fullside[pidx * 20: (pidx + 1) * 20]
 
                 if mem is None:
                     return await ctx.send("The trade has been canceled.")
@@ -174,12 +175,12 @@ class Trading(commands.Cog):
                             idx += 1
 
                             if (
-                                pokemon.species.trade_evolution
+                                    pokemon.species.trade_evolution
                             ) and pokemon.held_item != 13001:
                                 evo = pokemon.species.trade_evolution
                                 if (
-                                    evo.trigger.item is None
-                                    or evo.trigger.item.id == pokemon.held_item
+                                        evo.trigger.item is None
+                                        or evo.trigger.item.id == pokemon.held_item
                                 ):
                                     evo_embed = self.bot.Embed(color=0xE67D23)
                                     evo_embed.title = (
@@ -279,9 +280,9 @@ class Trading(commands.Cog):
 
         def check(reaction, u):
             return (
-                reaction.message.id == message.id
-                and u == user
-                and str(reaction.emoji) == "✅"
+                    reaction.message.id == message.id
+                    and u == user
+                    and str(reaction.emoji) == "✅"
             )
 
         try:
@@ -371,7 +372,7 @@ class Trading(commands.Cog):
             return
 
         if len(args) <= 2 and (
-            args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
+                args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
         ):
 
             what = args[0].replace("pp", "").replace("pc", "").replace(",", "").strip()
@@ -486,7 +487,7 @@ class Trading(commands.Cog):
         trade = self.bot.trades[ctx.author.id]
 
         if len(args) <= 2 and (
-            args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
+                args[-1].lower().endswith("pp") or args[-1].lower().endswith("pc")
         ):
 
             what = args[0].replace("pp", "").replace("pc", "").strip()

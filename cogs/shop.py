@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 import aiohttp
 import humanfriendly
 from discord.ext import commands, tasks
-from helpers import checks, constants, converters, models
 
+from helpers import checks, constants, converters, models
 from . import mongo
 
 
@@ -50,8 +50,8 @@ class Shop(commands.Cog):
             r, u = await self.bot.wait_for(
                 "reaction_add",
                 check=lambda r, u: u == ctx.author
-                and r.message.id == message.id
-                and r.emoji in ("✅", "❌"),
+                                   and r.message.id == message.id
+                                   and r.emoji in ("✅", "❌"),
                 timeout=60,
             )
         except asyncio.TimeoutError:
@@ -78,7 +78,7 @@ class Shop(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member.vote_streak > 0 and datetime.utcnow() - member.last_voted > timedelta(
-            days=2
+                days=2
         ):
             await self.bot.mongo.update_member(
                 ctx.author,
@@ -89,8 +89,8 @@ class Shop(commands.Cog):
             member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
         embed = self.bot.Embed(color=0xE67D23)
@@ -110,8 +110,8 @@ class Shop(commands.Cog):
             embed.add_field(
                 name="Voting Streak",
                 value=str(self.bot.sprites.check) * min(member.vote_streak, 14)
-                + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
-                + f"\nCurrent Streak: {member.vote_streak} votes!",
+                      + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
+                      + f"\nCurrent Streak: {member.vote_streak} votes!",
                 inline=False,
             )
         else:
@@ -178,8 +178,8 @@ class Shop(commands.Cog):
         """Open mystery boxes received from voting."""
 
         do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
         if type.lower() not in ("normal", "great", "ultra", "master"):
@@ -218,15 +218,15 @@ class Shop(commands.Cog):
         embed = self.bot.Embed(color=0xE67D23)
         if do_emojis:
             embed.title = (
-                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
-                + ("" if amt == 1 else "es")
-                + "..."
+                    f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
+                    + ("" if amt == 1 else "es")
+                    + "..."
             )
         else:
             embed.title = (
-                f" Opening {amt} {type.title()} Mystery Box"
-                + ("" if amt == 1 else "es")
-                + "..."
+                    f" Opening {amt} {type.title()} Mystery Box"
+                    + ("" if amt == 1 else "es")
+                    + "..."
             )
 
         text = []
@@ -340,10 +340,10 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["mvi"])
     async def moveitem(
-        self,
-        ctx: commands.Context,
-        from_pokemon: converters.Pokemon,
-        to_pokemon: converters.Pokemon = None,
+            self,
+            ctx: commands.Context,
+            from_pokemon: converters.Pokemon,
+            to_pokemon: converters.Pokemon = None,
     ):
         """Move a pokémon's held item."""
 
@@ -448,8 +448,8 @@ class Shop(commands.Cog):
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
             do_emojis = (
-                ctx.guild is None
-                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                    ctx.guild is None
+                    or ctx.guild.me.permissions_in(ctx.channel).external_emojis
             )
 
             for item in items:
@@ -597,7 +597,7 @@ class Shop(commands.Cog):
                     evoto = next(
                         filter(
                             lambda evo: isinstance(evo.trigger, models.ItemTrigger)
-                            and evo.trigger.item == item,
+                                        and evo.trigger.item == item,
                             pokemon.species.evolution_to.items,
                         )
                     ).target
@@ -619,9 +619,9 @@ class Shop(commands.Cog):
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
-                    form.id != pokemon.species.id
-                    and form.form_item is not None
-                    and form.form_item == item.id
+                        form.id != pokemon.species.id
+                        and form.form_item is not None
+                        and form.form_item == item.id
                 ):
                     break
             else:
@@ -648,8 +648,8 @@ class Shop(commands.Cog):
                 r, u = await self.bot.wait_for(
                     "reaction_add",
                     check=lambda r, u: u == ctx.author
-                    and r.message.id == message.id
-                    and r.emoji in ("✅", "❌"),
+                                       and r.message.id == message.id
+                                       and r.emoji in ("✅", "❌"),
                     timeout=60,
                 )
             except asyncio.TimeoutError:
@@ -875,9 +875,9 @@ class Shop(commands.Cog):
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
-                    form.id != pokemon.species.id
-                    and form.form_item is not None
-                    and form.form_item == item.id
+                        form.id != pokemon.species.id
+                        and form.form_item is not None
+                        and form.form_item == item.id
                 ):
                     embed = self.bot.Embed(color=0xE67D23)
                     embed.title = f"Congratulations {ctx.author.display_name}!"

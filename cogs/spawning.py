@@ -11,10 +11,9 @@ import aiohttp
 import discord
 import humanfriendly
 from discord.ext import commands, tasks
+
 from helpers import checks, models
-
 from . import mongo
-
 
 MIN_SPAWN_THRESHOLD = 15
 
@@ -177,9 +176,9 @@ class Spawning(commands.Cog):
                     if not silence:
                         permissions = message.channel.permissions_for(message.guild.me)
                         if (
-                            permissions.send_messages
-                            and permissions.attach_files
-                            and permissions.embed_links
+                                permissions.send_messages
+                                and permissions.attach_files
+                                and permissions.embed_links
                         ):
                             await message.channel.send(embed=embed)
 
@@ -201,7 +200,7 @@ class Spawning(commands.Cog):
 
         self.bot.cooldown_guilds[message.guild.id] = current
         self.bot.guild_counter[message.guild.id] = (
-            self.bot.guild_counter.get(message.guild.id, 0) + 1
+                self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
         if self.bot.guild_counter[message.guild.id] >= self.spawn_threshold:
@@ -247,9 +246,9 @@ class Spawning(commands.Cog):
 
         permissions = channel.permissions_for(channel.guild.me)
         if not (
-            permissions.send_messages
-            and permissions.attach_files
-            and permissions.embed_links
+                permissions.send_messages
+                and permissions.attach_files
+                and permissions.embed_links
         ):
             return
 
@@ -338,8 +337,8 @@ class Spawning(commands.Cog):
         species = self.bot.data.species_by_number(int(species_id))
 
         if (
-            models.deaccent(guess.lower().replace("′", "'"))
-            not in species.correct_guesses
+                models.deaccent(guess.lower().replace("′", "'"))
+                not in species.correct_guesses
         ):
             return await ctx.send("That is the wrong pokémon!")
 

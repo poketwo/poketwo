@@ -6,7 +6,7 @@ from datetime import datetime
 import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
-from discord.ext.commands.errors import CheckFailure
+
 from helpers import checks, constants, converters
 
 
@@ -36,8 +36,8 @@ class Bot(commands.Cog):
             return True
 
         if (
-            await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
-            > 0
+                await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
+                > 0
         ):
             raise Blacklisted
 
@@ -90,12 +90,12 @@ class Bot(commands.Cog):
         elif isinstance(error, converters.PokemonConversionError):
             await ctx.send(error.original)
         elif isinstance(
-            error,
-            (
-                commands.CheckFailure,
-                commands.UserInputError,
-                flags.ArgumentParsingError,
-            ),
+                error,
+                (
+                        commands.CheckFailure,
+                        commands.UserInputError,
+                        flags.ArgumentParsingError,
+                ),
         ):
             await ctx.send(error)
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -338,9 +338,9 @@ class Bot(commands.Cog):
         )
 
         for name, filt in (
-            ("Mythical", self.bot.data.list_mythical),
-            ("Legendary", self.bot.data.list_legendary),
-            ("Ultra Beast", self.bot.data.list_ub),
+                ("Mythical", self.bot.data.list_mythical),
+                ("Legendary", self.bot.data.list_legendary),
+                ("Ultra Beast", self.bot.data.list_ub),
         ):
             pokemon_caught.append(
                 f"**{name}: **"

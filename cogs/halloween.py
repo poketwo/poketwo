@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
+
 from helpers import checks
 
 QUESTS = [
@@ -235,8 +236,8 @@ class Halloween(commands.Cog):
                 continue
 
             if self.verify_condition(
-                q["condition"],
-                self.bot.data.species_by_number(listing["pokemon"]["species_id"]),
+                    q["condition"],
+                    self.bot.data.species_by_number(listing["pokemon"]["species_id"]),
             ):
                 incs[f"hquest_progress.{q['id']}"] += 1
 

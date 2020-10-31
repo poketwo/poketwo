@@ -1,13 +1,12 @@
 import asyncio
-import json
 import math
-import random
 import typing
 from enum import Enum
 from urllib.parse import urlencode
 
 import discord
 from discord.ext import commands
+
 from helpers import checks, constants, converters, models, pagination
 
 
@@ -21,8 +20,8 @@ def get_priority(action, selected):
         if "Paralysis" in selected.ailments:
             s *= 0.5
         return (
-            action["value"].priority * 1e20
-            + selected.spd * constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
+                action["value"].priority * 1e20
+                + selected.spd * constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
         )
 
     return 1e99
@@ -107,7 +106,7 @@ class Trainer:
 
 class Battle:
     def __init__(
-        self, users: typing.List[discord.Member], ctx: commands.Context, manager
+            self, users: typing.List[discord.Member], ctx: commands.Context, manager
     ):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
@@ -186,7 +185,7 @@ class Battle:
                 trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
         for action, trainer, opponent in sorted(
-            iterl, key=lambda x: x[0]["priority"], reverse=True
+                iterl, key=lambda x: x[0]["priority"], reverse=True
         ):
             title = None
             text = None
@@ -396,9 +395,9 @@ class Battling(commands.Cog):
 
         def check(payload):
             return (
-                payload.message_id == msg.id
-                and payload.user_id == user.id
-                and payload.emoji.name in actions
+                    payload.message_id == msg.id
+                    and payload.user_id == user.id
+                    and payload.emoji.name in actions
             )
 
         async def listen_for_reactions():
@@ -471,9 +470,9 @@ class Battling(commands.Cog):
 
         def check(payload):
             return (
-                payload.message_id == message.id
-                and payload.user_id == user.id
-                and payload.emoji.name == "✅"
+                    payload.message_id == message.id
+                    and payload.user_id == user.id
+                    and payload.emoji.name == "✅"
             )
 
         try:
@@ -501,7 +500,7 @@ class Battling(commands.Cog):
     @checks.has_started()
     @battle.command(aliases=["a"])
     async def add(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+            self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
     ):
         """Add a pokémon to a battle."""
 
@@ -724,11 +723,11 @@ class Battling(commands.Cog):
         embed.add_field(name="Target", value=move.target_text, inline=False)
 
         for name, x in (
-            ("Power", "power"),
-            ("Accuracy", "accuracy"),
-            ("PP", "pp"),
-            ("Priority", "priority"),
-            ("Type", "type"),
+                ("Power", "power"),
+                ("Accuracy", "accuracy"),
+                ("PP", "pp"),
+                ("Priority", "priority"),
+                ("Type", "type"),
         ):
             if getattr(move, x) is not None:
                 v = getattr(

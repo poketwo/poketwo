@@ -3,8 +3,6 @@ This is a one-shot script used to merge the idx fields into the pokemon collecti
 4 October 2020
 """
 
-import os
-
 import config
 from pymongo import MongoClient
 

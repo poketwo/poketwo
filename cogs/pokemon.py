@@ -3,8 +3,9 @@ import math
 from operator import itemgetter
 
 from discord.ext import commands, flags
-from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
+
+from helpers import checks, constants, converters, pagination
 
 
 class Pokemon(commands.Cog):
@@ -71,7 +72,7 @@ class Pokemon(commands.Cog):
 
     @commands.command(aliases=["fav", "favourite"], rest_is_raw=True)
     async def favorite(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+            self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
     ):
         """Mark a pokémon as a favorite."""
 
@@ -102,7 +103,7 @@ class Pokemon(commands.Cog):
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
-                await ctx.send(longmsg[i : i + 2000])
+                await ctx.send(longmsg[i: i + 2000])
 
     @checks.has_started()
     @commands.command(aliases=["i"], rest_is_raw=True)
@@ -172,7 +173,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["s"], rest_is_raw=True)
     async def select(
-        self, ctx: commands.Context, *, pokemon: converters.Pokemon(accept_blank=False)
+            self, ctx: commands.Context, *, pokemon: converters.Pokemon(accept_blank=False)
     ):
         """Select a specific pokémon from your collection."""
 
@@ -274,8 +275,8 @@ class Pokemon(commands.Cog):
                     "$match": {
                         "pokemon.nickname": {
                             "$regex": "("
-                            + ")|(".join(" ".join(x) for x in flags["nickname"])
-                            + ")",
+                                      + ")|(".join(" ".join(x) for x in flags["nickname"])
+                                      + ")",
                             "$options": "i",
                         }
                     }
@@ -340,7 +341,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=["r"])
     async def release(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+            self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
     ):
         """Release pokémon from your collection."""
 
@@ -426,7 +427,6 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
-
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -436,11 +436,9 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
-
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-
     # Release all
     @checks.has_started()
     @flags.command(aliases=["ra"])
@@ -517,7 +515,6 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
-
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -527,11 +524,9 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
-
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-
     # Pokemon
     @checks.has_started()
     @flags.command(aliases=["p"])
@@ -551,8 +546,8 @@ class Pokemon(commands.Cog):
         # Filter pokemon
 
         do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None
+                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
         )
 
         fixed_pokemon = False
@@ -595,7 +590,7 @@ class Pokemon(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx + 1} of {math.ceil(num / 20)})"
             )
 
             return embed
@@ -644,8 +639,8 @@ class Pokemon(commands.Cog):
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
             do_emojis = (
-                ctx.guild is None
-                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                    ctx.guild is None
+                    or ctx.guild.me.permissions_in(ctx.channel).external_emojis
             )
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 810)
@@ -857,9 +852,9 @@ class Pokemon(commands.Cog):
         fr = self.bot.data.species_by_number(pokemon.species.dex_number)
 
         if pokemon.species not in (
-            fr.mega,
-            fr.mega_x,
-            fr.mega_y,
+                fr.mega,
+                fr.mega_x,
+                fr.mega_y,
         ):
             return await ctx.send("This pokémon is not in mega form!")
 

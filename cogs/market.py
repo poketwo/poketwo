@@ -4,6 +4,7 @@ import math
 import bson
 import pymongo
 from discord.ext import commands, flags
+
 from helpers import checks, converters, pagination
 
 
@@ -29,7 +30,6 @@ class Market(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
-
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -39,11 +39,9 @@ class Market(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
-
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-
     # Market
     @flags.add_flag(
         "--order",
@@ -108,7 +106,7 @@ class Market(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx + 1} of {math.ceil(num / 20)})"
             )
 
             return embed
