@@ -3,6 +3,7 @@ import random
 from datetime import datetime, timedelta
 
 import aiohttp
+import discord
 import humanfriendly
 from discord.ext import commands, tasks
 
@@ -961,7 +962,7 @@ class Shop(commands.Cog):
 
         try:
             await ctx.message.delete()
-        except:
+        except discord.Forbidden:
             pass
 
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
