@@ -336,7 +336,7 @@ class Halloween(commands.Cog):
 
         if item["action"] == "embed_color":
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"has_color": True}})
-            message = f"You bought custom embed colors for your **{pokemon:ls}** for **{item['price']} candies**."
+            message = f"You bought custom embed colors for your **{pokemon:ls}** for **{item['price']} candies**. Use it with `{ctx.prefix}embedcolor <pokemon #> <hex color>`."
 
         elif item["action"] == "shadow_lugia":
             await self.bot.mongo.db.pokemon.insert_one(
@@ -367,7 +367,7 @@ class Halloween(commands.Cog):
 
         elif item["action"] == "crate":
             reward = random.choices(*CRATE_REWARDS, k=1)[0]
-            shards = round(random.normalvariate(15, 5))
+            shards = round(random.normalvariate(10, 3))
             text = [f"{shards} Shards"]
 
             print(reward)
