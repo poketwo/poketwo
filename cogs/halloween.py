@@ -142,24 +142,18 @@ class Halloween(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # fmt: off
+
     @cached_property
     def pools(self):
         return {
             "special": (10027, 10028, 10029, 10030, 10031, 10032, 10143),
-            "rare": [
-                x
-                for x in (
-                    self.bot.data.list_legendary * 2
-                    + self.bot.data.list_mythical * 2
-                    + self.bot.data.list_ub
-                )
-                if x != 50001
-            ],
-            "spooky": (
-                self.bot.data.list_type("Ghost") + self.bot.data.list_type("Dark")
-            ),
+            "rare": (144, 145, 146, 150, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 384, 480, 481, 482, 483, 484, 485, 486, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 646, 716, 717, 718, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, 10118, 10120, 151, 251, 385, 386, 489, 490, 491, 492, 493, 494, 647, 648, 649, 719, 720, 721, 801, 802, 807, 808, 809, 10001, 10002, 10003, 144, 145, 146, 150, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 384, 480, 481, 482, 483, 484, 485, 486, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 646, 716, 717, 718, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, 10118, 10120, 151, 251, 385, 386, 489, 490, 491, 492, 493, 494, 647, 648, 649, 719, 720, 721, 801, 802, 807, 808, 809, 10001, 10002, 10003, 793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806),
+            "spooky": (92, 93, 94, 200, 292, 302, 353, 354, 355, 356, 425, 426, 429, 442, 477, 478, 479, 487, 562, 563, 592, 593, 607, 608, 609, 622, 623, 679, 680, 681, 708, 709, 710, 711, 720, 724, 769, 770, 778, 781, 792, 802, 806, 10115, 10125, 197, 198, 215, 228, 229, 248, 261, 262, 274, 275, 302, 318, 319, 332, 342, 359, 430, 434, 435, 442, 452, 461, 491, 509, 510, 551, 552, 553, 559, 560, 570, 571, 624, 625, 629, 630, 633, 634, 635, 658, 675, 686, 687, 717, 727, 799, 10091, 10092, 10107, 10108, 10112, 10113),
             "shadow_lugia": (50001,),
         }
+
+    # fmt: on
 
     async def get_quests(self, user):
         member = await self.bot.mongo.fetch_member_info(user)
@@ -389,10 +383,14 @@ class Halloween(commands.Cog):
                 level = min(max(int(random.normalvariate(70, 10)), 1), 100)
                 shiny = member.determine_shiny(species)
 
-                if reward == "spooky":
-                    total = 145 + int(abs(random.normalvariate(0, 10)))
-                    pts = [random.choice(range(6)) for i in range(total)]
-                    ivs = [pts.count(i) for i in range(6)]
+                if reward in ("spooky", "special"):
+                    total = 142 + int(abs(random.normalvariate(0, 9)))
+                    ivs = [0, 0, 0, 0, 0, 0]
+                    for i in range(total):
+                        idx = random.randrange(6)
+                        while ivs[idx] >= 31:
+                            idx = random.randrange(6)
+                        ivs[idx] += 1
                 else:
                     ivs = [mongo.random_iv() for _ in range(6)]
 
