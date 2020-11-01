@@ -3,6 +3,7 @@ import random
 from collections import defaultdict
 
 from discord.ext import commands
+from discord.ext.commands.core import command
 from discord.utils import cached_property
 from helpers import checks, converters
 
@@ -105,7 +106,7 @@ SHOP = [
     {
         "name": "Halloween Crate",
         "description": "A create containing a random reward.\n`{}event buy Halloween Crate`",
-        "price": 50,
+        "price": 30,
         "action": "crate",
     },
     {
@@ -127,8 +128,8 @@ CRATE_REWARDS = {
     "shards": 20,
     "special": 30,
     "rare": 10,
-    "shadow_lugia": 2,
-    "spooky": 28,
+    "shadow_lugia": 1.5,
+    "spooky": 28.5,
     "redeem": 10,
 }
 
@@ -264,6 +265,7 @@ class Halloween(commands.Cog):
         await ctx.send(f"You can't claim that reward!")
 
     @checks.has_started()
+    @commands.has_role(721825360827777043)
     @halloween.command()
     async def shop(self, ctx: commands.Context):
         """View the Halloween item shop."""
@@ -291,6 +293,7 @@ class Halloween(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @commands.has_role(721825360827777043)
     @commands.max_concurrency(1, commands.BucketType.user)
     @halloween.command()
     async def buy(self, ctx: commands.Context, *args):
