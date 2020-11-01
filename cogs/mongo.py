@@ -57,6 +57,8 @@ class PokemonBase(MixinDocument):
     favorite = fields.BooleanField(default=False)
     held_item = fields.IntegerField(default=None)
     moves = fields.ListField(fields.IntegerField, default=list)
+    has_color = fields.BooleanField(default=False)
+    color = fields.IntegerField(default=None)
 
     _hp = None
     ailments = None
@@ -250,6 +252,7 @@ class Member(Document):
     redeems_purchased = fields.DictField(
         fields.IntegerField(), fields.IntegerField(), default=dict
     )
+    embed_colors = fields.IntegerField(default=0)
 
     # Shiny Hunt
     shiny_hunt = fields.IntegerField(default=None)
@@ -280,6 +283,7 @@ class Member(Document):
     hquest_progress = fields.DictField(
         fields.StringField(), fields.IntegerField(), default=dict
     )
+    halloween_badge = fields.BooleanField(default=False)
 
     @property
     def selected_pokemon(self):

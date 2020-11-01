@@ -327,10 +327,11 @@ class Bot(commands.Cog):
     async def profile(self, ctx: commands.Context):
         """View your profile."""
 
-        embed = self.bot.Embed(color=0xE67D23)
-        embed.title = f"{ctx.author}"
-
         member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        embed = self.bot.Embed(color=0xE67D23)
+        embed.title = "Trainer Profile"
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
 
         pokemon_caught = []
         pokemon_caught.append(
@@ -351,10 +352,17 @@ class Bot(commands.Cog):
                     )
                 )
             )
-
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
 
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
+
+        quests = await self.bot.get_cog("Halloween").get_quests(ctx.author)
+        embed.add_field(
+            name="Badges",
+            value=self.bot.sprites.pin_halloween
+            if member.halloween_badge or len(quests) == 0
+            else "No badges",
+        )
 
         await ctx.send(embed=embed)
 

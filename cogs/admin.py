@@ -82,6 +82,19 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
 
     @commands.is_owner()
+    @commands.command(aliases=["givecandy"])
+    async def addcandy(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        amt: int,
+    ):
+        """Add to a user's candies."""
+
+        await self.bot.mongo.update_member(user, {"$inc": {"halloween_tickets": amt}})
+        await ctx.send(f"Gave {user.mention} {amt} candies.")
+
+    @commands.is_owner()
     @commands.command(aliases=["giveshard"])
     async def addshard(
         self,

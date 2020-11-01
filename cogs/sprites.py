@@ -1732,6 +1732,7 @@ other = {
     "slider_start_full": 767636907344789575,
     "slider_mid_full": 767636907508367400,
     "slider_end_full": 767636907282006017,
+    "pin_halloween": 772359122783305728,
 }
 
 enable_emojis_for = (716390085896962058, 717112814535442432)

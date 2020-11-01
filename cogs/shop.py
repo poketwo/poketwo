@@ -1,8 +1,10 @@
 import asyncio
 import random
 from datetime import datetime, timedelta
+import typing
 
 import aiohttp
+import discord
 import humanfriendly
 from discord.ext import commands, tasks
 from helpers import checks, constants, converters, models
@@ -505,7 +507,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.max_concurrency(1, commands.BucketType.user)
     @commands.guild_only()
     @commands.command()
     async def buy(self, ctx: commands.Context, *args: str):
@@ -901,6 +903,42 @@ class Shop(commands.Cog):
                     break
 
     @checks.has_started()
+    @commands.command(aliases=["ec"])
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def embedcolor(
+        self,
+        ctx: commands.Context,
+        pokemon: typing.Optional[converters.Pokemon] = False,
+        color: discord.Color = None,
+    ):
+        """Change the embed colors for a pokémon."""
+
+        if pokemon is False:
+            pokemon = await converters.Pokemon().convert(ctx, "")
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
+
+        if not pokemon.has_color:
+            return await ctx.send("That pokémon cannot use custom embed colors!")
+
+        if color is None:
+            color = pokemon.color or 0xE67D23
+            return await ctx.send(
+                f"That pokémon's embed color is currently **#{color:06x}**."
+            )
+
+        if color.value == 0xFFFFFF:
+            return await ctx.send(
+                "Due to a Discord limitation, you cannot set the embed color to pure white. Try **#fffffe** instead."
+            )
+
+        await self.bot.mongo.update_pokemon(pokemon, {"$set": {"color": color.value}})
+        await ctx.send(
+            f"Changed embed color to **#{color.value:06x}** for your **{pokemon:ls}**."
+        )
+
+    @checks.has_started()
     @commands.command()
     async def redeem(self, ctx: commands.Context):
         """Use a redeem to receive a pokémon of your choice."""
@@ -909,7 +947,7 @@ class Shop(commands.Cog):
 
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Your Redeems: {member.redeems}"
-        embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by supporting the bot on Patreon or through voting rewards."
+        embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards."
 
         embed.add_field(
             name=f"{ctx.prefix}redeemspawn <pokémon>",
@@ -931,7 +969,7 @@ class Shop(commands.Cog):
         if species is None:
             embed = self.bot.Embed(color=0xE67D23)
             embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. Currently, you can only receive redeems from giveaways."
+            embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards."
 
             embed.add_field(
                 name=f"{ctx.prefix}redeemspawn <pokémon>",

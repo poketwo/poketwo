@@ -124,7 +124,7 @@ class Pokemon(commands.Cog):
                 shift += 1
                 pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
 
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=pokemon.color or 0xE67D23)
             embed.title = f"{pokemon:lnf}"
 
             if pokemon.shiny:
