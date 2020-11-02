@@ -105,11 +105,6 @@ class Shop(commands.Cog):
             "You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
         )
 
-        embed.add_field(
-            name="Spooktober Event",
-            value=f"An event is ongoing! Vote for us to receive **{10 if self.weekend else 5} Halloween Candies**.",
-        )
-
         if do_emojis:
             embed.add_field(
                 name="Voting Streak",
