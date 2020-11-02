@@ -201,7 +201,6 @@ async def dbl():
 
     streak = res.get("vote_streak", 0)
     last_voted = res.get("last_voted", datetime.min)
-    tickets = 10 if json["isWeekend"] else 5
 
     if datetime.utcnow() - last_voted > timedelta(days=2):
         streak = 0
@@ -224,7 +223,6 @@ async def dbl():
             "$inc": {
                 "vote_total": 1,
                 f"gifts_{box_type}": 1,
-                "halloween_tickets": tickets,
             },
         },
     )
@@ -236,7 +234,7 @@ async def dbl():
             0,
             "send_dm",
             user=uid,
-            message=f"Thanks for voting! You received {article} **{box_type} box** and **{tickets} Halloween Candies**.",
+            message=f"Thanks for voting! You received {article} **{box_type} box**.",
         )
     except OSError:
         pass
