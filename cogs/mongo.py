@@ -6,10 +6,12 @@ import discord
 import pymongo
 from bson.objectid import ObjectId
 from discord.ext import commands
-from helpers import constants, models
+from helpers import constants
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
+
+from data import models
 
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(constants.NATURES)
