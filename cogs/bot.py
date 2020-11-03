@@ -1,7 +1,7 @@
 import random
 import sys
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
 import discord
@@ -28,6 +28,7 @@ class Bot(commands.Cog):
 
         if self.bot.cluster_idx == 0:
             self.post_dbl.start()
+            self.remind_votes.start()
 
         self.cd = commands.CooldownMapping.from_cooldown(2, 3, commands.BucketType.user)
 
@@ -212,6 +213,28 @@ class Bot(commands.Cog):
                 f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data
             )
 
+    @tasks.loop(seconds=15)
+    async def remind_votes(self):
+        await self.bot.wait_until_ready()
+        query = {
+            "need_vote_reminder": True,
+            "last_voted": {"$lt": datetime.utcnow() - timedelta(hours=12)},
+        }
+
+        async for x in self.bot.mongo.db.member.find(query):
+            try:
+                priv = await self.bot.http.start_private_message(x["_id"])
+                await self.bot.http.send_message(
+                    priv["id"],
+                    "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
+                )
+            except:
+                pass
+
+        await self.bot.mongo.db.member.update_many(
+            query, {"$set": {"need_vote_reminder": False}}
+        )
+
     @tasks.loop(minutes=1)
     async def post_count(self):
         await self.bot.wait_until_ready()
@@ -372,6 +395,7 @@ class Bot(commands.Cog):
 
         if self.bot.cluster_idx == 0:
             self.post_dbl.cancel()
+            self.remind_votes.cancel()
 
 
 def setup(bot):

@@ -219,7 +219,11 @@ async def dbl():
     await db.member.update_one(
         {"_id": uid},
         {
-            "$set": {"vote_streak": streak, "last_voted": datetime.utcnow()},
+            "$set": {
+                "vote_streak": streak,
+                "last_voted": datetime.utcnow(),
+                "need_vote_reminder": True,
+            },
             "$inc": {
                 "vote_total": 1,
                 f"gifts_{box_type}": 1,

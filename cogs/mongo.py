@@ -266,6 +266,7 @@ class Member(Document):
 
     # Voting
     last_voted = fields.DateTimeField(default=datetime.min)
+    need_vote_reminder = fields.BooleanField(default=False)
     vote_total = fields.IntegerField(default=0)
     vote_streak = fields.IntegerField(default=0)
     gifts_normal = fields.IntegerField(default=0)
