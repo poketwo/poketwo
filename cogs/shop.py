@@ -955,6 +955,7 @@ class Shop(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
+    @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=["rs"])
     async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
@@ -989,17 +990,11 @@ class Shop(commands.Cog):
         if ctx.channel.id == 759559123657293835:
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
-        await self.bot.mongo.update_member(
-            ctx.author,
-            {"$inc": {"redeems": -1}},
-        )
-
-        try:
-            await ctx.message.delete()
-        except:
-            pass
-
-        await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species)
+        if await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species):
+            await self.bot.mongo.update_member(
+                ctx.author,
+                {"$inc": {"redeems": -1}},
+            )
 
     def cog_unload(self):
         self.check_weekend.cancel()

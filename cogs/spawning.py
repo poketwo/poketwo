@@ -44,7 +44,7 @@ class Spawning(commands.Cog):
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=0.5)
     async def send_spawns(self):
         await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
@@ -61,7 +61,7 @@ class Spawning(commands.Cog):
         try:
             await asyncio.wait_for(self.spawn_pokemon(channel), 2)
             self.bot.log.info(f"SPAWN {channel.id}")
-        except asyncio.TimeoutError:
+        except:
             self.bot.log.error(f"SPAWN TIMEOUT {channel.id}")
 
     @tasks.loop(seconds=20)
@@ -252,7 +252,7 @@ class Spawning(commands.Cog):
             and permissions.attach_files
             and permissions.embed_links
         ):
-            return
+            return False
 
         # spawn
 
@@ -302,6 +302,8 @@ class Spawning(commands.Cog):
 
         self.caught_users[channel.id] = set()
         await self.bot.redis.hset("wild", channel.id, species.id)
+
+        return True
 
     @checks.has_started()
     @commands.cooldown(1, 20, commands.BucketType.channel)

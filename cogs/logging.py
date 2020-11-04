@@ -19,7 +19,7 @@ class Logging(commands.Cog):
         dlog = logging.getLogger("discord")
         dhandler = logging.FileHandler(f"logs/discord-{self.bot.cluster_name}.log")
         dhandler.setFormatter(formatter)
-        dlog.addHandler(dhandler)
+        dlog.handlers = [dhandler]
 
         self.log.setLevel(logging.DEBUG)
         dlog.setLevel(logging.INFO)
