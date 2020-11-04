@@ -11,6 +11,7 @@ from discord.ext import commands
 from helpers import checks, constants, converters, pagination
 
 from data import models
+import data.constants
 
 
 def get_priority(action, selected):
@@ -20,7 +21,7 @@ def get_priority(action, selected):
             s *= 0.5
         return (
             action["value"].priority * 1e20
-            + selected.spd * models.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
+            + selected.spd * data.constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
         )
 
     return 1e99
