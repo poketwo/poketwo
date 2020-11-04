@@ -30,7 +30,7 @@ class Bot(commands.Cog):
             self.post_dbl.start()
             self.remind_votes.start()
 
-        self.cd = commands.CooldownMapping.from_cooldown(2, 3, commands.BucketType.user)
+        self.cd = commands.CooldownMapping.from_cooldown(5, 3, commands.BucketType.user)
 
     async def bot_check(self, ctx):
         if ctx.invoked_with.lower() in ("help", "market", "auction"):
