@@ -3,8 +3,6 @@ This is a one-shot script used to make idx fields for all pokemon into a new col
 4 October 2020
 """
 
-import os
-
 import config
 from pymongo import MongoClient
 

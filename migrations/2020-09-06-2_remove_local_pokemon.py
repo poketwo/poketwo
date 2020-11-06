@@ -3,8 +3,6 @@ This is a one-shot script used to migrate all Pokémon from array fields to a gl
 6 September 2020
 """
 
-import os
-
 import config
 from pymongo import MongoClient
 

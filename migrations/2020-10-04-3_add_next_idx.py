@@ -3,8 +3,6 @@ This is a one-shot script used to add the next_idx field to all members.
 4 October 2020
 """
 
-import os
-
 import config
 from pymongo import MongoClient
 

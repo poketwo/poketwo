@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
-from discord.ext.commands.errors import CheckFailure
+
 from helpers import checks, constants, converters
 
 
