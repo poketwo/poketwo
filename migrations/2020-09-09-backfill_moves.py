@@ -7,7 +7,6 @@ import random
 import sys
 from multiprocessing import Pool
 
-import bson
 import config
 from pymongo import MongoClient, UpdateOne
 

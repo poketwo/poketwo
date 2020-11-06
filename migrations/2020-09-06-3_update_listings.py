@@ -2,7 +2,6 @@
 This is a one-shot script used to migrate all Pokémon from array fields to a global collection.
 6 September 2020
 """
-import os
 
 import bson
 import config

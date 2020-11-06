@@ -1,6 +1,5 @@
-from discord.ext import commands
-
 from data import DataManager
+from discord.ext import commands
 
 
 class Data(commands.Cog):

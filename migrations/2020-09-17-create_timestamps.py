@@ -3,8 +3,6 @@ This is a one-shot script used to add timestamp fields to all pokemon.
 17 September 2020
 """
 
-import os
-
 import config
 from pymongo import MongoClient
 

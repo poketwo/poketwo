@@ -3,8 +3,9 @@ import math
 from operator import itemgetter
 
 from discord.ext import commands, flags
-from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
+
+from helpers import checks, constants, converters, pagination
 
 
 class Pokemon(commands.Cog):

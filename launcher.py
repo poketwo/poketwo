@@ -3,13 +3,12 @@ import logging
 import multiprocessing
 import os
 import signal
-import sys
 import time
 
+import config
 import discord
 import requests
 
-import config
 from bot import ClusterBot
 
 log = logging.getLogger("Cluster#Launcher")
