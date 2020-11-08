@@ -125,7 +125,7 @@ class Pokemon(commands.Cog):
                 shift += 1
                 pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
 
-            embed = self.bot.Embed(color=pokemon.color or 0xE67D23)
+            embed = self.bot.Embed(color=pokemon.color or 0xF44336)
             embed.title = f"{pokemon:lnf}"
 
             if pokemon.shiny:
@@ -389,7 +389,7 @@ class Pokemon(commands.Cog):
                 f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}? This action is irreversible! [y/N]"
             )
         else:
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = (
                 f"Are you sure you want to release the following pokémon? [y/N]"
             )
@@ -591,7 +591,7 @@ class Pokemon(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = f"Your pokémon"
             embed.description = "\n".join(page)[:2048]
 
@@ -691,7 +691,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(color=0xE67D23)
+                embed = self.bot.Embed(color=0xF44336)
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
@@ -759,7 +759,7 @@ class Pokemon(commands.Cog):
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = f"#{species.dex_number} — {species}"
 
             if species.description:
@@ -820,7 +820,7 @@ class Pokemon(commands.Cog):
         if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
             return await ctx.send("That pokémon can't be evolved!")
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
         name = str(pokemon.species)

@@ -87,7 +87,7 @@ class Auctions(commands.Cog):
         )
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = discord.Embed(color=0xE67D23)
+        embed = discord.Embed(color=0xF44336)
         embed.set_author(name=str(author), icon_url=author.avatar_url)
         embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
@@ -509,7 +509,7 @@ class Auctions(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = f"Auctions in {ctx.guild.name}"
             embed.description = "\n".join(page)[:2048]
 

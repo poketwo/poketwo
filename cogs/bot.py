@@ -150,7 +150,7 @@ class Bot(commands.Cog):
     async def invite(self, ctx: commands.Context):
         """View the invite link for the bot."""
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = "Want to add me to your server? Use the link below!"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(
@@ -256,7 +256,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
 
@@ -296,7 +296,7 @@ class Bot(commands.Cog):
     async def start(self, ctx: commands.Context):
         """View the starter pokémon."""
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. "
 
@@ -352,7 +352,7 @@ class Bot(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = "Trainer Profile"
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
 

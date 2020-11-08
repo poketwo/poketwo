@@ -123,7 +123,7 @@ class Spawning(commands.Cog):
 
                 if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
                     update = {"$set": {f"xp": 0, f"level": pokemon.level + 1}}
-                    embed = self.bot.Embed(color=0xE67D23)
+                    embed = self.bot.Embed(color=0xF44336)
                     embed.title = f"Congratulations {message.author.display_name}!"
 
                     name = str(pokemon.species)
@@ -257,7 +257,7 @@ class Spawning(commands.Cog):
 
         guild = await self.bot.mongo.fetch_guild(channel.guild)
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = f"A wild pokémon has appeared!"
 
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
@@ -453,7 +453,7 @@ class Spawning(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = f"Shiny Hunt ✨"
             embed.description = "You can select a specific pokémon to shiny hunt. Each time you catch that pokémon, your chain will increase. The longer your chain, the higher your chance of catching a shiny one!"
 

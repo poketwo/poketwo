@@ -104,7 +104,7 @@ class Market(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(color=0xE67D23)
+            embed = self.bot.Embed(color=0xF44336)
             embed.title = f"Pokétwo Marketplace"
             embed.description = "\n".join(page)[:2048]
 
@@ -344,7 +344,7 @@ class Market(commands.Cog):
 
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
-        embed = self.bot.Embed(color=0xE67D23)
+        embed = self.bot.Embed(color=0xF44336)
         embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:

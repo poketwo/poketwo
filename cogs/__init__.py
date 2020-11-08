@@ -1,24 +1,3 @@
-from . import (
-    admin,
-    auctions,
-    battling,
-    bot,
-    config,
-    data,
-    halloween,
-    help,
-    ipc,
-    logging,
-    market,
-    mongo,
-    pokemon,
-    redis,
-    shop,
-    spawning,
-    sprites,
-    trading,
-)
-
 default = (
     "logging",
     "admin",
@@ -27,7 +6,7 @@ default = (
     "bot",
     "config",
     "data",
-    "halloween",
+    "noevent",
     "help",
     "ipc",
     "market",
