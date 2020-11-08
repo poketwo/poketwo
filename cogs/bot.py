@@ -379,11 +379,10 @@ class Bot(commands.Cog):
 
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
 
-        quests = await self.bot.get_cog("Halloween").get_quests(ctx.author)
         embed.add_field(
             name="Badges",
             value=self.bot.sprites.pin_halloween
-            if member.halloween_badge or len(quests) == 0
+            if member.halloween_badge
             else "No badges",
         )
 
