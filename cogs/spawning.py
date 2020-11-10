@@ -57,11 +57,7 @@ class Spawning(commands.Cog):
         if channel is None:
             return
 
-        try:
-            await asyncio.wait_for(self.spawn_pokemon(channel), 2)
-            self.bot.log.info(f"SPAWN {channel.id}")
-        except:
-            self.bot.log.error(f"SPAWN TIMEOUT {channel.id}")
+        self.bot.loop.create_task(self.spawn_pokemon(channel))
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -294,13 +290,12 @@ class Spawning(commands.Cog):
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
             embed.set_footer(text=f"Incense expires in {timespan}.")
 
+        self.caught_users[channel.id] = set()
+        await self.bot.redis.hset("wild", channel.id, species.id)
         await channel.send(
             file=image,
             embed=embed,
         )
-
-        self.caught_users[channel.id] = set()
-        await self.bot.redis.hset("wild", channel.id, species.id)
 
         return True
 
