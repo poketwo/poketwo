@@ -33,11 +33,14 @@ class Trading(commands.Cog):
         return self.bot.redis.hexists("trade", user.id)
 
     async def end_trade(self, user_id):
-        a, b = self.bot.trades[user_id]["items"].keys()
-        self.bot.dispatch("trade", self.bot.trades[user_id])
-        del self.bot.trades[a]
-        del self.bot.trades[b]
-        await self.bot.redis.hdel("trade", a, b)
+        if user_id in self.bot.trades:
+            a, b = self.bot.trades[user_id]["items"].keys()
+            self.bot.dispatch("trade", self.bot.trades[user_id])
+            del self.bot.trades[a]
+            del self.bot.trades[b]
+            await self.bot.redis.hdel("trade", a, b)
+        else:
+            await self.bot.redis.hdel("trade", user_id)
 
     async def send_trade(self, ctx: commands.Context, user: discord.Member):
         # TODO this code is pretty shit. although it does work
@@ -331,7 +334,6 @@ class Trading(commands.Cog):
             return await ctx.send("The trade is currently loading...")
 
         await self.end_trade(ctx.author.id)
-
         await ctx.send("The trade has been canceled.")
 
     @checks.has_started()
