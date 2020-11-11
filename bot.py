@@ -1,11 +1,12 @@
 import asyncio
 from importlib import reload
 
-import config
 import discord
+import uvloop
 from discord.ext import commands
 
 import cogs
+import config
 import helpers
 
 DEFAULT_DISABLED_MESSAGE = (
@@ -157,3 +158,6 @@ class ClusterBot(commands.AutoShardedBot):
             self.reload_extension(f"cogs.{i}")
 
         await self.do_startup_tasks()
+
+
+uvloop.install()
