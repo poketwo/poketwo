@@ -324,7 +324,10 @@ class Trading(commands.Cog):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
-        if self.bot.trades[ctx.author.id]["executing"]:
+        if (
+            ctx.author.id in self.bot.trades
+            and self.bot.trades[ctx.author.id]["executing"]
+        ):
             return await ctx.send("The trade is currently loading...")
 
         await self.end_trade(ctx.author.id)
