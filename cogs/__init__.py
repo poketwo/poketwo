@@ -13,6 +13,7 @@ default = (
     "mongo",
     "pokemon",
     "redis",
+    "sentry",
     "shop",
     "spawning",
     "sprites",
