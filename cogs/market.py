@@ -330,7 +330,7 @@ class Market(commands.Cog):
             print("Error trading market logs.")
 
     @checks.has_started()
-    @market.command(aliases=["i"])
+    @market.command(aliases=["i", "I"])
     async def info(self, ctx: commands.Context, id: int):
         """View a pokémon from the market."""
 
