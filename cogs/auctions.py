@@ -523,7 +523,7 @@ class Auctions(commands.Cog):
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
-    @auction.command(aliases=["i"])
+    @auction.command(aliases=["i", "I"])
     async def info(self, ctx: commands.Context, id: int):
         """View a pokémon from the market."""
 
