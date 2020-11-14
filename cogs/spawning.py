@@ -300,7 +300,8 @@ class Spawning(commands.Cog):
         return True
 
     @checks.has_started()
-    @commands.cooldown(1, 20, commands.BucketType.channel)
+    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.cooldown(1, 20, commands.BucketType.user)
     @commands.command(aliases=["h"])
     async def hint(self, ctx: commands.Context):
         """Get a hint for the wild pokémon."""
