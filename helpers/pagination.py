@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import re
 
 paginators = {}
 
@@ -29,22 +30,24 @@ class Paginator:
             return await ctx.send(msg)
 
         self.author = ctx.author
-
+    
         paginators[self.author.id] = self
 
         embed = await self.get_page(pidx, clear)
 
         if not isinstance(embed, discord.Embed):
             return
+        
+        prefix = re.sub(f"<@!?{ctx.me.id}>", ctx.prefix, f"@{ctx.me.name}")
 
         try:
             embed.set_footer(
                 text=embed.footer.text
-                + f"\nUse {ctx.prefix}n and {ctx.prefix}b to navigate between pages."
+                + f"\nUse {prefix}n and {prefix}b to navigate between pages."
             )
         except TypeError:
             embed.set_footer(
-                text=f"\nUse {ctx.prefix}n and {ctx.prefix}b to navigate between pages."
+                text=f"\nUse {prefix}n and {prefix}b to navigate between pages."
             )
         self.message = await ctx.send(embed=embed)
         self.last_page = pidx
