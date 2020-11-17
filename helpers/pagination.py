@@ -30,7 +30,6 @@ class Paginator:
             return await ctx.send(msg)
 
         self.author = ctx.author
-    
         paginators[self.author.id] = self
 
         embed = await self.get_page(pidx, clear)
