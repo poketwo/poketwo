@@ -188,6 +188,9 @@ class Market(commands.Cog):
     async def remove(self, ctx: commands.Context, id: int):
         """Remove a pokémon from the marketplace."""
 
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+
         try:
             listing = await self.bot.mongo.db.listing.find_one({"_id": id})
         except bson.errors.InvalidId:
@@ -238,6 +241,9 @@ class Market(commands.Cog):
     @market.command(aliases=["purchase", "b", "p"])
     async def buy(self, ctx: commands.Context, id: int):
         """Buy a pokémon on the marketplace."""
+
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
 
         try:
             listing = await self.bot.mongo.db.listing.find_one({"_id": id})
