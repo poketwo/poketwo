@@ -1,7 +1,6 @@
 import discord
 import geocoder
 from discord.ext import commands
-
 from helpers import checks
 
 
@@ -22,39 +21,30 @@ class Configuration(commands.Cog):
         embed = self.bot.Embed()
         embed.title = "Server Configuration"
         embed.set_thumbnail(url=ctx.guild.icon_url)
-
         embed.add_field(
             name=f"Prefix {commands.get('prefix_command', '')}",
             value=f"`{prefix}`",
             inline=True,
         )
-
         embed.add_field(
             name=f"Display level-up messages? {commands.get('silence_command', '')}",
             value=(("Yes", "No")[guild.silence]),
             inline=True,
         )
-
         embed.add_field(
             name=f"Location {commands.get('location_command', '')}",
             value=guild.loc,
             inline=False,
         )
-
         embed.add_field(
             name=f"Spawning Channels {commands.get('redirect_command', '')}",
-            value="\n".join(map(lambda channel: channel.mention, channels)),
+            value="\n".join(x.mention for x in channels),
             inline=False,
         )
-
         return embed
 
     @commands.guild_only()
-    @commands.group(
-        name="configuration",
-        aliases=["config", "serverconfig"],
-        invoke_without_command=True,
-    )
+    @commands.group(aliases=["config", "serverconfig"], invoke_without_command=True)
     async def configuration(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
@@ -80,7 +70,7 @@ class Configuration(commands.Cog):
 
     @checks.is_admin()
     @commands.guild_only()
-    @commands.command()
+    @commands.command(aliases=("setprefix",))
     async def prefix(self, ctx: commands.Context, *, prefix: str = None):
         """Change the bot prefix."""
 
@@ -129,7 +119,6 @@ class Configuration(commands.Cog):
         """Silence level up messages server-wide."""
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
-
         await self.bot.mongo.update_guild(
             ctx.guild, {"$set": {"silence": not guild.silence}}
         )
@@ -193,7 +182,6 @@ class Configuration(commands.Cog):
 
         embed = self.bot.Embed()
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
-
         embed.description = (
             "It is currently "
             + ("day" if guild.is_day else "night")

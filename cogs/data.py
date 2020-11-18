@@ -1,5 +1,8 @@
-from data import DataManager
+from importlib import reload
+
 from discord.ext import commands
+
+import data
 
 
 class Data(commands.Cog):
@@ -7,7 +10,8 @@ class Data(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.instance = DataManager()
+        reload(data)
+        self.instance = data.DataManager()
 
 
 def setup(bot):
