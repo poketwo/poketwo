@@ -8,7 +8,7 @@ def is_admin():
 
 
 def has_started():
-    async def predicate(ctx: commands.Context):
+    async def predicate(ctx):
         member = await ctx.bot.mongo.Member.find_one(
             {"id": ctx.author.id}, {"suspended": 1}
         )

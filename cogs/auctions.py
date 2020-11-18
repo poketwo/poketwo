@@ -119,14 +119,14 @@ class Auctions(commands.Cog):
         return embed
 
     @commands.group(aliases=["auctions", "a"], invoke_without_command=True)
-    async def auction(self, ctx: commands.Context, **flags):
+    async def auction(self, ctx, **flags):
         """Auction pokémon."""
 
         await ctx.send_help(ctx.command)
 
     @commands.has_permissions(administrator=True)
     @auction.command()
-    async def channel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def channel(self, ctx, channel: discord.TextChannel):
         """Change the auctions channel."""
 
         await self.bot.mongo.update_guild(
@@ -138,8 +138,8 @@ class Auctions(commands.Cog):
     @auction.command()
     async def start(
         self,
-        ctx: commands.Context,
-        pokemon: converters.Pokemon,
+        ctx,
+        pokemon: converters.PokemonConverter,
         duration: converters.TimeDelta,
         starting_bid: int,
         bid_increment: int,
@@ -235,7 +235,7 @@ class Auctions(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
     @auction.command()
-    async def lowerstart(self, ctx: commands.Context, auction_id: int, new_start: int):
+    async def lowerstart(self, ctx, auction_id: int, new_start: int):
         """Lower the starting bid for your auction."""
 
         auction = await self.bot.mongo.Auction.find_one(
@@ -291,7 +291,7 @@ class Auctions(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
     @auction.command()
-    async def bid(self, ctx: commands.Context, auction_id: int, bid: int):
+    async def bid(self, ctx, auction_id: int, bid: int):
         """Bid on an auction."""
 
         auction = await self.bot.mongo.Auction.find_one(
@@ -446,7 +446,7 @@ class Auctions(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @auction.command(aliases=["s"], cls=flags.FlagCommand)
-    async def search(self, ctx: commands.Context, **flags):
+    async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
         if flags["page"] < 1:
@@ -524,7 +524,7 @@ class Auctions(commands.Cog):
 
     @checks.has_started()
     @auction.command(aliases=["i", "I"])
-    async def info(self, ctx: commands.Context, id: int):
+    async def info(self, ctx, id: int):
         """View a pokémon from the market."""
 
         auction = await self.bot.mongo.db.auction.find_one(

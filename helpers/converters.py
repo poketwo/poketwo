@@ -1,14 +1,39 @@
 from datetime import timedelta
 
+import discord
 from discord.ext import commands
 from durations_nlp import Duration
 
-
-class PokemonConversionError(commands.ConversionError):
-    pass
+from .utils import FakeUser
 
 
-class Pokemon(commands.Converter):
+class FetchUserConverter(commands.Converter):
+    async def convert(self, ctx, arg):
+        try:
+            return await commands.UserConverter().convert(ctx, arg)
+        except commands.UserNotFound:
+            pass
+
+        try:
+            return await ctx.bot.fetch_user(int(arg))
+        except (discord.NotFound, discord.HTTPException, ValueError):
+            raise commands.UserNotFound(arg)
+
+
+class MemberOrIdConverter(commands.Converter):
+    async def convert(self, ctx, arg):
+        try:
+            return await commands.MemberConverter().convert(ctx, arg)
+        except commands.MemberNotFound:
+            pass
+
+        try:
+            return FakeUser(int(arg))
+        except ValueError:
+            raise commands.MemberNotFound(arg)
+
+
+class PokemonConverter(commands.Converter):
     def __init__(self, accept_blank=True, raise_errors=True):
         self.accept_blank = accept_blank
         self.raise_errors = raise_errors
@@ -27,18 +52,12 @@ class Pokemon(commands.Converter):
         elif not self.raise_errors:
             return None
         elif self.accept_blank:
-            raise PokemonConversionError(
-                self,
-                original=ValueError(
-                    "Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon."
-                ),
+            raise commands.BadArgument(
+                "Please either enter nothing for your selected pokémon, a number for a specific pokémon, or `latest` for your latest pokémon."
             )
         else:
-            raise PokemonConversionError(
-                self,
-                original=ValueError(
-                    "Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
-                ),
+            raise commands.BadArgument(
+                "Please either enter a number for a specific pokémon, or `latest` for your latest pokémon."
             )
 
         return await ctx.bot.mongo.fetch_pokemon(ctx.author, number)

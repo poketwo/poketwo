@@ -56,7 +56,7 @@ class Bot(commands.Cog):
         )
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error):
+    async def on_command_error(self, ctx, error):
 
         if isinstance(error, Blacklisted):
             self.bot.log.info(f"{ctx.author.id} is blacklisted")
@@ -88,8 +88,6 @@ class Bot(commands.Cog):
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
-        elif isinstance(error, converters.PokemonConversionError):
-            await ctx.send(error.original)
         elif isinstance(
             error,
             (
@@ -111,7 +109,7 @@ class Bot(commands.Cog):
             print("\n\n")
 
     @commands.Cog.listener()
-    async def on_error(self, ctx: commands.Context, error):
+    async def on_error(self, ctx, error):
 
         if isinstance(error, discord.NotFound):
             return
@@ -147,7 +145,7 @@ class Bot(commands.Cog):
         ]
 
     @commands.command()
-    async def invite(self, ctx: commands.Context):
+    async def invite(self, ctx):
         """View the invite link for the bot."""
 
         embed = self.bot.Embed(color=0xF44336)
@@ -163,7 +161,7 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def donate(self, ctx: commands.Context):
+    async def donate(self, ctx):
         """Donate to receive shards."""
 
         await ctx.send(
@@ -251,7 +249,7 @@ class Bot(commands.Cog):
         )
 
     @commands.command(aliases=["botinfo"])
-    async def stats(self, ctx: commands.Context):
+    async def stats(self, ctx):
         """View bot info."""
 
         result = await self.get_stats()
@@ -276,7 +274,7 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def ping(self, ctx: commands.Context):
+    async def ping(self, ctx):
         """View the bot's latency."""
 
         message = await ctx.send("Pong!")
@@ -293,7 +291,7 @@ class Bot(commands.Cog):
             await message.edit(content=f"Pong! **{ms} ms**")
 
     @commands.command()
-    async def start(self, ctx: commands.Context):
+    async def start(self, ctx):
         """View the starter pokémon."""
 
         embed = self.bot.Embed(color=0xF44336)
@@ -306,7 +304,7 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def pick(self, ctx: commands.Context, *, name: str):
+    async def pick(self, ctx, *, name: str):
         """Pick a starter pokémon to get started."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -347,7 +345,7 @@ class Bot(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def profile(self, ctx: commands.Context):
+    async def profile(self, ctx):
         """View your profile."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)

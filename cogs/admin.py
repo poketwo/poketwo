@@ -3,7 +3,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands
-from pymongo.errors import DuplicateKeyError
+from helpers.converters import FetchUserConverter
 
 from . import mongo
 
@@ -15,103 +15,104 @@ class Administration(commands.Cog):
         self.bot = bot
 
     @commands.is_owner()
-    @commands.command()
-    async def blacklist(self, ctx: commands.Context, id: int):
-        """Blacklist a user."""
-
-        try:
-            await self.bot.mongo.db.blacklist.insert_one({"_id": id})
-            await ctx.send(f"Blacklisted {id}.")
-        except DuplicateKeyError:
-            await ctx.send("That ID is already blacklisted!")
+    @commands.group(aliases=("am",), invoke_without_command=True)
+    async def admin(self, ctx):
+        pass
 
     @commands.is_owner()
-    @commands.command()
-    async def unblacklist(self, ctx: commands.Context, id: int):
-        """Unblacklist a user."""
+    @admin.command(aliases=("bl",))
+    async def blacklist(self, ctx, users: commands.Greedy[FetchUserConverter]):
+        """Blacklist one or more users."""
 
-        result = await self.bot.mongo.db.blacklist.delete_one({"_id": id})
-        if result.deleted_count == 0:
-            await ctx.send("That ID is not blacklisted!")
-        else:
-            await ctx.send(f"Unblacklisted {id}.")
-
-    @commands.is_owner()
-    @commands.command()
-    async def suspend(self, ctx: commands.Context, user: discord.User):
-        """Suspend a user."""
-
-        await self.bot.mongo.update_member(user, {"$set": {"suspended": True}})
-        await ctx.send(f"Suspended {user.mention}.")
+        await self.bot.mongo.db.blacklist.insert_many(
+            [{"_id": x.id} for x in users], ordered=False
+        )
+        users_msg = ", ".join(f"**{x}**" for x in users)
+        await ctx.send(f"Blacklisted {users_msg}.")
 
     @commands.is_owner()
-    @commands.command()
-    async def randomspawn(self, ctx: commands.Context):
+    @admin.command(aliases=("ubl",))
+    async def unblacklist(self, ctx, users: commands.Greedy[FetchUserConverter]):
+        """Blacklist one or more users."""
+
+        await self.bot.mongo.db.blacklist.delete_many(
+            {"_id": {"$in": [x.id for x in users]}},
+        )
+        users_msg = ", ".join(f"**{x}**" for x in users)
+        await ctx.send(f"Unblacklisted {users_msg}.")
+
+    @commands.is_owner()
+    @admin.command(aliases=("sp",))
+    async def suspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
+        """Suspend one or more users."""
+
+        await self.bot.mongo.db.member.update_many(
+            {"_id": {"$in": [x.id for x in users]}},
+            {"$set": {"suspended": True}},
+        )
+        users_msg = ", ".join(f"**{x}**" for x in users)
+        await ctx.send(f"Suspended {users_msg}.")
+
+    @commands.is_owner()
+    @admin.command(aliases=("usp",))
+    async def unsuspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
+        """Unuspend one or more users."""
+
+        await self.bot.mongo.db.member.update_many(
+            {"_id": {"$in": [x.id for x in users]}},
+            {"$set": {"suspended": False}},
+        )
+        users_msg = ", ".join(f"**{x}**" for x in users)
+        await ctx.send(f"Unsuspended {users_msg}.")
+
+    @commands.is_owner()
+    @admin.command(aliases=("spawn",))
+    async def randomspawn(self, ctx):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel)
 
     @commands.is_owner()
-    @commands.command()
-    async def unsuspend(self, ctx: commands.Context, user: discord.User):
-        """Suspend a user."""
-
-        await self.bot.mongo.update_member(user, {"$set": {"suspended": False}})
-        await ctx.send(f"Unsuspended {user.mention}.")
-
-    @commands.is_owner()
-    @commands.command(aliases=["addredeem"])
-    async def giveredeem(
-        self, ctx: commands.Context, user: discord.Member, *, num: int = 1
-    ):
+    @admin.command(aliases=["addredeem", "ar", "gr"])
+    async def giveredeem(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a redeem."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"redeems": num}})
-        await ctx.send(f"Gave {user.mention} {num} redeems.")
+        await ctx.send(f"Gave **{user}** {num} redeems.")
 
     @commands.is_owner()
-    @commands.command(aliases=["givebal"])
-    async def addbal(
-        self,
-        ctx: commands.Context,
-        user: discord.Member,
-        amt: int,
-    ):
+    @admin.command(aliases=["givecoins", "ac", "gc"])
+    async def addcoins(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's balance."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"balance": amt}})
-        await ctx.send(f"Gave {user.mention} {amt} Pokécoins.")
+        await ctx.send(f"Gave **{user}** {amt} Pokécoins.")
 
     @commands.is_owner()
-    @commands.command(aliases=["givecandy"])
-    async def addcandy(
-        self,
-        ctx: commands.Context,
-        user: discord.Member,
-        amt: int,
-    ):
-        """Add to a user's candies."""
-
-        await self.bot.mongo.update_member(user, {"$inc": {"halloween_tickets": amt}})
-        await ctx.send(f"Gave {user.mention} {amt} candies.")
-
-    @commands.is_owner()
-    @commands.command(aliases=["giveshard"])
-    async def addshard(
-        self,
-        ctx: commands.Context,
-        user: discord.Member,
-        amt: int,
-    ):
+    @admin.command(aliases=["giveshard", "as", "gs"])
+    async def addshard(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's shard balance."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"premium_balance": amt}})
-        await ctx.send(f"Gave {user.mention} {amt} shards.")
+        await ctx.send(f"Gave **{user}** {amt} shards.")
 
     @commands.is_owner()
-    @commands.command(aliases=["givevote"])
-    async def addvote(
-        self, ctx: commands.Context, user: discord.Member, box_type: str, amt: int = 1
-    ):
-        """Give a user a vote."""
+    @admin.command(aliases=["givevote", "av", "gv"])
+    async def addvote(self, ctx, user: FetchUserConverter, amt: int = 1):
+        """Add to a user's vote streak."""
+
+        await self.bot.mongo.update_member(
+            user,
+            {
+                "$set": {"last_voted": datetime.utcnow()},
+                "$inc": {"vote_total": amt, "vote_streak": amt},
+            },
+        )
+
+        await ctx.send(f"Increased vote streak by {amt} for **{user}**.")
+
+    @commands.is_owner()
+    @admin.command(aliases=["givebox", "ab", "gb"])
+    async def addbox(self, ctx, user: FetchUserConverter, box_type, amt: int = 1):
+        """Give a user boxes."""
 
         if box_type not in ("normal", "great", "ultra", "master"):
             return await ctx.send("That's not a valid box type!")
@@ -120,34 +121,30 @@ class Administration(commands.Cog):
             user,
             {
                 "$set": {"last_voted": datetime.utcnow()},
-                "$inc": {
-                    "vote_total": amt,
-                    "vote_streak": amt,
-                    f"gifts_{box_type}": amt,
-                },
+                "$inc": {f"gifts_{box_type}": amt},
             },
         )
 
         if amt == 1:
-            await ctx.send(f"Gave {user.mention} an {box_type} box.")
+            await ctx.send(f"Gave **{user}** 1 {box_type} box.")
         else:
-            await ctx.send(f"Gave {user.mention} {amt} {box_type} boxes.")
+            await ctx.send(f"Gave **{user}** {amt} {box_type} boxes.")
 
     @commands.is_owner()
-    @commands.command()
-    async def give(self, ctx: commands.Context, user: discord.Member, *, species: str):
+    @admin.command(aliases=("g",))
+    async def give(self, ctx, user: discord.Member, *, arg: str):
         """Give a pokémon."""
 
         shiny = False
 
-        if species.lower().startswith("shiny"):
+        if arg.lower().startswith("shiny"):
             shiny = True
-            species = species.lower().replace("shiny", "").strip()
+            arg = arg.lower().replace("shiny", "").strip()
 
-        species = self.bot.data.species_by_name(species)
+        species = self.bot.data.species_by_name(arg)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+            return await ctx.send(f"Could not find a pokemon matching `{arg}`.")
 
         await self.bot.mongo.db.pokemon.insert_one(
             {
@@ -167,11 +164,11 @@ class Administration(commands.Cog):
             }
         )
 
-        await ctx.send(f"Gave {user.mention} a {species}.")
+        await ctx.send(f"Gave **{user}** a {species}.")
 
     @commands.is_owner()
-    @commands.command()
-    async def setup(self, ctx: commands.Context, user: discord.Member, num: int = 100):
+    @admin.command()
+    async def setup(self, ctx, user: discord.Member, num: int = 100):
         """Test setup pokémon."""
 
         # This is for development purposes.
@@ -200,7 +197,7 @@ class Administration(commands.Cog):
             )
 
         await self.bot.mongo.db.pokemon.insert_many(pokemon)
-        await ctx.send(f"Gave {user.mention} {num} pokémon.")
+        await ctx.send(f"Gave **{user}** {num} pokémon.")
 
 
 def setup(bot: commands.Bot):

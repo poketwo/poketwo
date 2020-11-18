@@ -303,7 +303,7 @@ class Spawning(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.cooldown(1, 20, commands.BucketType.user)
     @commands.command(aliases=["h"])
-    async def hint(self, ctx: commands.Context):
+    async def hint(self, ctx):
         """Get a hint for the wild pokémon."""
 
         if not await self.bot.redis.hexists("wild", ctx.channel.id):
@@ -324,7 +324,7 @@ class Spawning(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.channel, wait=True)
     @commands.command(aliases=["c"])
-    async def catch(self, ctx: commands.Context, *, guess: str):
+    async def catch(self, ctx, *, guess: str):
         """Catch a wild pokémon."""
 
         # Retrieve correct species and level from tracker
@@ -443,7 +443,7 @@ class Spawning(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=["sh"])
-    async def shinyhunt(self, ctx: commands.Context, *, species: str = None):
+    async def shinyhunt(self, ctx, *, species: str = None):
         """Hunt for a shiny pokémon species."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)

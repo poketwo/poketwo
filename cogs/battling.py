@@ -104,7 +104,7 @@ class Trainer:
 
 class Battle:
     def __init__(
-        self, users: typing.List[discord.Member], ctx: commands.Context, manager
+        self, users: typing.List[discord.Member], ctx, manager
     ):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
@@ -434,13 +434,13 @@ class Battling(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def reloadbattling(self, ctx: commands.Context):
+    async def reloadbattling(self, ctx):
         self.bot.battles = BattleManager()
         await ctx.send("Reloaded battle manager.")
 
     @checks.has_started()
     @commands.group(aliases=["duel"], invoke_without_command=True)
-    async def battle(self, ctx: commands.Context, *, user: discord.Member):
+    async def battle(self, ctx, *, user: discord.Member):
         """Battle another trainer with your pokémon!"""
 
         # Base cases
@@ -498,7 +498,7 @@ class Battling(commands.Cog):
     @checks.has_started()
     @battle.command(aliases=["a"])
     async def add(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+        self, ctx, args: commands.Greedy[converters.PokemonConverter]
     ):
         """Add a pokémon to a battle."""
 
@@ -550,7 +550,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @battle.command(aliases=["m"])
-    async def move(self, ctx: commands.Context, *, move):
+    async def move(self, ctx, *, move):
         """Move in a battle."""
 
         if ctx.author not in self.bot.battles:
@@ -561,7 +561,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=["mv"], rest_is_raw=True)
-    async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    async def moves(self, ctx, *, pokemon: converters.PokemonConverter):
         """View current and available moves for your pokémon."""
 
         if pokemon is None:
@@ -594,7 +594,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def learn(self, ctx: commands.Context, *, search: str):
+    async def learn(self, ctx, *, search: str):
         """Learn moves for your pokémon to use in battle."""
 
         move = self.bot.data.move_by_name(search)
@@ -657,7 +657,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=["ms"], rest_is_raw=True)
-    async def moveset(self, ctx: commands.Context, *, search: str):
+    async def moveset(self, ctx, *, search: str):
         """View all moves for your pokémon and how to get them."""
 
         search = search.strip()
@@ -668,7 +668,7 @@ class Battling(commands.Cog):
             species = self.bot.data.species_by_name(search)
 
             if species is None:
-                converter = converters.Pokemon(raise_errors=False)
+                converter = converters.PokemonConverter(raise_errors=False)
                 pokemon = await converter.convert(ctx, search)
                 if pokemon is not None:
                     species = pokemon.species
@@ -707,7 +707,7 @@ class Battling(commands.Cog):
         await paginator.send(self.bot, ctx, 0)
 
     @commands.command(aliases=["mi"])
-    async def moveinfo(self, ctx: commands.Context, *, search: str):
+    async def moveinfo(self, ctx, *, search: str):
         """View information about a certain move."""
 
         move = self.bot.data.move_by_name(search)
@@ -741,7 +741,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @battle.command(aliases=["x"])
-    async def cancel(self, ctx: commands.Context):
+    async def cancel(self, ctx):
         """Cancel a battle."""
 
         if ctx.author not in self.bot.battles:

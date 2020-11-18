@@ -15,7 +15,7 @@ class Market(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
-    async def market(self, ctx: commands.Context, **flags):
+    async def market(self, ctx, **flags):
         """Buy or sell pokémon on the Pokétwo marketplace."""
 
         await ctx.send_help(ctx.command)
@@ -54,7 +54,7 @@ class Market(commands.Cog):
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
     @market.command(aliases=["s"], cls=flags.FlagCommand)
-    async def search(self, ctx: commands.Context, **flags):
+    async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
         if flags["page"] < 1:
@@ -120,7 +120,7 @@ class Market(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["list", "a", "l"])
-    async def add(self, ctx: commands.Context, pokemon: converters.Pokemon, price: int):
+    async def add(self, ctx, pokemon: converters.PokemonConverter, price: int):
         """List a pokémon on the marketplace."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -185,7 +185,7 @@ class Market(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["unlist", "r", "u"])
-    async def remove(self, ctx: commands.Context, id: int):
+    async def remove(self, ctx, id: int):
         """Remove a pokémon from the marketplace."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -239,7 +239,7 @@ class Market(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=["purchase", "b", "p"])
-    async def buy(self, ctx: commands.Context, id: int):
+    async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -337,7 +337,7 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @market.command(aliases=["i", "I"])
-    async def info(self, ctx: commands.Context, id: int):
+    async def info(self, ctx, id: int):
         """View a pokémon from the market."""
 
         try:

@@ -10,7 +10,7 @@ class NoEvent(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def event(self, ctx: commands.Context):
+    async def event(self, ctx):
         """No event."""
 
         await ctx.send("There is no event currently active.")
