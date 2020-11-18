@@ -37,7 +37,7 @@ class Paginator:
         if not isinstance(embed, discord.Embed):
             return
         
-        prefix = re.sub(f"<@!?{ctx.me.id}>", ctx.prefix, f"@{ctx.me.name}")
+        prefix = re.sub(f"<@!?{ctx.me.id}>", f"@{ctx.me.name}", ctx.prefix)
 
         try:
             embed.set_footer(
