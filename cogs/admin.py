@@ -132,7 +132,7 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @admin.command(aliases=("g",))
-    async def give(self, ctx, user: discord.Member, *, arg: str):
+    async def give(self, ctx, user: FetchUserConverter, *, arg: str):
         """Give a pokémon."""
 
         shiny = False
@@ -168,7 +168,7 @@ class Administration(commands.Cog):
 
     @commands.is_owner()
     @admin.command()
-    async def setup(self, ctx, user: discord.Member, num: int = 100):
+    async def setup(self, ctx, user: FetchUserConverter, num: int = 100):
         """Test setup pokémon."""
 
         # This is for development purposes.
