@@ -167,7 +167,7 @@ class Halloween(commands.Cog):
         return ret
 
     @checks.has_started()
-    @commands.group(aliases=["event"], invoke_without_command=True)
+    @commands.group(aliases=("event",), invoke_without_command=True)
     async def halloween(self, ctx):
         """View halloween event information."""
 

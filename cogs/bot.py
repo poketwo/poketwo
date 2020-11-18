@@ -244,7 +244,7 @@ class Bot(commands.Cog):
             upsert=True,
         )
 
-    @commands.command(aliases=["botinfo"])
+    @commands.command(aliases=("botinfo",))
     async def stats(self, ctx):
         """View bot info."""
 

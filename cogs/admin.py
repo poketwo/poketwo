@@ -71,7 +71,7 @@ class Administration(commands.Cog):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel)
 
     @commands.is_owner()
-    @admin.command(aliases=["addredeem", "ar", "gr"])
+    @admin.command(aliases=("addredeem", "ar", "gr"))
     async def giveredeem(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a redeem."""
 
@@ -79,7 +79,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave **{user}** {num} redeems.")
 
     @commands.is_owner()
-    @admin.command(aliases=["givecoins", "ac", "gc"])
+    @admin.command(aliases=("givecoins", "ac", "gc"))
     async def addcoins(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's balance."""
 
@@ -87,7 +87,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave **{user}** {amt} Pokécoins.")
 
     @commands.is_owner()
-    @admin.command(aliases=["giveshard", "as", "gs"])
+    @admin.command(aliases=("giveshard", "as", "gs"))
     async def addshard(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's shard balance."""
 
@@ -95,7 +95,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave **{user}** {amt} shards.")
 
     @commands.is_owner()
-    @admin.command(aliases=["givevote", "av", "gv"])
+    @admin.command(aliases=("givevote", "av", "gv"))
     async def addvote(self, ctx, user: FetchUserConverter, amt: int = 1):
         """Add to a user's vote streak."""
 
@@ -110,7 +110,7 @@ class Administration(commands.Cog):
         await ctx.send(f"Increased vote streak by {amt} for **{user}**.")
 
     @commands.is_owner()
-    @admin.command(aliases=["givebox", "ab", "gb"])
+    @admin.command(aliases=("givebox", "ab", "gb"))
     async def addbox(self, ctx, user: FetchUserConverter, box_type, amt: int = 1):
         """Give a user boxes."""
 

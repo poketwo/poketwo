@@ -258,7 +258,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @commands.group(aliases=["t"], invoke_without_command=True)
+    @commands.group(aliases=("t",), invoke_without_command=True)
     async def trade(self, ctx, *, user: discord.Member):
         """Trade pokémon with another trainer."""
 
@@ -320,7 +320,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["x"])
+    @trade.command(aliases=("x",))
     async def cancel(self, ctx):
         """Cancel a trade."""
 
@@ -338,7 +338,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["c"])
+    @trade.command(aliases=("c",))
     async def confirm(self, ctx):
         """Confirm a trade."""
 
@@ -357,7 +357,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["a"])
+    @trade.command(aliases=("a",))
     async def add(self, ctx, *args):
         """Add an item to a trade."""
 
@@ -468,7 +468,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["r"])
+    @trade.command(aliases=("r",))
     async def remove(self, ctx, *args):
         """Remove an item from a trade."""
 
@@ -572,7 +572,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["aa"], cls=flags.FlagCommand)
+    @trade.command(aliases=("aa",), cls=flags.FlagCommand)
     async def addall(self, ctx, **flags):
 
         if not await self.is_in_trade(ctx.author):
@@ -654,7 +654,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["i"])
+    @trade.command(aliases=("i",))
     async def info(self, ctx, *, number: int):
         """View a pokémon from the trade."""
 

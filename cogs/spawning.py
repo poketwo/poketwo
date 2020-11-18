@@ -302,7 +302,7 @@ class Spawning(commands.Cog):
     @checks.has_started()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.cooldown(1, 20, commands.BucketType.user)
-    @commands.command(aliases=["h"])
+    @commands.command(aliases=("h",))
     async def hint(self, ctx):
         """Get a hint for the wild pokémon."""
 
@@ -323,7 +323,7 @@ class Spawning(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.channel, wait=True)
-    @commands.command(aliases=["c"])
+    @commands.command(aliases=("c",))
     async def catch(self, ctx, *, guess: str):
         """Catch a wild pokémon."""
 
@@ -442,7 +442,7 @@ class Spawning(commands.Cog):
         await ctx.send(message)
 
     @checks.has_started()
-    @commands.command(aliases=["sh"])
+    @commands.command(aliases=("sh",))
     async def shinyhunt(self, ctx, *, species: str = None):
         """Hunt for a shiny pokémon species."""
 

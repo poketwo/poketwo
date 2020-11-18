@@ -138,7 +138,7 @@ class Auctions(commands.Cog):
 
         return embed
 
-    @commands.group(aliases=["auctions", "a"], invoke_without_command=True)
+    @commands.group(aliases=("auctions", "a"), invoke_without_command=True)
     async def auction(self, ctx):
         """Auction pokémon."""
 
@@ -441,7 +441,7 @@ class Auctions(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
-    @auction.command(aliases=["s"], cls=flags.FlagCommand)
+    @auction.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
@@ -514,7 +514,7 @@ class Auctions(commands.Cog):
     # TODO make all groups case insensitive
 
     @checks.has_started()
-    @auction.command(aliases=["i"])
+    @auction.command(aliases=("i",))
     async def info(self, ctx, auction: AuctionConverter):
         """View a pokémon from an auction."""
 

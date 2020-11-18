@@ -74,7 +74,7 @@ class Shop(commands.Cog):
         await ctx.send("Incense has been stopped.")
 
     @checks.has_started()
-    @commands.command(aliases=["v", "daily", "boxes"])
+    @commands.command(aliases=("v", "daily", "boxes"))
     async def vote(self, ctx):
         """View information on voting rewards."""
 
@@ -171,7 +171,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["o"])
+    @commands.command(aliases=("o",))
     async def open(self, ctx, type: str = "", amt: int = 1):
         """Open mystery boxes received from voting."""
 
@@ -297,7 +297,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["bal"])
+    @commands.command(aliases=("bal",))
     async def balance(self, ctx):
         """View your current balance."""
 
@@ -311,7 +311,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["di"], rest_is_raw=True)
+    @commands.command(aliases=("di",), rest_is_raw=True)
     async def dropitem(self, ctx, *, pokemon: converters.PokemonConverter):
         """Drop a pokémon's held item."""
 
@@ -336,7 +336,7 @@ class Shop(commands.Cog):
         await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
 
     @checks.has_started()
-    @commands.command(aliases=["mvi"])
+    @commands.command(aliases=("mvi",))
     async def moveitem(
         self,
         ctx,
@@ -386,7 +386,7 @@ class Shop(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command(aliases=["togglebal"])
+    @commands.command(aliases=("togglebal",))
     async def togglebalance(self, ctx):
         """Toggle showing balance in shop."""
 
@@ -899,7 +899,7 @@ class Shop(commands.Cog):
                     break
 
     @checks.has_started()
-    @commands.command(aliases=["ec"])
+    @commands.command(aliases=("ec",))
     @commands.max_concurrency(1, commands.BucketType.user)
     async def embedcolor(
         self,
@@ -955,7 +955,7 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @commands.command(aliases=["rs"])
+    @commands.command(aliases=("rs",))
     async def redeemspawn(self, ctx, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 

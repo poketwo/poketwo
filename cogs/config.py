@@ -44,7 +44,7 @@ class Configuration(commands.Cog):
         return embed
 
     @commands.guild_only()
-    @commands.group(aliases=["config", "serverconfig"], invoke_without_command=True)
+    @commands.group(aliases=("config", "serverconfig"), invoke_without_command=True)
     async def configuration(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
@@ -156,7 +156,7 @@ class Configuration(commands.Cog):
         await ctx.send(f"No longer redirecting spawns.")
 
     @checks.is_admin()
-    @commands.command(aliases=["timezone", "tz"])
+    @commands.command(aliases=("timezone", "tz"))
     async def location(self, ctx: commands.Context, *, location: str = None):
         if location is None:
             guild = await self.bot.mongo.fetch_guild(ctx.guild)

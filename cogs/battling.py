@@ -449,7 +449,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @in_battle(False)
-    @commands.group(aliases=["duel"], invoke_without_command=True)
+    @commands.group(aliases=("duel",), invoke_without_command=True)
     async def battle(self, ctx, *, user: discord.Member):
         """Battle another trainer with your pokémon!"""
 
@@ -502,7 +502,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @in_battle(True)
-    @battle.command(aliases=["a"])
+    @battle.command(aliases=("a",))
     async def add(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Add a pokémon to a battle."""
 
@@ -551,14 +551,14 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @in_battle(True)
-    @battle.command(aliases=["m"])
+    @battle.command(aliases=("m",))
     async def move(self, ctx, *, move):
         """Move in a battle."""
 
         self.bot.dispatch("battle_move", ctx.author, move)
 
     @checks.has_started()
-    @commands.command(aliases=["mv"], rest_is_raw=True)
+    @commands.command(aliases=("mv",), rest_is_raw=True)
     async def moves(self, ctx, *, pokemon: converters.PokemonConverter):
         """View current and available moves for your pokémon."""
 
@@ -649,7 +649,7 @@ class Battling(commands.Cog):
         await ctx.send("Your pokémon has learned " + move.name + "!")
 
     @checks.has_started()
-    @commands.command(aliases=["ms"], rest_is_raw=True)
+    @commands.command(aliases=("ms",), rest_is_raw=True)
     async def moveset(self, ctx, *, search: str):
         """View all moves for your pokémon and how to get them."""
 
@@ -699,7 +699,7 @@ class Battling(commands.Cog):
         )
         await paginator.send(self.bot, ctx, 0)
 
-    @commands.command(aliases=["mi"])
+    @commands.command(aliases=("mi",))
     async def moveinfo(self, ctx, *, search: str):
         """View information about a certain move."""
 
@@ -734,7 +734,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @in_battle(True)
-    @battle.command(aliases=["x"])
+    @battle.command(aliases=("x",))
     async def cancel(self, ctx):
         """Cancel a battle."""
 

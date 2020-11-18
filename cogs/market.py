@@ -14,7 +14,7 @@ class Market(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(aliases=["marketplace", "m"], invoke_without_command=True)
+    @commands.group(aliases=("marketplace", "m"), invoke_without_command=True)
     async def market(self, ctx, **flags):
         """Buy or sell pokémon on the Pokétwo marketplace."""
 
@@ -53,7 +53,7 @@ class Market(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
-    @market.command(aliases=["s"], cls=flags.FlagCommand)
+    @market.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
@@ -119,7 +119,7 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
-    @market.command(aliases=["list", "a", "l"])
+    @market.command(aliases=("list", "a", "l"))
     async def add(self, ctx, pokemon: converters.PokemonConverter, price: int):
         """List a pokémon on the marketplace."""
 
@@ -184,7 +184,7 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
-    @market.command(aliases=["unlist", "r", "u"])
+    @market.command(aliases=("unlist", "r", "u"))
     async def remove(self, ctx, id: int):
         """Remove a pokémon from the marketplace."""
 
@@ -238,7 +238,7 @@ class Market(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
-    @market.command(aliases=["purchase", "b", "p"])
+    @market.command(aliases=("purchase", "b", "p"))
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
 
@@ -336,7 +336,7 @@ class Market(commands.Cog):
             print("Error trading market logs.")
 
     @checks.has_started()
-    @market.command(aliases=["i", "I"])
+    @market.command(aliases=("i", "I"))
     async def info(self, ctx, id: int):
         """View a pokémon from the market."""
 
