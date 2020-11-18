@@ -15,7 +15,7 @@ class Administration(commands.Cog):
         self.bot = bot
 
     @commands.is_owner()
-    @commands.group(aliases=("am",), invoke_without_command=True)
+    @commands.group(aliases=("am",), invoke_without_command=True, case_insensitive=True)
     async def admin(self, ctx):
         pass
 

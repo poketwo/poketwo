@@ -44,7 +44,11 @@ class Configuration(commands.Cog):
         return embed
 
     @commands.guild_only()
-    @commands.group(aliases=("config", "serverconfig"), invoke_without_command=True)
+    @commands.group(
+        aliases=("config", "serverconfig"),
+        invoke_without_command=True,
+        case_insensitive=True,
+    )
     async def configuration(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
@@ -131,7 +135,7 @@ class Configuration(commands.Cog):
             )
 
     @checks.is_admin()
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, case_insensitive=True)
     async def redirect(
         self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]
     ):

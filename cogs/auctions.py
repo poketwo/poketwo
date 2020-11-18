@@ -138,7 +138,9 @@ class Auctions(commands.Cog):
 
         return embed
 
-    @commands.group(aliases=("auctions", "a"), invoke_without_command=True)
+    @commands.group(
+        aliases=("auctions", "a"), invoke_without_command=True, case_insensitive=True
+    )
     async def auction(self, ctx):
         """Auction pokémon."""
 

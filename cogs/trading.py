@@ -258,7 +258,7 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @commands.group(aliases=("t",), invoke_without_command=True)
+    @commands.group(aliases=("t",), invoke_without_command=True, case_insensitive=True)
     async def trade(self, ctx, *, user: discord.Member):
         """Trade pokémon with another trainer."""
 
