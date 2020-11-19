@@ -523,6 +523,10 @@ class Shop(commands.Cog):
         search = " ".join(args)
         if search.lower() == "shards":
             search = "shard"
+        if search.lower() == "redeems":
+            search = "redeem"
+        if search.lower() == "rare candies":
+            search = "rare candy"
         item = self.bot.data.item_by_name(search)
         if item is None:
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
