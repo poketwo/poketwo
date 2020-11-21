@@ -1,6 +1,7 @@
 import asyncio
 import math
 from operator import itemgetter
+import typing
 
 from discord.ext import commands, flags
 from pymongo import UpdateOne
@@ -41,20 +42,26 @@ class Pokemon(commands.Cog):
         await ctx.send("Successfully reindexed all your pokémon!")
 
     @commands.command(aliases=["nick"])
-    async def nickname(self, ctx: commands.Context, *, nickname: str):
+    async def nickname(
+        self,
+        ctx: commands.Context,
+        pokemon: typing.Optional[converters.Pokemon] = False,
+        *,
+        nickname: str,
+    ):
         """Change the nickname for your pokémon."""
+
+        if pokemon is False:
+            pokemon = await converters.Pokemon().convert(ctx, "")
+
+        if pokemon is None:
+            return await ctx.send("Couldn't find that pokémon!")
 
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
 
         if nickname == "reset":
             nickname = None
-
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
-
-        if pokemon is None:
-            return await ctx.send("You must have a pokémon selected!")
 
         await self.bot.mongo.update_pokemon(
             pokemon,
