@@ -78,4 +78,7 @@ def strfdelta(duration, long=False, max_len=None):
         if max_len is not None and len(strings) >= max_len:
             break
 
+    if len(strings) == 0:
+        strings.append("now")
+
     return " ".join(strings)
