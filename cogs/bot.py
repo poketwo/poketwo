@@ -33,7 +33,7 @@ class Bot(commands.Cog):
         self.cd = commands.CooldownMapping.from_cooldown(5, 3, commands.BucketType.user)
 
     async def bot_check(self, ctx):
-        if ctx.invoked_with.lower() in ("help", "market", "auction"):
+        if ctx.invoked_with.lower() == "help":
             return True
 
         if (
@@ -90,6 +90,8 @@ class Bot(commands.Cog):
                 await ctx.send(message)
         elif isinstance(error, converters.PokemonConversionError):
             await ctx.send(error.original)
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send_help(ctx.command)
         elif isinstance(
             error,
             (
@@ -99,8 +101,6 @@ class Bot(commands.Cog):
             ),
         ):
             await ctx.send(error)
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send_help(ctx.command)
         elif isinstance(error, commands.CommandNotFound):
             return
         else:

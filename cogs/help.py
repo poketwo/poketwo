@@ -61,6 +61,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         ctx = self.context
+        ctx.invoked_with = "help"
         bot = ctx.bot
 
         def get_category(command):
@@ -110,6 +111,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_cog_help(self, cog):
         ctx = self.context
+        ctx.invoked_with = "help"
         bot = ctx.bot
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
@@ -124,6 +126,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_group_help(self, group):
         ctx = self.context
+        ctx.invoked_with = "help"
         bot = ctx.bot
 
         subcommands = group.commands

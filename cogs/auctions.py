@@ -312,7 +312,7 @@ class Auctions(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
-    @auction.command()
+    @auction.command(aliases=("b",))
     async def bid(self, ctx: commands.Context, auction_id: int, bid: int):
         """Bid on an auction."""
 
