@@ -330,6 +330,7 @@ class Market(commands.Cog):
                     "event": "market",
                     "user": ctx.author.id,
                     "item": listing["pokemon"]["_id"],
+                    "price": listing["price"],
                 }
             )
         except:

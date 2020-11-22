@@ -356,9 +356,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("You can't do that in a trade!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
-
-        converter = converters.Pokemon(accept_blank=False)
 
         ids = set()
         mons = list()
@@ -420,7 +417,7 @@ class Pokemon(commands.Cog):
 
         # confirmed, release
 
-        await self.bot.mongo.db.pokemon.delete_many({"_id": {"$in": list(ids)}})
+        await self.bot.mongo.db.pokemon.update_many({"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}})
         await ctx.send(f"You released {len(mons)} pokémon.")
 
     # Filter
@@ -507,8 +504,8 @@ class Pokemon(commands.Cog):
             ctx.author, 0, num, aggregations=aggregations
         )
 
-        await self.bot.mongo.db.pokemon.delete_many(
-            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}
+        await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}, {"$set": {"owner_id": None}}
         )
 
         await ctx.send(f"You have released {num} pokémon.")
