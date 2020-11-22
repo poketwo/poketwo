@@ -75,6 +75,9 @@ class PokemonBase(MixinDocument):
         if "l" in spec:
             name += f"Level {self.level} "
 
+        elif "L" in spec:
+            name += f"L{self.level} "
+
         if self.bot.sprites.status and "i" in spec:
             sprite = self.bot.sprites.get(self.species.dex_number, shiny=self.shiny)
             name = sprite + " " + name

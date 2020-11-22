@@ -1,12 +1,12 @@
 import asyncio
 import math
-from operator import itemgetter
 import typing
+from datetime import datetime
+from operator import itemgetter
 
 from discord.ext import commands, flags
-from pymongo import UpdateOne
-
 from helpers import checks, constants, converters, pagination
+from pymongo import UpdateOne
 
 
 class Pokemon(commands.Cog):
@@ -240,6 +240,9 @@ class Pokemon(commands.Cog):
         if "mine" in flags and flags["mine"]:
             aggregations.append({"$match": {"user_id": ctx.author.id}})
 
+        if "bids" in flags and flags["bids"]:
+            aggregations.append({"$match": {"bidder_id": ctx.author.id}})
+
         for x in ("mythical", "legendary", "ub", "alolan", "mega"):
             if x in flags and flags[x]:
                 aggregations.append(
@@ -289,6 +292,9 @@ class Pokemon(commands.Cog):
                     }
                 }
             )
+
+        if "ends" in flags and flags["ends"] is not None:
+            aggregations.append({"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
 
         # Numerical flags
 
@@ -417,7 +423,9 @@ class Pokemon(commands.Cog):
 
         # confirmed, release
 
-        await self.bot.mongo.db.pokemon.update_many({"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}})
+        await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}}
+        )
         await ctx.send(f"You released {len(mons)} pokémon.")
 
     # Filter
@@ -505,7 +513,8 @@ class Pokemon(commands.Cog):
         )
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}}, {"$set": {"owner_id": None}}
+            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
+            {"$set": {"owner_id": None}},
         )
 
         await ctx.send(f"You have released {num} pokémon.")

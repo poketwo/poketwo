@@ -145,6 +145,7 @@ SORTING_FUNCTIONS = {
     "pokedex": "$pokemon.species_id",
     "price": "$price",
     "bid": "$current_bid",
+    "ends": "$ends",
 }
 
 FILTER_BY_NUMERICAL = {

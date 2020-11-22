@@ -56,7 +56,8 @@ class Auctions(commands.Cog):
         embed.set_footer(text=f"The auction has ended.")
 
         auction_channel = auction_guild.get_channel(guild.auction_channel)
-        message = await auction_channel.send(embed=embed)
+        if auction_channel is not None:
+            self.bot.loop.create_task(auction_channel.send(embed=embed))
 
         # ok, bid
 
@@ -85,6 +86,20 @@ class Auctions(commands.Cog):
                 f"You won the auction for the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** with a bid of **{auction.current_bid:,}** Pokécoins (Auction #{auction.id})."
             )
         )
+
+        if auction.current_bid > 0:
+            try:
+                await self.bot.mongo.db.logs.insert_one(
+                    {
+                        "event": "auction",
+                        "user": auction.bidder_id,
+                        "item": auction.pokemon.id,
+                        "seller_id": auction.user_id,
+                        "price": auction.current_bid,
+                    }
+                )
+            except:
+                print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
         embed = discord.Embed(color=0xF44336)
@@ -158,12 +173,17 @@ class Auctions(commands.Cog):
         if bid_increment < 1 or bid_increment > 1000000000:
             return await ctx.send("The bid increment is not valid.")
 
+        if duration > timedelta(weeks=1):
+            return await ctx.send("The max duration is 1 week.")
+
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
         if (
             guild.auction_channel is None
             or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None
         ):
-            return await ctx.send("Auctions have not been set up in this server.")
+            return await ctx.send(
+                "Auctions have not been set up in this server. Have a server administrator do `p!auction channel #channel`."
+            )
 
         # confirm
 
@@ -207,7 +227,8 @@ class Auctions(commands.Cog):
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.prefix}auction bid {counter['next']} <bid>`\nEnds at"
+            text=f"Bid with `{ctx.prefix}auction bid {counter['next']} <bid>`\n"
+            f"Ends in {converters.strfdelta(ends - datetime.utcnow())} at"
         )
         embed.timestamp = ends
 
@@ -267,13 +288,14 @@ class Auctions(commands.Cog):
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
+            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\n"
+            f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
         )
         embed.timestamp = auction.ends
 
         auction_channel = ctx.guild.get_channel(guild.auction_channel)
         if auction_channel is not None:
-            message = await auction_channel.send(embed=embed)
+            self.bot.loop.create_task(auction_channel.send(embed=embed))
 
         await self.bot.mongo.db.auction.update_one(
             {"_id": auction.id},
@@ -368,13 +390,14 @@ class Auctions(commands.Cog):
             )
             embed.add_field(name="Auction Details", value="\n".join(auction_info))
             embed.set_footer(
-                text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
+                text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\n"
+                f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
             )
             embed.timestamp = auction.ends
 
             auction_channel = ctx.guild.get_channel(guild.auction_channel)
             if auction_channel is not None:
-                message = await auction_channel.send(embed=embed)
+                self.bot.loop.create_task(auction_channel.send(embed=embed))
 
             if auction.bidder_id is not None:
                 old_bidder = self.bot.get_user(
@@ -437,22 +460,22 @@ class Auctions(commands.Cog):
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
 
-    # Market
+    # Auctions
     @flags.add_flag(
         "--order",
-        choices=["iv+", "iv-", "bid+", "bid-", "level+", "level-"],
+        choices=["iv+", "iv-", "bid+", "bid-", "level+", "level-", "ends+", "ends-"],
         default="bid-",
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
+    @flags.add_flag("--bids", action="store_true")
+    @flags.add_flag("--ends", type=converters.to_timedelta)
     @checks.has_started()
     @auction.command(aliases=["s"], cls=flags.FlagCommand)
     async def search(self, ctx: commands.Context, **flags):
-        """Search pokémon from the marketplace."""
+        """Search pokémon from auctions."""
 
         if flags["page"] < 1:
             return await ctx.send("Page must be positive!")
-
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
             flags, ctx, order_by=flags["order"]
@@ -462,11 +485,6 @@ class Auctions(commands.Cog):
             return
 
         # Filter pokemon
-
-        do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
-        )
 
         def padn(p, idx, n):
             return " " * (len(str(n)) - len(str(idx))) + str(idx)
@@ -480,9 +498,9 @@ class Auctions(commands.Cog):
 
         async def get_page(pidx, clear):
 
-            pgstart = pidx * 20
+            pgstart = pidx * 15
             pokemon = await self.bot.mongo.fetch_auction_list(
-                ctx.guild, pgstart, 20, aggregations=aggregations
+                ctx.guild, pgstart, 15, aggregations=aggregations
             )
 
             pokemon = [
@@ -492,19 +510,22 @@ class Auctions(commands.Cog):
                     x["current_bid"],
                     x["bid_increment"],
                     x.get("bidder_id", None),
+                    x["ends"],
                 )
                 for x in pokemon
             ]
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
+            
+            now = datetime.utcnow()
 
-            maxn = max(idx for x, idx, price, _, bidder_id in pokemon)
+            maxn = max(x[1] for x in pokemon)
             page = [
-                f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,} pc　•　BI: {bid_interval:,} pc"
+                f"`{padn(p, idx, maxn)}`　**{p:Li}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,}　•　BI: {bid_interval:,} pc　•　{converters.strfdelta(ends - now, max_len=1)}"
                 if bidder_id is not None
-                else f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　SB: {current_bid + bid_interval:,} pc"
-                for p, idx, current_bid, bid_interval, bidder_id in pokemon
+                else f"`{padn(p, idx, maxn)}`　**{p:Li}**　•　{p.iv_percentage * 100:.2f}%　•　SB: {current_bid + bid_interval:,} pc　•　{converters.strfdelta(ends - now, max_len=1)}"
+                for p, idx, current_bid, bid_interval, bidder_id, ends in pokemon
             ]
 
             # Send embed
@@ -514,12 +535,12 @@ class Auctions(commands.Cog):
             embed.description = "\n".join(page)[:2048]
 
             embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
+                text=f"Showing {pgstart + 1}–{min(pgstart + 15, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 15)})"
             )
 
             return embed
 
-        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
+        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 15))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
     @checks.has_started()
@@ -557,7 +578,8 @@ class Auctions(commands.Cog):
             )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\nEnds at"
+            text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\n"
+            f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
         )
         embed.timestamp = auction.ends
 
