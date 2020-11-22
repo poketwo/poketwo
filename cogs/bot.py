@@ -10,6 +10,9 @@ from discord.ext import commands, flags, tasks
 from helpers import checks, constants, converters
 
 
+GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
+
+
 class Blacklisted(commands.CheckFailure):
     pass
 
@@ -112,7 +115,6 @@ class Bot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_error(self, ctx: commands.Context, error):
-
         if isinstance(error, discord.NotFound):
             return
         else:
@@ -121,6 +123,51 @@ class Bot(commands.Cog):
                 type(error), error, error.__traceback__, file=sys.stderr
             )
             print("\n\n")
+
+    def sendable_channel(self, channel):
+        if channel.guild.me.permissions_in(channel).send_messages:
+            return channel
+        return None
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        priority_channels = []
+        channels = []
+        for channel in guild.channels:
+            if channel == guild.system_channel or any(
+                x in channel.name for x in GENERAL_CHANNEL_NAMES
+            ):
+                priority_channels.append(channel)
+            else:
+                channels.append(channel)
+        channels = priority_channels + channels
+        try:
+            channel = next(
+                x for x in channels if guild.me.permissions_in(x).send_messages
+            )
+        except StopIteration:
+            return
+        prefix = await self.determine_prefix(guild)
+        prefix = prefix[0]
+
+        embed = discord.Embed(color=0xF44336)
+        embed.title = "Thanks for adding me to your server! \N{WAVING HAND SIGN}"
+        embed.description = f"To get started, do `{prefix}start` to pick your starter pokémon. As server members talk, wild pokémon will automatically spawn in the server, and you'll be able to catch them with `{prefix}catch <pokémon>`! For a full command list, do `{prefix}help`."
+        embed.add_field(
+            name="Common Configuration Options",
+            value=(
+                f"• `{prefix}prefix <new prefix>` to set a different prefix (default: `p!`)\n"
+                f"• `{prefix}redirect <channel>` to redirect pokémon spawns to one channel\n"
+                f"• More can be found in `{prefix}config help`\n"
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Support Server",
+            value="Join our server at [discord.gg/poketwo](https://discord.gg/poketwo) for support.",
+            inline=False,
+        )
+        await channel.send(embed=embed)
 
     async def determine_prefix(self, guild):
         if guild:
