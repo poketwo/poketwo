@@ -17,7 +17,7 @@ from helpers import checks, converters, pagination
 class AuctionConverter(commands.Converter):
     async def convert(self, ctx, arg):
         try:
-            auction = await self.bot.mongo.Auction.find_one(
+            auction = await ctx.bot.mongo.Auction.find_one(
                 {"guild_id": ctx.guild.id, "_id": int(arg)}
             )
         except ValueError:
