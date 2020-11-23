@@ -59,14 +59,14 @@ class Bot(commands.Cog):
         )
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error):
+    async def on_command_error(self, ctx, error):
 
         if isinstance(error, Blacklisted):
             self.bot.log.info(f"{ctx.author.id} is blacklisted")
             return
         elif isinstance(error, commands.CommandOnCooldown):
             self.bot.log.info(f"{ctx.author.id} hit cooldown")
-            await ctx.message.add_reaction("⛔")
+            await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
             suffix = "per %s" % name if error.per.name != "default" else "globally"
@@ -194,7 +194,7 @@ class Bot(commands.Cog):
         ]
 
     @commands.command()
-    async def invite(self, ctx: commands.Context):
+    async def invite(self, ctx):
         """View the invite link for the bot."""
 
         embed = self.bot.Embed(color=0xF44336)
@@ -210,7 +210,7 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def donate(self, ctx: commands.Context):
+    async def donate(self, ctx):
         """Donate to receive shards."""
 
         await ctx.send(
@@ -250,13 +250,11 @@ class Bot(commands.Cog):
     @tasks.loop(minutes=5)
     async def post_dbl(self):
         await self.bot.wait_until_ready()
-
         result = await self.get_stats()
-
         headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
         async with aiohttp.ClientSession(headers=headers) as sess:
-            r = await sess.post(
+            await sess.post(
                 f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data
             )
 
@@ -270,9 +268,8 @@ class Bot(commands.Cog):
 
         async for x in self.bot.mongo.db.member.find(query):
             try:
-                priv = await self.bot.http.start_private_message(x["_id"])
-                await self.bot.http.send_message(
-                    priv["id"],
+                user = await self.bot.fetch_user(x["_id"])
+                await user.send(
                     "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
                 )
             except:
@@ -297,8 +294,8 @@ class Bot(commands.Cog):
             upsert=True,
         )
 
-    @commands.command(aliases=["botinfo"])
-    async def stats(self, ctx: commands.Context):
+    @commands.command(aliases=("botinfo",))
+    async def stats(self, ctx):
         """View bot info."""
 
         result = await self.get_stats()
@@ -323,13 +320,13 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def ping(self, ctx: commands.Context):
+    async def ping(self, ctx):
         """View the bot's latency."""
 
         message = await ctx.send("Pong!")
         ms = int((message.created_at - ctx.message.created_at).total_seconds() * 1000)
 
-        if ms > 300 and random.random() < 0.5:
+        if ms > 300 and random.random() < 0.3:
             await message.edit(
                 content=(
                     f"Pong! **{ms} ms**\n\n"
@@ -340,7 +337,7 @@ class Bot(commands.Cog):
             await message.edit(content=f"Pong! **{ms} ms**")
 
     @commands.command()
-    async def start(self, ctx: commands.Context):
+    async def start(self, ctx):
         """View the starter pokémon."""
 
         embed = self.bot.Embed(color=0xF44336)
@@ -353,7 +350,7 @@ class Bot(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def pick(self, ctx: commands.Context, *, name: str):
+    async def pick(self, ctx, *, name: str):
         """Pick a starter pokémon to get started."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -394,7 +391,7 @@ class Bot(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def profile(self, ctx: commands.Context):
+    async def profile(self, ctx):
         """View your profile."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -425,7 +422,6 @@ class Bot(commands.Cog):
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
 
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
-
         embed.add_field(
             name="Badges",
             value=self.bot.sprites.pin_halloween

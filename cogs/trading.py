@@ -42,7 +42,7 @@ class Trading(commands.Cog):
         else:
             await self.bot.redis.hdel("trade", user_id)
 
-    async def send_trade(self, ctx: commands.Context, user: discord.Member):
+    async def send_trade(self, ctx, user: discord.Member):
         # TODO this code is pretty shit. although it does work
 
         trade = self.bot.trades[user.id]
@@ -258,8 +258,8 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @commands.group(aliases=["t"], invoke_without_command=True)
-    async def trade(self, ctx: commands.Context, *, user: discord.Member):
+    @commands.group(aliases=("t",), invoke_without_command=True, case_insensitive=True)
+    async def trade(self, ctx, *, user: discord.Member):
         """Trade pokémon with another trainer."""
 
         if user == ctx.author:
@@ -320,8 +320,8 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["x"])
-    async def cancel(self, ctx: commands.Context):
+    @trade.command(aliases=("x",))
+    async def cancel(self, ctx):
         """Cancel a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -338,8 +338,8 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["c"])
-    async def confirm(self, ctx: commands.Context):
+    @trade.command(aliases=("c",))
+    async def confirm(self, ctx):
         """Confirm a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -357,8 +357,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["a"])
-    async def add(self, ctx: commands.Context, *args):
+    @trade.command(aliases=("a",))
+    async def add(self, ctx, *args):
         """Add an item to a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -468,8 +468,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["r"])
-    async def remove(self, ctx: commands.Context, *args):
+    @trade.command(aliases=("r",))
+    async def remove(self, ctx, *args):
         """Remove an item from a trade."""
 
         # TODO this shares a lot of code with the add command
@@ -572,8 +572,8 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @trade.command(aliases=["aa"], cls=flags.FlagCommand)
-    async def addall(self, ctx: commands.Context, **flags):
+    @trade.command(aliases=("aa",), cls=flags.FlagCommand)
+    async def addall(self, ctx, **flags):
 
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
@@ -654,8 +654,8 @@ class Trading(commands.Cog):
 
     @checks.has_started()
     @commands.guild_only()
-    @trade.command(aliases=["i"])
-    async def info(self, ctx: commands.Context, *, number: int):
+    @trade.command(aliases=("i",))
+    async def info(self, ctx, *, number: int):
         """View a pokémon from the trade."""
 
         if not await self.is_in_trade(ctx.author):

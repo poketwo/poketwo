@@ -15,8 +15,8 @@ class Pokemon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["renumber"])
-    async def reindex(self, ctx: commands.Context):
+    @commands.command(aliases=("renumber",))
+    async def reindex(self, ctx):
         """Re-number all pokémon in your collection."""
 
         await ctx.send(
@@ -41,7 +41,7 @@ class Pokemon(commands.Cog):
         await self.bot.mongo.db.pokemon.bulk_write(ops)
         await ctx.send("Successfully reindexed all your pokémon!")
 
-    @commands.command(aliases=["nick"])
+    @commands.command(aliases=("nick",))
     async def nickname(
         self,
         ctx: commands.Context,
@@ -77,14 +77,14 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
 
-    @commands.command(aliases=["fav", "favourite"], rest_is_raw=True)
+    @commands.command(aliases=("fav", "favourite"), rest_is_raw=True)
     async def favorite(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+        self, ctx, args: commands.Greedy[converters.PokemonConverter]
     ):
         """Mark a pokémon as a favorite."""
 
         if len(args) == 0:
-            args.append(await converters.Pokemon().convert(ctx, ""))
+            args.append(await converters.PokemonConverter().convert(ctx, ""))
 
         messages = []
 
@@ -113,8 +113,8 @@ class Pokemon(commands.Cog):
                 await ctx.send(longmsg[i : i + 2000])
 
     @checks.has_started()
-    @commands.command(aliases=["i"], rest_is_raw=True)
-    async def info(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    @commands.command(aliases=("i",), rest_is_raw=True)
+    async def info(self, ctx, *, pokemon: converters.PokemonConverter):
         """View a specific pokémon from your collection."""
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
@@ -178,9 +178,9 @@ class Pokemon(commands.Cog):
         await paginator.send(self.bot, ctx, pokemon.idx)
 
     @checks.has_started()
-    @commands.command(aliases=["s"], rest_is_raw=True)
+    @commands.command(aliases=("s",), rest_is_raw=True)
     async def select(
-        self, ctx: commands.Context, *, pokemon: converters.Pokemon(accept_blank=False)
+        self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)
     ):
         """Select a specific pokémon from your collection."""
 
@@ -199,8 +199,8 @@ class Pokemon(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command(aliases=["or"])
-    async def order(self, ctx: commands.Context, *, sort: str = ""):
+    @commands.command(aliases=("or",))
+    async def order(self, ctx, *, sort: str = ""):
         """Change how your pokémon are ordered."""
 
         sort = sort.lower()
@@ -352,9 +352,9 @@ class Pokemon(commands.Cog):
         return aggregations
 
     @checks.has_started()
-    @commands.command(aliases=["r"])
+    @commands.command(aliases=("r",))
     async def release(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
+        self, ctx, args: commands.Greedy[converters.PokemonConverter]
     ):
         """Release pokémon from your collection."""
 
@@ -456,8 +456,8 @@ class Pokemon(commands.Cog):
 
     # Release all
     @checks.has_started()
-    @flags.command(aliases=["ra"])
-    async def releaseall(self, ctx: commands.Context, **flags):
+    @flags.command(aliases=("ra",))
+    async def releaseall(self, ctx, **flags):
         """Mass release pokémon from your collection."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -548,8 +548,8 @@ class Pokemon(commands.Cog):
 
     # Pokemon
     @checks.has_started()
-    @flags.command(aliases=["p"])
-    async def pokemon(self, ctx: commands.Context, **flags):
+    @flags.command(aliases=("p",))
+    async def pokemon(self, ctx, **flags):
         """View or filter the pokémon in your collection."""
 
         if flags["page"] < 1:
@@ -627,8 +627,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--type", type=str)
     @checks.has_started()
-    @flags.command(aliases=["d", "dex"])
-    async def pokedex(self, ctx: commands.Context, **flags):
+    @flags.command(aliases=("d", "dex"))
+    async def pokedex(self, ctx, **flags):
         """View your pokédex, or search for a pokémon species."""
 
         search_or_page = " ".join(flags["page"])
@@ -821,7 +821,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.command(rest_is_raw=True)
-    async def evolve(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    async def evolve(self, ctx, *, pokemon: converters.PokemonConverter):
         """Evolve a pokémon if it has reached the target level."""
 
         if pokemon is None:
@@ -862,7 +862,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(rest_is_raw=True)
-    async def unmega(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    async def unmega(self, ctx, *, pokemon: converters.PokemonConverter):
         """Switch a pokémon back to its non-mega form."""
 
         if pokemon is None:
@@ -886,8 +886,8 @@ class Pokemon(commands.Cog):
 
         await ctx.send("Successfully switched back to normal form.")
 
-    @commands.command(aliases=["f"])
-    async def first(self, ctx: commands.Context):
+    @commands.command(aliases=("f",))
+    async def first(self, ctx):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 
@@ -895,8 +895,8 @@ class Pokemon(commands.Cog):
 
         await paginator.send(self.bot, ctx, 0)
 
-    @commands.command(aliases=["n", "forward"])
-    async def next(self, ctx: commands.Context):
+    @commands.command(aliases=("n", "forward"))
+    async def next(self, ctx):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 
@@ -910,8 +910,8 @@ class Pokemon(commands.Cog):
 
         await paginator.send(self.bot, ctx, pidx)
 
-    @commands.command(aliases=["prev", "back", "b"])
-    async def previous(self, ctx: commands.Context):
+    @commands.command(aliases=("prev", "back", "b"))
+    async def previous(self, ctx):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 
@@ -925,16 +925,16 @@ class Pokemon(commands.Cog):
 
         await paginator.send(self.bot, ctx, pidx)
 
-    @commands.command(aliases=["l"])
-    async def last(self, ctx: commands.Context):
+    @commands.command(aliases=("l",))
+    async def last(self, ctx):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 
         paginator = pagination.paginators[ctx.author.id]
         await paginator.send(self.bot, ctx, paginator.num_pages - 1)
 
-    @commands.command(aliases=["page", "g"])
-    async def go(self, ctx: commands.Context, page: int):
+    @commands.command(aliases=("page", "g"))
+    async def go(self, ctx, page: int):
         if ctx.author.id not in pagination.paginators:
             return await ctx.send("Couldn't find a previous message.")
 

@@ -167,8 +167,10 @@ class Halloween(commands.Cog):
         return ret
 
     @checks.has_started()
-    @commands.group(aliases=["event"], invoke_without_command=True)
-    async def halloween(self, ctx: commands.Context):
+    @commands.group(
+        aliases=("event",), invoke_without_command=True, case_insensitive=True
+    )
+    async def halloween(self, ctx):
         """View halloween event information."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -196,7 +198,7 @@ class Halloween(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
     @halloween.command()
-    async def buy(self, ctx: commands.Context, *args):
+    async def buy(self, ctx, *args):
         """Buy items from the Halloween shop."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -217,7 +219,7 @@ class Halloween(commands.Cog):
                 return await ctx.send(
                     "Please specify a pokémon to buy embed colors for."
                 )
-            pokemon = await converters.Pokemon().convert(ctx, arg2)
+            pokemon = await converters.PokemonConverter().convert(ctx, arg2)
             if pokemon is None:
                 return await ctx.send("Couldn't find that pokémon!")
             if pokemon.has_color:

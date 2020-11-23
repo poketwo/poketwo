@@ -1,4 +1,8 @@
 import asyncio
+from itertools import starmap
+
+from discord.errors import HTTPException
+from helpers.utils import FakeUser
 import math
 from datetime import datetime, timedelta
 
@@ -8,6 +12,21 @@ import pymongo
 from discord.ext import commands, flags, tasks
 
 from helpers import checks, converters, pagination
+
+
+class AuctionConverter(commands.Converter):
+    async def convert(self, ctx, arg):
+        try:
+            auction = await self.bot.mongo.Auction.find_one(
+                {"guild_id": ctx.guild.id, "_id": int(arg)}
+            )
+        except ValueError:
+            raise commands.BadArgument("Invalid auction ID.")
+
+        if auction is None:
+            raise commands.BadArgument("Could not find auction with that ID.")
+
+        return auction
 
 
 class Auctions(commands.Cog):
@@ -39,10 +58,8 @@ class Auctions(commands.Cog):
             auction.bidder_id = auction.user_id
             auction.current_bid = 0
 
-        host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
-            auction.user_id
-        )
-        bidder = self.bot.get_user(auction.bidder_id) or await self.bot.fetch_user(
+        host = await self.bot.fetch_user(auction.user_id) or FakeUser(auction.user_id)
+        bidder = await self.bot.fetch_user(auction.bidder_id) or FakeUser(
             auction.bidder_id
         )
 
@@ -133,44 +150,45 @@ class Auctions(commands.Cog):
 
         return embed
 
-    @commands.group(aliases=["auctions", "a"], invoke_without_command=True)
-    async def auction(self, ctx: commands.Context, **flags):
+    @commands.group(
+        aliases=("auctions", "a"), invoke_without_command=True, case_insensitive=True
+    )
+    async def auction(self, ctx):
         """Auction pokémon."""
 
         await ctx.send_help(ctx.command)
 
     @commands.has_permissions(administrator=True)
     @auction.command()
-    async def channel(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def channel(self, ctx, channel: discord.TextChannel):
         """Change the auctions channel."""
 
         await self.bot.mongo.update_guild(
             ctx.guild, {"$set": {"auction_channel": channel.id}}
         )
-        await ctx.send(f"Setup auctions in {channel}.")
+        await ctx.send(f"Changed auctions channel to **{channel}**.")
 
     @checks.has_started()
     @auction.command()
     async def start(
         self,
-        ctx: commands.Context,
-        pokemon: converters.Pokemon,
+        ctx,
+        pokemon: converters.PokemonConverter,
         duration: converters.TimeDelta,
         starting_bid: int,
         bid_increment: int,
     ):
         """Start an auction."""
 
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
+        # TODO add option in converter to raise error
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        if starting_bid < 1 or starting_bid > 1000000000:
+        if not (0 < starting_bid <= 1000000):
             return await ctx.send("The starting bid is not valid.")
 
-        if bid_increment < 1 or bid_increment > 1000000000:
+        if not (0 < bid_increment <= starting_bid):
             return await ctx.send("The bid increment is not valid.")
 
         if duration > timedelta(weeks=1):
@@ -195,6 +213,8 @@ class Auctions(commands.Cog):
             "Auctions are server-specific and cannot be canceled. Are you sure? [y/N]"
         )
 
+        # TODO factor confirmations into custom context
+
         def check(m):
             return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
 
@@ -211,6 +231,8 @@ class Auctions(commands.Cog):
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
+        # TODO put counters in mongo cog
+
         counter = await self.bot.mongo.db.counter.find_one_and_update(
             {"_id": f"auction"}, {"$inc": {"next": 1}}, upsert=True
         )
@@ -220,7 +242,6 @@ class Auctions(commands.Cog):
         ends = datetime.utcnow() + duration
 
         embed = self.make_base_embed(ctx.author, pokemon, counter["next"])
-
         auction_info = (
             f"**Starting Bid:** {starting_bid:,} Pokécoins",
             f"**Bid Increment:** {bid_increment:,} Pokécoins",
@@ -231,8 +252,6 @@ class Auctions(commands.Cog):
             f"Ends in {converters.strfdelta(ends - datetime.utcnow())} at"
         )
         embed.timestamp = ends
-
-        await auction_channel.send(embed=embed)
 
         await self.bot.mongo.db.auction.insert_one(
             {
@@ -246,37 +265,27 @@ class Auctions(commands.Cog):
                 "ends": ends,
             }
         )
-
         await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
+        await auction_channel.send(embed=embed)
         await ctx.send(
             f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**."
         )
 
     @checks.has_started()
-    @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
     @auction.command()
-    async def lowerstart(self, ctx: commands.Context, auction_id: int, new_start: int):
+    async def lowerstart(self, ctx, auction: AuctionConverter, new_start: int):
         """Lower the starting bid for your auction."""
-
-        auction = await self.bot.mongo.Auction.find_one(
-            {"guild_id": ctx.guild.id, "_id": auction_id}
-        )
-
-        if auction is None:
-            return await ctx.send("Couldn't find that auction!")
 
         if ctx.author.id != auction.user_id:
             return await ctx.send(
                 "You can only lower the starting bid on your own auction."
             )
-
         if auction.bidder_id is not None:
             return await ctx.send("Someone has already bid on this auction.")
-
         if auction.current_bid + auction.bid_increment < new_start:
             return await ctx.send(
-                "You can only lower the starting bid, not increase it."
+                "You may only lower the starting bid, not increase it."
             )
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
@@ -299,45 +308,31 @@ class Auctions(commands.Cog):
 
         await self.bot.mongo.db.auction.update_one(
             {"_id": auction.id},
-            {
-                "$set": {
-                    "current_bid": new_start - auction.bid_increment,
-                }
-            },
+            {"$set": {"current_bid": new_start - auction.bid_increment}},
         )
-
         await ctx.send(
             f"Lowered the starting bid on your auction to **{new_start:,} Pokécoins**."
         )
 
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
-    @auction.command(aliases=("b",))
-    async def bid(self, ctx: commands.Context, auction_id: int, bid: int):
+    @auction.command()
+    async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
 
-        auction = await self.bot.mongo.Auction.find_one(
-            {"guild_id": ctx.guild.id, "_id": auction_id}
-        )
-        guild = await self.bot.mongo.fetch_guild(ctx.guild)
-
-        if auction is None:
-            return await ctx.send("Couldn't find that auction!")
-
+        if ctx.author.id == auction.user_id:
+            return await ctx.send("You can't bid on your own auction.")
+        if ctx.author.id == auction.bidder_id:
+            return await ctx.send("You are already the highest bidder.")
         if bid < auction.current_bid + auction.bid_increment:
             return await ctx.send(
                 f"Your bid must be at least {auction.current_bid + auction.bid_increment:,} Pokécoins."
             )
 
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.balance < bid:
             return await ctx.send("You don't have enough Pokécoins for that!")
-
-        if ctx.author.id == auction.user_id:
-            return await ctx.send("You can't bid on your own auction.")
-
-        if ctx.author.id == auction.bidder_id:
-            return await ctx.send("You are already the highest bidder.")
 
         # confirm
 
@@ -360,7 +355,7 @@ class Auctions(commands.Cog):
 
         async with self.sem:
             auction = await self.bot.mongo.Auction.find_one(
-                {"guild_id": ctx.guild.id, "_id": auction_id}
+                {"guild_id": ctx.guild.id, "_id": auction.id}
             )
 
             if auction is None:
@@ -399,11 +394,6 @@ class Auctions(commands.Cog):
             if auction_channel is not None:
                 self.bot.loop.create_task(auction_channel.send(embed=embed))
 
-            if auction.bidder_id is not None:
-                old_bidder = self.bot.get_user(
-                    auction.bidder_id
-                ) or await self.bot.fetch_user(auction.bidder_id)
-
             update = {
                 "$set": {
                     "current_bid": bid,
@@ -416,14 +406,14 @@ class Auctions(commands.Cog):
 
             # ok, bid
 
-            if auction.bidder_id is not None:
-                await self.bot.mongo.update_member(
-                    old_bidder, {"$inc": {"balance": auction.current_bid}}
-                )
             await self.bot.mongo.db.auction.update_one({"_id": auction.id}, update)
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -bid}})
 
             if auction.bidder_id is not None:
+                old_bidder = await self.bot.fetch_user(auction.bidder_id)
+                await self.bot.mongo.update_member(
+                    old_bidder, {"$inc": {"balance": auction.current_bid}}
+                )
                 self.bot.loop.create_task(
                     old_bidder.send(
                         f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
@@ -434,6 +424,8 @@ class Auctions(commands.Cog):
                     f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
                 )
             )
+
+    # TODO put all these flags into a single decorator
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -470,8 +462,8 @@ class Auctions(commands.Cog):
     @flags.add_flag("--bids", action="store_true")
     @flags.add_flag("--ends", type=converters.to_timedelta)
     @checks.has_started()
-    @auction.command(aliases=["s"], cls=flags.FlagCommand)
-    async def search(self, ctx: commands.Context, **flags):
+    @auction.command(aliases=("s",), cls=flags.FlagCommand)
+    async def search(self, ctx, **flags):
         """Search pokémon from auctions."""
 
         if flags["page"] < 1:
@@ -543,18 +535,12 @@ class Auctions(commands.Cog):
         paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 15))
         await paginator.send(self.bot, ctx, flags["page"] - 1)
 
+    # TODO make all groups case insensitive
+
     @checks.has_started()
-    @auction.command(aliases=["i", "I"])
-    async def info(self, ctx: commands.Context, id: int):
-        """View a pokémon from the market."""
-
-        auction = await self.bot.mongo.db.auction.find_one(
-            {"_id": id, "guild_id": ctx.guild.id}
-        )
-        auction = self.bot.mongo.Auction.build_from_mongo(auction)
-
-        if auction is None:
-            return await ctx.send("Couldn't find that auction!")
+    @auction.command(aliases=("i",))
+    async def info(self, ctx, auction: AuctionConverter):
+        """View a pokémon from an auction."""
 
         host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
             auction.user_id

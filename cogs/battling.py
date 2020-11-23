@@ -12,6 +12,17 @@ from discord.ext import commands
 from helpers import checks, constants, converters, pagination
 
 
+def in_battle(bool=True):
+    async def predicate(ctx):
+        if bool is (ctx.author in ctx.bot.battles):
+            return True
+        raise commands.CheckFailure(
+            f"You're {'not' if bool else 'already'} in a battle!"
+        )
+
+    return commands.check(predicate)
+
+
 def get_priority(action, selected):
     if action["type"] == "move":
         s = selected.spd
@@ -103,9 +114,7 @@ class Trainer:
 
 
 class Battle:
-    def __init__(
-        self, users: typing.List[discord.Member], ctx: commands.Context, manager
-    ):
+    def __init__(self, users: typing.List[discord.Member], ctx, manager):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
         self.stage = Stage.SELECT
@@ -434,28 +443,26 @@ class Battling(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def reloadbattling(self, ctx: commands.Context):
+    async def reloadbattling(self, ctx):
         self.bot.battles = BattleManager()
         await ctx.send("Reloaded battle manager.")
 
     @checks.has_started()
-    @commands.group(aliases=["duel"], invoke_without_command=True)
-    async def battle(self, ctx: commands.Context, *, user: discord.Member):
+    @in_battle(False)
+    @commands.group(
+        aliases=("duel",), invoke_without_command=True, case_insensitive=True
+    )
+    async def battle(self, ctx, *, user: discord.Member):
         """Battle another trainer with your pokémon!"""
 
         # Base cases
 
         if user == ctx.author:
             return await ctx.send("Nice try...")
-
-        if ctx.author in self.bot.battles:
-            return await ctx.send("You are already in a battle!")
-
         if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
         member = await self.bot.mongo.Member.find_one({"id": user.id})
-
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
@@ -496,14 +503,10 @@ class Battling(commands.Cog):
         await battle.send_selection(ctx)
 
     @checks.has_started()
-    @battle.command(aliases=["a"])
-    async def add(
-        self, ctx: commands.Context, args: commands.Greedy[converters.Pokemon]
-    ):
+    @in_battle(True)
+    @battle.command(aliases=("a",))
+    async def add(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Add a pokémon to a battle."""
-
-        if ctx.author not in self.bot.battles:
-            return await ctx.send("You're not in a battle!")
 
         updated = False
 
@@ -549,19 +552,16 @@ class Battling(commands.Cog):
             await self.bot.battles[ctx.author].send_selection(ctx)
 
     @checks.has_started()
-    @battle.command(aliases=["m"])
-    async def move(self, ctx: commands.Context, *, move):
+    @in_battle(True)
+    @battle.command(aliases=("m",))
+    async def move(self, ctx, *, move):
         """Move in a battle."""
 
-        if ctx.author not in self.bot.battles:
-            return await ctx.send("You're not in a battle!")
-
-        battle = self.bot.battles[ctx.author]
         self.bot.dispatch("battle_move", ctx.author, move)
 
     @checks.has_started()
-    @commands.command(aliases=["mv"], rest_is_raw=True)
-    async def moves(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    @commands.command(aliases=("mv",), rest_is_raw=True)
+    async def moves(self, ctx, *, pokemon: converters.PokemonConverter):
         """View current and available moves for your pokémon."""
 
         if pokemon is None:
@@ -594,7 +594,7 @@ class Battling(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def learn(self, ctx: commands.Context, *, search: str):
+    async def learn(self, ctx, *, search: str):
         """Learn moves for your pokémon to use in battle."""
 
         move = self.bot.data.move_by_name(search)
@@ -604,7 +604,6 @@ class Battling(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
-
         if pokemon is None:
             return await ctx.send("You must have a pokémon selected!")
 
@@ -624,7 +623,6 @@ class Battling(commands.Cog):
         update = {}
 
         if len(pokemon.moves) >= 4:
-
             await ctx.send(
                 "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, "
                 "or anything else to abort:\n "
@@ -640,24 +638,21 @@ class Battling(commands.Cog):
                 return await ctx.send("Time's up. Aborted.")
 
             rep_move = self.bot.data.move_by_name(msg.content)
-
             if rep_move is None or rep_move.id not in pokemon.moves:
                 return await ctx.send("Aborted.")
 
             idx = pokemon.moves.index(rep_move.id)
-
             update["$set"] = {f"moves.{idx}": move.id}
 
         else:
             update["$push"] = {f"moves": move.id}
 
         await self.bot.mongo.update_pokemon(pokemon, update)
-
-        return await ctx.send("Your pokémon has learned " + move.name + "!")
+        await ctx.send("Your pokémon has learned " + move.name + "!")
 
     @checks.has_started()
-    @commands.command(aliases=["ms"], rest_is_raw=True)
-    async def moveset(self, ctx: commands.Context, *, search: str):
+    @commands.command(aliases=("ms",), rest_is_raw=True)
+    async def moveset(self, ctx, *, search: str):
         """View all moves for your pokémon and how to get them."""
 
         search = search.strip()
@@ -668,7 +663,7 @@ class Battling(commands.Cog):
             species = self.bot.data.species_by_name(search)
 
             if species is None:
-                converter = converters.Pokemon(raise_errors=False)
+                converter = converters.PokemonConverter(raise_errors=False)
                 pokemon = await converter.convert(ctx, search)
                 if pokemon is not None:
                     species = pokemon.species
@@ -706,8 +701,8 @@ class Battling(commands.Cog):
         )
         await paginator.send(self.bot, ctx, 0)
 
-    @commands.command(aliases=["mi"])
-    async def moveinfo(self, ctx: commands.Context, *, search: str):
+    @commands.command(aliases=("mi",))
+    async def moveinfo(self, ctx, *, search: str):
         """View information about a certain move."""
 
         move = self.bot.data.move_by_name(search)
@@ -740,15 +735,12 @@ class Battling(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @battle.command(aliases=["x"])
-    async def cancel(self, ctx: commands.Context):
+    @in_battle(True)
+    @battle.command(aliases=("x",))
+    async def cancel(self, ctx):
         """Cancel a battle."""
 
-        if ctx.author not in self.bot.battles:
-            return await ctx.send("You're not in a battle!")
-
         self.bot.battles[ctx.author].end()
-
         await ctx.send("The battle has been canceled.")
 
 

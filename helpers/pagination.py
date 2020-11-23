@@ -25,7 +25,7 @@ class Paginator:
         except:
             pass
 
-    async def send(self, bot, ctx: commands.Context, pidx: int):
+    async def send(self, bot, ctx, pidx: int):
         async def clear(msg):
             return await ctx.send(msg)
 

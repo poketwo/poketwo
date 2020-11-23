@@ -40,7 +40,7 @@ class Shop(commands.Cog):
 
     @commands.command()
     @checks.is_admin()
-    async def stopincense(self, ctx: commands.Context):
+    async def stopincense(self, ctx):
         channel = await self.bot.mongo.fetch_channel(ctx.channel)
         if not channel.incense_active:
             return await ctx.send("There is no active incense in this channel!")
@@ -74,8 +74,8 @@ class Shop(commands.Cog):
         await ctx.send("Incense has been stopped.")
 
     @checks.has_started()
-    @commands.command(aliases=["v", "daily", "boxes"])
-    async def vote(self, ctx: commands.Context):
+    @commands.command(aliases=("v", "daily", "boxes"))
+    async def vote(self, ctx):
         """View information on voting rewards."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -171,8 +171,8 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["o"])
-    async def open(self, ctx: commands.Context, type: str = "", amt: int = 1):
+    @commands.command(aliases=("o",))
+    async def open(self, ctx, type: str = "", amt: int = 1):
         """Open mystery boxes received from voting."""
 
         do_emojis = (
@@ -297,8 +297,8 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["bal"])
-    async def balance(self, ctx: commands.Context):
+    @commands.command(aliases=("bal",))
+    async def balance(self, ctx):
         """View your current balance."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -311,8 +311,8 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.command(aliases=["di"], rest_is_raw=True)
-    async def dropitem(self, ctx: commands.Context, *, pokemon: converters.Pokemon):
+    @commands.command(aliases=("di",), rest_is_raw=True)
+    async def dropitem(self, ctx, *, pokemon: converters.PokemonConverter):
         """Drop a pokémon's held item."""
 
         if pokemon is None:
@@ -336,18 +336,18 @@ class Shop(commands.Cog):
         await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
 
     @checks.has_started()
-    @commands.command(aliases=["mvi"])
+    @commands.command(aliases=("mvi",))
     async def moveitem(
         self,
-        ctx: commands.Context,
-        from_pokemon: converters.Pokemon,
-        to_pokemon: converters.Pokemon = None,
+        ctx,
+        from_pokemon: converters.PokemonConverter,
+        to_pokemon: converters.PokemonConverter = None,
     ):
         """Move a pokémon's held item."""
 
         if to_pokemon is None:
             to_pokemon = from_pokemon
-            converter = converters.Pokemon()
+            converter = converters.PokemonConverter()
             from_pokemon = await converter.convert(ctx, "")
 
         if to_pokemon is None:
@@ -386,8 +386,8 @@ class Shop(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.command(aliases=["togglebal"])
-    async def togglebalance(self, ctx: commands.Context):
+    @commands.command(aliases=("togglebal",))
+    async def togglebalance(self, ctx):
         """Toggle showing balance in shop."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -403,7 +403,7 @@ class Shop(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def shop(self, ctx: commands.Context, *, page: int = 0):
+    async def shop(self, ctx, *, page: int = 0):
         """View the Pokétwo item shop."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -506,7 +506,7 @@ class Shop(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.guild_only()
     @commands.command()
-    async def buy(self, ctx: commands.Context, *args: str):
+    async def buy(self, ctx, *args: str):
         """Purchase an item from the shop."""
 
         if len(args) == 0:
@@ -903,18 +903,18 @@ class Shop(commands.Cog):
                     break
 
     @checks.has_started()
-    @commands.command(aliases=["ec"])
+    @commands.command(aliases=("ec",))
     @commands.max_concurrency(1, commands.BucketType.user)
     async def embedcolor(
         self,
-        ctx: commands.Context,
-        pokemon: typing.Optional[converters.Pokemon] = False,
+        ctx,
+        pokemon: typing.Optional[converters.PokemonConverter] = False,
         color: discord.Color = None,
     ):
         """Change the embed colors for a pokémon."""
 
         if pokemon is False:
-            pokemon = await converters.Pokemon().convert(ctx, "")
+            pokemon = await converters.PokemonConverter().convert(ctx, "")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
@@ -940,7 +940,7 @@ class Shop(commands.Cog):
 
     @checks.has_started()
     @commands.command()
-    async def redeem(self, ctx: commands.Context):
+    async def redeem(self, ctx):
         """Use a redeem to receive a pokémon of your choice."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -959,8 +959,8 @@ class Shop(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @commands.command(aliases=["rs"])
-    async def redeemspawn(self, ctx: commands.Context, *, species: str = None):
+    @commands.command(aliases=("rs",))
+    async def redeemspawn(self, ctx, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 
         # TODO I should really merge this and redeem into one function.
