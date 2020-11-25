@@ -16,7 +16,6 @@ class Configuration(commands.Cog):
 
     def make_config_embed(self, ctx, guild, commands={}):
         prefix = guild.prefix if guild.prefix is not None else "p!"
-        channels = [ctx.guild.get_channel(channel_id) for channel_id in guild.channels]
 
         embed = self.bot.Embed()
         embed.title = "Server Configuration"
@@ -38,7 +37,7 @@ class Configuration(commands.Cog):
         )
         embed.add_field(
             name=f"Spawning Channels {commands.get('redirect_command', '')}",
-            value="\n".join(x.mention for x in channels),
+            value="\n".join(f"<#{x}>" for x in guild.channels) or "All Channels",
             inline=False,
         )
         return embed
