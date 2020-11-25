@@ -268,8 +268,9 @@ class Bot(commands.Cog):
 
         async for x in self.bot.mongo.db.member.find(query):
             try:
-                user = await self.bot.fetch_user(x["_id"])
-                await user.send(
+                priv = await self.bot.http.start_private_message(x["_id"])
+                await self.bot.http.send_message(
+                    priv["id"],
                     "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
                 )
             except:
