@@ -45,14 +45,14 @@ class Pokemon(commands.Cog):
     async def nickname(
         self,
         ctx: commands.Context,
-        pokemon: typing.Optional[converters.Pokemon] = False,
+        pokemon: typing.Optional[converters.PokemonConverter] = False,
         *,
         nickname: str,
     ):
         """Change the nickname for your pokémon."""
 
         if pokemon is False:
-            pokemon = await converters.Pokemon().convert(ctx, "")
+            pokemon = await converters.PokemonConverter().convert(ctx, "")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
