@@ -91,7 +91,7 @@ class Bot(commands.Cog):
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
-        elif isinstance(error, converters.PokemonConversionError):
+        elif isinstance(error, commands.ConversionError):
             await ctx.send(error.original)
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send_help(ctx.command)
