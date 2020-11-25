@@ -266,7 +266,7 @@ class Bot(commands.Cog):
             "last_voted": {"$lt": datetime.utcnow() - timedelta(hours=12)},
         }
 
-        async for x in self.bot.mongo.db.member.find(query):
+        async for x in self.bot.mongo.db.member.find(query, no_cursor_timeout=True):
             try:
                 priv = await self.bot.http.start_private_message(x["_id"])
                 await self.bot.http.send_message(
