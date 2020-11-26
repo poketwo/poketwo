@@ -170,7 +170,7 @@ class Pokemon(commands.Cog):
                     name="Held Item", value=f"{emote}{item.name}", inline=False
                 )
 
-            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.")
+            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}")
 
             return embed
 
