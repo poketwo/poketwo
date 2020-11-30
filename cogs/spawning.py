@@ -7,7 +7,6 @@ import traceback
 from collections import defaultdict
 from datetime import datetime
 
-import aiohttp
 import discord
 import humanfriendly
 from data import models
@@ -262,28 +261,27 @@ class Spawning(commands.Cog):
             f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
         )
 
-        async with aiohttp.ClientSession() as session:
-            url = f"https://server.poketwo.net/image?species={species.id}&time="
-            url += "day" if guild.is_day else "night"
-            try:
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        arr = await self.bot.loop.run_in_executor(
-                            None, write_fp, await resp.read()
-                        )
-                        image = discord.File(arr, filename="pokemon.jpg")
-                        embed.set_image(url="attachment://pokemon.jpg")
-                    else:
-                        raise Exception("Server error")
-            except Exception as error:
-                self.bot.log.error("Couldn't fetch spawn image")
-                traceback.print_exception(
-                    type(error), error, error.__traceback__, file=sys.stderr
-                )
-                image = discord.File(
-                    f"data/images/{species.id}.png", filename="pokemon.png"
-                )
-                embed.set_image(url="attachment://pokemon.png")
+        url = f"https://server.poketwo.net/image?species={species.id}&time="
+        url += "day" if guild.is_day else "night"
+        try:
+            async with self.bot.session.get(url) as resp:
+                if resp.status == 200:
+                    arr = await self.bot.loop.run_in_executor(
+                        None, write_fp, await resp.read()
+                    )
+                    image = discord.File(arr, filename="pokemon.jpg")
+                    embed.set_image(url="attachment://pokemon.jpg")
+                else:
+                    raise Exception("Server error")
+        except Exception as error:
+            self.bot.log.error("Couldn't fetch spawn image")
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr
+            )
+            image = discord.File(
+                f"data/images/{species.id}.png", filename="pokemon.png"
+            )
+            embed.set_image(url="attachment://pokemon.png")
 
         if incense:
             timespan = incense - datetime.utcnow()

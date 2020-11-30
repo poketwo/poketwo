@@ -3,7 +3,6 @@ import sys
 import traceback
 from datetime import datetime, timedelta
 
-import aiohttp
 import discord
 from discord.ext import commands, flags, tasks
 
@@ -253,10 +252,9 @@ class Bot(commands.Cog):
         result = await self.get_stats()
         headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
-        async with aiohttp.ClientSession(headers=headers) as sess:
-            await sess.post(
-                f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data
-            )
+        await self.bot.session.post(
+            f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data, headers=headers
+        )
 
     @tasks.loop(seconds=15)
     async def remind_votes(self):

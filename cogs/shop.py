@@ -3,7 +3,6 @@ import random
 import typing
 from datetime import datetime, timedelta
 
-import aiohttp
 import discord
 import humanfriendly
 from data import models
@@ -27,11 +26,10 @@ class Shop(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def check_weekend(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://discordbots.org/api/weekend") as r:
-                if r.status == 200:
-                    js = await r.json()
-                    self.weekend = js["is_weekend"]
+        async with self.bot.session.get("https://discordbots.org/api/weekend") as r:
+            if r.status == 200:
+                js = await r.json()
+                self.weekend = js["is_weekend"]
 
     @property
     def month_number(self):

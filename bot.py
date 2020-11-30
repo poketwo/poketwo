@@ -1,12 +1,13 @@
 import asyncio
 from importlib import reload
 
+import config
 import discord
 import uvloop
+from aiohttp import ClientSession
 from discord.ext import commands
 
 import cogs
-import config
 import helpers
 
 DEFAULT_DISABLED_MESSAGE = (
@@ -36,6 +37,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     def __init__(self, **kwargs):
         self.pipe = kwargs.pop("pipe")
+        self.session = ClientSession()
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
         self.config = config
