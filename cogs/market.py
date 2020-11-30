@@ -394,6 +394,13 @@ class Market(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @info.error
+    @buy.error
+    @remove.error
+    async def handle_bad_argument(self, ctx, error):  # Send a more helpful message here
+        if isinstance(error, commands.BadArgument):
+            await ctx.send("You've gotta give me a number for that!")
+
 
 def setup(bot):
     bot.add_cog(Market(bot))
