@@ -31,7 +31,7 @@ def is_enabled(ctx):
 class ClusterBot(commands.AutoShardedBot):
     class Embed(discord.Embed):
         def __init__(self, **kwargs):
-            color = kwargs.pop("color", 0xF44336)
+            color = kwargs.pop("color", 0x9CCFFF)
             super().__init__(**kwargs, color=color)
 
     def __init__(self, **kwargs):

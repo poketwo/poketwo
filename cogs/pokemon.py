@@ -78,9 +78,7 @@ class Pokemon(commands.Cog):
             )
 
     @commands.command(aliases=("fav", "favourite"), rest_is_raw=True)
-    async def favorite(
-        self, ctx, args: commands.Greedy[converters.PokemonConverter]
-    ):
+    async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
 
         if len(args) == 0:
@@ -132,7 +130,7 @@ class Pokemon(commands.Cog):
                 shift += 1
                 pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
 
-            embed = self.bot.Embed(color=pokemon.color or 0xF44336)
+            embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF)
             embed.title = f"{pokemon:lnf}"
 
             if pokemon.shiny:
@@ -170,7 +168,9 @@ class Pokemon(commands.Cog):
                     name="Held Item", value=f"{emote}{item.name}", inline=False
                 )
 
-            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}")
+            embed.set_footer(
+                text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}"
+            )
 
             return embed
 
@@ -294,7 +294,9 @@ class Pokemon(commands.Cog):
             )
 
         if "ends" in flags and flags["ends"] is not None:
-            aggregations.append({"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
+            aggregations.append(
+                {"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}}
+            )
 
         # Numerical flags
 
@@ -353,9 +355,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=("r",))
-    async def release(
-        self, ctx, args: commands.Greedy[converters.PokemonConverter]
-    ):
+    async def release(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Release pokémon from your collection."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -399,7 +399,7 @@ class Pokemon(commands.Cog):
                 f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}? This action is irreversible! [y/N]"
             )
         else:
-            embed = self.bot.Embed(color=0xF44336)
+            embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = (
                 f"Are you sure you want to release the following pokémon? [y/N]"
             )
@@ -604,7 +604,7 @@ class Pokemon(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(color=0xF44336)
+            embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Your pokémon"
             embed.description = "\n".join(page)[:2048]
 
@@ -704,7 +704,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(color=0xF44336)
+                embed = self.bot.Embed(color=0x9CCFFF)
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
@@ -772,7 +772,7 @@ class Pokemon(commands.Cog):
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
-            embed = self.bot.Embed(color=0xF44336)
+            embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"#{species.dex_number} — {species}"
 
             if species.description:
@@ -833,7 +833,7 @@ class Pokemon(commands.Cog):
         if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
             return await ctx.send("That pokémon can't be evolved!")
 
-        embed = self.bot.Embed(color=0xF44336)
+        embed = self.bot.Embed(color=0x9CCFFF)
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
         name = str(pokemon.species)

@@ -119,7 +119,7 @@ class Auctions(commands.Cog):
                 print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = discord.Embed(color=0xF44336)
+        embed = discord.Embed(color=0x9CCFFF)
         embed.set_author(name=str(author), icon_url=author.avatar_url)
         embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
@@ -509,7 +509,7 @@ class Auctions(commands.Cog):
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
-            
+
             now = datetime.utcnow()
 
             maxn = max(x[1] for x in pokemon)
@@ -522,7 +522,7 @@ class Auctions(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(color=0xF44336)
+            embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Auctions in {ctx.guild.name}"
             embed.description = "\n".join(page)[:2048]
 
