@@ -6,7 +6,7 @@ default = (
     "bot",
     "config",
     "data",
-    "noevent",
+    "christmas",
     "help",
     "ipc",
     "market",
