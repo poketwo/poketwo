@@ -356,7 +356,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.command(aliases=("r",))
     async def release(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
-        """Release pokémon from your collection."""
+        """Release pokémon from your collection for 2pc each."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -396,12 +396,12 @@ class Pokemon(commands.Cog):
 
         if len(args) == 1:
             await ctx.send(
-                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}? This action is irreversible! [y/N]"
+                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx} for 2 pc? This action is irreversible! [y/N]"
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = (
-                f"Are you sure you want to release the following pokémon? [y/N]"
+                f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
             )
 
             embed.description = "\n".join(
@@ -426,7 +426,13 @@ class Pokemon(commands.Cog):
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}}
         )
-        await ctx.send(f"You released {len(mons)} pokémon.")
+        await self.bot.mongo.update_member(
+                ctx.author,
+                {
+                    "$inc": {"balance": 2*len(mons)},
+                },
+            )
+        await ctx.send(f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!")
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -458,7 +464,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @flags.command(aliases=("ra",))
     async def releaseall(self, ctx, **flags):
-        """Mass release pokémon from your collection."""
+        """Mass release pokémon from your collection for 2 pc each."""
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -489,7 +495,7 @@ class Pokemon(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Are you sure you want to release {num} pokémon? Favorited and selected pokémon won't be removed. Type `confirm release {num}` to confirm."
+            f"Are you sure you want to release {num} pokémon for {num*2:,} pc? Favorited and selected pokémon won't be removed. Type `confirm release {num}` to confirm."
         )
 
         def check(m):
@@ -517,7 +523,14 @@ class Pokemon(commands.Cog):
             {"$set": {"owner_id": None}},
         )
 
-        await ctx.send(f"You have released {num} pokémon.")
+        await self.bot.mongo.update_member(
+            ctx.author,
+                {
+                    "$inc": {"balance": 2*num},
+                },
+        )
+
+        await ctx.send(f"You have released {num} pokémon. You received {2*num:,} Pokécoins!")
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
