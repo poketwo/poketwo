@@ -611,6 +611,18 @@ class Trading(commands.Cog):
 
         # confirm
 
+        trade_size = len(self.bot.trades[ctx.author.id]["items"][ctx.author.id])
+
+        if 3000 - trade_size < 0:
+            return await ctx.send(
+                f"There are too many pokemon in this trade! Try adding them individually or seperating it into different trades."
+            )
+
+        if trade_size + num > 3000:
+            return await ctx.send(
+                f"There are too many pokemon in this trade! Try adding `--limit {3000 - trade_size}` to the end of your trade."
+            )
+
         await ctx.send(
             f"Are you sure you want to trade {num} pokémon? Favorited and selected pokémon won't be added. Type `confirm trade {num}` to confirm."
         )
