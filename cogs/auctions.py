@@ -169,6 +169,7 @@ class Auctions(commands.Cog):
         await ctx.send(f"Changed auctions channel to **{channel}**.")
 
     @checks.has_started()
+    @commands.max_concurrency(1, per=commands.BucketType.user)
     @auction.command()
     async def start(
         self,
@@ -315,7 +316,7 @@ class Auctions(commands.Cog):
         )
 
     @checks.has_started()
-    @commands.max_concurrency(1, per=commands.BucketType.member, wait=True)
+    @commands.max_concurrency(1, per=commands.BucketType.user)
     @auction.command()
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
