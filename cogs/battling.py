@@ -118,6 +118,7 @@ class Battle:
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
         self.stage = Stage.SELECT
+        self.passed_turns = 0
         self.ctx = ctx
         self.bot = ctx.bot
         self.manager = manager
@@ -175,6 +176,16 @@ class Battle:
         actions = await asyncio.gather(
             self.trainers[0].get_action(message), self.trainers[1].get_action(message)
         )
+
+        if actions[0]["type"] == "pass" and actions[1]["type"] == "pass":
+            self.passed_turns += 1
+
+        if self.passed_turns >= 3:
+            await self.channel.send(
+                "Both trainers passed three times in a row. I'll end the battle here."
+            )
+            self.end()
+            return
 
         iterl = list(zip(actions, self.trainers, reversed(self.trainers)))
 
@@ -380,6 +391,11 @@ class Battling(commands.Cog):
         if not hasattr(self.bot, "battles"):
             self.bot.battles = BattleManager()
 
+    def reload_battling(self):
+        for battle in self.bot.battles.battles.values():
+            battle.stage = Stage.END
+        self.bot.battles = BattleManager()
+
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
         user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
@@ -440,12 +456,6 @@ class Battling(commands.Cog):
         resp = await self.bot.ipc.client.request(
             "move_decide", 8765 + cluster_idx, user_id=user.id, action=action
         )
-
-    @commands.is_owner()
-    @commands.command()
-    async def reloadbattling(self, ctx):
-        self.bot.battles = BattleManager()
-        await ctx.send("Reloaded battle manager.")
 
     @checks.has_started()
     @in_battle(False)
