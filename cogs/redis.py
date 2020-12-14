@@ -15,8 +15,15 @@ class Redis(commands.Cog):
         self.pool = await aioredis.create_redis_pool(**self.bot.config.REDIS_CONF)
         self.ready = True
 
+    async def close(self):
+        self.pool.close()
+        await self.pool.wait_closed()
+
     async def wait_until_ready(self):
         await self._connect_task
+
+    def cog_unload(self):
+        self.bot.loop.create_task(self.close())
 
 
 def setup(bot):
