@@ -54,6 +54,8 @@ class PokemonBase(MixinDocument):
     iv_sdef = fields.IntegerField(required=True)
     iv_spd = fields.IntegerField(required=True)
 
+    iv_total = fields.IntegerField(required=False)
+
     # Customization
     nickname = fields.StringField(default=None)
     favorite = fields.BooleanField(default=False)
@@ -97,13 +99,15 @@ class PokemonBase(MixinDocument):
 
     @classmethod
     def random(cls, **kwargs):
+        ivs = [random_iv() for i in range(6)]
         return cls(
-            iv_hp=random_iv(),
-            iv_atk=random_iv(),
-            iv_defn=random_iv(),
-            iv_satk=random_iv(),
-            iv_sdef=random_iv(),
-            iv_spd=random_iv(),
+            iv_hp=ivs[0],
+            iv_atk=ivs[1],
+            iv_defn=ivs[2],
+            iv_satk=ivs[3],
+            iv_sdef=ivs[4],
+            iv_spd=ivs[5],
+            iv_total=sum(ivs),
             nature=random_nature(),
             shiny=random.randint(1, 4096) == 1,
             **kwargs,

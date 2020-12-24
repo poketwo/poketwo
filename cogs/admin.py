@@ -146,6 +146,8 @@ class Administration(commands.Cog):
         if species is None:
             return await ctx.send(f"Could not find a pokemon matching `{arg}`.")
 
+        ivs = [mongo.random_iv() for i in range(6)]
+
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": user.id,
@@ -153,12 +155,13 @@ class Administration(commands.Cog):
                 "level": 1,
                 "xp": 0,
                 "nature": mongo.random_nature(),
-                "iv_hp": mongo.random_iv(),
-                "iv_atk": mongo.random_iv(),
-                "iv_defn": mongo.random_iv(),
-                "iv_satk": mongo.random_iv(),
-                "iv_sdef": mongo.random_iv(),
-                "iv_spd": mongo.random_iv(),
+                "iv_hp": ivs[0],
+                "iv_atk": ivs[1],
+                "iv_defn": ivs[2],
+                "iv_satk": ivs[3],
+                "iv_sdef": ivs[4],
+                "iv_spd": ivs[5],
+                "iv_total": sum(ivs),
                 "shiny": shiny,
                 "idx": await self.bot.mongo.fetch_next_idx(user),
             }
@@ -176,6 +179,8 @@ class Administration(commands.Cog):
         pokemon = []
         idx = await self.bot.mongo.fetch_next_idx(user, reserve=num)
 
+        ivs = [mongo.random_iv() for i in range(6)]
+
         for i in range(num):
             spid = random.randint(1, 809)
             pokemon.append(
@@ -185,12 +190,13 @@ class Administration(commands.Cog):
                     "level": 80,
                     "xp": 0,
                     "nature": mongo.random_nature(),
-                    "iv_hp": mongo.random_iv(),
-                    "iv_atk": mongo.random_iv(),
-                    "iv_defn": mongo.random_iv(),
-                    "iv_satk": mongo.random_iv(),
-                    "iv_sdef": mongo.random_iv(),
-                    "iv_spd": mongo.random_iv(),
+                    "iv_hp": ivs[0],
+                    "iv_atk": ivs[1],
+                    "iv_defn": ivs[2],
+                    "iv_satk": ivs[3],
+                    "iv_sdef": ivs[4],
+                    "iv_spd": ivs[5],
+                    "iv_total": sum(ivs),
                     "shiny": False,
                     "idx": idx + i,
                 }
