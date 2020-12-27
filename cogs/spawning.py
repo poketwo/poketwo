@@ -404,18 +404,18 @@ class Spawning(commands.Cog):
             inc_bal = 0
 
             if memberp.pokedex[str(species.dex_number)] + 1 == 10:
-                message += f" This is your 10th {species}! You received 350 Pokécoins."
+                message += f" This is your 10th {self.bot.data.species_by_number(species.dex_number)}! You received 350 Pokécoins."
                 inc_bal = 350
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 100:
                 message += (
-                    f" This is your 100th {species}! You received 3500 Pokécoins."
+                    f" This is your 100th {self.bot.data.species_by_number(species.dex_number)}! You received 3500 Pokécoins."
                 )
                 inc_bal = 3500
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 1000:
                 message += (
-                    f" This is your 1000th {species}! You received 35000 Pokécoins."
+                    f" This is your 1000th {self.bot.data.species_by_number(species.dex_number)}! You received 35000 Pokécoins."
                 )
                 inc_bal = 35000
 
