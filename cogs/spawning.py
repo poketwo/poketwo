@@ -262,7 +262,7 @@ class Spawning(commands.Cog):
         if prev_species:
             embed.title = f"Wild {prev_species} fled. A new wild pokémon has appeared!"
         else:
-            embed.title = f"A wild pokémon has appeared!"
+            embed.title = "A wild pokémon has appeared!"
 
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
