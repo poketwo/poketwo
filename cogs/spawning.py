@@ -236,7 +236,7 @@ class Spawning(commands.Cog):
             self.spawn_threshold *= 1.1
 
     async def spawn_pokemon(self, channel, species=None, incense=None):
-        prev_species = ""
+        prev_species = None
         if await self.bot.redis.hexists("wild", channel.id):
             prev_species_id = await self.bot.redis.hget("wild", channel.id)
             prev_species = self.bot.data.species_by_number(int(prev_species_id))
