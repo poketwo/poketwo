@@ -401,9 +401,7 @@ class Pokemon(commands.Cog):
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = (
-                f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
-            )
+            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
             embed.description = "\n".join(
                 f"Level {x.level} {x.species} ({x.idx})" for x in mons
@@ -428,12 +426,14 @@ class Pokemon(commands.Cog):
             {"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}}
         )
         await self.bot.mongo.update_member(
-                ctx.author,
-                {
-                    "$inc": {"balance": 2*len(mons)},
-                },
-            )
-        await ctx.send(f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!")
+            ctx.author,
+            {
+                "$inc": {"balance": 2 * len(mons)},
+            },
+        )
+        await ctx.send(
+            f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!"
+        )
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -463,6 +463,7 @@ class Pokemon(commands.Cog):
 
     # Release all
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(aliases=("ra",))
     async def releaseall(self, ctx, **flags):
         """Mass release pokémon from your collection for 2 pc each."""
@@ -513,6 +514,10 @@ class Pokemon(commands.Cog):
 
         # confirmed, release all
 
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
+
         await ctx.send(f"Releasing {num} pokémon, this might take a while...")
 
         pokemon = await self.bot.mongo.fetch_pokemon_list(
@@ -526,12 +531,14 @@ class Pokemon(commands.Cog):
 
         await self.bot.mongo.update_member(
             ctx.author,
-                {
-                    "$inc": {"balance": 2*num},
-                },
+            {
+                "$inc": {"balance": 2 * num},
+            },
         )
 
-        await ctx.send(f"You have released {num} pokémon. You received {2*num:,} Pokécoins!")
+        await ctx.send(
+            f"You have released {num} pokémon. You received {2*num:,} Pokécoins!"
+        )
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
