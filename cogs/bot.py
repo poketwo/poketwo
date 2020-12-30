@@ -182,6 +182,7 @@ class Bot(commands.Cog):
             if self.bot.prefixes[guild.id] is not None:
                 return [
                     self.bot.prefixes[guild.id],
+                    self.bot.prefixes[guild.id].capitalize(),
                     self.bot.user.mention + " ",
                     self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
                 ]
