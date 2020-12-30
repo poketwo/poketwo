@@ -354,6 +354,7 @@ class Pokemon(commands.Cog):
         return aggregations
 
     @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=("r",))
     async def release(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Release pokémon from your collection for 2pc each."""
