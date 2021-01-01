@@ -288,6 +288,10 @@ class Auctions(commands.Cog):
             return await ctx.send(
                 "You may only lower the starting bid, not increase it."
             )
+        if auction.bid_increment > new_start:
+            return await ctx.send(
+                "You may not set the new starting bid to a value less than your bid increment."
+            )
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
