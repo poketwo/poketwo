@@ -142,7 +142,7 @@ class Market(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon.species} "
+            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon:s} "
             f"No. {pokemon.idx}** for **{price:,}** Pokécoins? [y/N]"
         )
 
@@ -207,8 +207,8 @@ class Market(commands.Cog):
         # confirm
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
         await ctx.send(
-            f"Are you sure you want to remove this listing **{pokemon.iv_percentage:.2%} {pokemon.species}** "
-            f"for **{listing['price']:,}** Pokécoins? [y/N]"
+            f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** "
+            f"from the market? [y/N]"
         )
 
         def check(m):
@@ -268,7 +268,7 @@ class Market(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon.species}** "
+            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon:s}** "
             f"for **{listing['price']:,}** Pokécoins? [y/N]"
         )
 
