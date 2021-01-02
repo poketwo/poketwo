@@ -1,3 +1,4 @@
+import random
 import asyncio
 import math
 
@@ -177,14 +178,19 @@ class Trading(commands.Cog):
                             }
                             idx += 1
 
-                            if (
-                                pokemon.species.trade_evolution
-                            ) and pokemon.held_item != 13001:
-                                evo = pokemon.species.trade_evolution
-                                if (
-                                    evo.trigger.item is None
-                                    or evo.trigger.item.id == pokemon.held_item
-                                ):
+                            if pokemon.held_item != 13001:
+                                evos = [
+                                    evo
+                                    for evo in pokemon.species.trade_evolutions
+                                    if (
+                                        evo.trigger.item is None
+                                        or evo.trigger.item.id == pokemon.held_item
+                                    )
+                                ]
+
+                                if len(evos) > 0:
+                                    evo = random.choice(evos)
+
                                     evo_embed = self.bot.Embed(color=0x9CCFFF)
                                     evo_embed.title = (
                                         f"Congratulations {mem.display_name}!"
