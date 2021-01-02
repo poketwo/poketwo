@@ -321,7 +321,7 @@ class Auctions(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.user)
-    @auction.command()
+    @auction.command(aliases=("b",))
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
 
@@ -342,7 +342,7 @@ class Auctions(commands.Cog):
         # confirm
 
         await ctx.send(
-            f"Do you want to bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}**? [y/N]"
+            f"Do you want to bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**? [y/N]"
         )
 
         def check(m):
