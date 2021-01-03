@@ -109,7 +109,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(aliases=("na",))
-    async def nickall(self, ctx, **flags,):
+    async def nickall(self, ctx, **flags):
         """Mass nickname pokémon from your collection."""
 
         nicknameall = " ".join(flags["newname"])
@@ -173,7 +173,7 @@ class Pokemon(commands.Cog):
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
-            {"$set": {f"nickname": nicknameall}},
+            {"$set": {"nickname": nicknameall}},
         )
         
         if nicknameall is None:
