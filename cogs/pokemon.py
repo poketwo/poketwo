@@ -77,8 +77,10 @@ class Pokemon(commands.Cog):
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
          
+    # Nickname
+    @flags.add_flag("newname", nargs="+")
+
     # Filter
-    @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
@@ -107,8 +109,10 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(aliases=("na",))
-    async def nickall(self, ctx, nickname: str,  **flags):
+    async def nickall(self, ctx, **flags,):
         """Mass nickname pokémon from your collection."""
+
+        nicknameall = " ".join(flags["newname"])
 
         aggregations = await self.create_filter(flags, ctx)
 
@@ -116,12 +120,12 @@ class Pokemon(commands.Cog):
             return
 
         # check nick length
-        if len(nickname) > 100:
+        if len(nicknameall) > 100:
             return await ctx.send("That nickname is too long.")
 
         # check nick reset
-        if nickname == "reset":
-            nickname = None
+        if nicknameall == "reset":
+            nicknameall = None
         
         # check pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(
@@ -134,13 +138,13 @@ class Pokemon(commands.Cog):
             )
         
         # confirm
-        if nickname is None:
+        if nicknameall is None:
             await ctx.send(
-                f"Are you sure you want to remove nickname for {num} pokémon? Type `confirm nickname {num}` to confirm."
+                f"Are you sure you want to **remove** nickname for {num} pokémon? Type `confirm nickname {num}` to confirm."
             )
         else:
             await ctx.send(
-                f"Are you sure you want to rename {num} pokémon to `{nickname}`? Type `confirm nickname {num}` to confirm."
+                f"Are you sure you want to rename {num} pokémon to `{nicknameall}`? Type `confirm nickname {num}` to confirm."
             )
 
         def check(m):
@@ -169,16 +173,16 @@ class Pokemon(commands.Cog):
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
-            {"$set": {f"nickname": nickname}},
+            {"$set": {f"nickname": nicknameall}},
         )
         
-        if nickname is None:
+        if nicknameall is None:
             await ctx.send(
                 f"Removed nickname for {num} pokémon."
             )
         else:
             await ctx.send(
-                f"Changed nickname to `{nickname}` for {num} pokémon."
+                f"Changed nickname to `{nicknameall}` for {num} pokémon."
             )
 
         
