@@ -76,7 +76,116 @@ class Pokemon(commands.Cog):
             await ctx.send(
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
+         
+    # Nickname
+    @flags.add_flag("newname", nargs="+")
 
+    # Filter
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
+    # Rename all
+    @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @flags.command(aliases=("na",))
+    async def nickall(self, ctx, **flags):
+        """Mass nickname pokémon from your collection."""
+
+        nicknameall = " ".join(flags["newname"])
+
+        aggregations = await self.create_filter(flags, ctx)
+
+        if aggregations is None:
+            return
+
+        # check nick length
+        if len(nicknameall) > 100:
+            return await ctx.send("That nickname is too long.")
+
+        # check nick reset
+        if nicknameall == "reset":
+            nicknameall = None
+        
+        # check pokemon num
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
+
+        if num == 0:
+            return await ctx.send(
+                "Found no pokémon matching this search."
+            )
+        
+        # confirm
+        if nicknameall is None:
+            await ctx.send(
+                f"Are you sure you want to **remove** nickname for {num} pokémon? Type `confirm nickname {num}` to confirm."
+            )
+        else:
+            await ctx.send(
+                f"Are you sure you want to rename {num} pokémon to `{nicknameall}`? Type `confirm nickname {num}` to confirm."
+            )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+            if msg.content.lower() != f"confirm nickname {num}":
+                return await ctx.send("Aborted.")
+
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        # confirmed, nickname all
+
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
+
+        await ctx.send(f"Renaming {num} pokémon, this might take a while...")
+
+        pokemon = await self.bot.mongo.fetch_pokemon_list(
+            ctx.author, 0, num, aggregations=aggregations
+        )
+
+        await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
+            {"$set": {"nickname": nicknameall}},
+        )
+        
+        if nicknameall is None:
+            await ctx.send(
+                f"Removed nickname for {num} pokémon."
+            )
+        else:
+            await ctx.send(
+                f"Changed nickname to `{nicknameall}` for {num} pokémon."
+            )
+
+        
     @commands.command(aliases=("fav", "favourite"), rest_is_raw=True)
     async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
