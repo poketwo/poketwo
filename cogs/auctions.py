@@ -293,6 +293,24 @@ class Auctions(commands.Cog):
                 "You may not set the new starting bid to a value less than your bid increment."
             )
 
+        #Verification
+
+        await ctx.send(
+            f"Do you want to lower starting bid to **{new_start} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**? [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        if msg.content.lower() != "y":
+            return await ctx.send("Aborted.")
+
+        #Go
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         embed = self.make_base_embed(ctx.author, auction.pokemon, auction.id)
