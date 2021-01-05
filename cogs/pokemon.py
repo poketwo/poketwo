@@ -63,7 +63,7 @@ class Pokemon(commands.Cog):
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
 
-        if URL_REGEX.findall(nickname):
+        if URL_REGEX.search(nickname):
             return await ctx.send("That nickname contains URL(s).")
 
         if nickname == "reset":
@@ -129,7 +129,7 @@ class Pokemon(commands.Cog):
         if len(nicknameall) > 100:
             return await ctx.send("That nickname is too long.")
 
-        if URL_REGEX.findall(nicknameall):
+        if URL_REGEX.search(nicknameall):
             return await ctx.send("That nickname contains URL(s).")
 
         # check nick reset
