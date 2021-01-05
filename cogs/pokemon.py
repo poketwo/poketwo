@@ -1,5 +1,6 @@
 import asyncio
 import math
+import re
 import typing
 from datetime import datetime
 from operator import itemgetter
@@ -7,6 +8,8 @@ from operator import itemgetter
 from discord.ext import commands, flags
 from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
+
+URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")
 
 
 class Pokemon(commands.Cog):
@@ -59,6 +62,9 @@ class Pokemon(commands.Cog):
 
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
+
+        if URL_REGEX.findall(nickname):
+            return await ctx.send("That nickname contains URL(s).")
 
         if nickname == "reset":
             nickname = None
@@ -122,6 +128,9 @@ class Pokemon(commands.Cog):
         # check nick length
         if len(nicknameall) > 100:
             return await ctx.send("That nickname is too long.")
+
+        if URL_REGEX.findall(nicknameall):
+            return await ctx.send("That nickname contains URL(s).")
 
         # check nick reset
         if nicknameall == "reset":
