@@ -247,6 +247,15 @@ class Pokemon(commands.Cog):
                 pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
 
             embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF)
+            
+            #Remove Present URLs
+            if pokemon.nickname != None and constants.URL_REGEX.search(pokemon.nickname):
+                await self.bot.mongo.update_pokemon(
+                pokemon,
+                {"$set": {"nickname": None}},
+                )
+                pokemon.nickname = None
+
             embed.title = f"{pokemon:lnf}"
 
             if pokemon.shiny:
@@ -731,7 +740,16 @@ class Pokemon(commands.Cog):
 
             if len(pokemon) == 0:
                 return await clear("There are no pokémon on this page!")
-
+            
+            #Remove Present URLs
+            for p in pokemon:
+                if p.nickname != None and constants.URL_REGEX.search(p.nickname):
+                    await self.bot.mongo.update_pokemon(
+                    p,
+                    {"$set": {"nickname": None}},
+                    )
+                    p.nickname = None
+                    
             maxn = max(x.idx for x in pokemon)
 
             page = [
