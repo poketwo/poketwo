@@ -16,7 +16,7 @@ from discord.ext import commands, tasks
 from helpers import checks
 from . import mongo
 
-MIN_SPAWN_THRESHOLD = 15
+MIN_SPAWN_THRESHOLD = 10
 
 
 def write_fp(data):
@@ -43,7 +43,7 @@ class Spawning(commands.Cog):
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
 
-    @tasks.loop(seconds=0.5)
+    @tasks.loop(seconds=0.25)
     async def send_spawns(self):
         await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
@@ -82,10 +82,15 @@ class Spawning(commands.Cog):
         if not self.bot.enabled or message.author.bot or message.guild is None:
             return
 
+        ctx = await self.bot.get_context(message)
+
+        if ctx.valid:
+            return
+
         current = time.time()
 
-        # Spamcheck, every two seconds
-        if current - self.bot.cooldown_users.get(message.author.id, 0) < 2:
+        # Spamcheck, every one second
+        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1:
             return
         self.bot.cooldown_users[message.author.id] = current
 
@@ -192,7 +197,7 @@ class Spawning(commands.Cog):
         if not message.guild:
             return
 
-        if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1.5:
+        if current - self.bot.cooldown_guilds.get(message.guild.id, 0) < 1:
             return
 
         self.bot.cooldown_guilds[message.guild.id] = current
@@ -235,14 +240,18 @@ class Spawning(commands.Cog):
 
             self.spawn_threshold *= 1.1
 
-    async def spawn_pokemon(self, channel, species=None, incense=None):
+    async def spawn_pokemon(self, channel, species=None, incense=None, redeem=False):
         prev_species = None
         if await self.bot.redis.hexists("wild", channel.id):
             prev_species_id = await self.bot.redis.hget("wild", channel.id)
             prev_species = self.bot.data.species_by_number(int(prev_species_id))
-            
+
         if species is None:
             species = self.bot.data.random_spawn()
+
+        if not redeem and await self.bot.redis.get(f"redeem:{channel.id}"):
+            print("ignoring would override redeem")
+            return
 
         self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
 
@@ -300,6 +309,11 @@ class Spawning(commands.Cog):
 
         self.caught_users[channel.id] = set()
         await self.bot.redis.hset("wild", channel.id, species.id)
+
+        if redeem:
+            await self.bot.redis.set(f"redeem:{channel.id}", 1)
+            await self.bot.redis.expire(f"redeem:{channel.id}", 30)
+
         await channel.send(
             file=image,
             embed=embed,
@@ -416,15 +430,11 @@ class Spawning(commands.Cog):
                 inc_bal = 350
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 100:
-                message += (
-                    f" This is your 100th {self.bot.data.species_by_number(species.dex_number)}! You received 3500 Pokécoins."
-                )
+                message += f" This is your 100th {self.bot.data.species_by_number(species.dex_number)}! You received 3500 Pokécoins."
                 inc_bal = 3500
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 1000:
-                message += (
-                    f" This is your 1000th {self.bot.data.species_by_number(species.dex_number)}! You received 35000 Pokécoins."
-                )
+                message += f" This is your 1000th {self.bot.data.species_by_number(species.dex_number)}! You received 35000 Pokécoins."
                 inc_bal = 35000
 
             await self.bot.mongo.update_member(

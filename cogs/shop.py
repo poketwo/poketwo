@@ -993,7 +993,9 @@ class Shop(commands.Cog):
         if ctx.channel.id == 759559123657293835:
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
-        if await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species):
+        if await self.bot.get_cog("Spawning").spawn_pokemon(
+            ctx.channel, species, redeem=True
+        ):
             await self.bot.mongo.update_member(
                 ctx.author,
                 {"$inc": {"redeems": -1}},
