@@ -9,8 +9,6 @@ from discord.ext import commands, flags
 from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
 
-URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")
-
 
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
@@ -63,7 +61,7 @@ class Pokemon(commands.Cog):
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
 
-        if URL_REGEX.search(nickname):
+        if constants.URL_REGEX.search(nickname):
             return await ctx.send("That nickname contains URL(s).")
 
         if nickname == "reset":
@@ -129,7 +127,7 @@ class Pokemon(commands.Cog):
         if len(nicknameall) > 100:
             return await ctx.send("That nickname is too long.")
 
-        if URL_REGEX.search(nicknameall):
+        if constants.URL_REGEX.search(nicknameall):
             return await ctx.send("That nickname contains URL(s).")
 
         # check nick reset
