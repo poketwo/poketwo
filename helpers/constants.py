@@ -1,3 +1,5 @@
+import re
+
 BOXES = {"n": "normal", "g": "great", "u": "ultra", "m": "master"}
 
 NUMBER_REACTIONS = [
