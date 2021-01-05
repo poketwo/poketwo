@@ -51,6 +51,10 @@ class Bot(commands.Cog):
             raise commands.CommandOnCooldown(bucket, retry_after)
 
         return True
+    
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        await self.bot.process_commands(after)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
