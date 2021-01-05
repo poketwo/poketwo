@@ -375,3 +375,6 @@ NATURE_MULTIPLIERS = {
         "spd": 1,
     },
 }
+
+
+URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")
