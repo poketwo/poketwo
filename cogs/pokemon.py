@@ -249,7 +249,7 @@ class Pokemon(commands.Cog):
             embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF)
             
             #Remove Present URLs
-            if pokemon.nickname != None and constants.URL_REGEX.search(pokemon.nickname):
+            if pokemon.nickname is not None and constants.URL_REGEX.search(pokemon.nickname):
                 await self.bot.mongo.update_pokemon(
                 pokemon,
                 {"$set": {"nickname": None}},
@@ -743,7 +743,7 @@ class Pokemon(commands.Cog):
             
             #Remove Present URLs
             for p in pokemon:
-                if p.nickname != None and constants.URL_REGEX.search(p.nickname):
+                if p.nickname is not None and constants.URL_REGEX.search(p.nickname):
                     await self.bot.mongo.update_pokemon(
                     p,
                     {"$set": {"nickname": None}},
