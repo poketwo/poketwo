@@ -58,9 +58,15 @@ class Auctions(commands.Cog):
             auction.bidder_id = auction.user_id
             auction.current_bid = 0
 
-        host = await self.bot.fetch_user(auction.user_id) or FakeUser(auction.user_id)
-        bidder = await self.bot.fetch_user(auction.bidder_id) or FakeUser(
-            auction.bidder_id
+        host = (
+            self.bot.get_user(auction.user_id)
+            or await self.bot.fetch_user(auction.user_id)
+            or FakeUser(auction.user_id)
+        )
+        bidder = (
+            self.bot.get_user(auction.bidder_id)
+            or await self.bot.fetch_user(auction.bidder_id)
+            or FakeUser(auction.bidder_id)
         )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
@@ -415,13 +421,14 @@ class Auctions(commands.Cog):
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -bid}})
 
             if auction.bidder_id is not None:
-                old_bidder = await self.bot.fetch_user(auction.bidder_id)
                 await self.bot.mongo.update_member(
-                    old_bidder, {"$inc": {"balance": auction.current_bid}}
+                    auction.bidder_id, {"$inc": {"balance": auction.current_bid}}
                 )
+                priv = await self.bot.http.start_private_message(auction.bidder_id)
                 self.bot.loop.create_task(
-                    old_bidder.send(
-                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
+                    await self.bot.http.send_message(
+                        priv["id"],
+                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
                     )
                 )
             self.bot.loop.create_task(
