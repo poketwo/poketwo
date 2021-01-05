@@ -1,3 +1,5 @@
+import re
+
 BOXES = {"n": "normal", "g": "great", "u": "ultra", "m": "master"}
 
 NUMBER_REACTIONS = [
@@ -375,3 +377,6 @@ NATURE_MULTIPLIERS = {
         "spd": 1,
     },
 }
+
+
+URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")

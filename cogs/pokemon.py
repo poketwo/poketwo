@@ -1,5 +1,6 @@
 import asyncio
 import math
+import re
 import typing
 from datetime import datetime
 from operator import itemgetter
@@ -59,6 +60,9 @@ class Pokemon(commands.Cog):
 
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
+
+        if constants.URL_REGEX.search(nickname):
+            return await ctx.send("That nickname contains URL(s).")
 
         if nickname == "reset":
             nickname = None
@@ -122,6 +126,9 @@ class Pokemon(commands.Cog):
         # check nick length
         if len(nicknameall) > 100:
             return await ctx.send("That nickname is too long.")
+
+        if constants.URL_REGEX.search(nicknameall):
+            return await ctx.send("That nickname contains URL(s).")
 
         # check nick reset
         if nicknameall == "reset":
