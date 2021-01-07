@@ -139,6 +139,14 @@ class Market(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
+        if member.selected_id == pokemon.id:
+            return await ctx.send(
+                f"{pokemon.idx}: You can't list your selected pokémon!"
+            )
+        
+        if pokemon.favorite:
+            return await ctx.send(f"{pokemon.idx}: You can't list a favorited pokémon!")
+
         # confirm
 
         await ctx.send(
