@@ -651,11 +651,11 @@ python-versions = "*"
 
 [[package]]
 name = "umongo"
-version = "3.0.0b8"
+version = "3.0.0b10"
 description = "sync/async MongoDB ODM, yes."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 marshmallow = ">=3.5.0"
@@ -733,7 +733,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "827bb978ba9a4c4a0214999c1963b2f4510fa5eb004c51da94ffffeb03bd8839"
+content-hash = "cf769afa461597e408ce05ec3fa23fc5ec7dff2c3d2591f806b709f28218616a"
 
 [metadata.files]
 aiofiles = [
@@ -1222,8 +1222,8 @@ typing-extensions = [
     {file = "typing_extensions-3.7.4.3.tar.gz", hash = "sha256:99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c"},
 ]
 umongo = [
-    {file = "umongo-3.0.0b8-py2.py3-none-any.whl", hash = "sha256:b0594ce08cb85eb39589ebd3635bf873cde18416948ba846bf4b22ebe41cb2ad"},
-    {file = "umongo-3.0.0b8.tar.gz", hash = "sha256:51a759b506fb99615ce971c5577469c6b1b6ed862bc52b48b21785eb5929ceca"},
+    {file = "umongo-3.0.0b10-py2.py3-none-any.whl", hash = "sha256:ce24ad58e8baaa9bfe0d63e4066e2c168fadb6908dba74bd5836fd87b9cd486f"},
+    {file = "umongo-3.0.0b10.tar.gz", hash = "sha256:7f89e223cc8202c089d72e241063c91cd37f4a615bf3205b4bbdb8a9c82a245a"},
 ]
 unidecode = [
     {file = "Unidecode-1.1.2-py2.py3-none-any.whl", hash = "sha256:4c9d15d2f73eb0d2649a151c566901f80a030da1ccb0a2043352e1dbf647586b"},

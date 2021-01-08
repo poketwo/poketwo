@@ -60,12 +60,12 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or await self.bot.fetch_user(auction.user_id)
+            or (await auction_guild.query_members(user_ids=(auction.user_id,)))[0]
             or FakeUser(auction.user_id)
         )
         bidder = (
             self.bot.get_user(auction.bidder_id)
-            or await self.bot.fetch_user(auction.bidder_id)
+            or (await auction_guild.query_members(user_ids=(auction.bidder_id,)))[0]
             or FakeUser(auction.bidder_id)
         )
 
@@ -383,8 +383,9 @@ class Auctions(commands.Cog):
 
             # send embed
 
-            host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
-                auction.user_id
+            host = (
+                self.bot.get_user(auction.user_id)
+                or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
             )
 
             embed = self.make_base_embed(host, auction.pokemon, auction.id)
@@ -554,8 +555,9 @@ class Auctions(commands.Cog):
     async def info(self, ctx, auction: AuctionConverter):
         """View a pokémon from an auction."""
 
-        host = self.bot.get_user(auction.user_id) or await self.bot.fetch_user(
-            auction.user_id
+        host = (
+            self.bot.get_user(auction.user_id)
+            or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
         )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
@@ -566,9 +568,11 @@ class Auctions(commands.Cog):
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
             )
         else:
-            bidder = self.bot.get_user(auction.bidder_id) or await self.bot.fetch_user(
-                auction.bidder_id
+            bidder = (
+                self.bot.get_user(auction.bidder_id)
+                or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
             )
+
             auction_info = (
                 f"**Current Bid:** {auction.current_bid:,} Pokécoins",
                 f"**Bidder:** {bidder.mention}",
