@@ -395,6 +395,7 @@ class Bot(commands.Cog):
                 "next_idx": 2,
             }
         )
+        await self.bot.redis.delete(f"db:member:{ctx.author.id}")
 
         await ctx.send(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"

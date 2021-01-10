@@ -434,9 +434,10 @@ class Mongo(commands.Cog):
             val = await self.Member.find_one(
                 {"id": member.id}, {"pokemon": 0, "pokedex": 0}
             )
-            await self.bot.redis.set(
-                f"db:member:{member.id}", pickle.dumps(val.to_mongo())
-            )
+            v = "" if val is None else pickle.dumps(val.to_mongo())
+            await self.bot.redis.set(f"db:member:{member.id}", v)
+        elif val == "":
+            return None
         else:
             val = self.Member.build_from_mongo(pickle.loads(val))
         return val
