@@ -436,7 +436,7 @@ class Mongo(commands.Cog):
             )
             v = "" if val is None else pickle.dumps(val.to_mongo())
             await self.bot.redis.set(f"db:member:{member.id}", v)
-        elif val == "":
+        elif len(val) == 0:
             return None
         else:
             val = self.Member.build_from_mongo(pickle.loads(val))
