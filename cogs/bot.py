@@ -51,7 +51,7 @@ class Bot(commands.Cog):
             raise commands.CommandOnCooldown(bucket, retry_after)
 
         return True
-    
+
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         await self.bot.process_commands(after)
@@ -270,8 +270,13 @@ class Bot(commands.Cog):
             "last_voted": {"$lt": datetime.utcnow() - timedelta(hours=12)},
         }
 
-        async for x in self.bot.mongo.db.member.find(query, no_cursor_timeout=True):
+        ids = set()
+
+        async for x in self.bot.mongo.db.member.find(
+            query, {"_id": 1}, no_cursor_timeout=True
+        ):
             try:
+                ids.add(x["_id"])
                 priv = await self.bot.http.start_private_message(x["_id"])
                 await self.bot.http.send_message(
                     priv["id"],
@@ -283,6 +288,7 @@ class Bot(commands.Cog):
         await self.bot.mongo.db.member.update_many(
             query, {"$set": {"need_vote_reminder": False}}
         )
+        await self.bot.redis.delete(*[f"db:member:{x}" for x in ids])
 
     @tasks.loop(minutes=1)
     async def post_count(self):

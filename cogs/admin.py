@@ -50,6 +50,7 @@ class Administration(commands.Cog):
             {"_id": {"$in": [x.id for x in users]}},
             {"$set": {"suspended": True}},
         )
+        await self.bot.redis.delete(*[f"db:member:{x.id}" for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
         await ctx.send(f"Suspended {users_msg}.")
 
@@ -62,6 +63,7 @@ class Administration(commands.Cog):
             {"_id": {"$in": [x.id for x in users]}},
             {"$set": {"suspended": False}},
         )
+        await self.bot.redis.delete(*[f"db:member:{x.id}" for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
         await ctx.send(f"Unsuspended {users_msg}.")
 

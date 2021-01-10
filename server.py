@@ -4,11 +4,13 @@ import hmac
 from datetime import datetime, timedelta
 from functools import wraps
 
-import config
+import aioredis
 import stripe
 from discord.ext.ipc import Client, ServerConnectionRefusedError
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, abort, request
+
+import config
 
 # Constants
 
@@ -30,6 +32,8 @@ web_ipc = Client(secret_key=config.SECRET_KEY)
 
 loop = asyncio.get_event_loop()
 db = AsyncIOMotorClient(config.DATABASE_URI, io_loop=loop)[config.DATABASE_NAME]
+
+redis = loop.run_until_complete(aioredis.create_redis_pool(**config.REDIS_CONF))
 
 
 # IPC Routes
@@ -228,6 +232,7 @@ async def dbl():
             },
         },
     )
+    await redis.delete(f"db:member:{uid}")
 
     article = "an" if box_type == "ultra" else "a"
 
@@ -266,6 +271,7 @@ async def purchase():
     shards = purchase_amounts[amount]
 
     await db.member.update_one({"_id": uid}, {"$inc": {"premium_balance": shards}})
+    await redis.delete(f"db:member:{uid}")
 
     try:
         await req(

@@ -1,3 +1,4 @@
+import pickle
 import math
 import random
 from datetime import datetime, timedelta, timezone
@@ -428,20 +429,34 @@ class Mongo(commands.Cog):
             getattr(self, x).bot = bot
 
     async def fetch_member_info(self, member: discord.Member):
-        return await self.Member.find_one(
-            {"id": member.id}, {"pokemon": 0, "pokedex": 0}
-        )
+        val = await self.bot.redis.get(f"db:member:{member.id}")
+        if val is None:
+            val = await self.Member.find_one(
+                {"id": member.id}, {"pokemon": 0, "pokedex": 0}
+            )
+            await self.bot.redis.set(
+                f"db:member:{member.id}", pickle.dumps(val.to_mongo())
+            )
+        else:
+            val = self.Member.build_from_mongo(pickle.loads(val))
+        return val
 
     async def fetch_next_idx(self, member: discord.Member, reserve=1):
         result = await self.db.member.find_one_and_update(
-            {"_id": member.id}, {"$inc": {"next_idx": reserve}}
+            {"_id": member.id},
+            {"$inc": {"next_idx": reserve}},
+            projection={"next_idx": 1},
         )
+        await self.bot.redis.delete(f"db:member:{member.id}")
         return result["next_idx"]
 
     async def reset_idx(self, member: discord.Member, value):
         result = await self.db.member.find_one_and_update(
-            {"_id": member.id}, {"$set": {"next_idx": value}}
+            {"_id": member.id},
+            {"$set": {"next_idx": value}},
+            projection={"next_idx": 1},
         )
+        await self.bot.redis.delete(f"db:member:{member.id}")
         return result["next_idx"]
 
     async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
@@ -569,7 +584,9 @@ class Mongo(commands.Cog):
     async def update_member(self, member, update):
         if hasattr(member, "id"):
             member = member.id
-        return await self.db.member.update_one({"_id": member}, update)
+        result = await self.db.member.update_one({"_id": member}, update)
+        await self.bot.redis.delete(f"db:member:{member}")
+        return result
 
     async def update_pokemon(self, pokemon, update):
         if hasattr(pokemon, "id"):
