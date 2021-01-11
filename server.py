@@ -4,13 +4,13 @@ import hmac
 from datetime import datetime, timedelta
 from functools import wraps
 
+import aiohttp_cors
 import aioredis
+import config
 import stripe
 from discord.ext.ipc import Client, ServerConnectionRefusedError
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, abort, request
-
-import config
 
 # Constants
 
