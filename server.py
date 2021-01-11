@@ -4,13 +4,14 @@ import hmac
 from datetime import datetime, timedelta
 from functools import wraps
 
-import aiohttp_cors
 import aioredis
-import config
 import stripe
 from discord.ext.ipc import Client, ServerConnectionRefusedError
 from motor.motor_asyncio import AsyncIOMotorClient
 from quart import Quart, abort, request
+from quart_cors import cors
+
+import config
 
 # Constants
 
@@ -28,6 +29,7 @@ stripe_secret = config.STRIPE_WEBHOOK_SECRET
 github_secret = config.GITHUB_WEBHOOK_SECRET.encode("utf-8")
 
 app = Quart(__name__)
+app = cors(app, allow_origin="*")
 web_ipc = Client(secret_key=config.SECRET_KEY)
 
 loop = asyncio.get_event_loop()

@@ -531,6 +531,17 @@ werkzeug = ">=1.0.0"
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "quart-cors"
+version = "0.3.0"
+description = "A Quart extension to provide Cross Origin Resource Sharing, access control, support."
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+
+[package.dependencies]
+Quart = ">=0.11.1"
+
+[[package]]
 name = "ratelim"
 version = "0.1.6"
 description = "Makes it easy to respect rate limits."
@@ -733,7 +744,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "cf769afa461597e408ce05ec3fa23fc5ec7dff2c3d2591f806b709f28218616a"
+content-hash = "2da86fe782aa405998dfe762d24726b726a071ae902f25f0d04eb9357feef0a2"
 
 [metadata.files]
 aiofiles = [
@@ -1111,6 +1122,10 @@ python-dateutil = [
 quart = [
     {file = "Quart-0.13.1-py3-none-any.whl", hash = "sha256:d885d782edd9d5dcfd2c4a56e020db3b82493d4c3950f91c221b7d88d239ac93"},
     {file = "Quart-0.13.1.tar.gz", hash = "sha256:9c634e4c1e4b21b824003c676de1583581258c72b0ac4d2ba747db846e97ff56"},
+]
+quart-cors = [
+    {file = "Quart-CORS-0.3.0.tar.gz", hash = "sha256:c08bdb326219b6c186d19ed6a97a7fd02de8fe36c7856af889494c69b525c53c"},
+    {file = "Quart_CORS-0.3.0-py3-none-any.whl", hash = "sha256:020a17d504264db86cada3c1335ef174af28b33f57cee321ddc46d69c33d5c8e"},
 ]
 ratelim = [
     {file = "ratelim-0.1.6-py2.py3-none-any.whl", hash = "sha256:e1a7dd39e6b552b7cc7f52169cd66cdb826a1a30198e355d7016012987c9ad08"},
