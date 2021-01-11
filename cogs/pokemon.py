@@ -10,6 +10,15 @@ from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
 
 
+def isfloat(x):
+    try:
+        float(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
@@ -332,13 +341,13 @@ class Pokemon(commands.Cog):
 
         ops = text
 
-        if len(text) == 1 and text[0].isdigit():
+        if len(text) == 1 and isfloat(text[0]):
             ops = ["=", text[0]]
 
-        elif len(text) == 1 and not text[0][0].isdigit():
+        elif len(text) == 1 and not isfloat(text[0][0]):
             ops = [text[0][0], text[0][1:]]
 
-        if ops[0] not in ("<", "=", ">") or not ops[1].isdigit():
+        if ops[0] not in ("<", "=", ">") or not isfloat(ops[1]):
             return None
 
         return ops
@@ -412,23 +421,27 @@ class Pokemon(commands.Cog):
         for flag, expr in constants.FILTER_BY_NUMERICAL.items():
             for text in flags[flag] or []:
                 ops = self.parse_numerical_flag(text)
+                ops[1] = float(ops[1])
 
                 if ops is None:
                     raise commands.BadArgument(
                         f"Couldn't parse `--{flag} {' '.join(text)}`"
                     )
 
+                if flag == "iv":
+                    ops[1] = float(ops[1]) * 186 / 100
+
                 if ops[0] == "<":
                     aggregations.append(
-                        {"$match": {expr: {"$lt": int(ops[1])}}},
+                        {"$match": {expr: {"$lt": math.ceil(ops[1])}}},
                     )
                 elif ops[0] == "=":
                     aggregations.append(
-                        {"$match": {expr: {"$eq": int(ops[1])}}},
+                        {"$match": {expr: {"$eq": round(ops[1])}}},
                     )
                 elif ops[0] == ">":
                     aggregations.append(
-                        {"$match": {expr: {"$gt": int(ops[1])}}},
+                        {"$match": {expr: {"$gt": math.floor(ops[1])}}},
                     )
 
         if order_by is not None:
