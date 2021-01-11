@@ -127,52 +127,24 @@ STARTER_GENERATION = {
 STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in l]
 
 SORTING_FUNCTIONS = {
-    "number": "$idx",
-    "iv": {
-        "$divide": [
-            {
-                "$add": [
-                    "$pokemon.iv_hp",
-                    "$pokemon.iv_atk",
-                    "$pokemon.iv_defn",
-                    "$pokemon.iv_satk",
-                    "$pokemon.iv_sdef",
-                    "$pokemon.iv_spd",
-                ]
-            },
-            1.86,
-        ]
-    },
-    "level": "$pokemon.level",
-    "pokedex": "$pokemon.species_id",
-    "price": "$price",
-    "bid": "$current_bid",
-    "ends": "$ends",
+    "number": "idx",
+    "iv": "pokemon.iv_total",
+    "level": "pokemon.level",
+    "pokedex": "pokemon.species_id",
+    "price": "price",
+    "bid": "current_bid",
+    "ends": "ends",
 }
 
 FILTER_BY_NUMERICAL = {
-    "iv": {
-        "$divide": [
-            {
-                "$add": [
-                    "$pokemon.iv_hp",
-                    "$pokemon.iv_atk",
-                    "$pokemon.iv_defn",
-                    "$pokemon.iv_satk",
-                    "$pokemon.iv_sdef",
-                    "$pokemon.iv_spd",
-                ]
-            },
-            1.86,
-        ]
-    },
-    "level": "$pokemon.level",
-    "hpiv": "$pokemon.iv_hp",
-    "atkiv": "$pokemon.iv_atk",
-    "defiv": "$pokemon.iv_defn",
-    "spatkiv": "$pokemon.iv_satk",
-    "spdefiv": "$pokemon.iv_sdef",
-    "spdiv": "$pokemon.iv_spd",
+    "iv": "pokemon.iv_total",
+    "level": "pokemon.level",
+    "hpiv": "pokemon.iv_hp",
+    "atkiv": "pokemon.iv_atk",
+    "defiv": "pokemon.iv_defn",
+    "spatkiv": "pokemon.iv_satk",
+    "spdefiv": "pokemon.iv_sdef",
+    "spdiv": "pokemon.iv_spd",
 }
 
 NATURE_MULTIPLIERS = {
@@ -379,4 +351,6 @@ NATURE_MULTIPLIERS = {
 }
 
 
-URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")
+URL_REGEX = re.compile(
+    r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)"
+)

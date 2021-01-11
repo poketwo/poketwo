@@ -80,7 +80,7 @@ class Pokemon(commands.Cog):
             await ctx.send(
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
             )
-         
+
     # Nickname
     @flags.add_flag("newname", nargs="+")
 
@@ -133,17 +133,15 @@ class Pokemon(commands.Cog):
         # check nick reset
         if nicknameall == "reset":
             nicknameall = None
-        
+
         # check pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
         )
 
         if num == 0:
-            return await ctx.send(
-                "Found no pokémon matching this search."
-            )
-        
+            return await ctx.send("Found no pokémon matching this search.")
+
         # confirm
         if nicknameall is None:
             await ctx.send(
@@ -182,17 +180,12 @@ class Pokemon(commands.Cog):
             {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
             {"$set": {"nickname": nicknameall}},
         )
-        
-        if nicknameall is None:
-            await ctx.send(
-                f"Removed nickname for {num} pokémon."
-            )
-        else:
-            await ctx.send(
-                f"Changed nickname to `{nicknameall}` for {num} pokémon."
-            )
 
-        
+        if nicknameall is None:
+            await ctx.send(f"Removed nickname for {num} pokémon.")
+        else:
+            await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
+
     @commands.command(aliases=("fav", "favourite"), rest_is_raw=True)
     async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
@@ -426,25 +419,16 @@ class Pokemon(commands.Cog):
                     )
 
                 if ops[0] == "<":
-                    aggregations.extend(
-                        [
-                            {"$addFields": {flag: expr}},
-                            {"$match": {flag: {"$lt": int(ops[1])}}},
-                        ]
+                    aggregations.append(
+                        {"$match": {expr: {"$lt": int(ops[1])}}},
                     )
                 elif ops[0] == "=":
-                    aggregations.extend(
-                        [
-                            {"$addFields": {flag: expr}},
-                            {"$match": {flag: {"$eq": int(ops[1])}}},
-                        ]
+                    aggregations.append(
+                        {"$match": {expr: {"$eq": int(ops[1])}}},
                     )
                 elif ops[0] == ">":
-                    aggregations.extend(
-                        [
-                            {"$addFields": {flag: expr}},
-                            {"$match": {flag: {"$gt": int(ops[1])}}},
-                        ]
+                    aggregations.append(
+                        {"$match": {expr: {"$gt": int(ops[1])}}},
                     )
 
         if order_by is not None:
@@ -454,11 +438,14 @@ class Pokemon(commands.Cog):
             else:
                 asc = -1 if order_by in ("iv", "level") else 1
 
-            aggregations.extend(
-                [
-                    {"$addFields": {"sorting": constants.SORTING_FUNCTIONS[order_by]}},
-                    {"$sort": {"sorting": asc, "idx": 1, "_id": 1}},
-                ]
+            aggregations.append(
+                {
+                    "$sort": {
+                        constants.SORTING_FUNCTIONS[order_by]: asc,
+                        "idx": 1,
+                        "_id": 1,
+                    }
+                },
             )
 
         if "skip" in flags and flags["skip"] is not None:

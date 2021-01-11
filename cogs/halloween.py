@@ -243,6 +243,7 @@ class Halloween(commands.Cog):
             message = f"You bought custom embed colors for your **{pokemon:ls}** for **{item['price']} candies**. Use it with `{ctx.prefix}embedcolor <pokemon #> <hex color>`."
 
         elif item["action"] == "shadow_lugia":
+            ivs = [mongo.random_iv() for i in range(6)]
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     "owner_id": ctx.author.id,
@@ -250,12 +251,13 @@ class Halloween(commands.Cog):
                     "level": min(max(int(random.normalvariate(20, 10)), 1), 100),
                     "xp": 0,
                     "nature": mongo.random_nature(),
-                    "iv_hp": mongo.random_iv(),
-                    "iv_atk": mongo.random_iv(),
-                    "iv_defn": mongo.random_iv(),
-                    "iv_satk": mongo.random_iv(),
-                    "iv_sdef": mongo.random_iv(),
-                    "iv_spd": mongo.random_iv(),
+                    "iv_hp": ivs[0],
+                    "iv_atk": ivs[1],
+                    "iv_defn": ivs[2],
+                    "iv_satk": ivs[3],
+                    "iv_sdef": ivs[4],
+                    "iv_spd": ivs[5],
+                    "iv_total": sum(ivs),
                     "shiny": member.determine_shiny(
                         self.bot.data.species_by_number(50001)
                     ),

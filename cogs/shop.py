@@ -279,6 +279,7 @@ class Shop(commands.Cog):
                     "iv_satk": ivs[3],
                     "iv_sdef": ivs[4],
                     "iv_spd": ivs[5],
+                    "iv_total": sum(ivs),
                     "shiny": shiny,
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
