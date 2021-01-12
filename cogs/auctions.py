@@ -14,6 +14,13 @@ from discord.ext import commands, flags, tasks
 from helpers import checks, converters, pagination
 
 
+async def query_member(guild, id):
+    r = await guild.query_members(user_ids=(id,))
+    if len(r) == 0:
+        return None
+    return r[0]
+
+
 class AuctionConverter(commands.Converter):
     async def convert(self, ctx, arg):
         try:
@@ -60,12 +67,12 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or (await auction_guild.query_members(user_ids=(auction.user_id,)))[0]
+            or await query_member(auction_guild, auction.user_id)
             or FakeUser(auction.user_id)
         )
         bidder = (
             self.bot.get_user(auction.bidder_id)
-            or (await auction_guild.query_members(user_ids=(auction.bidder_id,)))[0]
+            or await query_member(auction_guild, auction.bidder_id)
             or FakeUser(auction.bidder_id)
         )
 
@@ -216,9 +223,11 @@ class Auctions(commands.Cog):
             return await ctx.send(
                 f"{pokemon.idx}: You can't auction your selected pokémon!"
             )
-        
+
         if pokemon.favorite:
-            return await ctx.send(f"{pokemon.idx}: You can't auction a favorited pokémon!")
+            return await ctx.send(
+                f"{pokemon.idx}: You can't auction a favorited pokémon!"
+            )
 
         # confirm
 
@@ -309,7 +318,7 @@ class Auctions(commands.Cog):
                 "You may not set the new starting bid to a value less than your bid increment."
             )
 
-        #Verification
+        # Verification
 
         await ctx.send(
             f"Do you want to lower starting bid to **{new_start} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**? [y/N]"
@@ -326,7 +335,7 @@ class Auctions(commands.Cog):
         if msg.content.lower() != "y":
             return await ctx.send("Aborted.")
 
-        #Go
+        # Go
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         embed = self.make_base_embed(ctx.author, auction.pokemon, auction.id)
@@ -413,7 +422,8 @@ class Auctions(commands.Cog):
 
             host = (
                 self.bot.get_user(auction.user_id)
-                or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
+                or await query_member(ctx.guild, auction.user_id)
+                or FakeUser(auction.user_id)
             )
 
             embed = self.make_base_embed(host, auction.pokemon, auction.id)
@@ -585,7 +595,8 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
+            or await query_member(ctx.guild, auction.user_id)
+            or FakeUser(auction.user_id)
         )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
@@ -598,7 +609,8 @@ class Auctions(commands.Cog):
         else:
             bidder = (
                 self.bot.get_user(auction.bidder_id)
-                or (await ctx.guild.query_members(user_ids=(auction.user_id,)))[0]
+                or await query_member(ctx.guild, auction.bidder_id)
+                or FakeUser(auction.bidder_id)
             )
 
             auction_info = (
