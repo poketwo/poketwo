@@ -276,8 +276,6 @@ class Halloween(commands.Cog):
             shards = round(random.normalvariate(10, 3))
             text = [f"{shards} Shards"]
 
-            print(reward)
-
             if reward == "shards":
                 shards = round(random.normalvariate(50, 10))
                 text = [f"{shards} Shards"]

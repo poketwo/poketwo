@@ -250,7 +250,6 @@ class Spawning(commands.Cog):
             species = self.bot.data.random_spawn()
 
         if not redeem and await self.bot.redis.get(f"redeem:{channel.id}"):
-            print("ignoring would override redeem")
             return
 
         self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
@@ -458,8 +457,8 @@ class Spawning(commands.Cog):
 
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
-        
-        #Deletes Redis Redeem-Spawn Lock
+
+        # Deletes Redis Redeem-Spawn Lock
         if await self.bot.redis.get(f"redeem:{ctx.channel.id}"):
             await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
