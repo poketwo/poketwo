@@ -134,6 +134,7 @@ SORTING_FUNCTIONS = {
     "price": "price",
     "bid": "current_bid",
     "ends": "ends",
+    "id": "_id",
 }
 
 FILTER_BY_NUMERICAL = {

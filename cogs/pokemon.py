@@ -473,7 +473,6 @@ class Pokemon(commands.Cog):
                     "$sort": {
                         constants.SORTING_FUNCTIONS[order_by]: asc,
                         "idx": 1,
-                        "_id": 1,
                     }
                 },
             )
