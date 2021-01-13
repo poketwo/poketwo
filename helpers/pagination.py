@@ -61,6 +61,8 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
         footer = f"Showing entries {start + 1}–{start + len(lines)}"
         if self.count is not None:
             footer += f" out of {self.count}."
+        else:
+            footer += "."
 
         embed = discord.Embed(
             title=self.title,

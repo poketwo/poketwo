@@ -473,20 +473,6 @@ class Mongo(commands.Cog):
         async for x in self.db.listing.aggregate(aggregations, allowDiskUse=True):
             yield self.bot.mongo.Listing.build_from_mongo(x)
 
-    async def fetch_market_count(self, aggregations=[]):
-        result = await self.db.listing.aggregate(
-            [
-                *aggregations,
-                {"$count": "num_matches"},
-            ],
-            allowDiskUse=True,
-        ).to_list(None)
-
-        if len(result) == 0:
-            return 0
-
-        return result[0]["num_matches"]
-
     async def fetch_auction_list(self, guild, aggregations=[]):
         async for x in self.db.auction.aggregate(
             [

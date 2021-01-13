@@ -80,7 +80,6 @@ class Market(commands.Cog):
         def format_item(menu, x):
             return f"`{padn(x, menu.maxn)}`　**{x.pokemon:li}**　•　{x.pokemon.iv_total / 186:.2%}　•　{x.price:,} pc"
 
-        count = await self.bot.mongo.fetch_market_count(aggregations)
         pokemon = self.bot.mongo.fetch_market_list(aggregations)
 
         pages = pagination.ContinuablePages(
@@ -90,7 +89,6 @@ class Market(commands.Cog):
                 prepare_page=prepare_page,
                 format_item=format_item,
                 per_page=20,
-                count=count,
             ),
             allow_last=False,
             allow_go=False,
