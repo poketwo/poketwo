@@ -512,8 +512,8 @@ class Auctions(commands.Cog):
     # Auctions
     @flags.add_flag(
         "--order",
-        choices=["iv+", "iv-", "bid+", "bid-", "level+", "level-", "ends+", "ends-"],
-        default="bid-",
+        choices=[a + b for a in ("iv", "bid", "level", "ends") for b in ("+", "-", "")],
+        default="ends+",
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @flags.add_flag("--bids", action="store_true")
