@@ -870,7 +870,7 @@ class Pokemon(commands.Cog):
             pages = pagination.ContinuablePages(
                 pagination.FunctionPageSource(num, get_page)
             )
-            pages.current_page = int(flags["page"]) - 1
+            pages.current_page = int(search_or_page) - 1
             self.bot.menus[ctx.author.id] = pages
             await pages.start(ctx)
 
