@@ -1028,7 +1028,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous menu to paginate.")
 
         pages = self.bot.menus[ctx.author.id]
-        with contextlib.suppress(TypeError, DiscordException):
+        with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page + 1)
 
@@ -1042,7 +1042,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
-        with contextlib.suppress(TypeError, DiscordException):
+        with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
 
@@ -1056,7 +1056,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
-        with contextlib.suppress(TypeError, DiscordException):
+        with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
 
@@ -1070,7 +1070,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 "Sorry, market and info do not support this command. Try further filtering your results instead."
             )
-        with contextlib.suppress(TypeError, DiscordException):
+        with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, page - 1)
 
