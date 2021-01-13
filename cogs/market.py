@@ -51,7 +51,7 @@ class Market(commands.Cog):
     @flags.add_flag(
         "--order",
         choices=["iv+", "iv-", "price+", "price-", "level+", "level-"],
-        default="price-",
+        default="price+",
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
