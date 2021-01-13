@@ -1019,7 +1019,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous menu to paginate.")
 
         pages = self.bot.menus[ctx.author.id]
-        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.message.clear_reactions()
         await pages.continue_at(ctx, 0)
 
     @commands.command(aliases=("n", "forward"))
@@ -1028,7 +1028,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous menu to paginate.")
 
         pages = self.bot.menus[ctx.author.id]
-        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page + 1)
 
     @commands.command(aliases=("prev", "back", "b"))
@@ -1041,7 +1041,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 "Sorry, market does not support going to last page. Try sorting in the reverse direction instead."
             )
-        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
 
     @commands.command(aliases=("l",))
@@ -1054,7 +1054,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 "Sorry, market does not support this command. Try sorting in the reverse direction instead."
             )
-        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
 
     @commands.command(aliases=("page", "g"))
@@ -1067,7 +1067,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 "Sorry, market and info do not support this command. Try further filtering your results instead."
             )
-        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.message.clear_reactions()
         await pages.continue_at(ctx, page - 1)
 
 

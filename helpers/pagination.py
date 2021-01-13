@@ -102,6 +102,10 @@ class ContinuablePages(menus.MenuPages):
 
     async def continue_at(self, ctx, page, *, channel=None, wait=False):
         self.stop()
-        self.current_page = page % self._source.get_max_pages()
+        max_pages = self._source.get_max_pages()
+        if max_pages is None:
+            self.current_page = page
+        else:
+            self.current_page = page % self._source.get_max_pages()
         self.message = None
         await self.start(ctx, channel=channel, wait=wait)
