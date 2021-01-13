@@ -469,13 +469,7 @@ class Pokemon(commands.Cog):
                 asc = -1 if order_by in ("iv", "level") else 1
 
             aggregations.append(
-                {
-                    "$sort": {
-                        constants.SORTING_FUNCTIONS[order_by]: asc,
-                        "idx": 1,
-                        "_id": 1,
-                    }
-                },
+                {"$sort": {constants.SORTING_FUNCTIONS[order_by]: asc}}
             )
 
         if "skip" in flags and flags["skip"] is not None:
