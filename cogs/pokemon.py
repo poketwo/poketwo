@@ -868,9 +868,9 @@ class Pokemon(commands.Cog):
                 return embed
 
             pages = pagination.ContinuablePages(
-                pagination.FunctionPageSource(math.ceil(len(pokedex) / 20), get_page)
+                pagination.FunctionPageSource(num, get_page)
             )
-            pages.current_page = int(flags["page"])
+            pages.current_page = int(flags["page"]) - 1
             self.bot.menus[ctx.author.id] = pages
             await pages.start(ctx)
 
