@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import aiohttp
 import discord
+from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
 
 from helpers import checks, constants, converters
@@ -147,7 +148,10 @@ class Bot(commands.Cog):
         channels = priority_channels + channels
         try:
             channel = next(
-                x for x in channels if guild.me.permissions_in(x).send_messages
+                x
+                for x in channels
+                if isinstance(x, TextChannel)
+                and guild.me.permissions_in(x).send_messages
             )
         except StopIteration:
             return

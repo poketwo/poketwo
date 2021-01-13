@@ -679,11 +679,9 @@ class Battling(commands.Cog):
                     species = pokemon.species
 
         if species is None:
-            raise commands.ConversionError(
-                original=commands.BadArgument(
-                    f"Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for "
-                    f"a specific pokémon, `latest` for your latest pokémon. ",
-                ),
+            raise commands.BadArgument(
+                "Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for "
+                "a specific pokémon, `latest` for your latest pokémon. ",
             )
 
         async def get_page(source, menu, pidx):

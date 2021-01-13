@@ -1,9 +1,11 @@
+import contextlib
 import asyncio
 import math
 import re
 import typing
 from datetime import datetime
 from operator import itemgetter
+from discord.errors import DiscordException
 
 from discord.ext import commands, flags
 from helpers import checks, constants, converters, pagination
@@ -439,12 +441,13 @@ class Pokemon(commands.Cog):
         for flag, expr in constants.FILTER_BY_NUMERICAL.items():
             for text in flags[flag] or []:
                 ops = self.parse_numerical_flag(text)
-                ops[1] = float(ops[1])
 
                 if ops is None:
                     raise commands.BadArgument(
                         f"Couldn't parse `--{flag} {' '.join(text)}`"
                     )
+
+                ops[1] = float(ops[1])
 
                 if flag == "iv":
                     ops[1] = float(ops[1]) * 186 / 100
@@ -1015,7 +1018,8 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous menu to paginate.")
 
         pages = self.bot.menus[ctx.author.id]
-        await pages.message.clear_reactions()
+        with contextlib.suppress(TypeError, DiscordException):
+            await pages.message.clear_reactions()
         await pages.continue_at(ctx, 0)
 
     @commands.command(aliases=("n", "forward"))
@@ -1024,7 +1028,8 @@ class Pokemon(commands.Cog):
             return await ctx.send("Couldn't find a previous menu to paginate.")
 
         pages = self.bot.menus[ctx.author.id]
-        await pages.message.clear_reactions()
+        with contextlib.suppress(TypeError, DiscordException):
+            await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page + 1)
 
     @commands.command(aliases=("prev", "back", "b"))
@@ -1037,7 +1042,8 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
-        await pages.message.clear_reactions()
+        with contextlib.suppress(TypeError, DiscordException):
+            await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
 
     @commands.command(aliases=("l",))
@@ -1050,7 +1056,8 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
-        await pages.message.clear_reactions()
+        with contextlib.suppress(TypeError, DiscordException):
+            await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
 
     @commands.command(aliases=("page", "g"))
@@ -1063,7 +1070,8 @@ class Pokemon(commands.Cog):
             return await ctx.send(
                 "Sorry, market and info do not support this command. Try further filtering your results instead."
             )
-        await pages.message.clear_reactions()
+        with contextlib.suppress(TypeError, DiscordException):
+            await pages.message.clear_reactions()
         await pages.continue_at(ctx, page - 1)
 
 
