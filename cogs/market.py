@@ -99,7 +99,7 @@ class Market(commands.Cog):
         try:
             await pages.start(ctx)
         except IndexError:
-            await ctx.send("No auctions found.")
+            await ctx.send("No listings found.")
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
