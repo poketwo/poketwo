@@ -1035,7 +1035,7 @@ class Pokemon(commands.Cog):
         pages = self.bot.menus[ctx.author.id]
         if pages.current_page == 0 and not pages.allow_last:
             return await ctx.send(
-                "Sorry, market does not support going to last page. Try sorting in the reverse direction instead."
+                f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
         await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
@@ -1048,7 +1048,7 @@ class Pokemon(commands.Cog):
         pages = self.bot.menus[ctx.author.id]
         if not pages.allow_last:
             return await ctx.send(
-                "Sorry, market does not support this command. Try sorting in the reverse direction instead."
+                f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
             )
         await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
