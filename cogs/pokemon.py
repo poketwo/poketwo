@@ -99,6 +99,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
@@ -378,7 +379,7 @@ class Pokemon(commands.Cog):
         if "bids" in flags and flags["bids"]:
             aggregations.append({"$match": {"bidder_id": ctx.author.id}})
 
-        for x in ("mythical", "legendary", "ub", "alolan", "mega"):
+        for x in ("mythical", "legendary", "ub", "alolan", "mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append(
                     {
@@ -567,6 +568,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
@@ -670,6 +672,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
