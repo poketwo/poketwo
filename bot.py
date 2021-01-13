@@ -40,6 +40,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.cluster_idx = kwargs.pop("cluster_idx")
         self.config = config
         self.ready = False
+        self.menus = {}
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

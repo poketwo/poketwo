@@ -1,8 +1,8 @@
 import itertools
+import math
 
 import discord
 from discord.ext import commands, flags
-
 from helpers import pagination
 
 
@@ -68,7 +68,7 @@ class CustomHelpCommand(commands.HelpCommand):
             cog = command.cog
             return cog.qualified_name if cog is not None else "\u200bNo Category"
 
-        pages = []
+        embed_pages = []
         total = 0
 
         filtered = await self.filter_commands(bot.commands, sort=True, key=get_category)
@@ -86,28 +86,31 @@ class CustomHelpCommand(commands.HelpCommand):
                 if (cog and cog.description) is not None
                 else discord.Embed.Empty
             )
-            pages.append((cog, description, commands))
+            embed_pages.append((cog, description, commands))
 
-        async def get_page(pidx, clear):
-            cogs = pages[
-                min(len(pages) - 1, pidx * 6) : min(len(pages) - 1, pidx * 6 + 6)
+        async def get_page(source, menu, pidx):
+            cogs = embed_pages[
+                min(len(embed_pages) - 1, pidx * 6) : min(
+                    len(embed_pages) - 1, pidx * 6 + 6
+                )
             ]
 
             embed = self.make_default_embed(
                 cogs,
-                title=f"Pokétwo Command Categories (Page {pidx+1}/{len(pages)//6+1})",
+                title=f"Pokétwo Command Categories (Page {pidx+1}/{len(embed_pages)//6+1})",
                 description=(
                     f"Use `{self.clean_prefix}help <command>` for more info on a command.\n"
                     f"Use `{self.clean_prefix}help <category>` for more info on a category."
                 ),
             )
 
-            # embed.set_author(name=f"Page {pidx + 1}/{len(pages)} ({total} commands)")
-
             return embed
 
-        paginator = pagination.Paginator(get_page, len(pages) // 6 + 1)
-        await paginator.send(bot, ctx, 0)
+        pages = pagination.ContinuablePages(
+            pagination.FunctionPageSource(math.ceil(len(embed_pages) / 6), get_page)
+        )
+        ctx.bot.menus[ctx.author.id] = pages
+        await pages.start(ctx)
 
     async def send_cog_help(self, cog):
         ctx = self.context

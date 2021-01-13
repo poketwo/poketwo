@@ -91,6 +91,7 @@ class Auctions(commands.Cog):
 
         # ok, bid
 
+        await self.bot.mongo.db.auction.delete_one({"_id": auction.id})
         try:
             await self.bot.mongo.db.pokemon.insert_one(
                 {
@@ -104,7 +105,6 @@ class Auctions(commands.Cog):
         await self.bot.mongo.update_member(
             host, {"$inc": {"balance": auction.current_bid}}
         )
-        await self.bot.mongo.db.auction.delete_one({"_id": auction.id})
 
         self.bot.loop.create_task(
             host.send(
@@ -440,10 +440,6 @@ class Auctions(commands.Cog):
             )
             embed.timestamp = auction.ends
 
-            auction_channel = ctx.guild.get_channel(guild.auction_channel)
-            if auction_channel is not None:
-                self.bot.loop.create_task(auction_channel.send(embed=embed))
-
             update = {
                 "$set": {
                     "current_bid": bid,
@@ -454,9 +450,19 @@ class Auctions(commands.Cog):
             if datetime.utcnow() + timedelta(minutes=5) > auction.ends:
                 update["$set"]["ends"] = datetime.utcnow() + timedelta(minutes=5)
 
+            # check to make sure still there
+
+            r = await self.bot.mongo.db.auction.update_one({"_id": auction.id}, update)
+
+            if r.modified_count == 0:
+                return await ctx.send("That auction has already ended.")
+
+            auction_channel = ctx.guild.get_channel(guild.auction_channel)
+            if auction_channel is not None:
+                self.bot.loop.create_task(auction_channel.send(embed=embed))
+
             # ok, bid
 
-            await self.bot.mongo.db.auction.update_one({"_id": auction.id}, update)
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -bid}})
 
             if auction.bidder_id is not None:
@@ -529,62 +535,48 @@ class Auctions(commands.Cog):
 
         # Filter pokemon
 
-        def padn(p, idx, n):
-            return " " * (len(str(n)) - len(str(idx))) + str(idx)
+        now = datetime.utcnow()
 
-        num = await self.bot.mongo.fetch_auction_count(
-            ctx.guild, aggregations=aggregations
-        )
+        def padn(p, n):
+            return " " * (len(str(n)) - len(str(p.id))) + str(p.id)
 
-        if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
+        def prepare_page(menu, items):
+            menu.maxn = max(x.id for x in items)
 
-        async def get_page(pidx, clear):
-
-            pgstart = pidx * 15
-            pokemon = await self.bot.mongo.fetch_auction_list(
-                ctx.guild, pgstart, 15, aggregations=aggregations
-            )
-
-            pokemon = [
-                (
-                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
-                    x["_id"],
-                    x["current_bid"],
-                    x["bid_increment"],
-                    x.get("bidder_id", None),
-                    x["ends"],
+        def format_item(menu, x):
+            if x.bidder_id is not None:
+                return (
+                    f"`{padn(x, menu.maxn)}`　**{x.pokemon:Li}**　•　"
+                    f"{x.pokemon.iv_total / 186:.2%}　•　CB: {x.current_bid:,}　•　"
+                    f"BI: {x.bid_increment:,} pc　•　{converters.strfdelta(x.ends - now, max_len=1)}"
                 )
-                for x in pokemon
-            ]
+            else:
+                return (
+                    f"`{padn(x, menu.maxn)}`　**{x.pokemon:Li}**　•　"
+                    f"{x.pokemon.iv_total / 186:.2%}　•　SB: {x.current_bid + x.bid_increment:,} pc　•　"
+                    f"{converters.strfdelta(x.ends - now, max_len=1)}"
+                )
 
-            if len(pokemon) == 0:
-                return await clear("There are no pokémon on this page!")
+        count = await self.bot.mongo.fetch_auction_count(ctx.guild, aggregations)
+        pokemon = self.bot.mongo.fetch_auction_list(ctx.guild, aggregations)
 
-            now = datetime.utcnow()
-
-            maxn = max(x[1] for x in pokemon)
-            page = [
-                f"`{padn(p, idx, maxn)}`　**{p:Li}**　•　{p.iv_percentage * 100:.2f}%　•　CB: {current_bid:,}　•　BI: {bid_interval:,} pc　•　{converters.strfdelta(ends - now, max_len=1)}"
-                if bidder_id is not None
-                else f"`{padn(p, idx, maxn)}`　**{p:Li}**　•　{p.iv_percentage * 100:.2f}%　•　SB: {current_bid + bid_interval:,} pc　•　{converters.strfdelta(ends - now, max_len=1)}"
-                for p, idx, current_bid, bid_interval, bidder_id, ends in pokemon
-            ]
-
-            # Send embed
-
-            embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = f"Auctions in {ctx.guild.name}"
-            embed.description = "\n".join(page)[:2048]
-
-            embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 15, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 15)})"
+        pages = pagination.ContinuablePages(
+            pagination.AsyncListPageSource(
+                pokemon,
+                title=f"Auctions in {ctx.guild.name}",
+                prepare_page=prepare_page,
+                format_item=format_item,
+                per_page=15,
+                count=count,
             )
+        )
+        pages.current_page = flags["page"] - 1
+        self.bot.menus[ctx.author.id] = pages
 
-            return embed
-
-        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 15))
-        await paginator.send(self.bot, ctx, flags["page"] - 1)
+        try:
+            await pages.start(ctx)
+        except IndexError:
+            await ctx.send("No auctions found.")
 
     # TODO make all groups case insensitive
 

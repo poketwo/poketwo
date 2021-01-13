@@ -3,7 +3,7 @@ import asyncio
 import math
 
 import discord
-from discord.ext import commands, flags
+from discord.ext import commands, flags, menus
 
 from helpers import checks, pagination
 
@@ -14,7 +14,10 @@ class Trading(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.ready = False
-        self.bot.loop.create_task(self.clear_trades())
+        if not hasattr(self.bot, "trades"):
+            self.bot.loop.create_task(self.clear_trades())
+        else:
+            self.ready = True
 
     async def clear_trades(self):
         await self.bot.get_cog("Redis").wait_until_ready()
@@ -63,7 +66,7 @@ class Trading(commands.Cog):
         if done:
             execmsg = await ctx.send("Executing trade...")
 
-        async def get_page(pidx, clear):
+        async def get_page(source, menu, pidx):
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Trade between {a.display_name} and {b.display_name}."
 
@@ -71,10 +74,6 @@ class Trading(commands.Cog):
                 embed.title = (
                     f"✅ Completed trade between {a.display_name} and {b.display_name}."
                 )
-
-            embed.set_footer(
-                text=f"Type `{ctx.prefix}trade add <number>` to add a pokémon, `{ctx.prefix}trade add <number> pc` to add Pokécoins, `{ctx.prefix}trade confirm` to confirm, or `{ctx.prefix}trade cancel` to cancel."
-            )
 
             for i, fullside in trade["items"].items():
                 mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
@@ -256,8 +255,12 @@ class Trading(commands.Cog):
 
         # Send msg
 
-        paginator = pagination.Paginator(get_page, num_pages=num_pages)
-        self.bot.loop.create_task(paginator.send(self.bot, ctx, 0))
+        pages = pagination.ContinuablePages(
+            pagination.FunctionPageSource(num_pages, get_page)
+        )
+        self.bot.menus[a.id] = pages
+        self.bot.menus[b.id] = pages
+        await pages.start(ctx)
 
         for evo_embed in embeds:
             await ctx.send(embed=evo_embed)
@@ -649,19 +652,19 @@ class Trading(commands.Cog):
 
         await ctx.send(f"Adding {num} pokémon, this might take a while...")
 
-        pokemon = await self.bot.mongo.fetch_pokemon_list(
-            ctx.author, 0, num, aggregations=aggregations
-        )
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         self.bot.trades[ctx.author.id]["items"][ctx.author.id].extend(
-            self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"])
-            for x in pokemon
-            if all(
-                (
-                    type(i) == int or x["idx"] != i.idx
-                    for i in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
+            [
+                x
+                async for x in pokemon
+                if all(
+                    (
+                        type(i) == int or x.idx != i.idx
+                        for i in self.bot.trades[ctx.author.id]["items"][ctx.author.id]
+                    )
                 )
-            )
+            ]
         )
 
         for k in self.bot.trades[ctx.author.id]:

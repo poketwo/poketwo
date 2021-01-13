@@ -1,116 +1,105 @@
-import discord
-from discord.ext import commands
+import asyncio
+import math
 import re
 
-paginators = {}
+import discord
+from discord.ext import menus
+
+REMOVE_BUTTONS = [
+    "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
+    "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
+    "\N{BLACK SQUARE FOR STOP}\ufe0f",
+]
 
 
-class Paginator:
-    def __init__(self, get_page, num_pages):
+class FunctionPageSource(menus.PageSource):
+    def __init__(self, num_pages, format_page):
         self.num_pages = num_pages
-        self.get_page = get_page
-        self.last_page = 0
+        self.format_page = format_page.__get__(self)
+
+    def is_paginating(self):
+        return self.num_pages > 1
+
+    async def get_page(self, page_number):
+        return page_number
+
+    def get_max_pages(self):
+        return self.num_pages
+
+
+class AsyncListPageSource(menus.AsyncIteratorPageSource):
+    def __init__(
+        self,
+        data,
+        title=None,
+        show_index=False,
+        prepare_page=lambda self, items: None,
+        format_item=str,
+        per_page=20,
+        count=None,
+    ):
+        super().__init__(data, per_page=per_page)
+        self.title = title
+        self.show_index = show_index
+        self.prepare_page = prepare_page.__get__(self)
+        self.format_item = format_item.__get__(self)
+        self.count = count
+
+    def get_max_pages(self):
+        if self.count is None:
+            return None
+        else:
+            return math.ceil(self.count / self.per_page)
+
+    async def format_page(self, menu, entries):
+        self.prepare_page(entries)
+        lines = [
+            f"{i+1}. {self.format_item(x)}" if self.show_index else self.format_item(x)
+            for i, x in enumerate(entries, start=menu.current_page * self.per_page)
+        ]
+        start = menu.current_page * self.per_page
+        footer = f"Showing entries {start + 1}–{start + len(lines)}"
+        if self.count is not None:
+            footer += f" out of {self.count}."
+
+        embed = discord.Embed(
+            title=self.title,
+            color=0x9CCFFF,
+            description=f"\n".join(lines)[:2048],
+        )
+        embed.set_footer(text=footer)
+        return embed
+
+
+class ContinuablePages(menus.MenuPages):
+    def __init__(self, source, allow_last=True, allow_go=True, **kwargs):
+        super().__init__(source, **kwargs)
+        self.allow_last = allow_last
+        self.allow_go = allow_go
+        for x in REMOVE_BUTTONS:
+            self.remove_button(x)
+
+    async def send_initial_message(self, ctx, channel):
+        page = await self._source.get_page(self.current_page)
+        kwargs = await self._get_kwargs_from_page(page)
+        return await channel.send(**kwargs)
+
+    async def show_checked_page(self, page_number):
+        max_pages = self._source.get_max_pages()
+        try:
+            if max_pages is None:
+                await self.show_page(page_number)
+            elif page_number < 0 and not self.allow_last:
+                await self.ctx.send(
+                    "Sorry, this does not support going to last page. Try sorting in the reverse direction instead."
+                )
+            else:
+                await self.show_page(page_number % max_pages)
+        except IndexError:
+            pass
+
+    async def continue_at(self, ctx, page, *, channel=None, wait=False):
+        self.stop()
+        self.current_page = page % self._source.get_max_pages()
         self.message = None
-        self.author = None
-
-    async def delete(self):
-        try:
-            await self.message.delete()
-        except:
-            pass
-
-    async def end(self):
-        try:
-            del paginators[self.author.id]
-        except:
-            pass
-
-    async def send(self, bot, ctx, pidx: int):
-        async def clear(msg):
-            return await ctx.send(msg)
-
-        self.author = ctx.author
-        paginators[self.author.id] = self
-
-        embed = await self.get_page(pidx, clear)
-
-        if not isinstance(embed, discord.Embed):
-            return
-        
-        prefix = re.sub(f"<@!?{ctx.me.id}>", f"@{ctx.me.name}", ctx.prefix)
-
-        try:
-            embed.set_footer(
-                text=embed.footer.text
-                + f"\nUse {prefix}n and {prefix}b to navigate between pages."
-            )
-        except TypeError:
-            embed.set_footer(
-                text=f"\nUse {prefix}n and {prefix}b to navigate between pages."
-            )
-        self.message = await ctx.send(embed=embed)
-        self.last_page = pidx
-
-        # if self.num_pages > 1:
-
-        #     await self.message.add_reaction("⏮️")
-        #     await self.message.add_reaction("◀")
-        #     await self.message.add_reaction("▶")
-        #     await self.message.add_reaction("⏭️")
-        #     await self.message.add_reaction("🔢")
-        #     await self.message.add_reaction("⏹")
-
-        #     try:
-        #         while True:
-        #             reaction, user = await bot.wait_for(
-        #                 "reaction_add",
-        #                 check=lambda r, u: r.message.id == self.message.id
-        #                 and u.id == self.author.id,
-        #                 timeout=120,
-        #             )
-        #             try:
-        #                 await reaction.remove(user)
-        #             except:
-        #                 pass
-
-        #             if reaction.emoji == "⏹":
-        #                 await self.delete()
-        #                 await self.end()
-        #                 return
-
-        #             elif reaction.emoji == "🔢":
-        #                 ask_message = await ctx.send(
-        #                     "What page would you like to go to?"
-        #                 )
-        #                 message = await bot.wait_for(
-        #                     "message",
-        #                     check=lambda m: m.author == self.author
-        #                     and m.channel == ctx.channel,
-        #                     timeout=30,
-        #                 )
-        #                 try:
-        #                     pidx = (int(message.content) - 1) % self.num_pages
-        #                 except ValueError:
-        #                     await ctx.send("That's not a valid page number!")
-        #                     continue
-
-        #                 bot.loop.create_task(ask_message.delete())
-        #                 bot.loop.create_task(message.delete())
-
-        #             else:
-        #                 pidx = {
-        #                     "⏮️": 0,
-        #                     "◀": pidx - 1,
-        #                     "▶": pidx + 1,
-        #                     "⏭️": self.num_pages - 1,
-        #                 }[reaction.emoji] % self.num_pages
-
-        #             embed = await self.get_page(pidx, clear)
-        #             await self.message.edit(embed=embed)
-
-        #     except asyncio.TimeoutError:
-        #         await self.message.add_reaction("❌")
-        #         try:
-        #             del paginators[self.author.id]
-        #         except KeyError:
-        #             pass
+        await self.start(ctx, channel=channel, wait=wait)

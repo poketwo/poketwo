@@ -181,12 +181,10 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"Renaming {num} pokémon, this might take a while...")
 
-        pokemon = await self.bot.mongo.fetch_pokemon_list(
-            ctx.author, 0, num, aggregations=aggregations
-        )
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"nickname": nicknameall}},
         )
 
@@ -233,20 +231,35 @@ class Pokemon(commands.Cog):
     async def info(self, ctx, *, pokemon: converters.PokemonConverter):
         """View a specific pokémon from your collection."""
 
-        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
-
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        shift = 0
+        ## Hacky way using 0=first, 1=prev, 2=curr, 3=next, 4=last page LOL
 
-        async def get_page(pidx, clear, dir=0):
-            nonlocal shift
+        async def get_page(source, menu, pidx):
+            nonlocal pokemon
 
-            pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
-            while pokemon is None:
-                shift += 1
-                pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pidx + shift)
+            menu.current_page = 2
+
+            agg = None
+
+            if pidx == 4:
+                agg = [{"$sort": {"idx": -1}}]
+            elif pidx == 3:
+                agg = [{"$match": {"idx": {"$gt": pokemon.idx}}}]
+            elif pidx == 1:
+                agg = [
+                    {"$match": {"idx": {"$lt": pokemon.idx}}},
+                    {"$sort": {"idx": -1}},
+                ]
+            elif pidx == 0:
+                agg = []
+
+            if agg is not None:
+                it = self.bot.mongo.fetch_pokemon_list(ctx.author, agg)
+                async for x in it:
+                    pokemon = x
+                    break
 
             embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF)
             embed.title = f"{pokemon:lnf}"
@@ -292,8 +305,12 @@ class Pokemon(commands.Cog):
 
             return embed
 
-        paginator = pagination.Paginator(get_page, num_pages=num)
-        await paginator.send(self.bot, ctx, pokemon.idx)
+        pages = pagination.ContinuablePages(
+            pagination.FunctionPageSource(5, get_page), allow_go=False
+        )
+        pages.current_page = 2
+        ctx.bot.menus[ctx.author.id] = pages
+        await pages.start(ctx)
 
     @checks.has_started()
     @commands.command(aliases=("s",), rest_is_raw=True)
@@ -636,12 +653,10 @@ class Pokemon(commands.Cog):
 
         await ctx.send(f"Releasing {num} pokémon, this might take a while...")
 
-        pokemon = await self.bot.mongo.fetch_pokemon_list(
-            ctx.author, 0, num, aggregations=aggregations
-        )
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x["pokemon"]["_id"] for x in pokemon]}},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"owner_id": None}},
         )
 
@@ -695,64 +710,41 @@ class Pokemon(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
-
         if aggregations is None:
             return
 
         # Filter pokemon
 
-        do_emojis = (
-            ctx.guild is None
-            or ctx.guild.me.permissions_in(ctx.channel).external_emojis
-        )
-
-        fixed_pokemon = False
-
         def padn(p, n):
             return " " * (len(str(n)) - len(str(p.idx))) + str(p.idx)
 
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
+        def prepare_page(menu, items):
+            menu.maxn = max(x.idx for x in items)
+
+        def format_item(menu, p):
+            print(p.species_id)
+            return f"`{padn(p, menu.maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
+
+        count = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations)
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
+
+        pages = pagination.ContinuablePages(
+            pagination.AsyncListPageSource(
+                pokemon,
+                title="Your pokémon",
+                prepare_page=prepare_page,
+                format_item=format_item,
+                per_page=20,
+                count=count,
+            )
         )
+        pages.current_page = flags["page"] - 1
+        self.bot.menus[ctx.author.id] = pages
 
-        if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
-
-        async def get_page(pidx, clear):
-
-            pgstart = pidx * 20
-            pokemon = await self.bot.mongo.fetch_pokemon_list(
-                ctx.author, pgstart, 20, aggregations=aggregations
-            )
-
-            pokemon = [
-                self.bot.mongo.Pokemon.build_from_mongo(x["pokemon"]) for x in pokemon
-            ]
-
-            if len(pokemon) == 0:
-                return await clear("There are no pokémon on this page!")
-
-            maxn = max(x.idx for x in pokemon)
-
-            page = [
-                f"`{padn(p, maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_percentage * 100:.2f}%"
-                for p in pokemon
-            ]
-
-            # Send embed
-
-            embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = f"Your pokémon"
-            embed.description = "\n".join(page)[:2048]
-
-            embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
-            )
-
-            return embed
-
-        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
-        await paginator.send(self.bot, ctx, flags["page"] - 1)
+        try:
+            await pages.start(ctx)
+        except IndexError:
+            await ctx.send("No pokémon found.")
 
     @flags.add_flag("page", nargs="*", type=str, default="1")
     @flags.add_flag("--caught", action="store_true")
@@ -835,8 +827,8 @@ class Pokemon(commands.Cog):
             else:
                 pokedex = sorted(pokedex.items(), key=itemgetter(0))
 
-            async def get_page(pidx, clear):
-                pgstart = (pidx) * 20
+            async def get_page(source, menu, pidx):
+                pgstart = pidx * 20
                 pgend = min(pgstart + 20, len(pokedex))
 
                 # Send embed
@@ -881,10 +873,11 @@ class Pokemon(commands.Cog):
 
                 return embed
 
-            paginator = pagination.Paginator(
-                get_page, num_pages=math.ceil(len(pokedex) / 20)
+            pages = pagination.ContinuablePages(
+                pagination.FunctionPageSource(math.ceil(len(pokedex) / 20), get_page)
             )
-            await paginator.send(self.bot, ctx, int(search_or_page) - 1)
+            self.bot.menus[ctx.author.id] = pages
+            await pages.start(ctx)
 
         else:
             shiny = False
@@ -1014,8 +1007,6 @@ class Pokemon(commands.Cog):
         ):
             return await ctx.send("This pokémon is not in mega form!")
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-
         await self.bot.mongo.update_pokemon(
             pokemon,
             {"$set": {f"species_id": fr.id}},
@@ -1025,62 +1016,60 @@ class Pokemon(commands.Cog):
 
     @commands.command(aliases=("f",))
     async def first(self, ctx):
-        if ctx.author.id not in pagination.paginators:
-            return await ctx.send("Couldn't find a previous message.")
+        if ctx.author.id not in self.bot.menus:
+            return await ctx.send("Couldn't find a previous menu to paginate.")
 
-        paginator = pagination.paginators[ctx.author.id]
-
-        await paginator.send(self.bot, ctx, 0)
+        pages = self.bot.menus[ctx.author.id]
+        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.continue_at(ctx, 0)
 
     @commands.command(aliases=("n", "forward"))
     async def next(self, ctx):
-        if ctx.author.id not in pagination.paginators:
-            return await ctx.send("Couldn't find a previous message.")
+        if ctx.author.id not in self.bot.menus:
+            return await ctx.send("Couldn't find a previous menu to paginate.")
 
-        paginator = pagination.paginators[ctx.author.id]
-
-        if paginator.num_pages == 0:
-            return
-
-        pidx = paginator.last_page + 1
-        pidx %= paginator.num_pages
-
-        await paginator.send(self.bot, ctx, pidx)
+        pages = self.bot.menus[ctx.author.id]
+        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.continue_at(ctx, pages.current_page + 1)
 
     @commands.command(aliases=("prev", "back", "b"))
     async def previous(self, ctx):
-        if ctx.author.id not in pagination.paginators:
-            return await ctx.send("Couldn't find a previous message.")
+        if ctx.author.id not in self.bot.menus:
+            return await ctx.send("Couldn't find a previous menu to paginate.")
 
-        paginator = pagination.paginators[ctx.author.id]
-
-        if paginator.num_pages == 0:
-            return
-
-        pidx = paginator.last_page - 1
-        pidx %= paginator.num_pages
-
-        await paginator.send(self.bot, ctx, pidx)
+        pages = self.bot.menus[ctx.author.id]
+        if pages.current_page == 0 and not pages.allow_last:
+            return await ctx.send(
+                "Sorry, market does not support going to last page. Try sorting in the reverse direction instead."
+            )
+        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.continue_at(ctx, pages.current_page - 1)
 
     @commands.command(aliases=("l",))
     async def last(self, ctx):
-        if ctx.author.id not in pagination.paginators:
-            return await ctx.send("Couldn't find a previous message.")
+        if ctx.author.id not in self.bot.menus:
+            return await ctx.send("Couldn't find a previous menu to paginate.")
 
-        paginator = pagination.paginators[ctx.author.id]
-        await paginator.send(self.bot, ctx, paginator.num_pages - 1)
+        pages = self.bot.menus[ctx.author.id]
+        if not pages.allow_last:
+            return await ctx.send(
+                "Sorry, market does not support this command. Try sorting in the reverse direction instead."
+            )
+        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
 
     @commands.command(aliases=("page", "g"))
     async def go(self, ctx, page: int):
-        if ctx.author.id not in pagination.paginators:
-            return await ctx.send("Couldn't find a previous message.")
+        if ctx.author.id not in self.bot.menus:
+            return await ctx.send("Couldn't find a previous menu to paginate.")
 
-        paginator = pagination.paginators[ctx.author.id]
-
-        if paginator.num_pages == 0:
-            return
-
-        await paginator.send(self.bot, ctx, page % paginator.num_pages)
+        pages = self.bot.menus[ctx.author.id]
+        if not pages.allow_go:
+            return await ctx.send(
+                "Sorry, market and info do not support this command. Try further filtering your results instead."
+            )
+        self.bot.loop.create_task(pages.message.clear_reactions())
+        await pages.continue_at(ctx, page - 1)
 
 
 def setup(bot):

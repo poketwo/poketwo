@@ -469,15 +469,17 @@ class Mongo(commands.Cog):
 
         return await self.Member.find_one({"id": member.id}, filter_obj)
 
-    async def fetch_market_list(self, skip: int, limit: int, aggregations=[]):
-        return await self.db.listing.aggregate(
-            [*aggregations, {"$skip": skip}, {"$limit": limit}], allowDiskUse=True
-        ).to_list(None)
+    async def fetch_market_list(self, aggregations=[]):
+        async for x in self.db.listing.aggregate(aggregations, allowDiskUse=True):
+            yield self.bot.mongo.Listing.build_from_mongo(x)
 
     async def fetch_market_count(self, aggregations=[]):
-
         result = await self.db.listing.aggregate(
-            [*aggregations, {"$count": "num_matches"}], allowDiskUse=True
+            [
+                *aggregations,
+                {"$count": "num_matches"},
+            ],
+            allowDiskUse=True,
         ).to_list(None)
 
         if len(result) == 0:
@@ -485,16 +487,15 @@ class Mongo(commands.Cog):
 
         return result[0]["num_matches"]
 
-    async def fetch_auction_list(self, guild, skip: int, limit: int, aggregations=[]):
-        return await self.db.auction.aggregate(
+    async def fetch_auction_list(self, guild, aggregations=[]):
+        async for x in self.db.auction.aggregate(
             [
                 {"$match": {"guild_id": guild.id}},
                 *aggregations,
-                {"$skip": skip},
-                {"$limit": limit},
             ],
             allowDiskUse=True,
-        ).to_list(None)
+        ):
+            yield self.bot.mongo.Auction.build_from_mongo(x)
 
     async def fetch_auction_count(self, guild, aggregations=[]):
 
@@ -512,20 +513,18 @@ class Mongo(commands.Cog):
 
         return result[0]["num_matches"]
 
-    async def fetch_pokemon_list(
-        self, member: discord.Member, skip: int, limit: int, aggregations=[]
-    ):
-        return await self.db.pokemon.aggregate(
+    async def fetch_pokemon_list(self, member: discord.Member, aggregations=[]):
+        async for x in self.db.pokemon.aggregate(
             [
                 {"$match": {"owner_id": member.id}},
                 {"$sort": {"idx": 1}},
                 {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                 *aggregations,
-                {"$skip": skip},
-                {"$limit": limit},
+                {"$replaceRoot": {"newRoot": "$pokemon"}},
             ],
             allowDiskUse=True,
-        ).to_list(None)
+        ):
+            yield self.bot.mongo.Pokemon.build_from_mongo(x)
 
     async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
 
@@ -599,17 +598,14 @@ class Mongo(commands.Cog):
         return await self.db.pokemon.update_one({"_id": pokemon}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
-
         if isinstance(idx, ObjectId):
             result = await self.db.pokemon.find_one({"_id": idx})
         elif idx == -1:
-            count = await self.fetch_pokemon_count(member)
             result = await self.db.pokemon.aggregate(
                 [
                     {"$match": {"owner_id": member.id}},
-                    {"$sort": {"idx": 1}},
+                    {"$sort": {"idx": -1}},
                     {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
-                    {"$skip": count - 1},
                     {"$limit": 1},
                 ],
                 allowDiskUse=True,

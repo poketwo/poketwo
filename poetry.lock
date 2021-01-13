@@ -177,6 +177,24 @@ reference = "master"
 resolved_reference = "458ae5a1ce8436821667dfeb471061f78c5adfa0"
 
 [[package]]
+name = "discord-ext-menus"
+version = "1.0.0a27+g6f2b873"
+description = "An extension module to make reaction based menus with discord.py"
+category = "main"
+optional = false
+python-versions = ">=3.5.3"
+develop = false
+
+[package.dependencies]
+"discord.py" = ">=1.2.5"
+
+[package.source]
+type = "git"
+url = "https://github.com/Rapptz/discord-ext-menus.git"
+reference = "master"
+resolved_reference = "6f2b873bf0d28903eb752aa1166b3aac26dc9007"
+
+[[package]]
 name = "discord-flags"
 version = "2.1.1"
 description = "A Discord.py extension allowing you to pass flags as arguments."
@@ -744,7 +762,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "2da86fe782aa405998dfe762d24726b726a071ae902f25f0d04eb9357feef0a2"
+content-hash = "c1046e945974c7777ae925a2cd5989a7d8d6d2e0d758ed0e06f0d32e98fb4495"
 
 [metadata.files]
 aiofiles = [
@@ -817,6 +835,7 @@ discord-ext-alternatives = [
     {file = "discord_ext_alternatives-2020.10.11-py3-none-any.whl", hash = "sha256:3b21cab0cc9c155a2c69f7365fef09da99243031dfc70cb14f852da618dfdbab"},
 ]
 discord-ext-ipc = []
+discord-ext-menus = []
 discord-flags = [
     {file = "discord-flags-2.1.1.tar.gz", hash = "sha256:0fba0574fd21f29cb395f1bf66251d6f0b8415a50c160f1363589300e0174848"},
     {file = "discord_flags-2.1.1-py3-none-any.whl", hash = "sha256:91075d38cfe2a2b7be6cff656645ebbcde7ee3afe402c69d5163f2021f6c1d04"},

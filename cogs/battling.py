@@ -686,8 +686,8 @@ class Battling(commands.Cog):
                 ),
             )
 
-        async def get_page(pidx, clear):
-            pgstart = (pidx) * 20
+        async def get_page(source, menu, pidx):
+            pgstart = pidx * 20
             pgend = min(pgstart + 20, len(species.moves))
 
             # Send embed
@@ -707,10 +707,11 @@ class Battling(commands.Cog):
 
             return embed
 
-        paginator = pagination.Paginator(
-            get_page, num_pages=math.ceil(len(species.moves) / 20)
+        pages = pagination.ContinuablePages(
+            pagination.FunctionPageSource(math.ceil(len(species.moves) / 20), get_page)
         )
-        await paginator.send(self.bot, ctx, 0)
+        self.bot.menus[ctx.author.id] = pages
+        await pages.start(ctx)
 
     @commands.command(aliases=("mi",))
     async def moveinfo(self, ctx, *, search: str):

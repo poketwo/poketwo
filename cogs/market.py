@@ -71,53 +71,37 @@ class Market(commands.Cog):
 
         # Filter pokemon
 
-        def padn(p, idx, n):
-            return " " * (len(str(n)) - len(str(idx))) + str(idx)
+        def padn(p, n):
+            return " " * (len(str(n)) - len(str(p.id))) + str(p.id)
 
-        num = await self.bot.mongo.fetch_market_count(aggregations=aggregations)
+        def prepare_page(menu, items):
+            menu.maxn = max(x.id for x in items)
 
-        if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
+        def format_item(menu, x):
+            return f"`{padn(x, menu.maxn)}`　**{x.pokemon:li}**　•　{x.pokemon.iv_total / 186:.2%}　•　{x.price:,} pc"
 
-        async def get_page(pidx, clear):
+        count = await self.bot.mongo.fetch_market_count(aggregations)
+        pokemon = self.bot.mongo.fetch_market_list(aggregations)
 
-            pgstart = pidx * 20
-            pokemon = await self.bot.mongo.fetch_market_list(
-                pgstart, 20, aggregations=aggregations
-            )
+        pages = pagination.ContinuablePages(
+            pagination.AsyncListPageSource(
+                pokemon,
+                title=f"Pokétwo Marketplace",
+                prepare_page=prepare_page,
+                format_item=format_item,
+                per_page=20,
+                count=count,
+            ),
+            allow_last=False,
+            allow_go=False,
+        )
+        pages.current_page = flags["page"] - 1
+        self.bot.menus[ctx.author.id] = pages
 
-            pokemon = [
-                (
-                    self.bot.mongo.EmbeddedPokemon.build_from_mongo(x["pokemon"]),
-                    x["_id"],
-                    x["price"],
-                )
-                for x in pokemon
-            ]
-
-            if len(pokemon) == 0:
-                return await clear("There are no pokémon on this page!")
-
-            maxn = max(idx for x, idx, price in pokemon)
-            page = [
-                f"`{padn(p, idx, maxn)}`　**{p:li}**　•　{p.iv_percentage * 100:.2f}%　•　{price:,} pc"
-                for p, idx, price in pokemon
-            ]
-
-            # Send embed
-
-            embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = f"Pokétwo Marketplace"
-            embed.description = "\n".join(page)[:2048]
-
-            embed.set_footer(
-                text=f"Showing {pgstart + 1}–{min(pgstart + 20, num)} out of {num}. (Page {pidx+1} of {math.ceil(num / 20)})"
-            )
-
-            return embed
-
-        paginator = pagination.Paginator(get_page, num_pages=math.ceil(num / 20))
-        await paginator.send(self.bot, ctx, flags["page"] - 1)
+        try:
+            await pages.start(ctx)
+        except IndexError:
+            await ctx.send("No auctions found.")
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
@@ -143,7 +127,7 @@ class Market(commands.Cog):
             return await ctx.send(
                 f"{pokemon.idx}: You can't list your selected pokémon!"
             )
-        
+
         if pokemon.favorite:
             return await ctx.send(f"{pokemon.idx}: You can't list a favorited pokémon!")
 
