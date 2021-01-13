@@ -137,7 +137,7 @@ SORTING_FUNCTIONS = {
     "id": "_id",
 }
 
-DEFAULT_DESCENDING = {"iv"}
+DEFAULT_DESCENDING = {"iv", "level"}
 
 FILTER_BY_NUMERICAL = {
     "iv": "pokemon.iv_total",
