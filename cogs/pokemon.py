@@ -871,7 +871,7 @@ class Pokemon(commands.Cog):
                 return embed
 
             pages = pagination.ContinuablePages(
-                pagination.FunctionPageSource(num, get_page)
+                pagination.FunctionPageSource(math.ceil(809/20), get_page)
             )
             pages.current_page = int(search_or_page) - 1
             self.bot.menus[ctx.author.id] = pages
