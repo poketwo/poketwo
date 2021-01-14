@@ -292,7 +292,7 @@ class Bot(commands.Cog):
         await self.bot.mongo.db.member.update_many(
             query, {"$set": {"need_vote_reminder": False}}
         )
-        await self.bot.redis.delete(*[f"db:member:{x}" for x in ids])
+        await self.bot.redis.hdel("db:member", *ids)
 
     @tasks.loop(minutes=1)
     async def post_count(self):
@@ -399,7 +399,7 @@ class Bot(commands.Cog):
                 "next_idx": 2,
             }
         )
-        await self.bot.redis.delete(f"db:member:{ctx.author.id}")
+        await self.bot.redis.hdel("db:member", ctx.author.id)
 
         await ctx.send(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"

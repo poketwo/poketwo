@@ -234,7 +234,7 @@ async def dbl():
             },
         },
     )
-    await redis.delete(f"db:member:{uid}")
+    await redis.hdel(f"db:member", uid)
 
     article = "an" if box_type == "ultra" else "a"
 
@@ -273,7 +273,7 @@ async def purchase():
     shards = purchase_amounts[amount]
 
     await db.member.update_one({"_id": uid}, {"$inc": {"premium_balance": shards}})
-    await redis.delete(f"db:member:{uid}")
+    await redis.hdel(f"db:member", uid)
 
     try:
         await req(

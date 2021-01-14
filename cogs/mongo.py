@@ -429,13 +429,13 @@ class Mongo(commands.Cog):
             getattr(self, x).bot = bot
 
     async def fetch_member_info(self, member: discord.Member):
-        val = await self.bot.redis.get(f"db:member:{member.id}")
+        val = await self.bot.redis.hget(f"db:member", member.id)
         if val is None:
             val = await self.Member.find_one(
                 {"id": member.id}, {"pokemon": 0, "pokedex": 0}
             )
             v = "" if val is None else pickle.dumps(val.to_mongo())
-            await self.bot.redis.set(f"db:member:{member.id}", v)
+            await self.bot.redis.hset(f"db:member", member.id, v)
         elif len(val) == 0:
             return None
         else:
@@ -448,7 +448,7 @@ class Mongo(commands.Cog):
             {"$inc": {"next_idx": reserve}},
             projection={"next_idx": 1},
         )
-        await self.bot.redis.delete(f"db:member:{member.id}")
+        await self.bot.redis.hdel(f"db:member", member.id)
         return result["next_idx"]
 
     async def reset_idx(self, member: discord.Member, value):
@@ -457,7 +457,7 @@ class Mongo(commands.Cog):
             {"$set": {"next_idx": value}},
             projection={"next_idx": 1},
         )
-        await self.bot.redis.delete(f"db:member:{member.id}")
+        await self.bot.redis.hdel(f"db:member", member.id)
         return result["next_idx"]
 
     async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
@@ -571,7 +571,7 @@ class Mongo(commands.Cog):
         if hasattr(member, "id"):
             member = member.id
         result = await self.db.member.update_one({"_id": member}, update)
-        await self.bot.redis.delete(f"db:member:{member}")
+        await self.bot.redis.hdel(f"db:member", member)
         return result
 
     async def update_pokemon(self, pokemon, update):
