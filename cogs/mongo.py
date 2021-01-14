@@ -571,7 +571,7 @@ class Mongo(commands.Cog):
         if hasattr(member, "id"):
             member = member.id
         result = await self.db.member.update_one({"_id": member}, update)
-        await self.bot.redis.hdel(f"db:member", member)
+        await self.bot.redis.hdel(f"db:member", int(member))
         return result
 
     async def update_pokemon(self, pokemon, update):
