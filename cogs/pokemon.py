@@ -949,42 +949,57 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.command(rest_is_raw=True)
-    async def evolve(self, ctx, *, pokemon: converters.PokemonConverter):
+    async def evolve(self, ctx, *, args: commands.Greedy[converters.PokemonConverter]):
         """Evolve a pokémon if it has reached the target level."""
 
-        if pokemon is None:
+        if not all(pokemon is not None for pokemon in args):
             return await ctx.send("Couldn't find that pokémon!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
-            return await ctx.send("That pokémon can't be evolved!")
-
-        embed = self.bot.Embed(color=0x9CCFFF)
+        embed = self.bot.Embed(color=0x9CCFFF, description='')
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
-        name = str(pokemon.species)
+        evolved = []
 
-        if pokemon.nickname is not None:
-            name += f' "{pokemon.nickname}"'
+        for pokemon in args:
+            name = str(pokemon.species)
 
-        embed.add_field(
-            name=f"Your {name} is evolving!",
-            value=f"Your {name} has turned into a {evo}!",
-        )
+            if pokemon.nickname is not None:
+                name += f' "{pokemon.nickname}"'
 
-        if pokemon.shiny:
-            embed.set_thumbnail(url=evo.shiny_image_url)
-        else:
-            embed.set_thumbnail(url=evo.image_url)
+            if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
+                return await ctx.send(f"Your {name} can't be evolved!")
 
-        await self.bot.mongo.update_pokemon(
-            pokemon,
-            {"$set": {f"species_id": evo.id}},
-        )
+            if len(pokemon) < 20:
+                embed.add_field(
+                    name=f"Your {name} is evolving!",
+                    value=f"Your {name} has turned into a {evo}!",
+                    inline=True
+                )
 
-        self.bot.dispatch("evolve", ctx.author, pokemon, evo)
+            elif len(pokemon) < 30:
+                embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
+
+            else:
+                return await ctx.send("You can't evolve more than 30 pokémon at once!")
+
+            if len(pokemon) == 1:
+                if pokemon.shiny:
+                    embed.set_thumbnail(url=evo.shiny_image_url)
+                else:
+                    embed.set_thumbnail(url=evo.image_url)
+
+            evolved.append((pokemon, evo))
+
+        for pokemon, evo in evolved:
+            await self.bot.mongo.update_pokemon(
+                pokemon,
+                {"$set": {f"species_id": evo.id}},
+            )
+
+            self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
         await ctx.send(embed=embed)
 
