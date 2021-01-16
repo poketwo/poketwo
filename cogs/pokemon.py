@@ -949,7 +949,7 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.command(rest_is_raw=True)
-    async def evolve(self, ctx, *, args: commands.Greedy[converters.PokemonConverter]):
+    async def evolve(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Evolve a pokémon if it has reached the target level."""
 
         if not all(pokemon is not None for pokemon in args):
