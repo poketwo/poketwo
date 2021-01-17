@@ -963,6 +963,9 @@ class Pokemon(commands.Cog):
 
         evolved = []
 
+        if len(args) > 30:
+            return await ctx.send("You can't evolve more than 30 pokémon at once!")
+
         for pokemon in args:
             name = str(pokemon.species)
 
@@ -972,20 +975,17 @@ class Pokemon(commands.Cog):
             if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
                 return await ctx.send(f"Your {name} can't be evolved!")
 
-            if len(pokemon) < 20:
+            if len(args) < 20:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",
                     inline=True
                 )
 
-            elif len(pokemon) < 30:
+            else:
                 embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
 
-            else:
-                return await ctx.send("You can't evolve more than 30 pokémon at once!")
-
-            if len(pokemon) == 1:
+            if len(args) == 1:
                 if pokemon.shiny:
                     embed.set_thumbnail(url=evo.shiny_image_url)
                 else:
