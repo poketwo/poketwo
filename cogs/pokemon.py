@@ -229,6 +229,110 @@ class Pokemon(commands.Cog):
             for i in range(0, len(longmsg), 2000):
                 await ctx.send(longmsg[i : i + 2000])
 
+    # Filter
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--favorite", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
+    # Rename all
+    @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @flags.command(aliases=("favall","fa"))
+    async def favoriteall(self, ctx, **flags):
+
+        aggregations = await self.create_filter(flags, ctx)
+
+        if aggregations is None:
+            return
+        
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)            
+
+        unfav = []
+        fav = []
+        async for x in pokemon:
+            fav.append(x)
+            if x.favorite == False:
+                unfav.append(x)
+        
+        if not unfav:
+            if not fav:
+                #No selected pokemon found
+                return await ctx.send("No selected pokemon found.")
+            #All selected pokemon favorited
+
+            # confirm
+            await ctx.send(
+                f"Are you sure you want to **unfavorite** your {len(fav)} pokémon? Type `confirm unfavorite {len(fav)}` to confirm."
+            )
+
+            def check(m):
+                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+            try:
+                msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+                if msg.content.lower() != f"confirm unfavorite {len(fav)}":
+                    return await ctx.send("Aborted.")
+
+            except asyncio.TimeoutError:
+                return await ctx.send("Time's up. Aborted.")
+
+
+            await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": [x.id for x in fav]}},
+            {"$set": {"favorite": False}},
+            )
+            message = (f"Unfavorited your {len(fav)} selected pokemon.")
+        else:
+            #Not all pokemon in selection favorited
+
+            # confirm
+            await ctx.send(
+                f"Are you sure you want to **favorite** your {len(unfav)} pokémon? Type `confirm favorite {len(unfav)}` to confirm."
+            )
+
+            def check(m):
+                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+            try:
+                msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+                if msg.content.lower() != f"confirm favorite {len(unfav)}":
+                    return await ctx.send("Aborted.")
+
+            except asyncio.TimeoutError:
+                return await ctx.send("Time's up. Aborted.")
+
+            await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": [x.id for x in unfav]}},
+            {"$set": {"favorite": True}},
+            )
+            message = (f"Favorited your {len(unfav)} selected pokemon.")
+                
+        await ctx.send(message)
+
     @checks.has_started()
     @commands.command(aliases=("i",), rest_is_raw=True)
     async def info(self, ctx, *, pokemon: converters.PokemonConverter):
