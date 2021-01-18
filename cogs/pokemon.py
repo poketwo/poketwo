@@ -273,7 +273,7 @@ class Pokemon(commands.Cog):
         fav = []
         async for x in pokemon:
             fav.append(x)
-            if x.favorite == False:
+            if not x.favorite:
                 unfav.append(x)
         
         if not unfav:
