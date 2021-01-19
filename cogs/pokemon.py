@@ -331,7 +331,7 @@ class Pokemon(commands.Cog):
         {"$set": {"favorite": True}},
         )
 
-        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll selected pokemon favorited.")
+        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited.")
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
@@ -412,7 +412,7 @@ class Pokemon(commands.Cog):
         {"$set": {"favorite": False}},
         )
 
-        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll selected pokemon unfavorited.")
+        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited.")
 
     @checks.has_started()
     @commands.command(aliases=("i",), rest_is_raw=True)
