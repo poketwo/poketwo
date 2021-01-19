@@ -211,7 +211,7 @@ class Pokemon(commands.Cog):
                     name += f' "{pokemon.nickname}"'
 
                 if pokemon.favorite:
-                    messages.append(f"Your level {pokemon.level} {name} is already favorited. To unfavorite a pokemon, please use `p!unfavorite`.")
+                    messages.append(f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `p!unfavorite`.")
                 else:
                     await self.bot.mongo.update_pokemon(
                     pokemon,
@@ -296,7 +296,7 @@ class Pokemon(commands.Cog):
             ctx.author, aggregations=aggregations
         )
 
-        aggregations.append({"$match": {"pokemon.favorite": False}})
+        aggregations.append({"$match":{"pokemon.favorite": {"$ne": True}}})
         unfavnum = await self.bot.mongo.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
         )
@@ -304,7 +304,7 @@ class Pokemon(commands.Cog):
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
         elif unfavnum == 0:
-            return await ctx.send("Found no unfavorited pokémon within this selection.")
+            return await ctx.send("Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `p!unfavoriteall`.")
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
