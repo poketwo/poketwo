@@ -967,10 +967,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("You can't evolve more than 30 pokémon at once!")
 
         for pokemon in args:
-            name = str(pokemon.species)
-
-            if pokemon.nickname is not None:
-                name += f' "{pokemon.nickname}"'
+            name = '{0:n}'.format(pokemon)
 
             if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
                 return await ctx.send(f"Your {name} can't be evolved!")
