@@ -177,11 +177,6 @@ class Pokemon(commands.Cog):
             return await ctx.send("Time's up. Aborted.")
 
         # confirmed, nickname all
-
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
-
         await ctx.send(f"Renaming {num} pokémon, this might take a while...")
 
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
@@ -196,7 +191,7 @@ class Pokemon(commands.Cog):
         else:
             await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
 
-    @commands.command(aliases=("fav", "favourite"), rest_is_raw=True)
+    @commands.command(aliases=("favourite","fav",), rest_is_raw=True)
     async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
 
@@ -210,9 +205,41 @@ class Pokemon(commands.Cog):
                 if pokemon is None:
                     continue
 
+                name = str(pokemon.species)
+
+                if pokemon.nickname is not None:
+                    name += f' "{pokemon.nickname}"'
+
+                if pokemon.favorite:
+                    messages.append(f"Your level {pokemon.level} {name} is already favorited. To unfavorite a pokemon, please use `p!unfavorite`.")
+                else:
+                    await self.bot.mongo.update_pokemon(
+                    pokemon,
+                    {"$set": {f"favorite": True}},
+                    )
+                    messages.append(f"Favorited your level {pokemon.level} {name}.")
+                    
+            longmsg = "\n".join(messages)
+            for i in range(0, len(longmsg), 2000):
+                await ctx.send(longmsg[i : i + 2000])
+
+    @commands.command(aliases=("unfavourite","unfav",), rest_is_raw=True)
+    async def unfavorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
+        """Unfavorite a selected pokemon."""
+
+        if len(args) == 0:
+            args.append(await converters.PokemonConverter().convert(ctx, ""))
+
+        messages = []
+
+        async with ctx.typing():
+            for pokemon in args:
+                if pokemon is None:
+                    continue
+
                 await self.bot.mongo.update_pokemon(
                     pokemon,
-                    {"$set": {f"favorite": not pokemon.favorite}},
+                    {"$set": {f"favorite": False}},
                 )
 
                 name = str(pokemon.species)
@@ -220,14 +247,91 @@ class Pokemon(commands.Cog):
                 if pokemon.nickname is not None:
                     name += f' "{pokemon.nickname}"'
 
-                if pokemon.favorite:
-                    messages.append(f"Unfavorited your level {pokemon.level} {name}.")
-                else:
-                    messages.append(f"Favorited your level {pokemon.level} {name}.")
+                messages.append(f"Unfavorited your level {pokemon.level} {name}.")
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
                 await ctx.send(longmsg[i : i + 2000])
+
+    # Filter
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--type", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
+    # Rename all
+    @checks.has_started()
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @flags.command(aliases=("favouriteall","favall","fa",))
+    async def favoriteall(self, ctx, **flags):
+        """Mass favorite selected pokemon."""
+
+        aggregations = await self.create_filter(flags, ctx)
+
+        if aggregations is None:
+            return
+        
+        # Check pokemon and unfavorited pokemon num
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
+
+        aggregations.append({"$match": {"pokemon.favorite": False}})
+        unfavnum = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
+
+        if num == 0:
+            return await ctx.send("Found no pokémon matching this search.")
+        elif unfavnum == 0:
+            return await ctx.send("Found no unfavorited pokémon within this selection.")
+
+        # Fetch pokemon list
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
+
+        # confirm
+        await ctx.send(
+            f"Are you sure you want to **favorite** your {unfavnum} pokémon? Type `confirm favorite {unfavnum}` to confirm."
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+            if msg.content.lower() != f"confirm favorite {unfavnum}":
+                return await ctx.send("Aborted.")
+
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
+        await self.bot.mongo.db.pokemon.update_many(
+        {"_id": {"$in": [x.id async for x in pokemon]}},
+        {"$set": {"favorite": True}},
+        )
+
+        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll selected pokemon favorited.")
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
@@ -259,79 +363,56 @@ class Pokemon(commands.Cog):
     # Rename all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @flags.command(aliases=("favall","fa"))
-    async def favoriteall(self, ctx, **flags):
+    @flags.command(aliases=("unfavouriteall","unfavall","ufa",))
+    async def unfavoriteall(self, ctx, **flags):
+        """Mass unfavorite selected pokemon."""
 
         aggregations = await self.create_filter(flags, ctx)
 
         if aggregations is None:
             return
         
-        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)            
+        # Check pokemon and unfavorited pokemon num
+        num = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
 
-        unfav = []
-        fav = []
-        async for x in pokemon:
-            fav.append(x)
-            if not x.favorite:
-                unfav.append(x)
-        
-        if not unfav:
-            if not fav:
-                #No selected pokemon found
-                return await ctx.send("No selected pokemon found.")
-            #All selected pokemon favorited
+        aggregations.append({"$match": {"pokemon.favorite": True}})
+        favnum = await self.bot.mongo.fetch_pokemon_count(
+            ctx.author, aggregations=aggregations
+        )
 
-            # confirm
-            await ctx.send(
-                f"Are you sure you want to **unfavorite** your {len(fav)} pokémon? Type `confirm unfavorite {len(fav)}` to confirm."
-            )
+        if num == 0:
+            return await ctx.send("Found no pokémon matching this search.")
+        elif favnum == 0:
+            return await ctx.send("Found no favorited pokémon within this selection.")
 
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+        # Fetch pokemon list
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
-            try:
-                msg = await self.bot.wait_for("message", timeout=30, check=check)
+        # confirm
+        await ctx.send(
+            f"Are you sure you want to **unfavorite** your {favnum} pokémon? Type `confirm unfavorite {favnum}` to confirm."
+        )
 
-                if msg.content.lower() != f"confirm unfavorite {len(fav)}":
-                    return await ctx.send("Aborted.")
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
 
-            except asyncio.TimeoutError:
-                return await ctx.send("Time's up. Aborted.")
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
 
+            if msg.content.lower() != f"confirm unfavorite {favnum}":
+                return await ctx.send("Aborted.")
 
-            await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id for x in fav]}},
-            {"$set": {"favorite": False}},
-            )
-            message = (f"Unfavorited your {len(fav)} selected pokemon.")
-        else:
-            #Not all pokemon in selection favorited
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
 
-            # confirm
-            await ctx.send(
-                f"Are you sure you want to **favorite** your {len(unfav)} pokémon? Type `confirm favorite {len(unfav)}` to confirm."
-            )
+        await self.bot.mongo.db.pokemon.update_many(
+        {"_id": {"$in": [x.id async for x in pokemon]}},
+        {"$set": {"favorite": False}},
+        )
 
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-            try:
-                msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-                if msg.content.lower() != f"confirm favorite {len(unfav)}":
-                    return await ctx.send("Aborted.")
-
-            except asyncio.TimeoutError:
-                return await ctx.send("Time's up. Aborted.")
-
-            await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id for x in unfav]}},
-            {"$set": {"favorite": True}},
-            )
-            message = (f"Favorited your {len(unfav)} selected pokemon.")
-                
-        await ctx.send(message)
+        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll selected pokemon unfavorited.")
 
     @checks.has_started()
     @commands.command(aliases=("i",), rest_is_raw=True)
