@@ -304,7 +304,7 @@ class Pokemon(commands.Cog):
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
         elif unfavnum == 0:
-            return await ctx.send("Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `p!unfavoriteall`.")
+            return await ctx.send(f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.prefix}unfavoriteall`.")
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
@@ -683,42 +683,43 @@ class Pokemon(commands.Cog):
 
         for pokemon in args:
 
-            if pokemon is None:
-                continue
+            if pokemon is not None:
+                # can't release selected/fav
 
-            # can't release selected/fav
+                if pokemon.id in ids:
+                    continue
 
-            if pokemon.id in ids:
-                continue
+                if member.selected_id == pokemon.id:
+                    await ctx.send(
+                        f"{pokemon.idx}: You can't release your selected pokémon!"
+                    )
+                    continue
 
-            if member.selected_id == pokemon.id:
-                await ctx.send(
-                    f"{pokemon.idx}: You can't release your selected pokémon!"
-                )
-                continue
+                if pokemon.favorite:
+                    await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
+                    continue
 
-            if pokemon.favorite:
-                await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
-                continue
+                ids.add(pokemon.id)
+                mons.append(pokemon)
 
-            ids.add(pokemon.id)
-            mons.append(pokemon)
+        if len(args) != len(mons):    
+            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in selection!")
 
         # Confirmation msg
 
         if len(mons) == 0:
             return
 
-        if len(args) == 1:
+        if len(mons) == 1:
             await ctx.send(
-                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx} for 2 pc? This action is irreversible! [y/N]"
+                f'Are you sure you want to **release** your{" ✨" if pokemon.shiny else ""} Level {pokemon.level} {pokemon.iv_percentage * 100:.2f}% {pokemon.species}. No. {pokemon.idx} for 2 pc? \nThis action is irreversible! Type `confirm release {len(mons)}` to confirm.'
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
+            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\nType `confirm release {len(mons)}` to confirm."
 
             embed.description = "\n".join(
-                f"Level {x.level} {x.species} ({x.idx})" for x in mons
+                f'{"✨ " if x.shiny else ""}Level {x.level} {x.iv_percentage * 100:.2f}% {x.species} ({x.idx})' for x in mons
             )
 
             await ctx.send(embed=embed)
@@ -729,7 +730,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != "y":
+            if msg.content.lower() != f"confirm release {len(mons)}":
                 return await ctx.send("Aborted.")
         except asyncio.TimeoutError:
             return await ctx.send("Time's up. Aborted.")
@@ -1090,6 +1091,25 @@ class Pokemon(commands.Cog):
 
             if species.description:
                 embed.description = species.description.replace("\n", " ")
+
+            #Pokemon Rarity
+            rarity = []
+            if species.mythical:
+                rarity.append("Mythical")
+            if species.legendary:
+                rarity.append("Legendary")
+            if species.ultra_beast:
+                rarity.append("Ultra Beast")
+            if species.event:
+                rarity.append("Event")
+
+            if rarity:
+                rarity = ", ".join(rarity)
+                embed.add_field(
+                    name="Rarity",
+                    value=rarity,
+                    inline=False,
+                )
 
             if species.evolution_text:
                 embed.add_field(
