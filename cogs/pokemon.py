@@ -712,7 +712,7 @@ class Pokemon(commands.Cog):
 
         if len(mons) == 1:
             await ctx.send(
-                f'Are you sure you want to **release** your{" ✨" if pokemon.shiny else ""} Level {pokemon.level} {pokemon.iv_percentage * 100:.2f}% {pokemon.species}. No. {pokemon.idx} for 2 pc? \nThis action is irreversible! Type `confirm release {len(mons)}` to confirm.'
+                f'Are you sure you want to **release** your{" ✨" if mons[0].shiny else ""} Level {mons[0].level} {mons[0].iv_percentage * 100:.2f}% {mons[0].species}. No. {mons[0].idx} for 2 pc? \nThis action is irreversible! Type `confirm release {len(mons)}` to confirm.'
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
