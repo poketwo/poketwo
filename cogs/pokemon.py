@@ -703,7 +703,7 @@ class Pokemon(commands.Cog):
                 mons.append(pokemon)
 
         if len(args) != len(mons):    
-            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in selection!")
+            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!")
 
         # Confirmation msg
 
@@ -712,11 +712,11 @@ class Pokemon(commands.Cog):
 
         if len(mons) == 1:
             await ctx.send(
-                f'Are you sure you want to **release** your{" ✨" if mons[0].shiny else ""} Level {mons[0].level} {mons[0].iv_percentage * 100:.2f}% {mons[0].species}. No. {mons[0].idx} for 2 pc? \nThis action is irreversible! Type `confirm release {len(mons)}` to confirm.'
+                f'Are you sure you want to **release** your{" ✨" if mons[0].shiny else ""} Level {mons[0].level} {mons[0].iv_percentage * 100:.2f}% {mons[0].species}. No. {mons[0].idx} for 2 pc? [y/N]'
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
-            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\nType `confirm release {len(mons)}` to confirm."
+            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
             embed.description = "\n".join(
                 f'{"✨ " if x.shiny else ""}Level {x.level} {x.iv_percentage * 100:.2f}% {x.species} ({x.idx})' for x in mons
@@ -730,7 +730,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"confirm release {len(mons)}":
+            if msg.content.lower() != "y":
                 return await ctx.send("Aborted.")
         except asyncio.TimeoutError:
             return await ctx.send("Time's up. Aborted.")
