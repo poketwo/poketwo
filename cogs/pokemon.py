@@ -3,6 +3,7 @@ import asyncio
 import math
 import re
 import typing
+import itertools
 from datetime import datetime
 from operator import itemgetter
 from discord.errors import DiscordException
@@ -116,6 +117,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -275,6 +282,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -355,6 +368,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -650,6 +669,37 @@ class Pokemon(commands.Cog):
                         {"$match": {expr: {"$gt": math.floor(ops[1])}}},
                     )
 
+        for flag, dupes in constants.FILTER_BY_DUPLICATES.items():
+            if flag in flags and flags[flag] is not None: 
+                # Processing arguments
+                if len(flags[flag][0]) > 1:
+                    raise commands.BadArgument(
+                        f"`--{flag}` can't parse more than 1 argument!"
+                    )
+
+                iv = int(flags[flag][0][0])
+
+                if not (0 <= iv <= 31):
+                    raise commands.BadArgument(
+                        f"IV's may only be a value between 0 and 31!"
+                    )
+
+                # Processing combinations
+                fields = []
+                combinations = []
+                for field in constants.IV_FIELDS:
+                    fields.append({field: {"$eq":iv}})
+                fields = list(itertools.combinations(fields,dupes))
+                for field in fields:
+                    combinations.append(
+                        {"$and":field}
+                    )
+                aggregations.append(
+                    {"$match":
+                        {"$or": combinations}
+                    }
+                )
+
         if order_by is not None:
             s = order_by[-1]
             if order_by[-1] in "+-":
@@ -772,6 +822,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -877,6 +933,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+    
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)

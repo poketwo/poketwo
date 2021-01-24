@@ -44,6 +44,12 @@ class Market(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)

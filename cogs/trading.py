@@ -566,6 +566,7 @@ class Trading(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", type=str, action="append")
+
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -575,9 +576,17 @@ class Trading(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Duplicate IV's
+    @flags.add_flag("--triple","--three", nargs="+", action="append")
+    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
+    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
+    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
+    
     # Trade add all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
