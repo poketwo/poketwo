@@ -320,7 +320,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"confirm favorite {unfavnum}":
+            if msg.content.lower() not in [f"confirm favorite {unfavnum}",f"confirm favourite {unfavnum}"]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
@@ -401,7 +401,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"confirm unfavorite {favnum}":
+            if msg.content.lower() not in [f"confirm unfavorite {favnum}",f"confirm unfavourite {favnum}"]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:

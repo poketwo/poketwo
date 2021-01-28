@@ -473,7 +473,7 @@ class Auctions(commands.Cog):
                 self.bot.loop.create_task(
                     await self.bot.http.send_message(
                         priv["id"],
-                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
+                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).\nCurrent Bid: **{bid:,} Pokécoins**.",
                     )
                 )
             self.bot.loop.create_task(
