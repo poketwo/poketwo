@@ -19,6 +19,9 @@ class Trading(commands.Cog):
         else:
             self.ready = True
 
+    def getKeyString(self, author_id):
+        return str(list(self.bot.trades[author_id]["items"].keys())[0])+"-"+str(list(self.bot.trades[author_id]["items"].keys())[1])
+
     async def clear_trades(self):
         await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
@@ -354,8 +357,14 @@ class Trading(commands.Cog):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
+        if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
+            return await ctx.send("You must be in the same channel to confirm trade!")
+
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
+
+        if await self.bot.redis.get(f"trade:{self.getKeyString(ctx.author.id)}"):
+            return await ctx.send("Trade content was modified within the last 5 seconds. Please review trade items and try again.")
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[
             ctx.author.id
@@ -472,6 +481,9 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        await self.bot.redis.set(f"trade:{self.getKeyString(ctx.author.id)}",1)
+        await self.bot.redis.expire(f"trade:{self.getKeyString(ctx.author.id)}",5)
+
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -551,6 +563,9 @@ class Trading(commands.Cog):
         for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
+        
+        await self.bot.redis.set(f"trade:{self.getKeyString(ctx.author.id)}",1)
+        await self.bot.redis.expire(f"trade:{self.getKeyString(ctx.author.id)}",5)
 
         await self.send_trade(ctx, ctx.author)
 
@@ -671,6 +686,9 @@ class Trading(commands.Cog):
         for k in self.bot.trades[ctx.author.id]:
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
+
+        await self.bot.redis.set(f"trade:{self.getKeyString(ctx.author.id)}",1)
+        await self.bot.redis.expire(f"trade:{self.getKeyString(ctx.author.id)}",5)
 
         await self.send_trade(ctx, ctx.author)
 
