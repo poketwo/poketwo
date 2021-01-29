@@ -712,14 +712,14 @@ class Pokemon(commands.Cog):
 
         if len(mons) == 1:
             await ctx.send(
-                f'Are you sure you want to **release** your{" ✨" if mons[0].shiny else ""} Level {mons[0].level} {mons[0].iv_percentage * 100:.2f}% {mons[0].species}. No. {mons[0].idx} for 2 pc? [y/N]'
+                f'Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]'
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
             embed.description = "\n".join(
-                f'{"✨ " if x.shiny else ""}Level {x.level} {x.iv_percentage * 100:.2f}% {x.species} ({x.idx})' for x in mons
+                f'{x:spl} ({x.idx})' for x in mons
             )
 
             await ctx.send(embed=embed)
