@@ -81,6 +81,9 @@ class PokemonBase(MixinDocument):
         elif "L" in spec:
             name += f"L{self.level} "
 
+        if "p" in spec:
+            name += f"{self.iv_percentage:.2%} "
+
         if self.bot.sprites.status and "i" in spec:
             sprite = self.bot.sprites.get(self.species.dex_number, shiny=self.shiny)
             name = sprite + " " + name
