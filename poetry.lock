@@ -37,6 +37,17 @@ async-timeout = "*"
 hiredis = "*"
 
 [[package]]
+name = "aioredis-lock"
+version = "0.1.0"
+description = "Wrapper to provide distributed locks in aioredis"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+aioredis = "*"
+
+[[package]]
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -762,7 +773,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c1046e945974c7777ae925a2cd5989a7d8d6d2e0d758ed0e06f0d32e98fb4495"
+content-hash = "54df022377850497ea1d149f169e0fa657e0febe0561f5b5402d879f57b3629f"
 
 [metadata.files]
 aiofiles = [
@@ -787,6 +798,10 @@ aiohttp = [
 aioredis = [
     {file = "aioredis-1.3.1-py3-none-any.whl", hash = "sha256:b61808d7e97b7cd5a92ed574937a079c9387fdadd22bfbfa7ad2fd319ecc26e3"},
     {file = "aioredis-1.3.1.tar.gz", hash = "sha256:15f8af30b044c771aee6787e5ec24694c048184c7b9e54c3b60c750a4b93273a"},
+]
+aioredis-lock = [
+    {file = "aioredis-lock-0.1.0.tar.gz", hash = "sha256:dd62f980c57bff8c8e66a0d1947c95060dbb9f5f465156fb705e3b47547ae834"},
+    {file = "aioredis_lock-0.1.0-py3-none-any.whl", hash = "sha256:0d0cda38f75609ba20ed6d34deef8a3594847e00c71d61774a76d0dbe428f551"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
