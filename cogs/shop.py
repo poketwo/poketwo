@@ -403,7 +403,7 @@ class Shop(commands.Cog):
             await ctx.send("Your balance is no longer hidden in shop pages.")
 
     @checks.has_started()
-    @commands.command()
+    @commands.command(aliases=("store",))
     async def shop(self, ctx, *, page: int = 0):
         """View the Pokétwo item shop."""
 
