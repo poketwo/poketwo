@@ -565,7 +565,7 @@ class Trading(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
-    @flags.add_flag("--type", type=str, action="append")
+    @flags.add_flag("--type", "--t", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -580,7 +580,9 @@ class Trading(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
