@@ -1,3 +1,4 @@
+from aioredis_lock import RedisLock
 import asyncio
 from importlib import reload
 
@@ -140,6 +141,10 @@ class ClusterBot(commands.AutoShardedBot):
         )
 
         await self.process_commands(message)
+
+    async def before_identify_hook(self, shard_id, *, initial=False):
+        async with RedisLock(self.redis, key="identify", timeout=5, wait_timeout=None):
+            await asyncio.sleep(5)
 
     async def close(self):
         self.log.info("shutting down")

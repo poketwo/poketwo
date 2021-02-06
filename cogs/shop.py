@@ -716,6 +716,13 @@ class Shop(commands.Cog):
 
         # OK to buy, go ahead
 
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
+            return await ctx.send(
+                f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!"
+            )
+
         await self.bot.mongo.update_member(
             ctx.author,
             {

@@ -337,9 +337,7 @@ class Pokemon(commands.Cog):
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
         elif unfavnum == 0:
-            return await ctx.send(
-                "Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `p!unfavoriteall`."
-            )
+            return await ctx.send(f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.prefix}unfavoriteall`.")
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
@@ -355,7 +353,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"confirm favorite {unfavnum}":
+            if msg.content.lower() not in [f"confirm favorite {unfavnum}",f"confirm favourite {unfavnum}"]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
@@ -450,7 +448,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"confirm unfavorite {favnum}":
+            if msg.content.lower() not in [f"confirm unfavorite {favnum}",f"confirm unfavourite {favnum}"]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
@@ -751,42 +749,43 @@ class Pokemon(commands.Cog):
 
         for pokemon in args:
 
-            if pokemon is None:
-                continue
+            if pokemon is not None:
+                # can't release selected/fav
 
-            # can't release selected/fav
+                if pokemon.id in ids:
+                    continue
 
-            if pokemon.id in ids:
-                continue
+                if member.selected_id == pokemon.id:
+                    await ctx.send(
+                        f"{pokemon.idx}: You can't release your selected pokémon!"
+                    )
+                    continue
 
-            if member.selected_id == pokemon.id:
-                await ctx.send(
-                    f"{pokemon.idx}: You can't release your selected pokémon!"
-                )
-                continue
+                if pokemon.favorite:
+                    await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
+                    continue
 
-            if pokemon.favorite:
-                await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
-                continue
+                ids.add(pokemon.id)
+                mons.append(pokemon)
 
-            ids.add(pokemon.id)
-            mons.append(pokemon)
+        if len(args) != len(mons):    
+            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!")
 
         # Confirmation msg
 
         if len(mons) == 0:
             return
 
-        if len(args) == 1:
+        if len(mons) == 1:
             await ctx.send(
-                f"Are you sure you want to release your level {pokemon.level} {pokemon.species}. No. {pokemon.idx} for 2 pc? This action is irreversible! [y/N]"
+                f'Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]'
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
             embed.description = "\n".join(
-                f"Level {x.level} {x.species} ({x.idx})" for x in mons
+                f'{x:spl} ({x.idx})' for x in mons
             )
 
             await ctx.send(embed=embed)
@@ -1171,6 +1170,25 @@ class Pokemon(commands.Cog):
             if species.description:
                 embed.description = species.description.replace("\n", " ")
 
+            #Pokemon Rarity
+            rarity = []
+            if species.mythical:
+                rarity.append("Mythical")
+            if species.legendary:
+                rarity.append("Legendary")
+            if species.ultra_beast:
+                rarity.append("Ultra Beast")
+            if species.event:
+                rarity.append("Event")
+
+            if rarity:
+                rarity = ", ".join(rarity)
+                embed.add_field(
+                    name="Rarity",
+                    value=rarity,
+                    inline=False,
+                )
+
             if species.evolution_text:
                 embed.add_field(
                     name="Evolution", value=species.evolution_text, inline=False
@@ -1214,42 +1232,54 @@ class Pokemon(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.command(rest_is_raw=True)
-    async def evolve(self, ctx, *, pokemon: converters.PokemonConverter):
+    async def evolve(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Evolve a pokémon if it has reached the target level."""
 
-        if pokemon is None:
+        if not all(pokemon is not None for pokemon in args):
             return await ctx.send("Couldn't find that pokémon!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
-            return await ctx.send("That pokémon can't be evolved!")
-
-        embed = self.bot.Embed(color=0x9CCFFF)
+        embed = self.bot.Embed(color=0x9CCFFF, description='')
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
-        name = str(pokemon.species)
+        evolved = []
 
-        if pokemon.nickname is not None:
-            name += f' "{pokemon.nickname}"'
+        if len(args) > 30:
+            return await ctx.send("You can't evolve more than 30 pokémon at once!")
 
-        embed.add_field(
-            name=f"Your {name} is evolving!",
-            value=f"Your {name} has turned into a {evo}!",
-        )
+        for pokemon in args:
+            name = format(pokemon, 'n')
 
-        if pokemon.shiny:
-            embed.set_thumbnail(url=evo.shiny_image_url)
-        else:
-            embed.set_thumbnail(url=evo.image_url)
+            if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
+                return await ctx.send(f"Your {name} can't be evolved!")
 
-        await self.bot.mongo.update_pokemon(
-            pokemon,
-            {"$set": {f"species_id": evo.id}},
-        )
+            if len(args) < 20:
+                embed.add_field(
+                    name=f"Your {name} is evolving!",
+                    value=f"Your {name} has turned into a {evo}!",
+                    inline=True
+                )
 
-        self.bot.dispatch("evolve", ctx.author, pokemon, evo)
+            else:
+                embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
+
+            if len(args) == 1:
+                if pokemon.shiny:
+                    embed.set_thumbnail(url=evo.shiny_image_url)
+                else:
+                    embed.set_thumbnail(url=evo.image_url)
+
+            evolved.append((pokemon, evo))
+
+        for pokemon, evo in evolved:
+            await self.bot.mongo.update_pokemon(
+                pokemon,
+                {"$set": {f"species_id": evo.id}},
+            )
+
+            self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
         await ctx.send(embed=embed)
 
