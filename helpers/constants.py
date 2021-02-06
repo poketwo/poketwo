@@ -150,6 +150,22 @@ FILTER_BY_NUMERICAL = {
     "spdiv": "pokemon.iv_spd",
 }
 
+FILTER_BY_DUPLICATES = {
+    "triple": 3,
+    "quadruple": 4,
+    "pentuple": 5,
+    "hextuple": 6,
+}
+
+IV_FIELDS = [
+    "pokemon.iv_hp",
+    "pokemon.iv_atk",
+    "pokemon.iv_defn",
+    "pokemon.iv_satk",
+    "pokemon.iv_sdef",
+    "pokemon.iv_spd",
+]
+
 NATURE_MULTIPLIERS = {
     "Hardy": {
         "hp": 1,

@@ -3,6 +3,7 @@ import asyncio
 import math
 import re
 import typing
+import itertools
 from datetime import datetime
 from operator import itemgetter
 from discord.errors import DiscordException
@@ -117,6 +118,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -191,7 +198,13 @@ class Pokemon(commands.Cog):
         else:
             await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
 
-    @commands.command(aliases=("favourite","fav",), rest_is_raw=True)
+    @commands.command(
+        aliases=(
+            "favourite",
+            "fav",
+        ),
+        rest_is_raw=True,
+    )
     async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
 
@@ -211,19 +224,27 @@ class Pokemon(commands.Cog):
                     name += f' "{pokemon.nickname}"'
 
                 if pokemon.favorite:
-                    messages.append(f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `p!unfavorite`.")
+                    messages.append(
+                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `p!unfavorite`."
+                    )
                 else:
                     await self.bot.mongo.update_pokemon(
-                    pokemon,
-                    {"$set": {f"favorite": True}},
+                        pokemon,
+                        {"$set": {f"favorite": True}},
                     )
                     messages.append(f"Favorited your level {pokemon.level} {name}.")
-                    
+
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
                 await ctx.send(longmsg[i : i + 2000])
 
-    @commands.command(aliases=("unfavourite","unfav",), rest_is_raw=True)
+    @commands.command(
+        aliases=(
+            "unfavourite",
+            "unfav",
+        ),
+        rest_is_raw=True,
+    )
     async def unfavorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Unfavorite a selected pokemon."""
 
@@ -275,6 +296,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -282,7 +309,13 @@ class Pokemon(commands.Cog):
     # Rename all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @flags.command(aliases=("favouriteall","favall","fa",))
+    @flags.command(
+        aliases=(
+            "favouriteall",
+            "favall",
+            "fa",
+        )
+    )
     async def favoriteall(self, ctx, **flags):
         """Mass favorite selected pokemon."""
 
@@ -290,13 +323,13 @@ class Pokemon(commands.Cog):
 
         if aggregations is None:
             return
-        
+
         # Check pokemon and unfavorited pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
         )
 
-        aggregations.append({"$match":{"pokemon.favorite": {"$ne": True}}})
+        aggregations.append({"$match": {"pokemon.favorite": {"$ne": True}}})
         unfavnum = await self.bot.mongo.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
         )
@@ -327,11 +360,13 @@ class Pokemon(commands.Cog):
             return await ctx.send("Time's up. Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-        {"_id": {"$in": [x.id async for x in pokemon]}},
-        {"$set": {"favorite": True}},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"$set": {"favorite": True}},
         )
 
-        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited.")
+        await ctx.send(
+            f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited."
+        )
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
@@ -356,6 +391,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -363,7 +404,13 @@ class Pokemon(commands.Cog):
     # Rename all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @flags.command(aliases=("unfavouriteall","unfavall","ufa",))
+    @flags.command(
+        aliases=(
+            "unfavouriteall",
+            "unfavall",
+            "ufa",
+        )
+    )
     async def unfavoriteall(self, ctx, **flags):
         """Mass unfavorite selected pokemon."""
 
@@ -371,7 +418,7 @@ class Pokemon(commands.Cog):
 
         if aggregations is None:
             return
-        
+
         # Check pokemon and unfavorited pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(
             ctx.author, aggregations=aggregations
@@ -408,11 +455,13 @@ class Pokemon(commands.Cog):
             return await ctx.send("Time's up. Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-        {"_id": {"$in": [x.id async for x in pokemon]}},
-        {"$set": {"favorite": False}},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"$set": {"favorite": False}},
         )
 
-        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited.")
+        await ctx.send(
+            f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited."
+        )
 
     @checks.has_started()
     @commands.command(aliases=("i",), rest_is_raw=True)
@@ -650,6 +699,23 @@ class Pokemon(commands.Cog):
                         {"$match": {expr: {"$gt": math.floor(ops[1])}}},
                     )
 
+        for flag, amt in constants.FILTER_BY_DUPLICATES.items():
+            if flag in flags and flags[flag] is not None:
+                # Processing arguments
+                if len(flags[flag][0]) > 1:
+                    raise commands.BadArgument(
+                        f"`--{flag}` can't parse more than 1 argument!"
+                    )
+
+                iv = int(flags[flag])
+
+                # Processing combinations
+                combinations = [
+                    {field: iv for field in combo}
+                    for combo in itertools.combinations(constants.IV_FIELDS, amt)
+                ]
+                aggregations.append({"$match": {"$or": combinations}})
+
         if order_by is not None:
             s = order_by[-1]
             if order_by[-1] in "+-":
@@ -773,6 +839,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
 
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
@@ -877,6 +949,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -1057,7 +1135,7 @@ class Pokemon(commands.Cog):
                 return embed
 
             pages = pagination.ContinuablePages(
-                pagination.FunctionPageSource(math.ceil(809/20), get_page)
+                pagination.FunctionPageSource(math.ceil(809 / 20), get_page)
             )
             pages.current_page = int(search_or_page) - 1
             self.bot.menus[ctx.author.id] = pages
