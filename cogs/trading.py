@@ -578,15 +578,15 @@ class Trading(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple","--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple","--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple","--quintuple","--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple","--sextuple","--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
-    
+
     # Trade add all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)

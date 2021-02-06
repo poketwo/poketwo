@@ -119,10 +119,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple", "--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -297,10 +297,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple", "--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -394,10 +394,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple", "--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -709,7 +709,7 @@ class Pokemon(commands.Cog):
                         f"`--{flag}` can't parse more than 1 argument!"
                     )
 
-                iv = int(flags[flag][0][0])
+                iv = int(flags[flag])
 
                 # Processing combinations
                 combinations = [
@@ -841,10 +841,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple", "--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -952,10 +952,10 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="+", action="append")
-    @flags.add_flag("--quadruple", "--four", nargs="+", action="append")
-    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="+", action="append")
-    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="+", action="append")
+    @flags.add_flag("--triple", "--three", nargs="?")
+    @flags.add_flag("--quadruple", "--four", nargs="?")
+    @flags.add_flag("--pentuple", "--quintuple", "--five", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
