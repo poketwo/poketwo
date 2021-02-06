@@ -1,13 +1,13 @@
-import contextlib
 import asyncio
+import contextlib
+import itertools
 import math
 import re
 import typing
-import itertools
 from datetime import datetime
 from operator import itemgetter
-from discord.errors import DiscordException
 
+from discord.errors import DiscordException
 from discord.ext import commands, flags
 from helpers import checks, constants, converters, pagination
 from pymongo import UpdateOne
@@ -1254,6 +1254,9 @@ class Pokemon(commands.Cog):
     @commands.command(rest_is_raw=True)
     async def evolve(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Evolve a pokémon if it has reached the target level."""
+
+        if len(args) == 0:
+            args.append(await converters.PokemonConverter().convert(ctx, ""))
 
         if not all(pokemon is not None for pokemon in args):
             return await ctx.send("Couldn't find that pokémon!")
