@@ -120,9 +120,11 @@ class Pokemon(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -298,9 +300,11 @@ class Pokemon(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -337,7 +341,9 @@ class Pokemon(commands.Cog):
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
         elif unfavnum == 0:
-            return await ctx.send(f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.prefix}unfavoriteall`.")
+            return await ctx.send(
+                f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.prefix}unfavoriteall`."
+            )
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
@@ -353,7 +359,10 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() not in [f"confirm favorite {unfavnum}",f"confirm favourite {unfavnum}"]:
+            if msg.content.lower() not in [
+                f"confirm favorite {unfavnum}",
+                f"confirm favourite {unfavnum}",
+            ]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
@@ -393,9 +402,11 @@ class Pokemon(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -448,7 +459,10 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() not in [f"confirm unfavorite {favnum}",f"confirm unfavourite {favnum}"]:
+            if msg.content.lower() not in [
+                f"confirm unfavorite {favnum}",
+                f"confirm unfavourite {favnum}",
+            ]:
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
@@ -762,14 +776,18 @@ class Pokemon(commands.Cog):
                     continue
 
                 if pokemon.favorite:
-                    await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
+                    await ctx.send(
+                        f"{pokemon.idx}: You can't release favorited pokémon!"
+                    )
                     continue
 
                 ids.add(pokemon.id)
                 mons.append(pokemon)
 
-        if len(args) != len(mons):    
-            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!")
+        if len(args) != len(mons):
+            await ctx.send(
+                f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!"
+            )
 
         # Confirmation msg
 
@@ -778,15 +796,13 @@ class Pokemon(commands.Cog):
 
         if len(mons) == 1:
             await ctx.send(
-                f'Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]'
+                f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]"
             )
         else:
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
-            embed.description = "\n".join(
-                f'{x:spl} ({x.idx})' for x in mons
-            )
+            embed.description = "\n".join(f"{x:spl} ({x.idx})" for x in mons)
 
             await ctx.send(embed=embed)
 
@@ -841,9 +857,11 @@ class Pokemon(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -952,9 +970,11 @@ class Pokemon(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -1170,7 +1190,7 @@ class Pokemon(commands.Cog):
             if species.description:
                 embed.description = species.description.replace("\n", " ")
 
-            #Pokemon Rarity
+            # Pokemon Rarity
             rarity = []
             if species.mythical:
                 rarity.append("Mythical")
@@ -1241,7 +1261,7 @@ class Pokemon(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(color=0x9CCFFF, description='')
+        embed = self.bot.Embed(color=0x9CCFFF, description="")
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
         evolved = []
@@ -1250,7 +1270,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("You can't evolve more than 30 pokémon at once!")
 
         for pokemon in args:
-            name = format(pokemon, 'n')
+            name = format(pokemon, "n")
 
             if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
                 return await ctx.send(f"Your {name} can't be evolved!")
@@ -1259,7 +1279,7 @@ class Pokemon(commands.Cog):
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",
-                    inline=True
+                    inline=True,
                 )
 
             else:

@@ -508,9 +508,11 @@ class Auctions(commands.Cog):
 
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--tetra", nargs="?")
-    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--five", nargs="?")
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--six", nargs="?")
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag(
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+    )
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
