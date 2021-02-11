@@ -91,7 +91,6 @@ class Auctions(commands.Cog):
 
         # ok, bid
 
-        await self.bot.mongo.db.auction.delete_one({"_id": auction.id})
         try:
             await self.bot.mongo.db.pokemon.insert_one(
                 {
@@ -102,6 +101,7 @@ class Auctions(commands.Cog):
             )
         except pymongo.errors.DuplicateKeyError:
             return
+        await self.bot.mongo.db.auction.delete_one({"_id": auction.id})
         await self.bot.mongo.update_member(
             host, {"$inc": {"balance": auction.current_bid}}
         )
@@ -471,7 +471,7 @@ class Auctions(commands.Cog):
                 )
                 priv = await self.bot.http.start_private_message(auction.bidder_id)
                 self.bot.loop.create_task(
-                    await self.bot.http.send_message(
+                    self.bot.http.send_message(
                         priv["id"],
                         f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
                     )
