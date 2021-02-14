@@ -59,8 +59,7 @@ class Pokemon(commands.Cog):
         self,
         ctx: commands.Context,
         pokemon: typing.Optional[converters.PokemonConverter] = False,
-        *,
-        nickname: str,
+        *nickname,
     ):
         """Change the nickname for your pokémon."""
 
@@ -69,6 +68,8 @@ class Pokemon(commands.Cog):
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
+
+        nickname = " ".join(nickname)
 
         if len(nickname) > 100:
             return await ctx.send("That nickname is too long.")
