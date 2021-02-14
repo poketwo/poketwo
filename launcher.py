@@ -142,15 +142,11 @@ class Launcher:
             await asyncio.sleep(5)
 
     async def start_cluster(self):
-        if self.cluster_queue:
-            cluster = self.cluster_queue.pop(0)
-            log.info(f"Starting Cluster#{cluster.name}")
-            await cluster.start()
-            log.info("Done!")
+        for cluster in self.cluster_queue:
             self.clusters.append(cluster)
-            await self.start_cluster()
-        else:
-            log.info("All clusters launched")
+            log.info(f"Starting Cluster#{cluster.name}")
+            self.loop.create_task(cluster.start())
+            await asyncio.sleep(0.5)
 
 
 class Cluster:

@@ -23,7 +23,6 @@ class Market(commands.Cog):
         await ctx.send_help(ctx.command)
 
     # Filter
-    @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
@@ -68,9 +67,6 @@ class Market(commands.Cog):
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
-        if flags["page"] < 1:
-            return await ctx.send("Page must be positive!")
-
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
             flags, ctx, order_by=flags["order"]
         )
@@ -102,7 +98,6 @@ class Market(commands.Cog):
             allow_last=False,
             allow_go=False,
         )
-        pages.current_page = flags["page"] - 1
         self.bot.menus[ctx.author.id] = pages
 
         try:
