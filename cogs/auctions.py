@@ -493,6 +493,7 @@ class Auctions(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
 
