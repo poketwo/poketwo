@@ -121,12 +121,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
     )
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -302,12 +302,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
     )
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -405,12 +405,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
     )
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -743,12 +743,6 @@ class Pokemon(commands.Cog):
 
         for flag, amt in constants.FILTER_BY_DUPLICATES.items():
             if flag in flags and flags[flag] is not None:
-                # Processing arguments
-                if len(flags[flag][0]) > 1:
-                    raise commands.BadArgument(
-                        f"`--{flag}` can't parse more than 1 argument!"
-                    )
-
                 iv = int(flags[flag])
 
                 # Processing combinations
@@ -885,12 +879,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
     )
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
@@ -999,12 +993,12 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--iv", nargs="+", action="append")
 
     # Duplicate IV's
-    @flags.add_flag("--triple", "--three", nargs="?")
-    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", nargs="?")
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", nargs="?"
+        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
     )
-    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", nargs="?")
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
     @flags.add_flag("--skip", type=int)
