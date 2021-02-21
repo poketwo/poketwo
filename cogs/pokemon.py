@@ -1358,7 +1358,7 @@ class Pokemon(commands.Cog):
         try:
             msg = await self.bot.wait_for("message", timeout=30, check=check)
 
-            if msg.content.lower() != f"y":
+            if msg.content.lower() != "y":
                 return await ctx.send("Aborted.")
 
         except asyncio.TimeoutError:
