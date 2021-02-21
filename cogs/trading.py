@@ -504,7 +504,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @add.command(name="redeem", aliases=("redeems", "r"))
+    @add.command(name="redeems", aliases=("redeem", "r"))
     async def add_redeems(self, ctx, *, amt: int):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
@@ -617,7 +617,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
-    @remove.command(name="redeem", aliases=("redeems", "r"))
+    @remove.command(name="redeems", aliases=("redeem", "r"))
     async def remove_redeems(self, ctx, *, amt: int):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
