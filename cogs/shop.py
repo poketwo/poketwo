@@ -68,7 +68,7 @@ class Shop(commands.Cog):
         await self.bot.mongo.update_channel(
             ctx.channel,
             {
-                "$set": {"incense_expires": datetime.utcnow()},
+                "$set": {"spawns_remaining": 0},
             },
         )
         await ctx.send("Incense has been stopped.")
@@ -755,7 +755,7 @@ class Shop(commands.Cog):
             await self.bot.mongo.update_channel(
                 ctx.channel,
                 {
-                    "$set": {"incense_expires": datetime.utcnow() + timedelta(hours=1)},
+                    "$set": {"spawns_remaining": 180},
                 },
             )
 
