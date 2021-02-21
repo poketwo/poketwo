@@ -473,9 +473,6 @@ class Shop(commands.Cog):
                     if item.action in ("level", "shard", "redeem"):
                         value += " each"
 
-                if item.action == "redeem":
-                    name += f" [{20 - member.redeems_purchased.get(self.month_number, 0)} left this month]"
-
                 embed.add_field(name=name, value=value, inline=item.inline)
 
             if items[-1].inline:
@@ -666,9 +663,6 @@ class Shop(commands.Cog):
             await ctx.send(f"You purchased {qty:,} shards!")
 
         elif item.action == "redeem":
-            if member.redeems_purchased.get(self.month_number, 0) + qty > 20:
-                return await ctx.send("Sorry, you can't purchase that many redeems.")
-
             await ctx.send(f"You purchased {qty} redeems!")
 
         elif item.action == "shiny_charm":
@@ -743,7 +737,6 @@ class Shop(commands.Cog):
                 {
                     "$inc": {
                         "redeems": qty,
-                        f"redeems_purchased.{self.month_number}": qty,
                     }
                 },
             )
