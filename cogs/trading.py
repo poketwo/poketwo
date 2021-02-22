@@ -474,7 +474,7 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @add.command(name="pokecoins", aliases=("pc", "pokecoin"))
     async def add_pokecoins(self, ctx, *, amt: int):
-        """Add pokécoin(s) to a trade."""
+        """Add Pokécoin(s) to a trade."""
 
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
@@ -595,7 +595,7 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @remove.command(name="pokecoins", aliases=("pc", "pokecoin"))
     async def remove_pokecoins(self, ctx, *, amt: int):
-        """Remove pokécoin(s) from a trade."""
+        """Remove Pokécoin(s) from a trade."""
 
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
