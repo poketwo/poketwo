@@ -389,7 +389,7 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @trade.group(aliases=("a",), invoke_without_command=True, case_insensitive=True)
     async def add(self, ctx, *args):
-        """Add an item to a trade."""
+        """Add pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
@@ -474,6 +474,8 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @add.command(name="pokecoins", aliases=("pc", "pokecoin"))
     async def add_pokecoins(self, ctx, *, amt: int):
+        """Add pokecoin(s) to a trade."""
+
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
@@ -506,6 +508,8 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @add.command(name="redeems", aliases=("redeem", "r"))
     async def add_redeems(self, ctx, *, amt: int):
+        """Add redeem(s) to a trade."""
+
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
@@ -538,7 +542,7 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @trade.group(aliases=("r",), invoke_without_command=True, case_insensitive=True)
     async def remove(self, ctx, *args):
-        """Remove an item from a trade."""
+        """Remove pokémon from a trade."""
 
         # TODO this shares a lot of code with the add command
 
@@ -591,6 +595,8 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @remove.command(name="pokecoins", aliases=("pc", "pokecoin"))
     async def remove_pokecoins(self, ctx, *, amt: int):
+        """Remove pokecoin(s) from a trade."""
+
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
@@ -619,6 +625,8 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @remove.command(name="redeems", aliases=("redeem", "r"))
     async def remove_redeems(self, ctx, *, amt: int):
+        """Remove redeem(s) from a trade."""
+
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
@@ -684,6 +692,7 @@ class Trading(commands.Cog):
     @commands.guild_only()
     @trade.command(aliases=("aa",), cls=flags.FlagCommand)
     async def addall(self, ctx, **flags):
+        """Add multiple pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
