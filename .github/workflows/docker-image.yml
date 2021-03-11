@@ -19,4 +19,5 @@ jobs:
           username: oliver-ni
           password: ${{ secrets.GHCR_PAT }}
           registry: ghcr.io
+          image_name: poketwo
           image_tag: latest,${{ env.BRANCH_NAME }},${{ github.sha }}
