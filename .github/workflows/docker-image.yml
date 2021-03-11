@@ -12,14 +12,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: satackey/action-docker-layer-caching@v0.0.11
       - uses: nelonoel/branch-name@v1.0.1
       - name: Publish Image
-        uses: matootie/github-docker@v3.1.0
+        uses: whoan/docker-build-with-cache-action@v5
         with:
-          accessToken: ${{ secrets.GHCR_PAT }}
-          containerRegistry: true
-          tag: |
-            latest
-            ${{ env.BRANCH_NAME }}
-            ${{ github.sha }}
+          username: oliver-ni
+          password: ${{ secrets.GHCR_PAT }}
+          registry: ghcr.io
+          image_tag: latest,${{ env.BRANCH_NAME }},${{ github.sha }}
