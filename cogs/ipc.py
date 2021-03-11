@@ -61,22 +61,6 @@ class IPC(commands.Cog):
             return {"success": True}
 
         @self.server.route()
-        async def move_request(data):
-            self.bot.dispatch(
-                "move_request",
-                data.cluster_idx,
-                data.user_id,
-                data.species_id,
-                data.actions,
-            )
-            return {"success": True}
-
-        @self.server.route()
-        async def move_decide(data):
-            self.bot.dispatch("move_decide", data.user_id, data.action)
-            return {"success": True}
-
-        @self.server.route()
         async def send_dm(data):
             user = await self.bot.fetch_user(data.user)
             await user.send(data.message)

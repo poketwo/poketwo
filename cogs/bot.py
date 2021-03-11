@@ -292,7 +292,8 @@ class Bot(commands.Cog):
         await self.bot.mongo.db.member.update_many(
             query, {"$set": {"need_vote_reminder": False}}
         )
-        await self.bot.redis.hdel("db:member", *[int(x) for x in ids])
+        if len(ids) > 0:
+            await self.bot.redis.hdel("db:member", *[int(x) for x in ids])
 
     @tasks.loop(minutes=1)
     async def post_count(self):

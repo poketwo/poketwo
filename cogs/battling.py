@@ -1,3 +1,4 @@
+import pickle
 import asyncio
 import math
 import typing
@@ -7,7 +8,7 @@ from urllib.parse import urlencode
 import data.constants
 import discord
 from data import models
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from helpers import checks, constants, converters, pagination
 
@@ -90,13 +91,16 @@ class Trainer:
 
         # Send request
 
-        await self.bot.ipc.client.request(
+        await self.bot.redis.rpush(
             "move_request",
-            8765,
-            cluster_idx=self.bot.cluster_idx,
-            user_id=self.user.id,
-            species_id=self.selected.species.id,
-            actions=actions,
+            pickle.dumps(
+                {
+                    "cluster_idx": self.bot.cluster_idx,
+                    "user_id": self.user.id,
+                    "species_id": self.selected.species.id,
+                    "actions": actions,
+                }
+            ),
         )
 
         uid, action = await self.bot.wait_for(
@@ -218,7 +222,7 @@ class Battle:
 
             elif action["type"] == "switch":
                 trainer.selected_idx = action["value"]
-                title = (f"{trainer.user.display_name} switched pokémon!",)
+                title = f"{trainer.user.display_name} switched pokémon!"
                 text = f"{trainer.selected.species} is now on the field!"
 
             elif action["type"] == "move":
@@ -391,10 +395,46 @@ class Battling(commands.Cog):
         if not hasattr(self.bot, "battles"):
             self.bot.battles = BattleManager()
 
+        self.process_move_decisions.start()
+        if self.bot.cluster_idx == 0:
+            self.process_move_requests.start()
+
     def reload_battling(self):
         for battle in self.bot.battles.battles.values():
             battle.stage = Stage.END
         self.bot.battles = BattleManager()
+
+    @tasks.loop(seconds=0.1)
+    async def process_move_requests(self):
+        with await self.bot.redis as r:
+            req = await r.blpop("move_request")
+            data = pickle.loads(req[1])
+            self.bot.dispatch(
+                "move_request",
+                data["cluster_idx"],
+                data["user_id"],
+                data["species_id"],
+                data["actions"],
+            )
+
+    @process_move_requests.before_loop
+    async def before_process_move_requests(self):
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(seconds=0.1)
+    async def process_move_decisions(self):
+        with await self.bot.redis as r:
+            req = await r.blpop(f"move_decide:{self.bot.cluster_idx}")
+            data = pickle.loads(req[1])
+            self.bot.dispatch(
+                "move_decide",
+                data["user_id"],
+                data["action"],
+            )
+
+    @process_move_decisions.before_loop
+    async def before_process_move_decisions(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
@@ -453,8 +493,9 @@ class Battling(commands.Cog):
         except asyncio.TimeoutError:
             action = {"type": "pass", "text": "nothing. Passing turn..."}
 
-        resp = await self.bot.ipc.client.request(
-            "move_decide", 8765 + cluster_idx, user_id=user.id, action=action
+        await self.bot.redis.rpush(
+            f"move_decide:{cluster_idx}",
+            pickle.dumps({"user_id": user.id, "action": action}),
         )
 
     @checks.has_started()
@@ -752,6 +793,10 @@ class Battling(commands.Cog):
 
         self.bot.battles[ctx.author].end()
         await ctx.send("The battle has been canceled.")
+
+    def cog_unload(self):
+        if self.bot.cluster_idx == 0:
+            self.process_move_requests.cancel()
 
 
 def setup(bot):
