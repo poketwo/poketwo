@@ -15,9 +15,7 @@ class IPC(commands.Cog):
         self._last_result = None
         self.disabled_message = None
 
-        self.server = Server(
-            self.bot, "localhost", 8765 + bot.cluster_idx, bot.config.SECRET_KEY
-        )
+        self.server = Server(self.bot, "127.0.0.1", 8765, bot.config.SECRET_KEY)
 
         @self.server.route()
         async def stop(data):

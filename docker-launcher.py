@@ -1,3 +1,4 @@
+import re
 import os
 from collections import namedtuple
 
@@ -30,9 +31,10 @@ if __name__ == "__main__":
         DBL_TOKEN=os.getenv("DBL_TOKEN"),
     )
 
-    num_shards = os.getenv("NUM_SHARDS", 1)
-    num_clusters = os.getenv("NUM_CLUSTERS", 1)
-    cluster_idx = os.getenv("CLUSTER_IDX", 0)
+    num_shards = int(os.getenv("NUM_SHARDS", 1))
+    num_clusters = int(os.getenv("NUM_CLUSTERS", 1))
+    cluster_name = os.getenv("CLUSTER_NAME", str(os.getenv("CLUSTER_IDX", 0)))
+    cluster_idx = int(re.search(r"\d+", cluster_name).group(0))
 
     shard_ids = list(range(cluster_idx, num_shards, num_clusters))
 
