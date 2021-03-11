@@ -135,6 +135,7 @@ class Pokemon(commands.Cog):
     # Rename all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @flags.command(aliases=("na",))
     async def nickall(self, ctx, **flags):
         """Mass nickname pokémon from your collection."""
@@ -482,6 +483,7 @@ class Pokemon(commands.Cog):
         )
 
     @checks.has_started()
+    @commands.cooldown(3, 5, commands.BucketType.user)
     @commands.command(aliases=("i",), rest_is_raw=True)
     async def info(self, ctx, *, pokemon: converters.PokemonConverter):
         """View a specific pokémon from your collection."""
@@ -893,6 +895,7 @@ class Pokemon(commands.Cog):
     # Release all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @flags.command(aliases=("ra",))
     async def releaseall(self, ctx, **flags):
         """Mass release pokémon from your collection for 2 pc each."""
@@ -1006,6 +1009,7 @@ class Pokemon(commands.Cog):
 
     # Pokemon
     @checks.has_started()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @flags.command(aliases=("p",))
     async def pokemon(self, ctx, **flags):
         """View or filter the pokémon in your collection."""

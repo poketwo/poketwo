@@ -532,6 +532,7 @@ class Auctions(commands.Cog):
     @flags.add_flag("--bids", action="store_true")
     @flags.add_flag("--ends", type=converters.to_timedelta)
     @checks.has_started()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @auction.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from auctions."""
@@ -594,6 +595,7 @@ class Auctions(commands.Cog):
     # TODO make all groups case insensitive
 
     @checks.has_started()
+    @commands.cooldown(3, 5, commands.BucketType.user)
     @auction.command(aliases=("i",))
     async def info(self, ctx, auction: AuctionConverter):
         """View a pokémon from an auction."""

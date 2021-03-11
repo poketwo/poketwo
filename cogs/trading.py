@@ -680,8 +680,9 @@ class Trading(commands.Cog):
 
     # Trade add all
     @checks.has_started()
-    @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
+    @commands.max_concurrency(1, commands.BucketType.member)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @trade.command(aliases=("aa",), cls=flags.FlagCommand)
     async def addall(self, ctx, **flags):
 

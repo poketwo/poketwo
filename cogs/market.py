@@ -64,6 +64,7 @@ class Market(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @market.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
@@ -334,6 +335,7 @@ class Market(commands.Cog):
             print("Error trading market logs.")
 
     @checks.has_started()
+    @commands.cooldown(3, 5, commands.BucketType.user)
     @market.command(aliases=("i",))
     async def info(self, ctx, id: int):
         """View a pokémon from the market."""
