@@ -7,8 +7,10 @@ import uvloop
 from discord.ext import commands
 
 import cogs
-import config
 import helpers
+
+
+uvloop.install()
 
 DEFAULT_DISABLED_MESSAGE = (
     "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. "
@@ -36,10 +38,9 @@ class ClusterBot(commands.AutoShardedBot):
             super().__init__(**kwargs, color=color)
 
     def __init__(self, **kwargs):
-        self.pipe = kwargs.pop("pipe")
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
-        self.config = config
+        self.config = kwargs.pop("config")
         self.ready = False
         self.menus = {}
 
@@ -120,11 +121,6 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_ready(self):
         self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
-        try:
-            self.pipe.send(1)
-            self.pipe.close()
-        except OSError:
-            pass
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")
@@ -164,6 +160,3 @@ class ClusterBot(commands.AutoShardedBot):
             self.reload_extension(f"cogs.{i}")
 
         await self.do_startup_tasks()
-
-
-uvloop.install()

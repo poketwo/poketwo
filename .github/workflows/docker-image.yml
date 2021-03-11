@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish Image
+        uses: matootie/github-docker@v3.1.0
+        with:
+          accessToken: ${{ secrets.GHCR_PAT }}
+          containerRegistry: true
+          tag: |
+            latest
+            ${{ github.sha }}

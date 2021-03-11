@@ -163,6 +163,7 @@ class Cluster:
             fetch_offline_members=False,
             allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
             intents=intents,
+            config=config,
         )
         self.name = name
         self.log = logging.getLogger(f"Cluster#{name}")
@@ -194,18 +195,11 @@ class Cluster:
             self.process.terminate()
             self.process.close()
 
-        stdout, stdin = multiprocessing.Pipe()
-        kw = self.kwargs
-        kw["pipe"] = stdin
         self.process = multiprocessing.Process(
-            target=ClusterBot, kwargs=kw, daemon=True
+            target=ClusterBot, kwargs=self.kwargs, daemon=True
         )
         self.process.start()
         self.log.info(f"Process started with PID {self.process.pid}")
-
-        if await self.launcher.loop.run_in_executor(None, stdout.recv) == 1:
-            stdout.close()
-            self.log.info("Process started successfully")
 
         return True
 

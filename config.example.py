@@ -6,7 +6,6 @@ DATABASE_NAME = None
 BOT_TOKEN = None
 SECRET_KEY = None
 REDIS_CONF = {}
-SENTRY_URL = None
 
 # DBL
 DBL_TOKEN = None

@@ -189,7 +189,7 @@ resolved_reference = "458ae5a1ce8436821667dfeb471061f78c5adfa0"
 
 [[package]]
 name = "discord-ext-menus"
-version = "1.0.0a27+g6f2b873"
+version = "1.0.0a29+g4429b56"
 description = "An extension module to make reaction based menus with discord.py"
 category = "main"
 optional = false
@@ -203,7 +203,7 @@ develop = false
 type = "git"
 url = "https://github.com/Rapptz/discord-ext-menus.git"
 reference = "master"
-resolved_reference = "6f2b873bf0d28903eb752aa1166b3aac26dc9007"
+resolved_reference = "4429b564fd8f031deaccd60caa5be7320e248816"
 
 [[package]]
 name = "discord-flags"
@@ -608,34 +608,6 @@ security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [[package]]
-name = "sentry-sdk"
-version = "0.19.5"
-description = "Python client for Sentry (https://sentry.io)"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-certifi = "*"
-urllib3 = ">=1.10.0"
-
-[package.extras]
-aiohttp = ["aiohttp (>=3.5)"]
-beam = ["apache-beam (>=2.12)"]
-bottle = ["bottle (>=0.12.13)"]
-celery = ["celery (>=3)"]
-chalice = ["chalice (>=1.16.0)"]
-django = ["django (>=1.8)"]
-falcon = ["falcon (>=1.4)"]
-flask = ["flask (>=0.11)", "blinker (>=1.1)"]
-pure_eval = ["pure-eval", "executing", "asttokens"]
-pyspark = ["pyspark (>=2.4.4)"]
-rq = ["rq (>=0.6)"]
-sanic = ["sanic (>=0.8)"]
-sqlalchemy = ["sqlalchemy (>=1.2)"]
-tornado = ["tornado (>=5)"]
-
-[[package]]
 name = "six"
 version = "1.15.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -773,7 +745,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "54df022377850497ea1d149f169e0fa657e0febe0561f5b5402d879f57b3629f"
+content-hash = "a74ca313f510ba1c7c23f94e2a1226222100602fb1864b9dbc18144a35fcb809"
 
 [metadata.files]
 aiofiles = [
@@ -1211,10 +1183,6 @@ regex = [
 requests = [
     {file = "requests-2.25.1-py2.py3-none-any.whl", hash = "sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e"},
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
-]
-sentry-sdk = [
-    {file = "sentry-sdk-0.19.5.tar.gz", hash = "sha256:737a094e49a529dd0fdcaafa9e97cf7c3d5eb964bd229821d640bc77f3502b3f"},
-    {file = "sentry_sdk-0.19.5-py2.py3-none-any.whl", hash = "sha256:0a711ec952441c2ec89b8f5d226c33bc697914f46e876b44a4edd3e7864cf4d0"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

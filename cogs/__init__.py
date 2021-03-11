@@ -13,7 +13,6 @@ default = (
     "noevent",
     "pokemon",
     "redis",
-    "sentry",
     "shop",
     "spawning",
     "sprites",
