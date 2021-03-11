@@ -41,7 +41,7 @@ class Administration(commands.Cog):
         users_msg = ", ".join(f"**{x}**" for x in users)
         await ctx.send(f"Unblacklisted {users_msg}.")
 
-    @commands.is_owner()
+    @commands.has_role(718006431231508481)
     @admin.command(aliases=("sp",))
     async def suspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
         """Suspend one or more users."""
@@ -54,7 +54,7 @@ class Administration(commands.Cog):
         users_msg = ", ".join(f"**{x}**" for x in users)
         await ctx.send(f"Suspended {users_msg}.")
 
-    @commands.is_owner()
+    @commands.has_role(718006431231508481)
     @admin.command(aliases=("usp",))
     async def unsuspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
         """Unuspend one or more users."""

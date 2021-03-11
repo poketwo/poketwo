@@ -80,16 +80,16 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        if member.vote_streak > 0 and datetime.utcnow() - member.last_voted > timedelta(
-            days=2
-        ):
-            await self.bot.mongo.update_member(
-                ctx.author,
-                {
-                    "$set": {"vote_streak": 0},
-                },
-            )
-            member = await self.bot.mongo.fetch_member_info(ctx.author)
+        # if member.vote_streak > 0 and datetime.utcnow() - member.last_voted > timedelta(
+        #     days=2
+        # ):
+        #     await self.bot.mongo.update_member(
+        #         ctx.author,
+        #         {
+        #             "$set": {"vote_streak": 0},
+        #         },
+        #     )
+        #     member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         do_emojis = (
             ctx.guild is None

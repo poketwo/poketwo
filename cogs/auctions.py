@@ -194,7 +194,10 @@ class Auctions(commands.Cog):
     ):
         """Start an auction."""
 
-        # TODO add option in converter to raise error
+        if ctx.guild.id != 716390832034414685:
+            return await ctx.send(
+                "Sorry, you cannot start auctions outside of the main server at this time."
+            )
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
