@@ -1,6 +1,7 @@
-import re
 import os
+import re
 from collections import namedtuple
+from urllib.parse import quote_plus
 
 import discord
 
@@ -19,8 +20,17 @@ Config = namedtuple(
 )
 
 if __name__ == "__main__":
+    uri = os.getenv("DATABASE_URI")
+
+    if uri is None:
+        uri = "mongodb://{}:{}@{}".format(
+            quote_plus(os.environ["DATABASE_USERNAME"]),
+            quote_plus(os.environ["DATABASE_PASSWORD"]),
+            os.environ["DATABASE_HOST"],
+        )
+
     config = Config(
-        DATABASE_URI=os.environ["DATABASE_URI"],
+        DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
         BOT_TOKEN=os.environ["BOT_TOKEN"],
         SECRET_KEY=os.environ["SECRET_KEY"],
