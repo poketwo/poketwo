@@ -40,12 +40,6 @@ class Bot(commands.Cog):
         if ctx.invoked_with.lower() == "help":
             return True
 
-        if (
-            await self.bot.mongo.db.blacklist.count_documents({"_id": ctx.author.id})
-            > 0
-        ):
-            raise Blacklisted
-
         bucket = self.cd.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit()
         if retry_after:

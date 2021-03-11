@@ -19,28 +19,6 @@ class Administration(commands.Cog):
     async def admin(self, ctx):
         pass
 
-    @commands.is_owner()
-    @admin.command(aliases=("bl",))
-    async def blacklist(self, ctx, users: commands.Greedy[FetchUserConverter]):
-        """Blacklist one or more users."""
-
-        await self.bot.mongo.db.blacklist.insert_many(
-            [{"_id": x.id} for x in users], ordered=False
-        )
-        users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Blacklisted {users_msg}.")
-
-    @commands.is_owner()
-    @admin.command(aliases=("ubl",))
-    async def unblacklist(self, ctx, users: commands.Greedy[FetchUserConverter]):
-        """Blacklist one or more users."""
-
-        await self.bot.mongo.db.blacklist.delete_many(
-            {"_id": {"$in": [x.id for x in users]}},
-        )
-        users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Unblacklisted {users_msg}.")
-
     @commands.has_role(718006431231508481)
     @admin.command(aliases=("sp",))
     async def suspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
