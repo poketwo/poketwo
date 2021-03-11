@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   push:
     branches:
-      - prod
+      - "**"
 
 jobs:
   build:
@@ -12,7 +12,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+      - uses: nelonoel/branch-name@v1.0.1
       - name: Publish Image
         uses: matootie/github-docker@v3.1.0
         with:
@@ -20,4 +21,5 @@ jobs:
           containerRegistry: true
           tag: |
             latest
+            ${{ env.BRANCH_NAME }}
             ${{ github.sha }}
