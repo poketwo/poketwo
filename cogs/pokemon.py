@@ -86,9 +86,7 @@ class Pokemon(commands.Cog):
         )
 
         if nickname is None:
-            await ctx.send(
-                f"Removed nickname for your level {pokemon.level} {pokemon.species}."
-            )
+            await ctx.send(f"Removed nickname for your level {pokemon.level} {pokemon.species}.")
         else:
             await ctx.send(
                 f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
@@ -123,9 +121,7 @@ class Pokemon(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -159,9 +155,7 @@ class Pokemon(commands.Cog):
             nicknameall = None
 
         # check pokemon num
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
@@ -305,9 +299,7 @@ class Pokemon(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -333,14 +325,10 @@ class Pokemon(commands.Cog):
             return
 
         # Check pokemon and unfavorited pokemon num
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         aggregations.append({"$match": {"pokemon.favorite": {"$ne": True}}})
-        unfavnum = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        unfavnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
@@ -408,9 +396,7 @@ class Pokemon(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -436,14 +422,10 @@ class Pokemon(commands.Cog):
             return
 
         # Check pokemon and unfavorited pokemon num
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         aggregations.append({"$match": {"pokemon.favorite": True}})
-        favnum = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        favnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
             return await ctx.send("Found no pokémon matching this search.")
@@ -552,13 +534,9 @@ class Pokemon(commands.Cog):
                 emote = ""
                 if item.emote is not None:
                     emote = getattr(self.bot.sprites, item.emote) + " "
-                embed.add_field(
-                    name="Held Item", value=f"{emote}{item.name}", inline=False
-                )
+                embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-            embed.set_footer(
-                text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}"
-            )
+            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}")
 
             return embed
 
@@ -571,9 +549,7 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @commands.command(aliases=("s",), rest_is_raw=True)
-    async def select(
-        self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)
-    ):
+    async def select(self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)):
         """Select a specific pokémon from your collection."""
 
         if pokemon is None:
@@ -598,9 +574,7 @@ class Pokemon(commands.Cog):
         sort = sort.lower()
 
         if sort not in ("number", "iv", "level", "pokedex"):
-            return await ctx.send(
-                "Please specify either `number`, `IV`, `level`, or `pokedex`."
-            )
+            return await ctx.send("Please specify either `number`, `IV`, `level`, or `pokedex`.")
 
         await self.bot.mongo.update_member(
             ctx.author,
@@ -640,34 +614,18 @@ class Pokemon(commands.Cog):
             if x in flags and flags[x]:
                 rarity += getattr(self.bot.data, f"list_{x}")
         if rarity:
-            aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.species_id": {
-                            "$in": rarity
-                        }
-                    }
-                }
-            )
+            aggregations.append({"$match": {"pokemon.species_id": {"$in": rarity}}})
 
         for x in ("alolan", "mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append(
-                    {
-                        "$match": {
-                            "pokemon.species_id": {
-                                "$in": getattr(self.bot.data, f"list_{x}")
-                            }
-                        }
-                    }
+                    {"$match": {"pokemon.species_id": {"$in": getattr(self.bot.data, f"list_{x}")}}}
                 )
 
         if "type" in flags and flags["type"]:
             all_species = [i for x in flags["type"] for i in self.bot.data.list_type(x)]
 
-            aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": all_species}}}
-            )
+            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
 
         if "favorite" in flags and flags["favorite"]:
             aggregations.append({"$match": {"pokemon.favorite": True}})
@@ -677,14 +635,10 @@ class Pokemon(commands.Cog):
 
         if "name" in flags and flags["name"] is not None:
             all_species = [
-                i
-                for x in flags["name"]
-                for i in self.bot.data.find_all_matches(" ".join(x))
+                i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))
             ]
 
-            aggregations.append(
-                {"$match": {"pokemon.species_id": {"$in": all_species}}}
-            )
+            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
 
         if "nickname" in flags and flags["nickname"] is not None:
             aggregations.append(
@@ -699,20 +653,12 @@ class Pokemon(commands.Cog):
                     }
                 }
             )
-        
+
         if "embedcolor" in flags and flags["embedcolor"]:
-            aggregations.append(
-                {
-                    "$match": {
-                        "pokemon.has_color": True
-                    }
-                }
-            )
+            aggregations.append({"$match": {"pokemon.has_color": True}})
 
         if "ends" in flags and flags["ends"] is not None:
-            aggregations.append(
-                {"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}}
-            )
+            aggregations.append({"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
 
         # Numerical flags
 
@@ -721,9 +667,7 @@ class Pokemon(commands.Cog):
                 ops = self.parse_numerical_flag(text)
 
                 if ops is None:
-                    raise commands.BadArgument(
-                        f"Couldn't parse `--{flag} {' '.join(text)}`"
-                    )
+                    raise commands.BadArgument(f"Couldn't parse `--{flag} {' '.join(text)}`")
 
                 ops[1] = float(ops[1])
 
@@ -794,15 +738,11 @@ class Pokemon(commands.Cog):
                     continue
 
                 if member.selected_id == pokemon.id:
-                    await ctx.send(
-                        f"{pokemon.idx}: You can't release your selected pokémon!"
-                    )
+                    await ctx.send(f"{pokemon.idx}: You can't release your selected pokémon!")
                     continue
 
                 if pokemon.favorite:
-                    await ctx.send(
-                        f"{pokemon.idx}: You can't release favorited pokémon!"
-                    )
+                    await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
                     continue
 
                 ids.add(pokemon.id)
@@ -852,9 +792,7 @@ class Pokemon(commands.Cog):
                 "$inc": {"balance": 2 * len(mons)},
             },
         )
-        await ctx.send(
-            f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!"
-        )
+        await ctx.send(f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!")
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -883,9 +821,7 @@ class Pokemon(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -917,9 +853,7 @@ class Pokemon(commands.Cog):
             ]
         )
 
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
             return await ctx.send(
@@ -946,9 +880,7 @@ class Pokemon(commands.Cog):
 
         # confirmed, release all
 
-        num = await self.bot.mongo.fetch_pokemon_count(
-            ctx.author, aggregations=aggregations
-        )
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         await ctx.send(f"Releasing {num} pokémon, this might take a while...")
 
@@ -966,9 +898,7 @@ class Pokemon(commands.Cog):
             },
         )
 
-        await ctx.send(
-            f"You have released {num} pokémon. You received {2*num:,} Pokécoins!"
-        )
+        await ctx.send(f"You have released {num} pokémon. You received {2*num:,} Pokécoins!")
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -998,9 +928,7 @@ class Pokemon(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -1072,14 +1000,10 @@ class Pokemon(commands.Cog):
         search_or_page = " ".join(flags["page"])
 
         if flags["orderd"] and flags["ordera"]:
-            return await ctx.send(
-                "You can use either --orderd or --ordera, but not both."
-            )
+            return await ctx.send("You can use either --orderd or --ordera, but not both.")
 
         if flags["caught"] and flags["uncaught"]:
-            return await ctx.send(
-                "You can use either --caught or --uncaught, but not both."
-            )
+            return await ctx.send("You can use either --caught or --uncaught, but not both.")
 
         if flags["mythical"] + flags["legendary"] + flags["ub"] > 1:
             return await ctx.send("You can't use more than one rarity flag!")
@@ -1096,8 +1020,7 @@ class Pokemon(commands.Cog):
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
             do_emojis = (
-                ctx.guild is None
-                or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None or ctx.guild.me.permissions_in(ctx.channel).external_emojis
             )
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 810)
@@ -1146,9 +1069,7 @@ class Pokemon(commands.Cog):
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 809 pokémon!"
 
-                embed.set_footer(
-                    text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}."
-                )
+                embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
                 # embed.description = (
                 #     f"You've caught {len(member.pokedex)} out of 809 pokémon!"
@@ -1173,9 +1094,7 @@ class Pokemon(commands.Cog):
                     else:
                         emoji = ""
 
-                    embed.add_field(
-                        name=f"{emoji}{species.name} #{species.id}", value=text
-                    )
+                    embed.add_field(name=f"{emoji}{species.name} #{species.id}", value=text)
 
                 if pgend != 809:
                     embed.add_field(name="‎", value="‎")
@@ -1204,9 +1123,7 @@ class Pokemon(commands.Cog):
 
                 species = self.bot.data.species_by_name(search)
                 if species is None:
-                    return await ctx.send(
-                        f"Could not find a pokemon matching `{search_or_page}`."
-                    )
+                    return await ctx.send(f"Could not find a pokemon matching `{search_or_page}`.")
 
             member = await self.bot.mongo.fetch_pokedex(
                 ctx.author, species.dex_number, species.dex_number + 1
@@ -1238,9 +1155,7 @@ class Pokemon(commands.Cog):
                 )
 
             if species.evolution_text:
-                embed.add_field(
-                    name="Evolution", value=species.evolution_text, inline=False
-                )
+                embed.add_field(name="Evolution", value=species.evolution_text, inline=False)
 
             if shiny:
                 embed.title = f"#{species.dex_number} — ✨ {species}"
@@ -1314,7 +1229,9 @@ class Pokemon(commands.Cog):
                 )
 
             else:
-                embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
+                embed.description += (
+                    f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
+                )
 
             if len(args) == 1:
                 if pokemon.shiny:

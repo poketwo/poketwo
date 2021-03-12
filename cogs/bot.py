@@ -84,9 +84,7 @@ class Bot(commands.Cog):
             fmt = "\n".join(missing)
             message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
             botmember = (
-                self.bot.user
-                if ctx.guild is None
-                else ctx.guild.get_member(self.bot.user.id)
+                self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
             )
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
@@ -107,9 +105,7 @@ class Bot(commands.Cog):
             return
         else:
             print(f"Ignoring exception in command {ctx.command}")
-            traceback.print_exception(
-                type(error), error, error.__traceback__, file=sys.stderr
-            )
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             print("\n\n")
 
     @commands.Cog.listener()
@@ -118,9 +114,7 @@ class Bot(commands.Cog):
             return
         else:
             print(f"Ignoring exception in command {ctx.command}:")
-            traceback.print_exception(
-                type(error), error, error.__traceback__, file=sys.stderr
-            )
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             print("\n\n")
 
     def sendable_channel(self, channel):
@@ -144,8 +138,7 @@ class Bot(commands.Cog):
             channel = next(
                 x
                 for x in channels
-                if isinstance(x, TextChannel)
-                and guild.me.permissions_in(x).send_messages
+                if isinstance(x, TextChannel) and guild.me.permissions_in(x).send_messages
             )
         except StopIteration:
             return
@@ -202,12 +195,8 @@ class Bot(commands.Cog):
         embed = self.bot.Embed(color=0x9CCFFF)
         embed.title = "Want to add me to your server? Use the link below!"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        embed.add_field(
-            name="Invite Bot", value="https://invite.poketwo.net/", inline=False
-        )
-        embed.add_field(
-            name="Join Server", value="https://discord.gg/poketwo", inline=False
-        )
+        embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
+        embed.add_field(name="Join Server", value="https://discord.gg/poketwo", inline=False)
 
         await ctx.send(embed=embed)
 
@@ -256,9 +245,7 @@ class Bot(commands.Cog):
         headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
         async with aiohttp.ClientSession(headers=headers) as sess:
-            await sess.post(
-                f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data
-            )
+            await sess.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
 
     @tasks.loop(seconds=15)
     async def remind_votes(self):
@@ -270,9 +257,7 @@ class Bot(commands.Cog):
 
         ids = set()
 
-        async for x in self.bot.mongo.db.member.find(
-            query, {"_id": 1}, no_cursor_timeout=True
-        ):
+        async for x in self.bot.mongo.db.member.find(query, {"_id": 1}, no_cursor_timeout=True):
             try:
                 ids.add(x["_id"])
                 priv = await self.bot.http.start_private_message(x["_id"])
@@ -283,9 +268,7 @@ class Bot(commands.Cog):
             except:
                 pass
 
-        await self.bot.mongo.db.member.update_many(
-            query, {"$set": {"need_vote_reminder": False}}
-        )
+        await self.bot.mongo.db.member.update_many(query, {"$set": {"need_vote_reminder": False}})
         if len(ids) > 0:
             await self.bot.redis.hdel("db:member", *[int(x) for x in ids])
 
@@ -435,9 +418,7 @@ class Bot(commands.Cog):
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
         embed.add_field(
             name="Badges",
-            value=self.bot.sprites.pin_halloween
-            if member.halloween_badge
-            else "No badges",
+            value=self.bot.sprites.pin_halloween if member.halloween_badge else "No badges",
         )
 
         await ctx.send(embed=embed)

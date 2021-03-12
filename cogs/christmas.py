@@ -36,4 +36,3 @@ class Christmas(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Christmas(bot))
-

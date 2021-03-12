@@ -102,9 +102,7 @@ class Auctions(commands.Cog):
         except pymongo.errors.DuplicateKeyError:
             return
         await self.bot.mongo.db.auction.delete_one({"_id": auction.id})
-        await self.bot.mongo.update_member(
-            host, {"$inc": {"balance": auction.current_bid}}
-        )
+        await self.bot.mongo.update_member(host, {"$inc": {"balance": auction.current_bid}})
 
         self.bot.loop.create_task(
             host.send(
@@ -163,9 +161,7 @@ class Auctions(commands.Cog):
 
         return embed
 
-    @commands.group(
-        aliases=("auctions", "a"), invoke_without_command=True, case_insensitive=True
-    )
+    @commands.group(aliases=("auctions", "a"), invoke_without_command=True, case_insensitive=True)
     async def auction(self, ctx):
         """Auction pokémon."""
 
@@ -176,9 +172,7 @@ class Auctions(commands.Cog):
     async def channel(self, ctx, channel: discord.TextChannel):
         """Change the auctions channel."""
 
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$set": {"auction_channel": channel.id}}
-        )
+        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"auction_channel": channel.id}})
         await ctx.send(f"Changed auctions channel to **{channel}**.")
 
     @checks.has_started()
@@ -223,14 +217,10 @@ class Auctions(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member.selected_id == pokemon.id:
-            return await ctx.send(
-                f"{pokemon.idx}: You can't auction your selected pokémon!"
-            )
+            return await ctx.send(f"{pokemon.idx}: You can't auction your selected pokémon!")
 
         if pokemon.favorite:
-            return await ctx.send(
-                f"{pokemon.idx}: You can't auction a favorited pokémon!"
-            )
+            return await ctx.send(f"{pokemon.idx}: You can't auction a favorited pokémon!")
 
         # confirm
 
@@ -307,15 +297,11 @@ class Auctions(commands.Cog):
         """Lower the starting bid for your auction."""
 
         if ctx.author.id != auction.user_id:
-            return await ctx.send(
-                "You can only lower the starting bid on your own auction."
-            )
+            return await ctx.send("You can only lower the starting bid on your own auction.")
         if auction.bidder_id is not None:
             return await ctx.send("Someone has already bid on this auction.")
         if auction.current_bid + auction.bid_increment < new_start:
-            return await ctx.send(
-                "You may only lower the starting bid, not increase it."
-            )
+            return await ctx.send("You may only lower the starting bid, not increase it.")
         if auction.bid_increment > new_start:
             return await ctx.send(
                 "You may not set the new starting bid to a value less than your bid increment."
@@ -361,9 +347,7 @@ class Auctions(commands.Cog):
             {"_id": auction.id},
             {"$set": {"current_bid": new_start - auction.bid_increment}},
         )
-        await ctx.send(
-            f"Lowered the starting bid on your auction to **{new_start:,} Pokécoins**."
-        )
+        await ctx.send(f"Lowered the starting bid on your auction to **{new_start:,} Pokécoins**.")
 
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.user)
@@ -513,9 +497,7 @@ class Auctions(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit

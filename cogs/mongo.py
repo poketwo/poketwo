@@ -130,9 +130,7 @@ class PokemonBase(MixinDocument):
         if self.species_id == 292:
             return 1
         return (
-            (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100
-            + self.level
-            + 10
+            (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100 + self.level + 10
         )
 
     @property
@@ -201,12 +199,7 @@ class PokemonBase(MixinDocument):
                 ]
             ):
                 can = False
-            if (
-                evo.trigger.time == "day"
-                and not is_day
-                or evo.trigger.time == "night"
-                and is_day
-            ):
+            if evo.trigger.time == "day" and not is_day or evo.trigger.time == "night" and is_day:
                 can = False
 
             if evo.trigger.relative_stats == 1 and self.atk <= self.defn:
@@ -253,18 +246,14 @@ class Member(Document):
     order_by = fields.StringField(default="number")
 
     # Pokédex
-    pokedex = fields.DictField(
-        fields.StringField(), fields.IntegerField(), default=dict
-    )
+    pokedex = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     shinies_caught = fields.IntegerField(default=0)
 
     # Shop
     balance = fields.IntegerField(default=0)
     premium_balance = fields.IntegerField(default=0)
     redeems = fields.IntegerField(default=0)
-    redeems_purchased = fields.DictField(
-        fields.IntegerField(), fields.IntegerField(), default=dict
-    )
+    redeems_purchased = fields.DictField(fields.IntegerField(), fields.IntegerField(), default=dict)
     embed_colors = fields.IntegerField(default=0)
 
     # Shiny Hunt
@@ -291,12 +280,8 @@ class Member(Document):
 
     # Events
     halloween_tickets = fields.IntegerField(default=0)
-    hquests = fields.DictField(
-        fields.StringField(), fields.BooleanField(), default=dict
-    )
-    hquest_progress = fields.DictField(
-        fields.StringField(), fields.IntegerField(), default=dict
-    )
+    hquests = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
+    hquest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     halloween_badge = fields.BooleanField(default=False)
 
     @property
@@ -434,9 +419,7 @@ class Mongo(commands.Cog):
     async def fetch_member_info(self, member: discord.Member):
         val = await self.bot.redis.hget(f"db:member", member.id)
         if val is None:
-            val = await self.Member.find_one(
-                {"id": member.id}, {"pokemon": 0, "pokedex": 0}
-            )
+            val = await self.Member.find_one({"id": member.id}, {"pokemon": 0, "pokedex": 0})
             v = "" if val is None else pickle.dumps(val.to_mongo())
             await self.bot.redis.hset(f"db:member", member.id, v)
         elif len(val) == 0:
@@ -633,9 +616,7 @@ class Mongo(commands.Cog):
         return c
 
     async def update_channel(self, channel: discord.TextChannel, update):
-        return await self.db.channel.update_one(
-            {"_id": channel.id}, update, upsert=True
-        )
+        return await self.db.channel.update_one({"_id": channel.id}, update, upsert=True)
 
 
 def setup(bot: commands.Bot):
