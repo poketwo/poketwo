@@ -1,9 +1,9 @@
 FROM python:3.8
 
 WORKDIR /app
-COPY pyproject.toml poetry.lock ./
-
 RUN pip install poetry
+
+COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 
