@@ -16,6 +16,7 @@ Config = namedtuple(
         "SECRET_KEY",
         "REDIS_CONF",
         "DBL_TOKEN",
+        "SERVER_URL",
     ],
 )
 
@@ -39,6 +40,7 @@ if __name__ == "__main__":
             "password": os.getenv("REDIS_PASSWORD"),
         },
         DBL_TOKEN=os.getenv("DBL_TOKEN"),
+        SERVER_URL=os.environ["SERVER_URL"],
     )
 
     num_shards = int(os.getenv("NUM_SHARDS", 1))
