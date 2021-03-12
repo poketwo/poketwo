@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   push:
     branches:
-      - "**"
+      - master
 
 jobs:
   build:
@@ -20,4 +20,4 @@ jobs:
           password: ${{ secrets.GHCR_PAT }}
           registry: ghcr.io
           image_name: poketwo
-          image_tag: latest,${{ env.BRANCH_NAME }},${{ github.sha }}
+          image_tag: latest,${{ github.sha }}

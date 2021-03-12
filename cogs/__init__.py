@@ -7,7 +7,6 @@ default = (
     "config",
     "data",
     "help",
-    "ipc",
     "market",
     "mongo",
     "noevent",

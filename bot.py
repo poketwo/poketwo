@@ -25,7 +25,7 @@ async def determine_prefix(bot, message):
 
 def is_enabled(ctx):
     if not ctx.bot.enabled:
-        raise commands.CheckFailure(ctx.bot.ipc.disabled_message or DEFAULT_DISABLED_MESSAGE)
+        raise commands.CheckFailure(DEFAULT_DISABLED_MESSAGE)
     return True
 
 
@@ -96,10 +96,6 @@ class ClusterBot(commands.AutoShardedBot):
         return self.get_cog("Sprites")
 
     @property
-    def ipc(self):
-        return self.get_cog("IPC")
-
-    @property
     def log(self):
         return self.get_cog("Logging").log
 
@@ -125,9 +121,6 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")
-
-    async def on_ipc_ready(self):
-        self.log.info(f"[Cluster#{self.cluster_name}] IPC ready.")
 
     async def on_message(self, message: discord.Message):
         message.content = (

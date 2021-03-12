@@ -1,3 +1,4 @@
+import pickle
 import random
 import sys
 import traceback
@@ -29,6 +30,7 @@ class Bot(commands.Cog):
 
         self.post_count.start()
         self.update_status.start()
+        self.process_dms.start()
 
         if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
             self.post_dbl.start()
@@ -46,6 +48,18 @@ class Bot(commands.Cog):
             raise commands.CommandOnCooldown(bucket, retry_after)
 
         return True
+
+    @tasks.loop(seconds=0.1)
+    async def process_dms(self):
+        with await self.bot.redis as r:
+            req = await r.blpop("send_dm")
+            uid, content = pickle.loads(req[1])
+            priv = await self.bot.http.start_private_message(uid)
+            await self.bot.http.send_message(priv["id"], content)
+
+    @process_dms.before_loop
+    async def before_process_dms(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
