@@ -16,9 +16,7 @@ log.setLevel(logging.INFO)
 hdlr = logging.StreamHandler()
 hdlr.setFormatter(logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s"))
 fhdlr = logging.FileHandler("logs/launcher.log", encoding="utf-8")
-fhdlr.setFormatter(
-    logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s")
-)
+fhdlr.setFormatter(logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s"))
 log.handlers = [hdlr, fhdlr]
 
 CLUSTER_NAMES = (
@@ -109,9 +107,7 @@ class Launcher:
         size = [shards[x : x + 4] for x in range(0, len(shards), 4)]
         log.info(f"Preparing {len(size)} clusters")
         for shard_ids in size:
-            self.cluster_queue.append(
-                Cluster(self, next(NAMES), shard_ids, len(shards))
-            )
+            self.cluster_queue.append(Cluster(self, next(NAMES), shard_ids, len(shards)))
 
         await self.start_cluster()
         self.keep_alive = self.loop.create_task(self.rebooter())
@@ -134,9 +130,7 @@ class Launcher:
                 asyncio.ensure_future(self.shutdown())
             for cluster in self.clusters:
                 if not cluster.process.is_alive():
-                    log.info(
-                        f"Cluster#{cluster.name} exited with code {cluster.process.exitcode}"
-                    )
+                    log.info(f"Cluster#{cluster.name} exited with code {cluster.process.exitcode}")
                     log.info(f"Restarting cluster#{cluster.name}")
                     await cluster.start()
             await asyncio.sleep(5)
@@ -163,23 +157,16 @@ class Cluster:
             fetch_offline_members=False,
             allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
             intents=intents,
-            config=config,
         )
         self.name = name
         self.log = logging.getLogger(f"Cluster#{name}")
         self.log.setLevel(logging.DEBUG)
         hdlr = logging.StreamHandler()
-        hdlr.setFormatter(
-            logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s")
-        )
+        hdlr.setFormatter(logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s"))
         fhdlr = logging.FileHandler("logs/launcher.log", encoding="utf-8")
-        fhdlr.setFormatter(
-            logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s")
-        )
+        fhdlr.setFormatter(logging.Formatter("[%(asctime)s %(name)s/%(levelname)s] %(message)s"))
         self.log.handlers = [hdlr, fhdlr]
-        self.log.info(
-            f"Initialized with shard ids {shard_ids}, total shards {max_shards}"
-        )
+        self.log.info(f"Initialized with shard ids {shard_ids}, total shards {max_shards}")
 
     def wait_close(self):
         return self.process.join()
@@ -195,9 +182,7 @@ class Cluster:
             self.process.terminate()
             self.process.close()
 
-        self.process = multiprocessing.Process(
-            target=ClusterBot, kwargs=self.kwargs, daemon=True
-        )
+        self.process = multiprocessing.Process(target=ClusterBot, kwargs=self.kwargs, daemon=True)
         self.process.start()
         self.log.info(f"Process started with PID {self.process.pid}")
 

@@ -25,9 +25,7 @@ async def determine_prefix(bot, message):
 
 def is_enabled(ctx):
     if not ctx.bot.enabled:
-        raise commands.CheckFailure(
-            ctx.bot.ipc.disabled_message or DEFAULT_DISABLED_MESSAGE
-        )
+        raise commands.CheckFailure(ctx.bot.ipc.disabled_message or DEFAULT_DISABLED_MESSAGE)
     return True
 
 
@@ -40,7 +38,10 @@ class ClusterBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
-        self.config = kwargs.pop("config")
+        self.config = kwargs.pop("config", None)
+        if self.config is None:
+            self.config = __import__("config")
+
         self.ready = False
         self.menus = {}
 
@@ -130,10 +131,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_message(self, message: discord.Message):
         message.content = (
-            message.content.replace("—", "--")
-            .replace("'", "′")
-            .replace("‘", "′")
-            .replace("’", "′")
+            message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
         )
 
         await self.process_commands(message)
