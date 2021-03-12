@@ -12,4 +12,4 @@ RUN poetry install --no-dev
 
 COPY . .
 RUN mkdir logs
-CMD ["python", "docker-launcher.py"]
+CMD ["python", "docker_launcher.py"]
