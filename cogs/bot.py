@@ -49,13 +49,16 @@ class Bot(commands.Cog):
 
         return True
 
+    async def send_dm(self, uid, content):
+        priv = await self.bot.http.start_private_message(uid)
+        await self.bot.http.send_message(priv["id"], content)
+
     @tasks.loop(seconds=0.1)
     async def process_dms(self):
         with await self.bot.redis as r:
             req = await r.blpop("send_dm")
             uid, content = pickle.loads(req[1])
-            priv = await self.bot.http.start_private_message(uid)
-            await self.bot.http.send_message(priv["id"], content)
+            self.bot.loop.create_task(self.send_dm(uid, content))
 
     @process_dms.before_loop
     async def before_process_dms(self):
