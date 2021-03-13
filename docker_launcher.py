@@ -13,7 +13,6 @@ Config = namedtuple(
         "DATABASE_URI",
         "DATABASE_NAME",
         "BOT_TOKEN",
-        "SECRET_KEY",
         "REDIS_CONF",
         "DBL_TOKEN",
         "SERVER_URL",
@@ -34,7 +33,6 @@ if __name__ == "__main__":
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
         BOT_TOKEN=os.environ["BOT_TOKEN"],
-        SECRET_KEY=os.environ["SECRET_KEY"],
         REDIS_CONF={
             "address": os.environ["REDIS_URI"],
             "password": os.getenv("REDIS_PASSWORD"),
