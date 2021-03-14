@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+import sys
 
 from discord.ext import commands
 
@@ -20,12 +21,15 @@ class Logging(commands.Cog):
         self.log.handlers = [handler]
 
         dlog = logging.getLogger("discord")
-        dhandler = logging.FileHandler(f"logs/discord-{self.bot.cluster_name}.log")
+        dhandler = logging.StreamHandler(sys.stdout)
         dhandler.setFormatter(formatter)
         dlog.handlers = [dhandler]
 
-        self.log.setLevel(logging.DEBUG)
+        httplog = logging.getLogger("discord.http")
+
+        self.log.setLevel(logging.INFO)
         dlog.setLevel(logging.INFO)
+        httplog.setLevel(logging.DEBUG)
 
 
 def setup(bot):
