@@ -1,3 +1,4 @@
+from pathlib import Path
 import logging
 
 from discord.ext import commands
@@ -10,6 +11,8 @@ class Logging(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+        Path("logs").mkdir(exist_ok=True)
 
         self.log = logging.getLogger(f"Cluster#{self.bot.cluster_name}")
         handler = logging.FileHandler(f"logs/commands-{self.bot.cluster_name}.log")

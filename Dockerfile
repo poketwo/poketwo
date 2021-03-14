@@ -11,5 +11,4 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-dev
 
 COPY . .
-RUN mkdir logs
 CMD ["python", "docker_launcher.py"]

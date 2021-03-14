@@ -43,8 +43,7 @@ class Bot(commands.Cog):
             return True
 
         bucket = self.cd.get_bucket(ctx.message)
-        retry_after = bucket.update_rate_limit()
-        if retry_after:
+        if retry_after := bucket.update_rate_limit():
             raise commands.CommandOnCooldown(bucket, retry_after)
 
         return True
@@ -53,7 +52,7 @@ class Bot(commands.Cog):
         priv = await self.bot.http.start_private_message(uid)
         await self.bot.http.send_message(priv["id"], content)
 
-    @tasks.loop(seconds=0.1)
+    @tasks.loop(seconds=0.5)
     async def process_dms(self):
         with await self.bot.redis as r:
             req = await r.blpop("send_dm")
