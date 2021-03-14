@@ -435,9 +435,7 @@ class Spawning(commands.Cog):
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
-        # Deletes Redis Redeem-Spawn Lock
-        if await self.bot.redis.get(f"redeem:{ctx.channel.id}"):
-            await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
+        await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
         self.bot.dispatch("catch", ctx.author, species)
         await ctx.send(message)
