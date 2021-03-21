@@ -15,7 +15,7 @@ from discord.ext import commands, tasks
 from helpers import checks
 from . import mongo
 
-MIN_SPAWN_THRESHOLD = 15
+MIN_SPAWN_THRESHOLD = 20
 
 
 def write_fp(data):
@@ -87,7 +87,7 @@ class Spawning(commands.Cog):
         current = time.time()
 
         # Spamcheck, every one second
-        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1:
+        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1.5:
             return
         self.bot.cooldown_users[message.author.id] = current
 
