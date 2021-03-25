@@ -365,12 +365,11 @@ class Guild(Document):
 
 class Channel(Document):
     id = fields.IntegerField(attribute="_id")
-    incense_expires = fields.DateTimeField(default=datetime.min)
+    spawns_remaining = fields.IntegerField(default=0)
 
     @property
     def incense_active(self):
-        return datetime.utcnow() < self.incense_expires
-
+        return self.spawns_remaining > 0
 
 class Counter(Document):
     id = fields.StringField(attribute="_id")

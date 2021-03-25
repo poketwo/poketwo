@@ -64,13 +64,19 @@ class Spawning(commands.Cog):
         if not self.bot.enabled:
             return
 
-        channels = self.bot.mongo.db.channel.find({"incense_expires": {"$gt": datetime.utcnow()}})
+        channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
             channel = self.bot.get_channel(result["_id"])
             if channel is not None:
                 self.bot.loop.create_task(
-                    self.spawn_pokemon(channel, incense=result["incense_expires"])
+                    self.spawn_pokemon(channel, incense=result["spawns_remaining"])
                 )
+            await self.bot.mongo.update_channel(
+                channel,
+                {
+                    "$inc": {"spawns_remaining": -1},
+                },
+            )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -280,9 +286,7 @@ class Spawning(commands.Cog):
             embed.set_image(url="attachment://pokemon.png")
 
         if incense:
-            timespan = incense - datetime.utcnow()
-            timespan = humanfriendly.format_timespan(timespan.total_seconds())
-            embed.set_footer(text=f"Incense expires in {timespan}.")
+            embed.set_footer(text=f"Incense: Active.\nSpawns Remaining: {incense-1}.")
 
         self.caught_users[channel.id] = set()
         await self.bot.redis.hset("wild", channel.id, species.id)
