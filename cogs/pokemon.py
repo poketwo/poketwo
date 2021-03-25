@@ -1268,12 +1268,29 @@ class Pokemon(commands.Cog):
         ):
             return await ctx.send("This pokémon is not in mega form!")
 
+        # confirm
+        await ctx.send(
+            f"Are you sure you want to switch **{pokemon:spl}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded! [y/N]"
+        )
+
+        def check(m):
+            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=30, check=check)
+
+            if msg.content.lower() != "y":
+                return await ctx.send("Aborted.")
+
+        except asyncio.TimeoutError:
+            return await ctx.send("Time's up. Aborted.")
+
         await self.bot.mongo.update_pokemon(
             pokemon,
             {"$set": {f"species_id": fr.id}},
         )
 
-        await ctx.send("Successfully switched back to normal form.")
+        await ctx.send("Successfully switched back to non-mega form.")
 
     @commands.command(aliases=("f",))
     async def first(self, ctx):

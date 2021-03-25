@@ -380,6 +380,8 @@ class Market(commands.Cog):
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
+        embed.add_field(name="Market Listing", value=f"**ID:** {id}\n**Price:** {listing['price']:,} pc", inline=False)
+
         embed.set_footer(text=f"Displaying listing {id} from market.")
 
         await ctx.send(embed=embed)
