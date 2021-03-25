@@ -167,9 +167,7 @@ class Halloween(commands.Cog):
         return ret
 
     @checks.has_started()
-    @commands.group(
-        aliases=("event",), invoke_without_command=True, case_insensitive=True
-    )
+    @commands.group(aliases=("event",), invoke_without_command=True, case_insensitive=True)
     async def halloween(self, ctx):
         """View halloween event information."""
 
@@ -177,9 +175,7 @@ class Halloween(commands.Cog):
 
         embed = self.bot.Embed(color=0x9CCFFF)
         embed.title = f"Spooktober Event Shop"
-        embed.description = (
-            "The event has ended, and the shop will be available until November 7."
-        )
+        embed.description = "The event has ended, and the shop will be available until November 7."
         embed.add_field(
             name=f"{self.bot.sprites.candy_halloween} Candies — {member.halloween_tickets}",
             value=f"Spend your candies in the event shop using below.",
@@ -216,9 +212,7 @@ class Halloween(commands.Cog):
         pokemon = None
         if item["action"] == "embed_color":
             if arg2 is None:
-                return await ctx.send(
-                    "Please specify a pokémon to buy embed colors for."
-                )
+                return await ctx.send("Please specify a pokémon to buy embed colors for.")
             pokemon = await converters.PokemonConverter().convert(ctx, arg2)
             if pokemon is None:
                 return await ctx.send("Couldn't find that pokémon!")
@@ -258,18 +252,14 @@ class Halloween(commands.Cog):
                     "iv_sdef": ivs[4],
                     "iv_spd": ivs[5],
                     "iv_total": sum(ivs),
-                    "shiny": member.determine_shiny(
-                        self.bot.data.species_by_number(50001)
-                    ),
+                    "shiny": member.determine_shiny(self.bot.data.species_by_number(50001)),
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )
             message += f" Use `{ctx.prefix}info latest` to view it!"
 
         elif item["action"] == "badge":
-            await self.bot.mongo.update_member(
-                ctx.author, {"$set": {"halloween_badge": True}}
-            )
+            await self.bot.mongo.update_member(ctx.author, {"$set": {"halloween_badge": True}})
 
         elif item["action"] == "crate":
             reward = random.choices(*CRATE_REWARDS, k=1)[0]
@@ -326,9 +316,7 @@ class Halloween(commands.Cog):
 
                 await self.bot.mongo.db.pokemon.insert_one(pokemon)
 
-            await self.bot.mongo.update_member(
-                ctx.author, {"$inc": {"premium_balance": shards}}
-            )
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"premium_balance": shards}})
 
             embed = self.bot.Embed(color=0x9CCFFF)
             embed.title = "Opening Halloween Crate..."

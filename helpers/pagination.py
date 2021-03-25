@@ -63,6 +63,9 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
             footer += f" out of {self.count}."
         else:
             footer += "."
+        
+        prefix = re.sub(f"<@!?{menu.ctx.me.id}>", f"@{menu.ctx.me.name}", menu.ctx.prefix)
+        footer += f"\nUse {prefix}n and {prefix}b to navigate between pages."
 
         embed = discord.Embed(
             title=self.title,
@@ -80,6 +83,9 @@ class ContinuablePages(menus.MenuPages):
         self.allow_go = allow_go
         for x in REMOVE_BUTTONS:
             self.remove_button(x)
+
+    def should_add_reactions(self):
+        return False
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(self.current_page)

@@ -1,4 +1,6 @@
+from pathlib import Path
 import logging
+import sys
 
 from discord.ext import commands
 
@@ -11,18 +13,23 @@ class Logging(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+        Path("logs").mkdir(exist_ok=True)
+
         self.log = logging.getLogger(f"Cluster#{self.bot.cluster_name}")
         handler = logging.FileHandler(f"logs/commands-{self.bot.cluster_name}.log")
         handler.setFormatter(formatter)
         self.log.handlers = [handler]
 
         dlog = logging.getLogger("discord")
-        dhandler = logging.FileHandler(f"logs/discord-{self.bot.cluster_name}.log")
+        dhandler = logging.StreamHandler(sys.stdout)
         dhandler.setFormatter(formatter)
         dlog.handlers = [dhandler]
 
-        self.log.setLevel(logging.DEBUG)
+        httplog = logging.getLogger("discord.http")
+
+        self.log.setLevel(logging.INFO)
         dlog.setLevel(logging.INFO)
+        httplog.setLevel(logging.DEBUG)
 
 
 def setup(bot):

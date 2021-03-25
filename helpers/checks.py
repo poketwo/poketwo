@@ -2,16 +2,12 @@ from discord.ext import commands
 
 
 def is_admin():
-    return commands.check_any(
-        commands.is_owner(), commands.has_permissions(administrator=True)
-    )
+    return commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
 
 
 def has_started():
     async def predicate(ctx):
-        member = await ctx.bot.mongo.Member.find_one(
-            {"id": ctx.author.id}, {"suspended": 1}
-        )
+        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1})
 
         if member is None:
             raise commands.CheckFailure(

@@ -1,9 +1,8 @@
+from urllib.parse import urljoin
 import asyncio
 import io
 import random
-import sys
 import time
-import traceback
 from collections import defaultdict
 from datetime import datetime
 
@@ -16,7 +15,7 @@ from discord.ext import commands, tasks
 from helpers import checks
 from . import mongo
 
-MIN_SPAWN_THRESHOLD = 10
+MIN_SPAWN_THRESHOLD = 20
 
 
 def write_fp(data):
@@ -65,9 +64,7 @@ class Spawning(commands.Cog):
         if not self.bot.enabled:
             return
 
-        channels = self.bot.mongo.db.channel.find(
-            {"spawns_remaining": {"$gt": 0}}
-        )
+        channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
             channel = self.bot.get_channel(result["_id"])
             if channel is not None:
@@ -96,7 +93,7 @@ class Spawning(commands.Cog):
         current = time.time()
 
         # Spamcheck, every one second
-        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1:
+        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1.5:
             return
         self.bot.cooldown_users[message.author.id] = current
 
@@ -110,9 +107,7 @@ class Spawning(commands.Cog):
                 guild = await self.bot.mongo.fetch_guild(message.guild)
                 silence = silence or guild and guild.silence
 
-            pokemon = await self.bot.mongo.fetch_pokemon(
-                message.author, member.selected_id
-            )
+            pokemon = await self.bot.mongo.fetch_pokemon(message.author, member.selected_id)
             if pokemon is not None and pokemon.held_item != 13002:
 
                 # TODO this stuff here needs to be refactored
@@ -124,9 +119,7 @@ class Spawning(commands.Cog):
                         xp_inc *= 2
                     pokemon.xp += xp_inc
 
-                    await self.bot.mongo.update_pokemon(
-                        pokemon, {"$inc": {"xp": xp_inc}}
-                    )
+                    await self.bot.mongo.update_pokemon(pokemon, {"$inc": {"xp": xp_inc}})
 
                 if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
                     update = {"$set": {f"xp": 0, f"level": pokemon.level + 1}}
@@ -194,9 +187,7 @@ class Spawning(commands.Cog):
                         await message.author.send(embed=embed)
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
-                    await self.bot.mongo.update_pokemon(
-                        pokemon, {"$set": {"xp": pokemon.max_xp}}
-                    )
+                    await self.bot.mongo.update_pokemon(pokemon, {"$set": {"xp": pokemon.max_xp}})
 
         # Increment guild activity counter
 
@@ -261,11 +252,7 @@ class Spawning(commands.Cog):
         self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
 
         permissions = channel.permissions_for(channel.guild.me)
-        if not (
-            permissions.send_messages
-            and permissions.attach_files
-            and permissions.embed_links
-        ):
+        if not (permissions.send_messages and permissions.attach_files and permissions.embed_links):
             return False
 
         # spawn
@@ -280,32 +267,23 @@ class Spawning(commands.Cog):
 
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
         prefix = prefix[0]
-        embed.description = (
-            f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
-        )
+        embed.description = f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
 
-        async with aiohttp.ClientSession() as session:
-            url = f"https://server.poketwo.net/image?species={species.id}&time="
-            url += "day" if guild.is_day else "night"
-            try:
+        image = None
+
+        if hasattr(self.bot.config, "SERVER_URL"):
+            async with aiohttp.ClientSession() as session:
+                url = urljoin(self.bot.config.SERVER_URL, f"image?species={species.id}&time=")
+                url += "day" if guild.is_day else "night"
                 async with session.get(url) as resp:
                     if resp.status == 200:
-                        arr = await self.bot.loop.run_in_executor(
-                            None, write_fp, await resp.read()
-                        )
+                        arr = await self.bot.loop.run_in_executor(None, write_fp, await resp.read())
                         image = discord.File(arr, filename="pokemon.jpg")
                         embed.set_image(url="attachment://pokemon.jpg")
-                    else:
-                        raise Exception("Server error")
-            except Exception as error:
-                self.bot.log.error("Couldn't fetch spawn image")
-                traceback.print_exception(
-                    type(error), error, error.__traceback__, file=sys.stderr
-                )
-                image = discord.File(
-                    f"data/images/{species.id}.png", filename="pokemon.png"
-                )
-                embed.set_image(url="attachment://pokemon.png")
+
+        if image is None:
+            image = discord.File(f"data/images/{species.id}.png", filename="pokemon.png")
+            embed.set_image(url="attachment://pokemon.png")
 
         if incense:
             embed.set_footer(text=f"Incense: Active.\nSpawns Remaining: {incense-1}.")
@@ -360,10 +338,7 @@ class Spawning(commands.Cog):
         species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
-        if (
-            models.deaccent(guess.lower().replace("′", "'"))
-            not in species.correct_guesses
-        ):
+        if models.deaccent(guess.lower().replace("′", "'")) not in species.correct_guesses:
             return await ctx.send("That is the wrong pokémon!")
 
         # Correct guess, add to database
@@ -404,9 +379,7 @@ class Spawning(commands.Cog):
             }
         )
         if shiny:
-            await self.bot.mongo.update_member(
-                ctx.author, {"$inc": {"shinies_caught": 1}}
-            )
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
         message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
@@ -458,21 +431,15 @@ class Spawning(commands.Cog):
         if member.shiny_hunt == species.dex_number:
             if shiny:
                 message += f"\n\nShiny streak reset."
-                await self.bot.mongo.update_member(
-                    ctx.author, {"$set": {"shiny_streak": 0}}
-                )
+                await self.bot.mongo.update_member(ctx.author, {"$set": {"shiny_streak": 0}})
             else:
                 message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
-                await self.bot.mongo.update_member(
-                    ctx.author, {"$inc": {"shiny_streak": 1}}
-                )
+                await self.bot.mongo.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
 
         if shiny:
             message += "\n\nThese colors seem unusual... ✨"
 
-        # Deletes Redis Redeem-Spawn Lock
-        if await self.bot.redis.get(f"redeem:{ctx.channel.id}"):
-            await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
+        await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
         self.bot.dispatch("catch", ctx.author, species)
         await ctx.send(message)

@@ -105,9 +105,7 @@ class Configuration(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        await self.bot.mongo.update_member(
-            ctx.author, {"$set": {"silence": not member.silence}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"silence": not member.silence}})
 
         if member.silence:
             await ctx.send(f"Reverting to normal level up behavior.")
@@ -122,9 +120,7 @@ class Configuration(commands.Cog):
         """Silence level up messages server-wide."""
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$set": {"silence": not guild.silence}}
-        )
+        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"silence": not guild.silence}})
 
         if guild.silence:
             await ctx.send(f"Level up messages are no longer disabled in this server.")
@@ -135,9 +131,7 @@ class Configuration(commands.Cog):
 
     @checks.is_admin()
     @commands.group(invoke_without_command=True, case_insensitive=True)
-    async def redirect(
-        self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]
-    ):
+    async def redirect(self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]):
         """Redirect pokémon catches to one or more channels."""
 
         if len(channels) == 0:
@@ -146,9 +140,7 @@ class Configuration(commands.Cog):
         await self.bot.mongo.update_guild(
             ctx.guild, {"$set": {"channels": [x.id for x in channels]}}
         )
-        await ctx.send(
-            "Now redirecting spawns to " + ", ".join(x.mention for x in channels)
-        )
+        await ctx.send("Now redirecting spawns to " + ", ".join(x.mention for x in channels))
 
     @checks.is_admin()
     @redirect.command()
@@ -186,13 +178,9 @@ class Configuration(commands.Cog):
         embed = self.bot.Embed()
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
         embed.description = (
-            "It is currently "
-            + ("day" if guild.is_day else "night")
-            + "time in this server."
+            "It is currently " + ("day" if guild.is_day else "night") + "time in this server."
         )
-        embed.add_field(
-            name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}"
-        )
+        embed.add_field(name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}")
 
         await ctx.send(embed=embed)
 

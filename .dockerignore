@@ -1,0 +1,6 @@
+Dockerfile
+config.py
+.env
+.vscode/
+.github/
+logs/

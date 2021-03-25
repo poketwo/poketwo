@@ -47,9 +47,7 @@ class Market(commands.Cog):
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
-    @flags.add_flag(
-        "--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int
-    )
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
 
     # Skip/limit
@@ -64,6 +62,7 @@ class Market(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @market.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
@@ -127,9 +126,7 @@ class Market(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member.selected_id == pokemon.id:
-            return await ctx.send(
-                f"{pokemon.idx}: You can't list your selected pokémon!"
-            )
+            return await ctx.send(f"{pokemon.idx}: You can't list your selected pokémon!")
 
         if pokemon.favorite:
             return await ctx.send(f"{pokemon.idx}: You can't list a favorited pokémon!")
@@ -301,9 +298,7 @@ class Market(commands.Cog):
             return await ctx.send("Couldn't buy that pokémon.")
 
         await self.bot.mongo.db.listing.delete_one({"_id": id})
-        await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {"balance": -listing["price"]}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -listing["price"]}})
 
         await self.bot.mongo.update_member(
             listing["user_id"], {"$inc": {"balance": listing["price"]}}
@@ -334,6 +329,7 @@ class Market(commands.Cog):
             print("Error trading market logs.")
 
     @checks.has_started()
+    @commands.cooldown(3, 5, commands.BucketType.user)
     @market.command(aliases=("i",))
     async def info(self, ctx, id: int):
         """View a pokémon from the market."""
