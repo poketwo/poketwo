@@ -315,6 +315,9 @@ class Member(Document):
 
 
 class Listing(Document):
+    class Meta:
+        strict = False
+
     id = fields.IntegerField(attribute="_id")
     pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
     user_id = fields.IntegerField(required=True)
@@ -322,6 +325,9 @@ class Listing(Document):
 
 
 class Auction(Document):
+    class Meta:
+        strict = False
+
     id = fields.IntegerField(attribute="_id")
     guild_id = fields.IntegerField(required=True)
     message_id = fields.IntegerField(required=True)
@@ -334,6 +340,9 @@ class Auction(Document):
 
 
 class Guild(Document):
+    class Meta:
+        strict = False
+
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
     channels = fields.ListField(fields.IntegerField, default=list)
@@ -364,6 +373,9 @@ class Guild(Document):
 
 
 class Channel(Document):
+    class Meta:
+        strict = False
+
     id = fields.IntegerField(attribute="_id")
     spawns_remaining = fields.IntegerField(default=0)
 

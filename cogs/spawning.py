@@ -4,11 +4,9 @@ import io
 import random
 import time
 from collections import defaultdict
-from datetime import datetime
 
 import aiohttp
 import discord
-import humanfriendly
 from data import models
 from discord.ext import commands, tasks
 
@@ -60,7 +58,6 @@ class Spawning(commands.Cog):
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
-        await self.bot.wait_until_ready()
         if not self.bot.enabled:
             return
 
@@ -71,12 +68,11 @@ class Spawning(commands.Cog):
                 self.bot.loop.create_task(
                     self.spawn_pokemon(channel, incense=result["spawns_remaining"])
                 )
-            await self.bot.mongo.update_channel(
-                channel,
-                {
-                    "$inc": {"spawns_remaining": -1},
-                },
-            )
+                await self.bot.mongo.update_channel(channel, {"$inc": {"spawns_remaining": -1}})
+
+    @spawn_incense.before_loop
+    async def before_spawn_incense(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

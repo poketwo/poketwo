@@ -720,7 +720,7 @@ class Shop(commands.Cog):
             await self.bot.mongo.update_channel(
                 ctx.channel,
                 {
-                    "$set": {"spawns_remaining": 180},
+                    "$inc": {"spawns_remaining": 180},
                 },
             )
 
