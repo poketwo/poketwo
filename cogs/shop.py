@@ -181,13 +181,17 @@ class Shop(commands.Cog):
         if amt <= 0:
             return await ctx.send("Nice try...")
 
-        if amt > getattr(member, f"gifts_{type.lower()}"):
-            return await ctx.send("You don't have enough boxes to do that!")
-
         if amt > 15:
             return await ctx.send("You can only open 15 boxes at once!")
 
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {f"gifts_{type.lower()}": -amt}})
+        try:
+            await self.bot.mongo.db.member.find_one_and_update(
+                {"$and": [{"_id": ctx.author.id},{f"gifts_{type.lower()}": {"$gte": amt}}]}, 
+                {"$inc": {f"gifts_{type.lower()}": -amt}},
+                upsert=True
+            )
+        except:
+            return await ctx.send("You don't have enough boxes to do that!")
 
         rewards = random.choices(constants.REWARDS, constants.REWARD_WEIGHTS[type.lower()], k=amt)
 
