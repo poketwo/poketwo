@@ -13,23 +13,16 @@ class Logging(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        Path("logs").mkdir(exist_ok=True)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
 
         self.log = logging.getLogger(f"Cluster#{self.bot.cluster_name}")
-        handler = logging.FileHandler(f"logs/commands-{self.bot.cluster_name}.log")
-        handler.setFormatter(formatter)
         self.log.handlers = [handler]
+        self.log.setLevel(logging.INFO)
 
         dlog = logging.getLogger("discord")
-        dhandler = logging.StreamHandler(sys.stdout)
-        dhandler.setFormatter(formatter)
-        dlog.handlers = [dhandler]
-
-        httplog = logging.getLogger("discord.http")
-
-        self.log.setLevel(logging.INFO)
+        dlog.handlers = [handler]
         dlog.setLevel(logging.INFO)
-        httplog.setLevel(logging.DEBUG)
 
 
 def setup(bot):

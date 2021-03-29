@@ -29,6 +29,9 @@ if __name__ == "__main__":
             os.environ["DATABASE_HOST"],
         )
 
+    if os.getenv("API_BASE") is not None:
+        discord.http.Route.BASE = os.getenv("API_BASE")
+
     config = Config(
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
