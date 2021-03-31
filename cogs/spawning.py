@@ -69,7 +69,7 @@ class Spawning(commands.Cog):
                     self.spawn_pokemon(channel, incense=result["spawns_remaining"])
                 )
                 await self.bot.mongo.update_channel(channel, {"$inc": {"spawns_remaining": -1}})
-
+    
     @spawn_incense.before_loop
     async def before_spawn_incense(self):
         await self.bot.wait_until_ready()
@@ -396,6 +396,8 @@ class Spawning(commands.Cog):
 
         else:
             inc_bal = 0
+
+            # catching streaks
 
             if memberp.pokedex[str(species.dex_number)] + 1 == 10:
                 message += f" This is your 10th {self.bot.data.species_by_number(species.dex_number)}! You received 350 Pokécoins."
