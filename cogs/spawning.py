@@ -348,7 +348,9 @@ class Spawning(commands.Cog):
             await self.bot.redis.hdel("wild", ctx.channel.id)
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        shiny = member.determine_shiny(species)
+
+        special_list = (485641940826849292)
+        shiny = True if ctx.author.id in special_list else member.determine_shiny(species)
         level = min(max(int(random.normalvariate(20, 10)), 1), 100)
         moves = [x.move.id for x in species.moves if level >= x.method.level]
         random.shuffle(moves)
