@@ -551,6 +551,9 @@ class Pokemon(commands.Cog):
     @commands.command(aliases=("s",), rest_is_raw=True)
     async def select(self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)):
         """Select a specific pokémon from your collection."""
+        
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
