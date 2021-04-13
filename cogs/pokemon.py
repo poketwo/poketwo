@@ -558,6 +558,8 @@ class Pokemon(commands.Cog):
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
+
         await self.bot.mongo.update_member(
             ctx.author,
             {"$set": {f"selected_id": pokemon.id}},
