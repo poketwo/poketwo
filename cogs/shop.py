@@ -186,9 +186,9 @@ class Shop(commands.Cog):
 
         try:
             await self.bot.mongo.db.member.find_one_and_update(
-                {"$and": [{"_id": ctx.author.id},{f"gifts_{type.lower()}": {"$gte": amt}}]}, 
+                {"$and": [{"_id": ctx.author.id}, {f"gifts_{type.lower()}": {"$gte": amt}}]},
                 {"$inc": {f"gifts_{type.lower()}": -amt}},
-                upsert=True
+                upsert=True,
             )
         except:
             return await ctx.send("You don't have enough boxes to do that!")
@@ -476,7 +476,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
-    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user, wait=True)
     @commands.guild_only()
     @commands.command()
     async def buy(self, ctx, *args: str):
@@ -815,9 +815,11 @@ class Shop(commands.Cog):
                         value="‎",
                     )
 
-            await self.bot.mongo.update_pokemon(pokemon, update)
+            await self.bot.mongo.db.pokemon.update_one(
+                {"_id": pokemon.id, "level": pokemon.level - qty}, update
+            )
 
-            if member.silence and pokemon.level == 99:
+            if member.silence and pokemon.level == 100:
                 await ctx.author.send(embed=embed)
 
             if not member.silence:
