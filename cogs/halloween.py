@@ -173,7 +173,7 @@ class Halloween(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(color=0x9CCFFF)
+        embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = f"Spooktober Event Shop"
         embed.description = "The event has ended, and the shop will be available until November 7."
         embed.add_field(
@@ -318,7 +318,7 @@ class Halloween(commands.Cog):
 
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"premium_balance": shards}})
 
-            embed = self.bot.Embed(color=0x9CCFFF)
+            embed = self.bot.Embed(color=0xFE9AC9)
             embed.title = "Opening Halloween Crate..."
             embed.add_field(name="Rewards Received", value="\n".join(text))
 

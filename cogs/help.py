@@ -17,7 +17,7 @@ class CustomHelpCommand(commands.HelpCommand):
             await ctx.send(str(error.original))
 
     def make_page_embed(self, commands, title="Pokétwo Help", description=discord.Embed.Empty):
-        embed = self.context.bot.Embed(color=0x9CCFFF)
+        embed = self.context.bot.Embed(color=0xFE9AC9)
         embed.title = title
         embed.description = description
         embed.set_footer(text=f'Use "{self.clean_prefix}help command" for more info on a command.')
@@ -38,7 +38,7 @@ class CustomHelpCommand(commands.HelpCommand):
         return embed
 
     def make_default_embed(self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty):
-        embed = self.context.bot.Embed(color=0x9CCFFF)
+        embed = self.context.bot.Embed(color=0xFE9AC9)
         embed.title = title
         embed.description = description
 
@@ -139,7 +139,7 @@ class CustomHelpCommand(commands.HelpCommand):
         await ctx.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = self.context.bot.Embed(color=0x9CCFFF)
+        embed = self.context.bot.Embed(color=0xFE9AC9)
         embed.title = self.clean_prefix + command.qualified_name
 
         if command.description:

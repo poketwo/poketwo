@@ -344,7 +344,7 @@ class Market(commands.Cog):
 
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
-        embed = self.bot.Embed(color=0x9CCFFF)
+        embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:
@@ -380,7 +380,11 @@ class Market(commands.Cog):
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-        embed.add_field(name="Market Listing", value=f"**ID:** {id}\n**Price:** {listing['price']:,} pc", inline=False)
+        embed.add_field(
+            name="Market Listing",
+            value=f"**ID:** {id}\n**Price:** {listing['price']:,} pc",
+            inline=False,
+        )
 
         embed.set_footer(text=f"Displaying listing {id} from market.")
 

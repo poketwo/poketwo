@@ -63,13 +63,13 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
             footer += f" out of {self.count}."
         else:
             footer += "."
-        
+
         prefix = re.sub(f"<@!?{menu.ctx.me.id}>", f"@{menu.ctx.me.name}", menu.ctx.prefix)
         footer += f"\nUse {prefix}n and {prefix}b to navigate between pages."
 
         embed = discord.Embed(
             title=self.title,
-            color=0x9CCFFF,
+            color=0xFE9AC9,
             description=f"\n".join(lines)[:2048],
         )
         embed.set_footer(text=footer)

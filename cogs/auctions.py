@@ -130,7 +130,7 @@ class Auctions(commands.Cog):
                 print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = discord.Embed(color=0x9CCFFF)
+        embed = discord.Embed(color=0xFE9AC9)
         embed.set_author(name=str(author), icon_url=author.avatar_url)
         embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
