@@ -239,6 +239,7 @@ class Member(Document):
     id = fields.IntegerField(attribute="_id")
     joined_at = fields.DateTimeField(default=None)
     suspended = fields.BooleanField(default=False)
+    suspension_reason = fields.StringField(default=None)
 
     # Pokémon
     next_idx = fields.IntegerField(default=1)
@@ -382,6 +383,7 @@ class Channel(Document):
     @property
     def incense_active(self):
         return self.spawns_remaining > 0
+
 
 class Counter(Document):
     id = fields.StringField(attribute="_id")
