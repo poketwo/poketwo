@@ -784,16 +784,18 @@ class Pokemon(commands.Cog):
 
         # confirmed, release
 
-        await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": list(ids)}}, {"$set": {"owner_id": None}}
+        result = await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": list(ids)}, "owner_id": {"$ne": None}}, {"$set": {"owner_id": None}}
         )
         await self.bot.mongo.update_member(
             ctx.author,
             {
-                "$inc": {"balance": 2 * len(mons)},
+                "$inc": {"balance": 2 * result.modified_count},
             },
         )
-        await ctx.send(f"You released {len(mons)} pokémon. You received {2*len(mons):,} Pokécoins!")
+        await ctx.send(
+            f"You released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
+        )
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -887,19 +889,21 @@ class Pokemon(commands.Cog):
 
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
-        await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}},
+        result = await self.bot.mongo.db.pokemon.update_many(
+            {"_id": {"$in": [x.id async for x in pokemon]}, "owner_id": {"$ne": None}},
             {"$set": {"owner_id": None}},
         )
 
         await self.bot.mongo.update_member(
             ctx.author,
             {
-                "$inc": {"balance": 2 * num},
+                "$inc": {"balance": 2 * result.modified_count},
             },
         )
 
-        await ctx.send(f"You have released {num} pokémon. You received {2*num:,} Pokécoins!")
+        await ctx.send(
+            f"You have released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
+        )
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)

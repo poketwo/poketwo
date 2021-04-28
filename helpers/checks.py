@@ -26,8 +26,6 @@ def has_started():
                 f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
             )
 
-        print(member)
-
         if member.suspended:
             raise Suspended(member.suspension_reason)
 
