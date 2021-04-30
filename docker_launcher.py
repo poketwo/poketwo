@@ -16,6 +16,7 @@ Config = namedtuple(
         "REDIS_CONF",
         "DBL_TOKEN",
         "SERVER_URL",
+        "EXT_SERVER_URL",
     ],
 )
 
