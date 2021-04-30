@@ -42,6 +42,7 @@ if __name__ == "__main__":
         },
         DBL_TOKEN=os.getenv("DBL_TOKEN"),
         SERVER_URL=os.environ["SERVER_URL"],
+        EXT_SERVER_URL=os.getenv("EXT_SERVER_URL", os.environ["SERVER_URL"]),
     )
 
     num_shards = int(os.getenv("NUM_SHARDS", 1))

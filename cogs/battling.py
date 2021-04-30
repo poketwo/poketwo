@@ -314,9 +314,9 @@ class Battle:
                 "ball1": [0 if p.hp == 0 else 1 for p in t1.pokemon],
                 "v": 100,
             }
-            if hasattr(self.bot.config, "SERVER_URL"):
+            if hasattr(self.bot.config, "EXT_SERVER_URL"):
                 url = urljoin(
-                    self.bot.config.SERVER_URL,
+                    self.bot.config.EXT_SERVER_URL,
                     f"battle/{t0.selected.species.id}/{t1.selected.species.id}?{urlencode(image_query, True)}",
                 )
                 embed.set_image(url=url)
