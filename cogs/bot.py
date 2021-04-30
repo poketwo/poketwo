@@ -3,14 +3,13 @@ import random
 import sys
 import traceback
 from datetime import datetime, timedelta
+from typing import Counter
 
 import aiohttp
 import discord
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
-
 from helpers import checks, constants, converters
-
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
 
@@ -452,6 +451,27 @@ class Bot(commands.Cog):
         if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
             self.post_dbl.cancel()
             self.remind_votes.cancel()
+
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def cleanup(self, ctx, search=100):
+        """Cleans up the bot's messages from the channel."""
+
+        def check(m):
+            m.author == ctx.me or m.content.startswith(ctx.prefix)
+
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
+        spammers = Counter(m.author.display_name for m in deleted)
+        count = len(deleted)
+
+        messages = [f'{count} message{" was" if count == 1 else "s were"} removed.']
+        if len(deleted) > 0:
+            messages.append("")
+            spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
+            messages.extend(f"– **{author}**: {count}" for author, count in spammers)
+
+        await ctx.send("\n".join(messages), delete_after=5)
 
 
 def setup(bot):
