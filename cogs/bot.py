@@ -458,7 +458,7 @@ class Bot(commands.Cog):
         """Cleans up the bot's messages from the channel."""
 
         def check(m):
-            m.author == ctx.me or m.content.startswith(ctx.prefix)
+            return m.author == ctx.me or m.content.startswith(ctx.prefix)
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
