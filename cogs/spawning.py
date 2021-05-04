@@ -474,9 +474,9 @@ class Spawning(commands.Cog):
             return await ctx.send("This pokémon can't be caught in the wild!")
             
         if species.id == member.shiny_hunt:
-            return await ctx.send(f"You are already hunting this pokémon with a streak of {member.shiny_streak}.")
+            return await ctx.send(f"You are already hunting this pokémon with a streak of **{member.shiny_streak}**.")
             
-        if member.shiny_streak > 0 and not species.id == member.shiny_hunt:
+        if member.shiny_streak > 0:
             await ctx.send(
                 f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset. [y/N]"
                 )
