@@ -447,12 +447,6 @@ class Spawning(commands.Cog):
         """Hunt for a shiny pokémon species."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-
-        # variable for current shiny hunt
-        current_hunting = self.bot.data.species_by_number(member.shiny_hunt).species_by_name
-        
-        # variable for current shiny hunt streak
-        current_streak = member.shiny_streak
         
         if species is None:
             embed = self.bot.Embed(color=0xFE9AC9)
@@ -467,23 +461,22 @@ class Spawning(commands.Cog):
             )
           
             if member.shiny_hunt:
-                embed.add_field(name=f"Chain", value=str(current_streak))
+                embed.add_field(name=f"Chain", value=str(member.shiny_streak))
 
             return await ctx.send(embed=embed)
 
         species = self.bot.data.species_by_name(species)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+            return await ctx.send(f"Could not find a pokémon matching `{species}`.")
 
         if not species.catchable:
             return await ctx.send("This pokémon can't be caught in the wild!")
             
-        # if statement incase species is the same as current shinyhunt
-        if species == current_hunting:
-            return await ctx.send(f"You are already hunting this pokémon with a streak of {current_streak}.")
+        if species.id == member.shiny_hunt:
+            return await ctx.send(f"You are already hunting this pokémon with a streak of {member.shiny_streak}.")
             
-        if current_streak > 0 and not species == current_hunting:
+        if member.shiny_streak > 0 and not species.id == member.shiny_hunt:
             await ctx.send(
                 f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset. [y/N]"
                 )
