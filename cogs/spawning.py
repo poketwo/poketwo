@@ -447,19 +447,19 @@ class Spawning(commands.Cog):
         """Hunt for a shiny pokémon species."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-
+        
         if species is None:
             embed = self.bot.Embed(color=0xFE9AC9)
             embed.title = f"Shiny Hunt ✨"
             embed.description = "You can select a specific pokémon to shiny hunt. Each time you catch that pokémon, your chain will increase. The longer your chain, the higher your chance of catching a shiny one!"
-
+            
             embed.add_field(
                 name=f"Currently Hunting",
                 value=self.bot.data.species_by_number(member.shiny_hunt).name
                 if member.shiny_hunt
                 else "Type `p!shinyhunt <pokémon>` to begin!",
             )
-
+          
             if member.shiny_hunt:
                 embed.add_field(name=f"Chain", value=str(member.shiny_streak))
 
@@ -468,16 +468,18 @@ class Spawning(commands.Cog):
         species = self.bot.data.species_by_name(species)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+            return await ctx.send(f"Could not find a pokémon matching `{species}`.")
 
         if not species.catchable:
             return await ctx.send("This pokémon can't be caught in the wild!")
-
+            
+        if species.id == member.shiny_hunt:
+            return await ctx.send(f"You are already hunting this pokémon with a streak of **{member.shiny_streak}**.")
+            
         if member.shiny_streak > 0:
             await ctx.send(
                 f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset. [y/N]"
-            )
-
+                )
             def check(m):
                 return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
 
