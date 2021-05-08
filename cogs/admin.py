@@ -14,7 +14,7 @@ class Administration(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @commands.group(aliases=("am",), invoke_without_command=True, case_insensitive=True)
     async def admin(self, ctx):
         pass
@@ -45,12 +45,12 @@ class Administration(commands.Cog):
         users_msg = ", ".join(f"**{x}**" for x in users)
         await ctx.send(f"Unsuspended {users_msg}.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("spawn",))
     async def randomspawn(self, ctx):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel)
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("addredeem", "ar", "gr"))
     async def giveredeem(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a redeem."""
@@ -58,7 +58,7 @@ class Administration(commands.Cog):
         await self.bot.mongo.update_member(user, {"$inc": {"redeems": num}})
         await ctx.send(f"Gave **{user}** {num} redeems.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("givecoins", "ac", "gc"))
     async def addcoins(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's balance."""
@@ -66,7 +66,7 @@ class Administration(commands.Cog):
         await self.bot.mongo.update_member(user, {"$inc": {"balance": amt}})
         await ctx.send(f"Gave **{user}** {amt} Pokécoins.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("giveshard", "as", "gs"))
     async def addshard(self, ctx, user: FetchUserConverter, amt: int):
         """Add to a user's shard balance."""
@@ -74,7 +74,7 @@ class Administration(commands.Cog):
         await self.bot.mongo.update_member(user, {"$inc": {"premium_balance": amt}})
         await ctx.send(f"Gave **{user}** {amt} shards.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("givevote", "av", "gv"))
     async def addvote(self, ctx, user: FetchUserConverter, amt: int = 1):
         """Add to a user's vote streak."""
@@ -89,7 +89,7 @@ class Administration(commands.Cog):
 
         await ctx.send(f"Increased vote streak by {amt} for **{user}**.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("givebox", "ab", "gb"))
     async def addbox(self, ctx, user: FetchUserConverter, box_type, amt: int = 1):
         """Give a user boxes."""
@@ -110,7 +110,7 @@ class Administration(commands.Cog):
         else:
             await ctx.send(f"Gave **{user}** {amt} {box_type} boxes.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command(aliases=("g",))
     async def give(self, ctx, user: FetchUserConverter, *, arg: str):
         """Give a pokémon."""
@@ -149,7 +149,7 @@ class Administration(commands.Cog):
 
         await ctx.send(f"Gave **{user}** a {species}.")
 
-    @commands.is_owner()
+    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @admin.command()
     async def setup(self, ctx, user: FetchUserConverter, num: int = 100):
         """Test setup pokémon."""
