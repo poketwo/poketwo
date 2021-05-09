@@ -452,16 +452,9 @@ class Bot(commands.Cog):
             self.post_dbl.cancel()
             self.remind_votes.cancel()
 
-    @commands.command()
-    @commands.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx, search=100):
-        """Cleans up the bot's messages from the channel."""
-
-        def check(m):
-            return m.author == ctx.me or m.content.startswith(ctx.prefix)
-
+    async def run_purge(self, ctx, limit, check):
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
+        deleted = await ctx.channel.purge(limit=limit, check=check, before=ctx.message)
         spammers = Counter(m.author.display_name for m in deleted)
         count = len(deleted)
 
@@ -472,6 +465,15 @@ class Bot(commands.Cog):
             messages.extend(f"– **{author}**: {count}" for author, count in spammers)
 
         await ctx.send("\n".join(messages), delete_after=5)
+
+	
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    async def cleanup(self, ctx, search=100):
+        """Cleans up the bot's messages from the channel."""
+        await self.run_purge(
+            ctx, search, lambda m: m.author == ctx.me or m.content.startswith(ctx.prefix)
+        )
 
 
 def setup(bot):
