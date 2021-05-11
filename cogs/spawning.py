@@ -313,10 +313,7 @@ class Spawning(commands.Cog):
 
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
         blanks = random.sample(inds, len(inds) // 2)
-        hint = " ".join(
-            "".join(x if i in blanks else "\\_" for i, x in enumerate(x))
-            for x in species.name.split()
-        )
+        hint = "".join("\\_" if i in blanks else x for i, x in enumerate(species.name))
 
         await ctx.send(f"The pokémon is {hint}.")
 
