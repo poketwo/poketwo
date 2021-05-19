@@ -375,7 +375,7 @@ class Spawning(commands.Cog):
         if shiny:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
+        message = f"Congratulations {ctx.author.mention} You caught a level {level} {species}!"
 
         memberp = await self.bot.mongo.fetch_pokedex(
             ctx.author, species.dex_number, species.dex_number + 1
