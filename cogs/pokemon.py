@@ -1177,17 +1177,14 @@ class Pokemon(commands.Cog):
                 f"**Speed:** {species.base_stats.spd}",
             )
 
-            embed.add_field(
-                name="Names",
-                value="\n".join(f"{x} {y}" for x, y in species.names),
-                inline=False,
-            )
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
+            embed.add_field(name="Names", value="\n".join(f"{x} {y}" for x, y in species.names))
             embed.add_field(
-                name="Appearance",
-                value=f"Height: {species.height} m\nWeight: {species.weight} kg",
+                name="Appearance", value=f"Height: {species.height} m\nWeight: {species.weight} kg"
             )
             embed.add_field(name="Types", value="\n".join(species.types))
+            embed.add_field(name="Region", value=species.region.title())
+            embed.add_field(name="Catchable", value="Yes" if species.catchable else "No")
 
             text = "You haven't caught this pokémon yet!"
             if str(species.dex_number) in member.pokedex:
