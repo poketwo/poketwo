@@ -336,7 +336,7 @@ class Spawning(commands.Cog):
         count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
         if count == 1:
             await self.bot.redis.expire(f"catches:{ctx.author.id}", 86400)
-        elif count >= 2000:
+        elif count >= 1000:
             await self.bot.redis.hset("captcha", ctx.author.id, 1)
             await self.bot.redis.delete(f"catches:{ctx.author.id}")
 
