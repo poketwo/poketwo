@@ -308,6 +308,18 @@ class Spawning(commands.Cog):
         if not await self.bot.redis.hexists("wild", ctx.channel.id):
             return
 
+        if await self.bot.redis.hexists("captcha", ctx.author.id):
+            return await ctx.send(
+                f"Whoa there. Please tell us you're human! https://verify.poketwo.net/captcha/{ctx.author.id}"
+            )
+
+        count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
+        if count == 1:
+            await self.bot.redis.expire(f"catches:{ctx.author.id}", 86400)
+        elif count >= 1000:
+            await self.bot.redis.hset("captcha", ctx.author.id, 1)
+            await self.bot.redis.delete(f"catches:{ctx.author.id}")
+
         species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
