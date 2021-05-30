@@ -33,6 +33,7 @@ class Market(commands.Cog):
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")

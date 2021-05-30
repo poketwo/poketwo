@@ -107,6 +107,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -285,6 +286,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -382,6 +384,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -625,7 +628,10 @@ class Pokemon(commands.Cog):
 
         if "type" in flags and flags["type"]:
             all_species = [i for x in flags["type"] for i in self.bot.data.list_type(x)]
+            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
 
+        if "region" in flags and flags["region"]:
+            all_species = [i for x in flags["region"] for i in self.bot.data.list_region(x)]
             aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
 
         if "favorite" in flags and flags["favorite"]:
@@ -810,6 +816,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -919,6 +926,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -997,6 +1005,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--ordera", action="store_true")
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--type", "--t", type=str)
+    @flags.add_flag("--region", "--r", type=str)
     @checks.has_started()
     @flags.command(aliases=("d", "dex"))
     async def pokedex(self, ctx, **flags):
@@ -1049,8 +1058,9 @@ class Pokemon(commands.Cog):
                     return False
                 if flags["ub"] and key not in self.bot.data.list_ub:
                     return False
-
                 if flags["type"] and key not in self.bot.data.list_type(flags["type"]):
+                    return False
+                if flags["region"] and key not in self.bot.data.list_region(flags["region"]):
                     return False
 
                 return True
