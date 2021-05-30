@@ -279,6 +279,10 @@ class Member(Document):
     show_balance = fields.BooleanField(default=True)
     silence = fields.BooleanField(default=False)
 
+    # Quests
+    badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
+    quest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+
     # Events
     halloween_tickets = fields.IntegerField(default=0)
     hquests = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)

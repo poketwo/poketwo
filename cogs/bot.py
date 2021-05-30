@@ -435,11 +435,14 @@ class Bot(commands.Cog):
                 )
             )
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
-
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
+
+        badges = [k for k, v in member.badges.items() if v]
+        if member.halloween_badge:
+            badges.append("halloween")
         embed.add_field(
             name="Badges",
-            value=self.bot.sprites.pin_halloween if member.halloween_badge else "No badges",
+            value="\n".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges) or "No badges",
         )
 
         await ctx.send(embed=embed)
