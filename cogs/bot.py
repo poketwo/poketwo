@@ -463,7 +463,6 @@ class Bot(commands.Cog):
         def check(m):
             return m.author == ctx.me or m.content.startswith(ctx.prefix)
 
-        await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
         spammers = Counter(m.author.display_name for m in deleted)
         count = len(deleted)
