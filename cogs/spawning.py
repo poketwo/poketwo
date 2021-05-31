@@ -487,6 +487,7 @@ class Spawning(commands.Cog):
             return await ctx.send(embed=embed)
 
         species = self.bot.data.species_by_name(species)
+        species = self.bot.data.species_by_number(species.dex_number)
 
         if species is None:
             return await ctx.send(f"Could not find a pokémon matching `{species}`.")
