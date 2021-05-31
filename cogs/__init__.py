@@ -11,6 +11,7 @@ default = (
     "mongo",
     "noevent",
     "pokemon",
+    "quests",
     "redis",
     "shop",
     "spawning",
