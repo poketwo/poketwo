@@ -9,7 +9,6 @@ default = (
     "help",
     "market",
     "mongo",
-    "noevent",
     "pokemon",
     "quests",
     "redis",
