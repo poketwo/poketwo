@@ -950,6 +950,11 @@ class Shop(commands.Cog):
         if not species.catchable:
             return await ctx.send("You can't redeem this pokémon!")
 
+        if species.id == 150:
+            species.id = 50014
+        if species.id == 831:
+            species.id = 50015
+
         if ctx.channel.id == 759559123657293835:
             return await ctx.send("You can't redeemspawn a pokémon here!")
 
