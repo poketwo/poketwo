@@ -10,7 +10,7 @@ from helpers import checks, pagination
 
 def chunks(lst, n):
     for i in range(0, len(lst), n):
-        yield lst[i: i + n]
+        yield lst[i : i + n]
 
 
 class Trading(commands.Cog):
@@ -63,8 +63,7 @@ class Trading(commands.Cog):
             done = True
             trade["executing"] = True
 
-        num_pages = max(math.ceil(len(x) / 20)
-                        for x in trade["pokemon"].values())
+        num_pages = max(math.ceil(len(x) / 20) for x in trade["pokemon"].values())
 
         if done:
             execmsg = await ctx.send("Executing trade...")
@@ -76,8 +75,7 @@ class Trading(commands.Cog):
             if trade["pokecoins"][x] > 0:
                 users[x].insert(0, ("c", trade["pokecoins"][x]))
 
-        embed_pages = list(zip_longest(
-            *[list(chunks(x, 20)) for x in users.values()]))
+        embed_pages = list(zip_longest(*[list(chunks(x, 20)) for x in users.values()]))
 
         if len(embed_pages) == 0:
             embed_pages = [[[], []]]
@@ -106,8 +104,7 @@ class Trading(commands.Cog):
                     return val
 
                 val = "\n".join(
-                    f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(
-                        x)
+                    f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(x)
                     for t, x in page or []
                 )
 
@@ -121,8 +118,7 @@ class Trading(commands.Cog):
 
                 embed.add_field(name=f"{sign} {mem.display_name}", value=val)
 
-            embed.set_footer(
-                text=f"Showing page {pidx + 1} out of {num_pages}.")
+            embed.set_footer(text=f"Showing page {pidx + 1} out of {num_pages}.")
 
             return embed
 
@@ -224,10 +220,8 @@ class Trading(commands.Cog):
                                     value=f"The {name} has turned into a {evo.target}!",
                                 )
 
-                                self.bot.dispatch(
-                                    "evolve", mem, pokemon, evo.target)
-                                self.bot.dispatch(
-                                    "evolve", omem, pokemon, evo.target)
+                                self.bot.dispatch("evolve", mem, pokemon, evo.target)
+                                self.bot.dispatch("evolve", omem, pokemon, evo.target)
 
                                 update["$set"]["species_id"] = evo.target.id
 
@@ -274,8 +268,7 @@ class Trading(commands.Cog):
 
         # Send msg
 
-        pages = pagination.ContinuablePages(
-            pagination.FunctionPageSource(num_pages, get_page))
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(num_pages, get_page))
         self.bot.menus[a.id] = pages
         self.bot.menus[b.id] = pages
         await pages.start(ctx)
@@ -415,8 +408,7 @@ class Trading(commands.Cog):
 
                     for x in self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id]:
                         if x.idx == int(what):
-                            lines.append(
-                                f"{what}: This pokémon is already in the trade!")
+                            lines.append(f"{what}: This pokémon is already in the trade!")
                             skip = True
                             break
 
@@ -432,21 +424,17 @@ class Trading(commands.Cog):
                         continue
 
                     if member.selected_id == pokemon.id:
-                        lines.append(
-                            f"{what}: You can't trade your selected pokémon!")
+                        lines.append(f"{what}: You can't trade your selected pokémon!")
                         continue
 
                     if pokemon.favorite:
-                        lines.append(
-                            f"{what}: You can't trade favorited pokémon!")
+                        lines.append(f"{what}: You can't trade favorited pokémon!")
                         continue
 
-                    self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id].append(
-                        pokemon)
+                    self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id].append(pokemon)
                     updated = True
                 else:
-                    lines.append(
-                        f"{what}: That's not a valid item to add to the trade!")
+                    lines.append(f"{what}: That's not a valid item to add to the trade!")
                     continue
 
             if len(lines) > 0:
@@ -648,6 +636,7 @@ class Trading(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -657,14 +646,17 @@ class Trading(commands.Cog):
     @flags.add_flag("--spdefiv", nargs="+", action="append")
     @flags.add_flag("--spdiv", nargs="+", action="append")
     @flags.add_flag("--iv", nargs="+", action="append")
+
     # Duplicate IV's
     @flags.add_flag("--triple", "--three", type=int)
     @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
     @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
     @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
+
     # Skip/limit
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
+
     # Trade add all
     @checks.has_started()
     @commands.guild_only()
@@ -708,8 +700,7 @@ class Trading(commands.Cog):
 
         # confirm
 
-        trade_size = len(
-            self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id])
+        trade_size = len(self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id])
 
         if 3000 - trade_size < 0:
             return await ctx.send(
@@ -819,11 +810,9 @@ class Trading(commands.Cog):
             emote = ""
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
-            embed.add_field(name="Held Item",
-                            value=f"{emote}{item.name}", inline=False)
+            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-        embed.set_footer(
-            text=f"Displaying pokémon {number} of {other.display_name}.")
+        embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}.")
 
         await ctx.send(embed=embed)
 
