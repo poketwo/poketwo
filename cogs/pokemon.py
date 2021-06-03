@@ -308,7 +308,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
 
-    # Rename all
+    # Favorite all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(
@@ -406,7 +406,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--skip", type=int)
     @flags.add_flag("--limit", type=int)
 
-    # Rename all
+    # Unfavorite all
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(
