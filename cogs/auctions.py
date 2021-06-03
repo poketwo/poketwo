@@ -80,7 +80,7 @@ class Auctions(commands.Cog):
         embed.title = "[SOLD] " + embed.title
         auction_info = (
             f"**Winning Bid:** {auction.current_bid:,} Pokécoins",
-            f"**Bidder:** {bidder.mention}",
+            f"**Bidder:** {bidder} {bidder.mention}",
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(text=f"The auction has ended.")
@@ -130,7 +130,7 @@ class Auctions(commands.Cog):
                 print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = discord.Embed(color=0xFE9AC9)
+        embed = discord.Embed(color=pokemon.color or 0xFE9AC9)
         embed.set_author(name=str(author), icon_url=author.avatar_url)
         embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
@@ -417,7 +417,7 @@ class Auctions(commands.Cog):
 
             auction_info = (
                 f"**Current Bid:** {bid:,} Pokécoins",
-                f"**Bidder:** {ctx.author.mention}",
+                f"**Bidder:** {ctx.author} {ctx.author.mention}",
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
             )
             embed.add_field(name="Auction Details", value="\n".join(auction_info))
@@ -460,7 +460,7 @@ class Auctions(commands.Cog):
                 self.bot.loop.create_task(
                     self.bot.http.send_message(
                         priv["id"],
-                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
+                        f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** with a Current bid of **{auction.current_bid:,}** Pokécoins (Auction #{auction.id}).",
                     )
                 )
             self.bot.loop.create_task(
@@ -605,7 +605,7 @@ class Auctions(commands.Cog):
 
             auction_info = (
                 f"**Current Bid:** {auction.current_bid:,} Pokécoins",
-                f"**Bidder:** {bidder.mention}",
+                f"**Bidder:** {bidder} {bidder.mention}",
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
             )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
