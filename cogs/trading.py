@@ -363,6 +363,10 @@ class Trading(commands.Cog):
 
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
+        
+        
+        if len(self.bot.trades[ctx.author.id]["pokemon"]) <= 0:
+            return await ctx.send("There are no pokemons in this trade!!!")
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][
             ctx.author.id
