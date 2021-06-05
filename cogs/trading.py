@@ -58,7 +58,7 @@ class Trading(commands.Cog):
         a, b = trade["users"]
 
         done = False
-
+        
         if trade[a.id] and trade[b.id] and not trade["executing"]:
             done = True
             trade["executing"] = True
@@ -355,7 +355,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @trade.command(aliases=("c",))
-    async def confirm(self, ctx):
+    async def confirm(self, ctx, user: discord.Member):
         """Confirm a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -364,8 +364,9 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
         
-        if len(self.bot.trades[ctx.author.id]["pokemon"]) <= 0:
-            return await ctx.send("There are no pokemons in this trade!!!")
+        trade = self.bot.trades[user.id]
+        if trade["pokecoins"] <= 0 and trade['redeems'] <= 0 and len(trade['pokemon']) <= 0:
+            return await ctx.send("There are no pokémon/redeems/pokécoins in this trade!")
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][
             ctx.author.id
