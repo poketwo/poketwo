@@ -399,7 +399,7 @@ class Spawning(commands.Cog):
         if shiny:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
+        message = f"Congratulations {ctx.author.mention if member.catch_mention else ctx.author.display_name}! You caught a level {level} {species}!"
 
         memberp = await self.bot.mongo.fetch_pokedex(
             ctx.author, species.dex_number, species.dex_number + 1
@@ -461,7 +461,22 @@ class Spawning(commands.Cog):
 
         self.bot.dispatch("catch", ctx, species)
         await ctx.send(message)
+        
+    @checks.has_started()
+    @commands.command(aliases=("tm",))
+    async def togglemention(self, ctx):
+        """Toggle getting mentioned when catching a pokémon."""
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
+        await self.bot.mongo.update_member(
+            ctx.author, {"$set": {"catch_mention": not member.catch_mention}}
+        )
+
+        if member.catch_mention:
+            await ctx.send(f"You will no longer receive catch pings.")
+        else:
+            await ctx.send("You will now be pinged on catches.")
+    
     @checks.has_started()
     @commands.command(aliases=("sh",))
     async def shinyhunt(self, ctx, *, species: str = None):
