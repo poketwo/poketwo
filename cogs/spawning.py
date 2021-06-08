@@ -463,7 +463,7 @@ class Spawning(commands.Cog):
         await ctx.send(message)
         
     @checks.has_started()
-    @commands.command(aliases=("tm",))
+    @commands.command()
     async def togglemention(self, ctx):
         """Toggle getting mentioned when catching a pokémon."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
