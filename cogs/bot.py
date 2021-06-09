@@ -442,7 +442,7 @@ class Bot(commands.Cog):
             badges.append("halloween")
         embed.add_field(
             name="Badges",
-            value="\n".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges) or "No badges",
+            value=" ".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges) or "No badges",
         )
 
         await ctx.send(embed=embed)

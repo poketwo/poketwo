@@ -278,7 +278,8 @@ class Member(Document):
     # Settings
     show_balance = fields.BooleanField(default=True)
     silence = fields.BooleanField(default=False)
-
+    catch_mention = fields.BooleanField(default=True)
+    
     # Quests
     badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     quest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)

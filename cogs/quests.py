@@ -65,7 +65,7 @@ class Quests(commands.Cog):
     @checks.has_started()
     @commands.group(aliases=["q"], invoke_without_command=True)
     async def quests(self, ctx: commands.Context):
-        """View halloween event information."""
+        """View quests."""
 
         embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = f"Quests"
