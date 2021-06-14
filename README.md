@@ -39,3 +39,4 @@ I'm looking to add the following major features to the bot, in addition to QoL f
 	- Achievements/profile badges
 	- Egg hatching/breeding
 	- Generally more customization options
+	- Exchange item .
