@@ -91,7 +91,7 @@ class Shop(commands.Cog):
         #     )
         #     member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        do_emojis = ctx.guild is None or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
         embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = f"Voting Rewards"
@@ -168,7 +168,7 @@ class Shop(commands.Cog):
     async def open(self, ctx, type: str = "", amt: int = 1):
         """Open mystery boxes received from voting."""
 
-        do_emojis = ctx.guild is None or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+        do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
         if type.lower() not in ("normal", "great", "ultra", "master"):
             if type.lower() in ("n", "g", "u", "m"):
@@ -427,7 +427,7 @@ class Shop(commands.Cog):
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
             do_emojis = (
-                ctx.guild is None or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
             )
 
             for item in items:

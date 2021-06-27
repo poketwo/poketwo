@@ -84,6 +84,11 @@ class ContinuablePages(ViewMenuPages):
         for x in REMOVE_BUTTONS:
             self.remove_button(x)
 
+    async def send_initial_message(self, ctx, channel):
+        page = await self._source.get_page(self.current_page)
+        kwargs = await self._get_kwargs_from_page(page)
+        return await self.send_with_view(channel, **kwargs)
+
     async def show_checked_page(self, page_number):
         max_pages = self._source.get_max_pages()
         try:

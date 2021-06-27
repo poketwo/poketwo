@@ -139,7 +139,7 @@ class Bot(commands.Cog):
             print("\n\n")
 
     def sendable_channel(self, channel):
-        if channel.guild.me.permissions_in(channel).send_messages:
+        if channel.permissions_for(channel.guild.me).send_messages:
             return channel
         return None
 
@@ -159,7 +159,7 @@ class Bot(commands.Cog):
             channel = next(
                 x
                 for x in channels
-                if isinstance(x, TextChannel) and guild.me.permissions_in(x).send_messages
+                if isinstance(x, TextChannel) and x.permissions_for(guild.me).send_messages
             )
         except StopIteration:
             return

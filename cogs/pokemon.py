@@ -1034,7 +1034,7 @@ class Pokemon(commands.Cog):
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
             do_emojis = (
-                ctx.guild is None or ctx.guild.me.permissions_in(ctx.channel).external_emojis
+                ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
             )
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 898 + 1)

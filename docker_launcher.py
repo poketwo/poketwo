@@ -60,7 +60,6 @@ if __name__ == "__main__":
         cluster_name=str(cluster_idx),
         cluster_idx=cluster_idx,
         case_insensitive=True,
-        fetch_offline_members=False,
         member_cache_flags=discord.MemberCacheFlags.none(),
         allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
         intents=discord.Intents.default(),
