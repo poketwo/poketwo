@@ -177,6 +177,24 @@ reference = "master"
 resolved_reference = "309c70222eec33acacb8c21bbb0fbe9bc57de661"
 
 [[package]]
+name = "discord-ext-menus-views"
+version = "0.1.0"
+description = "A discord.ext.menus Menu backed by Views and Buttons instead of reactions."
+category = "main"
+optional = false
+python-versions = "^3.8"
+develop = false
+
+[package.dependencies]
+"discord.py" = "branch master"
+
+[package.source]
+type = "git"
+url = "https://github.com/oliver-ni/discord-ext-menus-views.git"
+reference = "master"
+resolved_reference = "d3d0520f39c50325c5567069d2eadc9d4b117ed1"
+
+[[package]]
 name = "discord-flags"
 version = "2.1.1"
 description = "A Discord.py extension allowing you to pass flags as arguments."
@@ -693,7 +711,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "91a8c917e4025411443d2cf958bfb005f1ea37c3b724c65907d296e32a19a4c7"
+content-hash = "04e5a10ec3f0c699774fd5601e87da7e104e668e42f6dbb4ef4a55f27664eb71"
 
 [metadata.files]
 aiofiles = [
@@ -766,6 +784,7 @@ decorator = [
     {file = "decorator-4.4.2.tar.gz", hash = "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"},
 ]
 discord-ext-menus = []
+discord-ext-menus-views = []
 discord-flags = [
     {file = "discord-flags-2.1.1.tar.gz", hash = "sha256:0fba0574fd21f29cb395f1bf66251d6f0b8415a50c160f1363589300e0174848"},
     {file = "discord_flags-2.1.1-py3-none-any.whl", hash = "sha256:91075d38cfe2a2b7be6cff656645ebbcde7ee3afe402c69d5163f2021f6c1d04"},

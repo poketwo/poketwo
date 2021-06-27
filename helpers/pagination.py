@@ -1,13 +1,11 @@
-import asyncio
 import math
 import re
 
 import discord
 from discord.ext import menus
+from discord.ext.menus.views import ViewMenuPages
 
 REMOVE_BUTTONS = [
-    "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
-    "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
     "\N{BLACK SQUARE FOR STOP}\ufe0f",
 ]
 
@@ -65,7 +63,7 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
             footer += "."
 
         prefix = re.sub(f"<@!?{menu.ctx.me.id}>", f"@{menu.ctx.me.name}", menu.ctx.prefix)
-        footer += f"\nUse {prefix}n and {prefix}b to navigate between pages."
+        # footer += f"\nUse {prefix}n and {prefix}b to navigate between pages."
 
         embed = discord.Embed(
             title=self.title,
@@ -76,21 +74,13 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
         return embed
 
 
-class ContinuablePages(menus.MenuPages):
+class ContinuablePages(ViewMenuPages):
     def __init__(self, source, allow_last=True, allow_go=True, **kwargs):
         super().__init__(source, **kwargs)
         self.allow_last = allow_last
         self.allow_go = allow_go
         for x in REMOVE_BUTTONS:
             self.remove_button(x)
-
-    def should_add_reactions(self):
-        return False
-
-    async def send_initial_message(self, ctx, channel):
-        page = await self._source.get_page(self.current_page)
-        kwargs = await self._get_kwargs_from_page(page)
-        return await channel.send(**kwargs)
 
     async def show_checked_page(self, page_number):
         max_pages = self._source.get_max_pages()
