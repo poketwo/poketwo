@@ -215,7 +215,7 @@ class Bot(commands.Cog):
 
         embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = "Want to add me to your server? Use the link below!"
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
         embed.add_field(name="Join Server", value="https://discord.gg/poketwo", inline=False)
 
@@ -316,7 +316,7 @@ class Bot(commands.Cog):
 
         embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = f"Pokétwo Statistics"
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         embed.add_field(name="Servers", value=result["servers"], inline=False)
         embed.add_field(name="Shards", value=result["shards"], inline=False)
@@ -413,7 +413,7 @@ class Bot(commands.Cog):
 
         embed = self.bot.Embed(color=0xFE9AC9)
         embed.title = "Trainer Profile"
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar.url)
 
         pokemon_caught = []
         pokemon_caught.append(

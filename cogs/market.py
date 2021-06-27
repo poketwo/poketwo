@@ -353,7 +353,7 @@ class Market(commands.Cog):
         else:
             embed.set_image(url=pokemon.species.image_url)
 
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         info = (
             f"**XP:** {pokemon.xp}/{pokemon.max_xp}",

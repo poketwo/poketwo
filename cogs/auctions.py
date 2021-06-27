@@ -131,7 +131,7 @@ class Auctions(commands.Cog):
 
     def make_base_embed(self, author, pokemon, auction_id):
         embed = discord.Embed(color=0xFE9AC9)
-        embed.set_author(name=str(author), icon_url=author.avatar_url)
+        embed.set_author(name=str(author), icon_url=author.avatar.url)
         embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
         if pokemon.shiny:

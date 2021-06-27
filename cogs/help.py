@@ -20,10 +20,12 @@ class CustomHelpCommand(commands.HelpCommand):
         embed = self.context.bot.Embed(color=0xFE9AC9)
         embed.title = title
         embed.description = description
-        embed.set_footer(text=f'Use "{self.clean_prefix}help command" for more info on a command.')
+        embed.set_footer(
+            text=f'Use "{self.context.clean_prefix}help command" for more info on a command.'
+        )
 
         for command in commands:
-            signature = self.clean_prefix + command.qualified_name + " "
+            signature = self.context.clean_prefix + command.qualified_name + " "
 
             signature += (
                 "[args...]" if isinstance(command, flags.FlagCommand) else command.signature
@@ -89,8 +91,8 @@ class CustomHelpCommand(commands.HelpCommand):
                 cogs,
                 title=f"Pokétwo Command Categories (Page {pidx+1}/{len(embed_pages)//6+1})",
                 description=(
-                    f"Use `{self.clean_prefix}help <command>` for more info on a command.\n"
-                    f"Use `{self.clean_prefix}help <category>` for more info on a category."
+                    f"Use `{self.context.clean_prefix}help <command>` for more info on a command.\n"
+                    f"Use `{self.context.clean_prefix}help <category>` for more info on a category."
                 ),
             )
 
@@ -140,7 +142,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, command):
         embed = self.context.bot.Embed(color=0xFE9AC9)
-        embed.title = self.clean_prefix + command.qualified_name
+        embed.title = self.context.clean_prefix + command.qualified_name
 
         if command.description:
             embed.description = f"{command.description}\n\n{command.help}"

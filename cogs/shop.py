@@ -292,7 +292,7 @@ class Shop(commands.Cog):
         embed.title = f"{ctx.author.display_name}'s balance"
         embed.add_field(name="Pokécoins", value=f"{member.balance:,}")
         embed.add_field(name="Shards", value=f"{member.premium_balance:,}")
-        embed.set_thumbnail(url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=ctx.author.avatar.url)
         await ctx.send(embed=embed)
 
     @checks.has_started()

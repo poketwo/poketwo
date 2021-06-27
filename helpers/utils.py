@@ -1,14 +1,21 @@
 import discord
 
+from dataclasses import dataclass
+
+
+@dataclass
+class FakeAvatar:
+    url: str
+
 
 class FakeUser(discord.Object):
     @property
-    def avatar_url(self):
-        return "https://cdn.discordapp.com/embed/avatars/0.png"
+    def avatar(self):
+        return FakeAvatar("https://cdn.discordapp.com/embed/avatars/0.png")
 
     @property
     def mention(self):
-        return "<@{0.id}>".format(self)
+        return f"<@{self.id}>"
 
     @property
     def roles(self):
