@@ -6,6 +6,8 @@ from discord.ext import menus
 from discord.ext.menus.views import ViewMenuPages
 
 REMOVE_BUTTONS = [
+    "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
+    "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
     "\N{BLACK SQUARE FOR STOP}\ufe0f",
 ]
 
