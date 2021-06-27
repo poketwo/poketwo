@@ -192,7 +192,7 @@ develop = false
 type = "git"
 url = "https://github.com/oliver-ni/discord-ext-menus-views.git"
 reference = "master"
-resolved_reference = "d3d0520f39c50325c5567069d2eadc9d4b117ed1"
+resolved_reference = "58c5ed651c11aa7d2e2715848c3a3cb218492412"
 
 [[package]]
 name = "discord-flags"
