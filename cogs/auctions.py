@@ -46,7 +46,6 @@ class Auctions(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_auctions(self):
-        await self.bot.wait_until_ready()
         auctions = self.bot.mongo.Auction.find({"ends": {"$lt": datetime.utcnow()}})
         async for auction in auctions:
             try:
@@ -54,6 +53,10 @@ class Auctions(commands.Cog):
             except Exception as e:
                 print(e)
                 continue
+
+    @check_auctions.before_loop
+    async def before_check_auctions(self):
+        await self.bot.wait_until_ready()
 
     async def end_auction(self, auction):
         if (auction_guild := self.bot.get_guild(auction.guild_id)) is None:

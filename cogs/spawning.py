@@ -42,9 +42,6 @@ class Spawning(commands.Cog):
 
     @tasks.loop(seconds=0.25)
     async def send_spawns(self):
-        await self.bot.get_cog("Redis").wait_until_ready()
-        await self.bot.wait_until_ready()
-
         channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
         if channel is None:
             self.spawn_threshold = MIN_SPAWN_THRESHOLD
@@ -55,6 +52,11 @@ class Spawning(commands.Cog):
             return
 
         self.bot.loop.create_task(self.spawn_pokemon(channel))
+
+    @send_spawns.before_loop
+    async def before_send_spawns(self):
+        await self.bot.get_cog("Redis").wait_until_ready()
+        await self.bot.wait_until_ready()
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -461,7 +463,7 @@ class Spawning(commands.Cog):
 
         self.bot.dispatch("catch", ctx, species)
         await ctx.send(message)
-        
+
     @checks.has_started()
     @commands.command()
     async def togglemention(self, ctx):
@@ -476,7 +478,7 @@ class Spawning(commands.Cog):
             await ctx.send(f"You will no longer receive catch pings.")
         else:
             await ctx.send("You will now be pinged on catches.")
-    
+
     @checks.has_started()
     @commands.command(aliases=("sh",))
     async def shinyhunt(self, ctx, *, species: str = None):

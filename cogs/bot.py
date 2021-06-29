@@ -248,9 +248,8 @@ class Bot(commands.Cog):
 
         return result
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=5)
     async def update_status(self):
-        await self.bot.wait_until_ready()
         result = await self.get_stats()
         await self.bot.change_presence(
             activity=discord.Activity(
@@ -259,18 +258,24 @@ class Bot(commands.Cog):
             )
         )
 
+    @update_status.before_loop
+    async def before_update_status(self):
+        await self.bot.wait_until_ready()
+
     @tasks.loop(minutes=5)
     async def post_dbl(self):
-        await self.bot.wait_until_ready()
         result = await self.get_stats()
         headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
         async with aiohttp.ClientSession(headers=headers) as sess:
             await sess.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
 
+    @post_dbl.before_loop
+    async def before_post_dbl(self):
+        await self.bot.wait_until_ready()
+
     @tasks.loop(seconds=15)
     async def remind_votes(self):
-        await self.bot.wait_until_ready()
         query = {
             "need_vote_reminder": True,
             "last_voted": {"$lt": datetime.utcnow() - timedelta(hours=12)},
@@ -293,9 +298,12 @@ class Bot(commands.Cog):
         if len(ids) > 0:
             await self.bot.redis.hdel("db:member", *[int(x) for x in ids])
 
+    @remind_votes.before_loop
+    async def before_remind_votes(self):
+        await self.bot.wait_until_ready()
+
     @tasks.loop(minutes=1)
     async def post_count(self):
-        await self.bot.wait_until_ready()
         await self.bot.mongo.db.stats.update_one(
             {"_id": self.bot.cluster_name},
             {
@@ -307,6 +315,10 @@ class Bot(commands.Cog):
             },
             upsert=True,
         )
+
+    @post_count.before_loop
+    async def before_post_count(self):
+        await self.bot.wait_until_ready()
 
     @commands.command(aliases=("botinfo",))
     async def stats(self, ctx):
