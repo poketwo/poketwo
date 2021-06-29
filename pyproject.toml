@@ -24,6 +24,7 @@ uvloop = "^0.14.0"
 discord-ext-menus = {git = "https://github.com/Rapptz/discord-ext-menus.git"}
 aioredis-lock = "^0.1.0"
 discord-ext-menus-views = {git = "https://github.com/oliver-ni/discord-ext-menus-views.git"}
+expiringdict = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^20.8b1", allow-prereleases = true}

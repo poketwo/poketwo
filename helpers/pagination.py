@@ -78,7 +78,7 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
 class ContinuablePages(ViewMenuPages):
     def __init__(self, source, allow_last=True, allow_go=True, **kwargs):
-        super().__init__(source, **kwargs)
+        super().__init__(source, **kwargs, timeout=120)
         self.allow_last = allow_last
         self.allow_go = allow_go
         for x in REMOVE_BUTTONS:

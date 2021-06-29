@@ -1,14 +1,14 @@
-from aioredis_lock import RedisLock
 import asyncio
 from importlib import reload
 
 import discord
 import uvloop
+from aioredis_lock import RedisLock
 from discord.ext import commands
+from expiringdict import ExpiringDict
 
 import cogs
 import helpers
-
 
 uvloop.install()
 
@@ -43,7 +43,7 @@ class ClusterBot(commands.AutoShardedBot):
             self.config = __import__("config")
 
         self.ready = False
-        self.menus = {}
+        self.menus = ExpiringDict(max_len=1000, max_age_seconds=300)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

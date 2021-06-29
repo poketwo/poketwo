@@ -251,6 +251,17 @@ optional = false
 python-versions = ">=3.6,<4.0"
 
 [[package]]
+name = "expiringdict"
+version = "1.2.1"
+description = "Dictionary with auto-expiring values for caching purposes"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+tests = ["dill", "coverage", "coveralls", "mock", "nose"]
+
+[[package]]
 name = "future"
 version = "0.18.2"
 description = "Clean single-source support for Python 3 and 2"
@@ -711,7 +722,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4cc64f06197e0ca34d579abed02751b3b1c7fc5683085e077811720b7ce1ed16"
+content-hash = "68de701d60dedf324851d50303ccf9933be72173aa3765543a5dfdb607d861d8"
 
 [metadata.files]
 aiofiles = [
@@ -797,6 +808,9 @@ dnspython = [
 durations-nlp = [
     {file = "durations_nlp-1.0.1-py3-none-any.whl", hash = "sha256:91b411a2d92986c63c125c81b91181aed9ba70f5c9efded9401387783631f022"},
     {file = "durations_nlp-1.0.1.tar.gz", hash = "sha256:25a87a372ddabf5fb45ed1da8fc711a53a0236c2954dc9c51590cee35dbf3136"},
+]
+expiringdict = [
+    {file = "expiringdict-1.2.1.tar.gz", hash = "sha256:fe2ba427220425c3c8a3d29f6d2e2985bcee323f8bcd4021e68ebefbd90d8250"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
