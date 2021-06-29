@@ -19,7 +19,7 @@ class Configuration(commands.Cog):
 
         embed = self.bot.Embed()
         embed.title = "Server Configuration"
-        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.add_field(
             name=f"Prefix {commands.get('prefix_command', '')}",
             value=f"`{prefix}`",
