@@ -207,7 +207,7 @@ python-versions = "*"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a3267+gd30fea5b"
+version = "2.0.0a3295+g6b1d46a1"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -218,14 +218,14 @@ develop = false
 aiohttp = ">=3.6.0,<3.8.0"
 
 [package.extras]
-docs = ["sphinx (==3.5.4)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
+docs = ["sphinx (==4.0.2)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
 voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [package.source]
 type = "git"
 url = "https://github.com/Rapptz/discord.py.git"
-reference = "master"
-resolved_reference = "d30fea5b0dcba9cd130026b56ec01e78bd788aff"
+reference = "6b1d46a1eac4a6fcd2607c50fda02ddb10a330a8"
+resolved_reference = "6b1d46a1eac4a6fcd2607c50fda02ddb10a330a8"
 
 [[package]]
 name = "dnspython"
@@ -711,7 +711,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "04e5a10ec3f0c699774fd5601e87da7e104e668e42f6dbb4ef4a55f27664eb71"
+content-hash = "4cc64f06197e0ca34d579abed02751b3b1c7fc5683085e077811720b7ce1ed16"
 
 [metadata.files]
 aiofiles = [
