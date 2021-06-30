@@ -113,16 +113,17 @@ class Logging(commands.Cog):
 
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(formatter)
-        handler.setLevel(logging.INFO)
 
         log_filter = ClusterFilter(bot.cluster_name)
 
         dlog = logging.getLogger("discord")
         dlog.handlers = [handler]
         dlog.addFilter(log_filter)
+        dlog.setLevel(logging.INFO)
 
         self.log = ExtendedLogger.with_default_handlers(name="poketwo", formatter=formatter)
         self.log.add_filter(log_filter)
+        self.log.setLevel(logging.INFO)
 
 
 def setup(bot):
