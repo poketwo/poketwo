@@ -123,7 +123,6 @@ class Logging(commands.Cog):
 
         self.log = ExtendedLogger.with_default_handlers(name="poketwo", formatter=formatter)
         self.log.add_filter(log_filter)
-        self.log.setLevel(logging.INFO)
 
 
 def setup(bot):
