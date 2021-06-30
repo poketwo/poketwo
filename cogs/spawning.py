@@ -247,7 +247,15 @@ class Spawning(commands.Cog):
         if not redeem and await self.bot.redis.get(f"redeem:{channel.id}"):
             return
 
-        self.bot.log.info(f"POKEMON {channel.id} {species.id} {species}")
+        self.bot.log.info(
+            "Pokemon spawned",
+            extra={
+                "channelid": channel.id,
+                "channel": channel.name,
+                "speciesid": species.id,
+                "species": species,
+            },
+        )
 
         permissions = channel.permissions_for(channel.guild.me)
         if not (permissions.send_messages and permissions.attach_files and permissions.embed_links):

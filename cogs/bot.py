@@ -69,17 +69,22 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_command(self, ctx):
         self.bot.log.info(
-            f'COMMAND {ctx.author.id} {ctx.command.qualified_name}: {ctx.author} "{ctx.message.content}"'
+            "Command run",
+            extra={
+                "userid": ctx.author.id,
+                "user": str(ctx.author),
+                "command": ctx.command.qualified_name,
+                "content": ctx.message.content,
+            },
         )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
-        if isinstance(error, Blacklisted):
-            self.bot.log.info(f"{ctx.author.id} is blacklisted")
-            return
-        elif isinstance(error, commands.CommandOnCooldown):
-            self.bot.log.info(f"{ctx.author.id} hit cooldown")
+        if isinstance(error, commands.CommandOnCooldown):
+            self.bot.log.info(
+                "Command cooldown hit", extra={"userid": ctx.author.id, "user": str(ctx.author)}
+            )
             await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name

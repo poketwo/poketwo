@@ -70,10 +70,6 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Run bot
 
-        self.log.info(
-            f'[Cluster#{self.cluster_name}] {kwargs["shard_ids"]}, {kwargs["shard_count"]}'
-        )
-
         self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
 
@@ -112,15 +108,17 @@ class ClusterBot(commands.AutoShardedBot):
     # Other stuff
 
     async def do_startup_tasks(self):
+        self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
+
         await self.wait_until_ready()
         self.ready = True
         self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
-        self.log.info(f"[Cluster#{self.cluster_name}] Ready called.")
+        self.log.info(f"Ready called.")
 
     async def on_shard_ready(self, shard_id):
-        self.log.info(f"[Cluster#{self.cluster_name}] Shard {shard_id} ready")
+        self.log.info(f"Shard {shard_id} ready")
 
     async def on_message(self, message: discord.Message):
         message.content = (
