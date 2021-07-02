@@ -44,9 +44,11 @@ class Spawning(commands.Cog):
         channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
             if "guild_id" in result:
-                channel = self.bot.get_guild(result["guild_id"]).get_channel(result["_id"])
+                guild = self.bot.get_guild(result["guild_id"])
+                channel = None if guild is None else guild.get_channel(result["_id"])
             else:
                 channel = self.bot.get_channel(result["_id"])
+
             if channel is not None:
                 self.bot.loop.create_task(
                     self.spawn_pokemon(channel, incense=result["spawns_remaining"])
