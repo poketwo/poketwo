@@ -1,3 +1,4 @@
+import asyncio
 import pickle
 import random
 import sys
@@ -253,19 +254,21 @@ class Bot(commands.Cog):
 
         return result
 
+    async def make_status(self):
+        result = await self.get_stats()
+        return discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f"{result['servers']:,} servers",
+        )
+
     @tasks.loop(minutes=5)
     async def update_status(self):
-        result = await self.get_stats()
-        await self.bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching,
-                name=f"{result['servers']:,} servers",
-            )
-        )
+        await self.bot.change_presence(activity=await self.make_status())
 
     @update_status.before_loop
     async def before_update_status(self):
         await self.bot.wait_until_ready()
+        await asyncio.sleep(5000)
 
     @tasks.loop(minutes=5)
     async def post_dbl(self):

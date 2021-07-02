@@ -68,6 +68,8 @@ class ClusterBot(commands.AutoShardedBot):
         )
         self.add_check(is_enabled)
 
+        self.activity = loop.run_until_complete(self.get_cog("Bot").make_status())
+
         # Run bot
 
         self.loop.create_task(self.do_startup_tasks())
