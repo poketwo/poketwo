@@ -24,6 +24,8 @@ class Bot(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        headers = {"Authorization": self.bot.config.DBL_TOKEN}
+        self.dbl_session = aiohttp.ClientSession(headers=headers)
 
         if not hasattr(self.bot, "prefixes"):
             self.bot.prefixes = {}
@@ -273,10 +275,8 @@ class Bot(commands.Cog):
     @tasks.loop(minutes=5)
     async def post_dbl(self):
         result = await self.get_stats()
-        headers = {"Authorization": self.bot.config.DBL_TOKEN}
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
-        async with aiohttp.ClientSession(headers=headers) as sess:
-            await sess.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
+        await self.dbl_session.post(f"https://top.gg/api/bots/{self.bot.user.id}/stats", data=data)
 
     @post_dbl.before_loop
     async def before_post_dbl(self):

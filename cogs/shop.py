@@ -27,11 +27,10 @@ class Shop(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def check_weekend(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://discordbots.org/api/weekend") as r:
-                if r.status == 200:
-                    js = await r.json()
-                    self.weekend = js["is_weekend"]
+        async with self.bot.http_session.get("https://discordbots.org/api/weekend") as r:
+            if r.status == 200:
+                js = await r.json()
+                self.weekend = js["is_weekend"]
 
     @property
     def month_number(self):

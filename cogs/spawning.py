@@ -245,14 +245,13 @@ class Spawning(commands.Cog):
         image = None
 
         if hasattr(self.bot.config, "SERVER_URL"):
-            async with aiohttp.ClientSession() as session:
-                url = urljoin(self.bot.config.SERVER_URL, f"image?species={species.id}&time=")
-                url += "day" if guild.is_day else "night"
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        arr = await self.bot.loop.run_in_executor(None, write_fp, await resp.read())
-                        image = discord.File(arr, filename="pokemon.jpg")
-                        embed.set_image(url="attachment://pokemon.jpg")
+            url = urljoin(self.bot.config.SERVER_URL, f"image?species={species.id}&time=")
+            url += "day" if guild.is_day else "night"
+            async with self.bot.http_session.get(url) as resp:
+                if resp.status == 200:
+                    arr = await self.bot.loop.run_in_executor(None, write_fp, await resp.read())
+                    image = discord.File(arr, filename="pokemon.jpg")
+                    embed.set_image(url="attachment://pokemon.jpg")
 
         if image is None:
             image = discord.File(f"data/images/{species.id}.png", filename="pokemon.png")

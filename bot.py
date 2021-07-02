@@ -1,5 +1,6 @@
 import asyncio
 from importlib import reload
+import aiohttp
 
 import discord
 import uvloop
@@ -69,6 +70,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.add_check(is_enabled)
 
         self.activity = loop.run_until_complete(self.get_cog("Bot").make_status())
+        self.http_session = aiohttp.ClientSession()
 
         # Run bot
 
