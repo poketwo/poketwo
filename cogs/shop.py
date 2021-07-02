@@ -32,6 +32,10 @@ class Shop(commands.Cog):
                 js = await r.json()
                 self.weekend = js["is_weekend"]
 
+    @check_weekend.before_loop
+    async def before_check_weekend(self):
+        await self.bot.wait_until_ready()
+
     @property
     def month_number(self):
         now = datetime.utcnow()
