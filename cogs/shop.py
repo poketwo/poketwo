@@ -724,6 +724,7 @@ class Shop(commands.Cog):
             await self.bot.mongo.update_channel(
                 ctx.channel,
                 {
+                    "$set": {"guild_id": ctx.guild.id},
                     "$inc": {"spawns_remaining": 180},
                 },
             )

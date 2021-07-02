@@ -13,8 +13,6 @@ from discord.ext import commands, tasks
 from helpers import checks
 from . import mongo
 
-MIN_SPAWN_THRESHOLD = 20
-
 
 def write_fp(data):
     arr = io.BytesIO()
@@ -28,35 +26,15 @@ class Spawning(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.spawn_threshold = MIN_SPAWN_THRESHOLD * 2
 
         self.caught_users = defaultdict(list)
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
 
         self.spawn_incense.start()
-        self.send_spawns.start()
 
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
-
-    @tasks.loop(seconds=0.25)
-    async def send_spawns(self):
-        channel = await self.bot.redis.lpop(f"queue:{self.bot.cluster_idx}")
-        if channel is None:
-            self.spawn_threshold = MIN_SPAWN_THRESHOLD
-            return
-
-        channel = self.bot.get_channel(int(channel))
-        if channel is None:
-            return
-
-        self.bot.loop.create_task(self.spawn_pokemon(channel))
-
-    @send_spawns.before_loop
-    async def before_send_spawns(self):
-        await self.bot.get_cog("Redis").wait_until_ready()
-        await self.bot.wait_until_ready()
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
@@ -65,7 +43,10 @@ class Spawning(commands.Cog):
 
         channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
-            channel = self.bot.get_channel(result["_id"])
+            if "guild_id" in result:
+                channel = self.bot.get_guild(result["guild_id"]).get_channel(result["_id"])
+            else:
+                channel = self.bot.get_channel(result["_id"])
             if channel is not None:
                 self.bot.loop.create_task(
                     self.spawn_pokemon(channel, incense=result["spawns_remaining"])
@@ -200,7 +181,9 @@ class Spawning(commands.Cog):
             self.bot.guild_counter.get(message.guild.id, 0) + 1
         )
 
-        if self.bot.guild_counter[message.guild.id] >= self.spawn_threshold:
+        spawn_threshold = 12 if message.guild.id == 716390832034414685 else 24
+
+        if self.bot.guild_counter[message.guild.id] >= spawn_threshold:
             self.bot.guild_counter[message.guild.id] = 0
 
             guild = await self.bot.mongo.fetch_guild(message.guild)
@@ -213,27 +196,9 @@ class Spawning(commands.Cog):
             if channel is None:
                 return
 
-            if message.guild.id == 716390832034414685:
-                channel, channel2 = [
-                    self.bot.get_channel(x)
-                    for x in random.sample(
-                        [
-                            717095398476480562,
-                            720020140401360917,
-                            720231680564264971,
-                            724762012453961810,
-                            724762035094683718,
-                            728867911799668747,
-                        ],
-                        2,
-                    )
-                ]
+                self.bot.loop.create_task(self.spawn_pokemon(channel2))
 
-                await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel2.id)
-
-            await self.bot.redis.rpush(f"queue:{self.bot.cluster_idx}", channel.id)
-
-            self.spawn_threshold *= 1.1
+            self.bot.loop.create_task(self.spawn_pokemon(channel))
 
     async def spawn_pokemon(self, channel, species=None, incense=None, redeem=False):
         prev_species = None
