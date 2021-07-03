@@ -14,13 +14,6 @@ from discord.ext import commands, flags, tasks
 from helpers import checks, converters, pagination
 
 
-async def query_member(guild, id):
-    r = await guild.query_members(user_ids=(id,))
-    if len(r) == 0:
-        return None
-    return r[0]
-
-
 class AuctionConverter(commands.Converter):
     async def convert(self, ctx, arg):
         try:
@@ -70,12 +63,12 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or await query_member(auction_guild, auction.user_id)
+            or await auction_guild.fetch_member(auction.user_id)
             or FakeUser(auction.user_id)
         )
         bidder = (
             self.bot.get_user(auction.bidder_id)
-            or await query_member(auction_guild, auction.bidder_id)
+            or await auction_guild.fetch_member(auction.bidder_id)
             or FakeUser(auction.bidder_id)
         )
 
