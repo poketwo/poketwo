@@ -405,7 +405,7 @@ class Auctions(commands.Cog):
 
             host = (
                 self.bot.get_user(auction.user_id)
-                or await query_member(ctx.guild, auction.user_id)
+                or await ctx.guild.fetch_member(auction.user_id)
                 or FakeUser(auction.user_id)
             )
 
@@ -581,7 +581,7 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or await query_member(ctx.guild, auction.user_id)
+            or await ctx.guild.fetch_member(auction.user_id)
             or FakeUser(auction.user_id)
         )
 
@@ -595,7 +595,7 @@ class Auctions(commands.Cog):
         else:
             bidder = (
                 self.bot.get_user(auction.bidder_id)
-                or await query_member(ctx.guild, auction.bidder_id)
+                or await ctx.guild.fetch_member(auction.bidder_id)
                 or FakeUser(auction.bidder_id)
             )
 
