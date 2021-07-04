@@ -31,25 +31,7 @@ def is_enabled(ctx):
 
 
 class ClusterBot(commands.AutoShardedBot):
-    __slots__ = (
-        "cluster_name",
-        "cluster_idx",
-        "config",
-        "ready",
-        "menus",
-        "http_session",
-        "battles",
-        "prefixes",
-        "cooldown_users",
-        "cooldown_guilds",
-        "guild_counter",
-        "trades",
-        "old_help_command",
-    )
-
     class Embed(discord.Embed):
-        __slots__ = ()
-
         def __init__(self, **kwargs):
             color = kwargs.pop("color", 0x9CCFFF)
             super().__init__(**kwargs, color=color)

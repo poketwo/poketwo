@@ -13,8 +13,6 @@ REMOVE_BUTTONS = [
 
 
 class FunctionPageSource(menus.PageSource):
-    __slots__ = ("num_pages", "format_page")
-
     def __init__(self, num_pages, format_page):
         self.num_pages = num_pages
         self.format_page = format_page.__get__(self)
@@ -30,8 +28,6 @@ class FunctionPageSource(menus.PageSource):
 
 
 class AsyncListPageSource(menus.AsyncIteratorPageSource):
-    __slots__ = ("title", "show_index", "prepare_page", "format_item", "count")
-
     def __init__(
         self,
         data,
@@ -81,8 +77,6 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
 
 class ContinuablePages(ViewMenuPages):
-    __slots__ = ("allow_last", "allow_go")
-
     def __init__(self, source, allow_last=True, allow_go=True, **kwargs):
         super().__init__(source, **kwargs, timeout=120)
         self.allow_last = allow_last

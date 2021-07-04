@@ -65,6 +65,10 @@ class PokemonBase(MixinDocument):
     has_color = fields.BooleanField(default=False)
     color = fields.IntegerField(default=None)
 
+    _hp = None
+    ailments = None
+    stages = None
+
     def __format__(self, spec):
         if self.shiny:
             name = "✨ "
@@ -131,14 +135,13 @@ class PokemonBase(MixinDocument):
 
     @property
     def hp(self):
-        try:
-            return self.__hp
-        except AttributeError:
+        if self._hp is None:
             return self.max_hp
+        return self._hp
 
     @hp.setter
     def hp(self, value):
-        self.__hp = value
+        self._hp = value
 
     @property
     def atk(self):
@@ -222,21 +225,15 @@ class Pokemon(PokemonBase, Document):
     class Meta:
         strict = False
 
-    __slots__ = ()
-
 
 class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
     class Meta:
         strict = False
 
-    __slots__ = ()
-
 
 class Member(Document):
     class Meta:
         strict = False
-
-    __slots__ = ()
 
     # General
     id = fields.IntegerField(attribute="_id")
@@ -282,7 +279,7 @@ class Member(Document):
     show_balance = fields.BooleanField(default=True)
     silence = fields.BooleanField(default=False)
     catch_mention = fields.BooleanField(default=True)
-
+    
     # Quests
     badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     quest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
@@ -327,8 +324,6 @@ class Listing(Document):
     class Meta:
         strict = False
 
-    __slots__ = ()
-
     id = fields.IntegerField(attribute="_id")
     pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
     user_id = fields.IntegerField(required=True)
@@ -338,8 +333,6 @@ class Listing(Document):
 class Auction(Document):
     class Meta:
         strict = False
-
-    __slots__ = ()
 
     id = fields.IntegerField(attribute="_id")
     guild_id = fields.IntegerField(required=True)
@@ -355,8 +348,6 @@ class Auction(Document):
 class Guild(Document):
     class Meta:
         strict = False
-
-    __slots__ = ()
 
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
@@ -391,8 +382,6 @@ class Channel(Document):
     class Meta:
         strict = False
 
-    __slots__ = ()
-
     id = fields.IntegerField(attribute="_id")
     spawns_remaining = fields.IntegerField(default=0)
 
@@ -402,21 +391,15 @@ class Channel(Document):
 
 
 class Counter(Document):
-    __slots__ = ()
-
     id = fields.StringField(attribute="_id")
     next = fields.IntegerField(default=0)
 
 
 class Blacklist(Document):
-    __slots__ = ()
-
     id = fields.IntegerField(attribute="_id")
 
 
 class Sponsor(Document):
-    __slots__ = ()
-
     id = fields.IntegerField(attribute="_id")
     discord_id = fields.IntegerField(default=None)
     reward_date = fields.DateTimeField()

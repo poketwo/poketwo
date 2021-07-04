@@ -16,7 +16,7 @@ GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
 
 
 class Blacklisted(commands.CheckFailure):
-    __slots__ = ()
+    pass
 
 
 class Bot(commands.Cog):
