@@ -37,12 +37,16 @@ def get_priority(action, selected):
 
 
 class Stage(Enum):
+    __slots__ = ()
+
     SELECT = 1
     PROGRESS = 2
     END = 3
 
 
 class Trainer:
+    __slots__ = ("user", "pokemon", "selected_idx", "done", "bot")
+
     def __init__(self, user: discord.Member, bot):
         self.user = user
         self.pokemon = []
@@ -115,6 +119,8 @@ class Trainer:
 
 
 class Battle:
+    __slots__ = ("trainers", "channel", "stage", "passed_turns", "ctx", "bot", "manager")
+
     def __init__(self, users: typing.List[discord.Member], ctx, manager):
         self.trainers = [Trainer(x, ctx.bot) for x in users]
         self.channel = ctx.channel
@@ -260,10 +266,8 @@ class Battle:
                             else:
                                 text += f"\nRaised the opponent's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
 
-                        setattr(
-                            target.stages,
-                            change.stat,
-                            getattr(target.stages, change.stat) + change.change,
+                        target.stages = target.stages.replace(
+                            **{change.stat: getattr(target.stages, change.stat) + change.change}
                         )
 
                 else:
@@ -351,6 +355,8 @@ class Battle:
 
 
 class BattleManager:
+    __slots__ = ("battles",)
+
     def __init__(self):
         self.battles = {}
 

@@ -31,6 +31,8 @@ EXCLUDE = {
 
 
 class LogfmtFormatter(logging.Formatter):
+    __slots__ = ()
+
     def format(self, record):
         attrs = {"message": record.getMessage()}
         attrs.update(
@@ -45,6 +47,8 @@ class LogfmtFormatter(logging.Formatter):
 
 
 class ClusterFilter(logging.Filter):
+    __slots__ = ("cluster",)
+
     def __init__(self, cluster):
         self.cluster = cluster
 

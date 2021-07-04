@@ -23,6 +23,7 @@ class Shop(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.weekend = False
         self.check_weekend.start()
 
     @tasks.loop(minutes=5)

@@ -8,6 +8,8 @@ from .utils import FakeUser
 
 
 class FetchUserConverter(commands.Converter):
+    __slots__ = ()
+
     async def convert(self, ctx, arg):
         try:
             return await commands.UserConverter().convert(ctx, arg)
@@ -21,6 +23,8 @@ class FetchUserConverter(commands.Converter):
 
 
 class MemberOrIdConverter(commands.Converter):
+    __slots__ = ()
+
     async def convert(self, ctx, arg):
         try:
             return await commands.MemberConverter().convert(ctx, arg)
@@ -34,6 +38,8 @@ class MemberOrIdConverter(commands.Converter):
 
 
 class PokemonConverter(commands.Converter):
+    __slots__ = ("accept_blank", "raise_errors")
+
     def __init__(self, accept_blank=True, raise_errors=True):
         self.accept_blank = accept_blank
         self.raise_errors = raise_errors
@@ -69,6 +75,8 @@ def to_timedelta(arg):
 
 
 class TimeDelta(commands.Converter):
+    __slots__ = ()
+
     async def convert(self, ctx, arg):
         return to_timedelta(arg)
 

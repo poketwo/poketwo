@@ -1,14 +1,16 @@
+import typing
 import discord
 
 from dataclasses import dataclass
 
 
-@dataclass
-class FakeAvatar:
+class FakeAvatar(typing.NamedTuple):
     url: str
 
 
 class FakeUser(discord.Object):
+    __slots__ = ()
+
     @property
     def avatar(self):
         return FakeAvatar("https://cdn.discordapp.com/embed/avatars/0.png")

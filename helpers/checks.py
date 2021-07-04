@@ -2,10 +2,12 @@ from discord.ext import commands
 
 
 class NotStarted(commands.CheckFailure):
-    pass
+    __slots__ = ()
 
 
 class Suspended(commands.CheckFailure):
+    __slots__ = ("reason",)
+
     def __init__(self, reason, *args):
         super().__init__(*args)
         self.reason = reason
