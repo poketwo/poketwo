@@ -111,17 +111,21 @@ class ClusterBot(commands.AutoShardedBot):
 
     # Other stuff
 
-    async def send_dm(self, uid, content=None, *, embed=None, **kwargs):
-        if embed is not None:
-            embed = embed.to_dict()
-        user_data = await self.mongo.fetch_member_info(discord.Object(uid))
-        if (priv := user_data.private_message_id) is None:
-            priv = await self.http.start_private_message(uid)
-            priv = int(priv["id"])
-            self.loop.create_task(
-                self.mongo.update_member(uid, {"$set": {"private_message_id": priv}})
-            )
-        return await self.http.send_message(priv, content, embed=embed, **kwargs)
+    async def send_dm(self, user, *args, **kwargs):
+        # This code can wait until Messageable + Object comes out.
+        # user_data = await self.mongo.fetch_member_info(discord.Object(uid))
+        # if (priv := user_data.private_message_id) is None:
+        #     priv = await self.http.start_private_message(uid)
+        #     priv = int(priv["id"])
+        #     self.loop.create_task(
+        #         self.mongo.update_member(uid, {"$set": {"private_message_id": priv}})
+        #     )
+
+        if not isinstance(user, discord.abc.Snowflake):
+            user = discord.Object(user)
+
+        dm = await self.create_dm(user)
+        return await dm.send(*args, **kwargs)
 
     async def do_startup_tasks(self):
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
