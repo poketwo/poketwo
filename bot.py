@@ -44,7 +44,7 @@ class ClusterBot(commands.AutoShardedBot):
             self.config = __import__("config")
 
         self.ready = False
-        self.menus = ExpiringDict(max_len=1000, max_age_seconds=300)
+        self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -69,7 +69,7 @@ class ClusterBot(commands.AutoShardedBot):
         )
         self.add_check(is_enabled)
 
-        self.activity = loop.run_until_complete(self.get_cog("Bot").make_status())
+        self.activity = discord.Game("p!help • poketwo.net")
         self.http_session = aiohttp.ClientSession()
 
         # Run bot
@@ -110,6 +110,18 @@ class ClusterBot(commands.AutoShardedBot):
         return self.ready
 
     # Other stuff
+
+    async def send_dm(self, uid, content=None, *, embed=None, **kwargs):
+        if embed is not None:
+            embed = embed.to_dict()
+        user_data = await self.mongo.fetch_member_info(discord.Object(uid))
+        if (priv := user_data.private_message_id) is None:
+            priv = await self.http.start_private_message(uid)
+            priv = int(priv["id"])
+            self.loop.create_task(
+                self.mongo.update_member(uid, {"$set": {"private_message_id": priv}})
+            )
+        return await self.http.send_message(priv, content, embed=embed, **kwargs)
 
     async def do_startup_tasks(self):
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")

@@ -433,7 +433,6 @@ class Battling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
-        user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
         species = self.bot.data.species_by_number(species_id)
 
         embed = self.bot.Embed(color=0xFE9AC9)
@@ -442,7 +441,7 @@ class Battling(commands.Cog):
         embed.description = "\n".join(
             f"{k} **{v['text']}** • `p!battle move {v['command']}`" for k, v in actions.items()
         )
-        msg = await user.send(embed=embed)
+        msg = await self.bot.send_dm(user_id, embed=embed)
 
         async def add_reactions():
             for k in actions:
@@ -453,7 +452,7 @@ class Battling(commands.Cog):
         def check(payload):
             return (
                 payload.message_id == msg.id
-                and payload.user_id == user.id
+                and payload.user_id == user_id
                 and payload.emoji.name in actions
             )
 
@@ -461,7 +460,7 @@ class Battling(commands.Cog):
             try:
                 payload = await self.bot.wait_for("raw_reaction_add", timeout=35, check=check)
                 action = actions[payload.emoji.name]
-                self.bot.dispatch("battle_move", user, action["command"])
+                self.bot.dispatch("battle_move", user_id, action["command"])
             except asyncio.TimeoutError:
                 pass
 
@@ -469,15 +468,15 @@ class Battling(commands.Cog):
 
         try:
             while True:
-                user, move_name = await self.bot.wait_for(
-                    "battle_move", timeout=35, check=lambda u, m: u.id == user.id
+                _, move_name = await self.bot.wait_for(
+                    "battle_move", timeout=35, check=lambda u, m: u == user_id
                 )
                 try:
                     action = next(
                         x for x in actions.values() if x["command"].lower() == move_name.lower()
                     )
                 except StopIteration:
-                    await user.send("That's not a valid move here!")
+                    await self.bot.send_dm(user_id, "That's not a valid move here!")
                 else:
                     break
         except asyncio.TimeoutError:
@@ -485,7 +484,7 @@ class Battling(commands.Cog):
 
         await self.bot.redis.rpush(
             f"move_decide:{cluster_idx}",
-            pickle.dumps({"user_id": user.id, "action": action}),
+            pickle.dumps({"user_id": user_id, "action": action}),
         )
 
     @checks.has_started()

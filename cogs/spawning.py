@@ -198,8 +198,6 @@ class Spawning(commands.Cog):
             if channel is None:
                 return
 
-                self.bot.loop.create_task(self.spawn_pokemon(channel2))
-
             self.bot.loop.create_task(self.spawn_pokemon(channel))
 
     async def spawn_pokemon(self, channel, species=None, incense=None, redeem=False):

@@ -240,6 +240,7 @@ class Member(Document):
     joined_at = fields.DateTimeField(default=None)
     suspended = fields.BooleanField(default=False)
     suspension_reason = fields.StringField(default=None)
+    private_message_id = fields.IntegerField(default=None)
 
     # Pokémon
     next_idx = fields.IntegerField(default=1)
@@ -279,7 +280,7 @@ class Member(Document):
     show_balance = fields.BooleanField(default=True)
     silence = fields.BooleanField(default=False)
     catch_mention = fields.BooleanField(default=True)
-    
+
     # Quests
     badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     quest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)

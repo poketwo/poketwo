@@ -31,14 +31,13 @@ class Bot(commands.Cog):
             self.bot.prefixes = {}
 
         self.post_count.start()
-        self.update_status.start()
-        self.process_dms.start()
 
         if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
             self.post_dbl.start()
             self.remind_votes.start()
 
         self.cd = commands.CooldownMapping.from_cooldown(5, 3, commands.BucketType.user)
+        self.bot.loop.create_task(self.process_dms())
 
     async def bot_check(self, ctx):
         if ctx.invoked_with.lower() == "help":
@@ -50,20 +49,13 @@ class Bot(commands.Cog):
 
         return True
 
-    async def send_dm(self, uid, content):
-        priv = await self.bot.http.start_private_message(uid)
-        await self.bot.http.send_message(priv["id"], content)
-
-    @tasks.loop(seconds=0.5)
     async def process_dms(self):
-        with await self.bot.redis as r:
-            req = await r.blpop("send_dm")
-            uid, content = pickle.loads(req[1])
-            self.bot.loop.create_task(self.send_dm(uid, content))
-
-    @process_dms.before_loop
-    async def before_process_dms(self):
         await self.bot.wait_until_ready()
+        with await self.bot.redis as r:
+            while True:
+                req = await r.blpop("send_dm")
+                uid, content = pickle.loads(req[1])
+                self.bot.loop.create_task(self.bot.send_dm(uid, content))
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -256,22 +248,6 @@ class Bot(commands.Cog):
 
         return result
 
-    async def make_status(self):
-        result = await self.get_stats()
-        return discord.Activity(
-            type=discord.ActivityType.watching,
-            name=f"{result['servers']:,} servers",
-        )
-
-    @tasks.loop(minutes=5)
-    async def update_status(self):
-        await self.bot.change_presence(activity=await self.make_status())
-
-    @update_status.before_loop
-    async def before_update_status(self):
-        await self.bot.wait_until_ready()
-        await asyncio.sleep(5000)
-
     @tasks.loop(minutes=5)
     async def post_dbl(self):
         result = await self.get_stats()
@@ -294,10 +270,11 @@ class Bot(commands.Cog):
         async for x in self.bot.mongo.db.member.find(query, {"_id": 1}, no_cursor_timeout=True):
             try:
                 ids.add(x["_id"])
-                priv = await self.bot.http.start_private_message(x["_id"])
-                await self.bot.http.send_message(
-                    priv["id"],
-                    "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
+                self.bot.loop.create_task(
+                    self.bot.send_dm(
+                        x["_id"],
+                        "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
+                    )
                 )
             except:
                 pass
@@ -315,11 +292,11 @@ class Bot(commands.Cog):
         await self.bot.mongo.db.stats.update_one(
             {"_id": self.bot.cluster_name},
             {
+                "$max": {"servers": len(self.bot.guilds)},
                 "$set": {
-                    "servers": len(self.bot.guilds),
                     "shards": len(self.bot.shards),
                     "latency": min(sum(x[1] for x in self.bot.latencies), 1),
-                }
+                },
             },
             upsert=True,
         )
@@ -469,7 +446,6 @@ class Bot(commands.Cog):
 
     def cog_unload(self):
         self.post_count.cancel()
-        self.update_status.cancel()
 
         if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
             self.post_dbl.cancel()

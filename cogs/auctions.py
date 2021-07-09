@@ -452,17 +452,14 @@ class Auctions(commands.Cog):
                 await self.bot.mongo.update_member(
                     auction.bidder_id, {"$inc": {"balance": auction.current_bid}}
                 )
-                priv = await self.bot.http.start_private_message(auction.bidder_id)
                 self.bot.loop.create_task(
-                    self.bot.http.send_message(
-                        priv["id"],
+                    self.bot.send_dm(
+                        auction.bidder_id,
                         f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
                     )
                 )
-            self.bot.loop.create_task(
-                ctx.send(
-                    f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
-                )
+            await ctx.send(
+                f"You bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id})."
             )
 
     # TODO put all these flags into a single decorator

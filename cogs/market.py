@@ -308,10 +308,11 @@ class Market(commands.Cog):
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )
 
-        priv = await self.bot.http.start_private_message(listing["user_id"])
-        await self.bot.http.send_message(
-            priv["id"],
-            f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!",
+        self.bot.loop.create_task(
+            self.bot.send_dm(
+                listing["user_id"],
+                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!",
+            )
         )
 
         self.bot.dispatch("market_buy", ctx.author, listing)
