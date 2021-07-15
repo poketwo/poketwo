@@ -642,11 +642,7 @@ class Pokemon(commands.Cog):
             if not any(flags["item"]):
                 aggregations.append({"$match": {"pokemon.held_item": {"$type": "number"}}})
             else:
-                all_items = list(
-                    filter(
-                        None, map(lambda x: getattr(self.bot.data.item_by_name(" ".join(x)), "id", None), flags["item"])
-                    )
-                )
+                all_items = [i for i in (getattr(self.bot.data.item_by_name(" ".join(x)), "id", None) for x in flags["item"]) if i is not None]
                 aggregations.append({"$match": {"pokemon.held_item": {"$in": all_items}}})
 
         if "favorite" in flags and flags["favorite"]:
