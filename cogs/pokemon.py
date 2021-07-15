@@ -109,7 +109,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -288,7 +289,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -386,7 +388,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -634,6 +637,17 @@ class Pokemon(commands.Cog):
         if "region" in flags and flags["region"]:
             all_species = [i for x in flags["region"] for i in self.bot.data.list_region(x)]
             aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
+       
+        if "item" in flags and flags["item"] is not None:
+            if not any(flags["item"]):
+                aggregations.append({"$match": {"pokemon.held_item": {"$type": "number"}}})
+            else:
+                all_items = list(
+                    filter(
+                        None, map(lambda x: getattr(self.bot.data.item_by_name(" ".join(x)), "id", None), flags["item"])
+                    )
+                )
+                aggregations.append({"$match": {"pokemon.held_item": {"$in": all_items}}})
 
         if "favorite" in flags and flags["favorite"]:
             aggregations.append({"$match": {"pokemon.favorite": True}})
@@ -818,7 +832,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
@@ -928,7 +943,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
