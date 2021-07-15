@@ -636,7 +636,8 @@ class Trading(commands.Cog):
     @flags.add_flag("--nickname", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
-
+    @flags.add_flag("--item", nargs="*", action="append")
+    
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
     @flags.add_flag("--hpiv", nargs="+", action="append")
