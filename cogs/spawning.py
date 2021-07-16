@@ -422,7 +422,7 @@ class Spawning(commands.Cog):
 
         if member.shiny_hunt == species.dex_number:
             if shiny:
-                message += f"\n\nShiny streak reset. (**{member.shiny_streak}**)"
+                message += f"\n\nShiny streak reset. (**{member.shiny_streak + 1}**)"
                 await self.bot.mongo.update_member(ctx.author, {"$set": {"shiny_streak": 0}})
             else:
                 message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
