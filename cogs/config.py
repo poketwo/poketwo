@@ -178,7 +178,7 @@ class Configuration(commands.Cog):
         embed = self.bot.Embed()
         embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
         embed.description = (
-            "It is currently " + ("day" if guild.is_day else "night") + "time in this server."
+            f"It is currently {'day' if guild.is_day else 'night'} time in this server."
         )
         embed.add_field(name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}")
 

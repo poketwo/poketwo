@@ -59,26 +59,7 @@ class Spawning(commands.Cog):
     async def before_spawn_incense(self):
         await self.bot.wait_until_ready()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        # TODO this method is wayyy too long.
-
-        if not self.bot.enabled or message.author.bot or message.guild is None:
-            return
-
-        ctx = await self.bot.get_context(message)
-
-        if ctx.valid:
-            return
-
-        current = time.time()
-
-        # Spamcheck, every one second
-        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1.5:
-            return
-        self.bot.cooldown_users[message.author.id] = current
-
-        # Increase XP on selected pokemon
+    async def increase_xp(self, message):
         member = await self.bot.mongo.fetch_member_info(message.author)
 
         if member is not None:
@@ -169,6 +150,29 @@ class Spawning(commands.Cog):
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
                     await self.bot.mongo.update_pokemon(pokemon, {"$set": {"xp": pokemon.max_xp}})
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        # TODO this method is wayyy too long.
+
+        if not self.bot.enabled or message.author.bot or message.guild is None:
+            return
+
+        ctx = await self.bot.get_context(message)
+
+        if ctx.valid:
+            return
+
+        current = time.time()
+
+        # Spamcheck, every one second
+        if current - self.bot.cooldown_users.get(message.author.id, 0) < 1.5:
+            return
+        self.bot.cooldown_users[message.author.id] = current
+
+        # Increase XP on selected pokemon
+
+        await self.increase_xp(message)
 
         # Increment guild activity counter
 

@@ -38,7 +38,7 @@ class LogfmtFormatter(logging.Formatter):
         )
         attrs.update(getattr(record, "extra", None) or {})
         return " ".join(
-            '{}="{}"'.format(k, str(v).replace('"', '\\"')) if " " in str(v) else f"{k}={v}"
+            '{}="{}"'.format(k, str(v).replace('"', r"\"")) if " " in str(v) else f"{k}={v}"
             for k, v in attrs.items()
             if v is not None
         )
