@@ -346,7 +346,7 @@ class Market(commands.Cog):
 
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:

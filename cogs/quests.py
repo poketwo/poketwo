@@ -67,7 +67,7 @@ class Quests(commands.Cog):
     async def quests(self, ctx: commands.Context):
         """View quests."""
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = f"Quests"
         embed.description = "Complete these quests to earn special rewards!"
 
