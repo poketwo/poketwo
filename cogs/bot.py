@@ -93,7 +93,7 @@ class Bot(commands.Cog):
             await ctx.send("Sorry. This command is disabled and cannot be used.")
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [
-                "`" + perm.replace("_", " ").replace("guild", "server").title() + "`"
+                f"`{perm.replace('_', ' ').replace('guild', 'server').title()}`"
                 for perm in error.missing_permissions
             ]
             fmt = "\n".join(missing)

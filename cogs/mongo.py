@@ -91,7 +91,7 @@ class PokemonBase(MixinDocument):
         name += str(self.species)
 
         if self.nickname is not None and "n" in spec:
-            name += ' "' + self.nickname + '"'
+            name += f' "{self.nickname}"'
 
         if self.favorite and "f" in spec:
             name += " ❤️"

@@ -51,8 +51,8 @@ class Administration(commands.Cog):
         await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel)
 
     @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
-    @admin.command(aliases=("addredeem", "ar", "gr"))
-    async def giveredeem(self, ctx, user: FetchUserConverter, num: int = 1):
+    @admin.command(aliases=("giveredeem", "ar", "gr"))
+    async def addredeem(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a redeem."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"redeems": num}})
