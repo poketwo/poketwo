@@ -174,7 +174,7 @@ class Configuration(commands.Cog):
     async def time(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
+        embed = self.bot.Embed(title=f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
         embed.description = (
             f"It is currently {'day' if guild.is_day else 'night'} time in this server."
         )
