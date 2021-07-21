@@ -96,8 +96,7 @@ class Shop(commands.Cog):
 
         do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
-        embed = self.bot.Embed()
-        embed.title = f"Voting Rewards"
+        embed = self.bot.Embed(title=f"Voting Rewards")
 
         embed.description = (
             "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! "
@@ -291,8 +290,7 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed()
-        embed.title = f"{ctx.author.display_name}'s balance"
+        embed = self.bot.Embed(title=f"{ctx.author.display_name}'s balance")
         embed.add_field(name="Pokécoins", value=f"{member.balance:,}")
         embed.add_field(name="Shards", value=f"{member.premium_balance:,}")
         embed.set_thumbnail(url=ctx.author.avatar.url)
@@ -394,8 +392,7 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed()
-        embed.title = f"Pokétwo Shop"
+        embed = self.bot.Embed(title=f"Pokétwo Shop")
 
         if member.show_balance:
             embed.title += f" — {member.balance:,} Pokécoins"
@@ -733,8 +730,7 @@ class Shop(commands.Cog):
             )
 
         if "evolve" in item.action:
-            embed = self.bot.Embed()
-            embed.title = f"Congratulations {ctx.author.display_name}!"
+            embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
             name = str(pokemon.species)
 
@@ -767,8 +763,7 @@ class Shop(commands.Cog):
 
             # TODO this code is repeated too many times.
 
-            embed = self.bot.Embed()
-            embed.title = f"Congratulations {ctx.author.display_name}!"
+            embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
             name = str(pokemon.species)
 
@@ -851,8 +846,7 @@ class Shop(commands.Cog):
                     and form.form_item is not None
                     and form.form_item == item.id
                 ):
-                    embed = self.bot.Embed()
-                    embed.title = f"Congratulations {ctx.author.display_name}!"
+                    embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
                     name = str(pokemon.species)
 
@@ -909,9 +903,10 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed()
-        embed.title = f"Your Redeems: {member.redeems}"
-        embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards."
+        embed = self.bot.Embed(
+            title=f"Your Redeems: {member.redeems}",
+            description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
+        )
 
         embed.add_field(
             name=f"{ctx.prefix}redeemspawn <pokémon>",
@@ -932,9 +927,10 @@ class Shop(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = self.bot.Embed()
-            embed.title = f"Your Redeems: {member.redeems}"
-            embed.description = "You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards."
+            embed = self.bot.Embed(
+                title=f"Your Redeems: {member.redeems}",
+                description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
+            )
 
             embed.add_field(
                 name=f"{ctx.prefix}redeemspawn <pokémon>",

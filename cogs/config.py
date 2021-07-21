@@ -17,8 +17,7 @@ class Configuration(commands.Cog):
     def make_config_embed(self, ctx, guild, commands={}):
         prefix = guild.prefix if guild.prefix is not None else "p!"
 
-        embed = self.bot.Embed()
-        embed.title = "Server Configuration"
+        embed = self.bot.Embed(title="Server Configuration")
         embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.add_field(
             name=f"Prefix {commands.get('prefix_command', '')}",
@@ -175,8 +174,7 @@ class Configuration(commands.Cog):
     async def time(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed()
-        embed.title = f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛"
+        embed = self.bot.Embed(f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
         embed.description = (
             f"It is currently {'day' if guild.is_day else 'night'} time in this server."
         )

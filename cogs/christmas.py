@@ -12,8 +12,7 @@ class Christmas(commands.Cog):
     @commands.command()
     async def event(self, ctx):
         """Christmas Event"""
-        embed = self.bot.Embed()
-        embed.title = f"12 Days of Christmas"
+        embed = self.bot.Embed(title=f"12 Days of Christmas")
         embed.description = (
             "It's the holiday season! Some specially dressed pokémon will be visiting "
             "your servers for these twelve days. Keep your eyes peeled for these "

@@ -504,8 +504,7 @@ class Pokemon(commands.Cog):
                     pokemon = x
                     break
 
-            embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF)
-            embed.title = f"{pokemon:lnf}"
+            embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF, title=f"{pokemon:lnf}")
 
             if pokemon.shiny:
                 embed.set_image(url=pokemon.species.shiny_image_url)
@@ -771,10 +770,10 @@ class Pokemon(commands.Cog):
                 f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]"
             )
         else:
-            embed = self.bot.Embed()
-            embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
-
-            embed.description = "\n".join(f"{x:spl} ({x.idx})" for x in mons)
+            embed = self.bot.Embed(
+                title=f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]",
+                description="\n".join(f"{x:spl} ({x.idx})" for x in mons),
+            )
 
             await ctx.send(embed=embed)
 
@@ -1081,9 +1080,9 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed()
-                embed.title = f"Your pokédex"
-                embed.description = f"You've caught {num} out of 898 pokémon!"
+                embed = self.bot.Embed(
+                    title=f"Your pokédex", description=f"You've caught {num} out of 898 pokémon!"
+                )
 
                 embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
@@ -1141,8 +1140,7 @@ class Pokemon(commands.Cog):
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
-            embed = self.bot.Embed()
-            embed.title = f"#{species.dex_number} — {species}"
+            embed = self.bot.Embed(title=f"#{species.dex_number} — {species}")
 
             if species.description:
                 embed.description = species.description.replace("\n", " ")
@@ -1217,8 +1215,7 @@ class Pokemon(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(description="")
-        embed.title = f"Congratulations {ctx.author.display_name}!"
+        embed = self.bot.Embed(description="", title=f"Congratulations {ctx.author.display_name}!")
 
         evolved = []
 

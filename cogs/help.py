@@ -17,15 +17,13 @@ class CustomHelpCommand(commands.HelpCommand):
             await ctx.send(str(error.original))
 
     def make_page_embed(self, commands, title="Pokétwo Help", description=discord.Embed.Empty):
-        embed = self.context.bot.Embed(color=0xFE9AC9)
-        embed.title = title
-        embed.description = description
+        embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
         embed.set_footer(
             text=f'Use "{self.context.clean_prefix}help command" for more info on a command.'
         )
 
         for command in commands:
-            signature = self.context.clean_prefix + command.qualified_name + " "
+            signature = f"{self.context.clean_prefix}{command.qualified_name} "
 
             signature += (
                 "[args...]" if isinstance(command, flags.FlagCommand) else command.signature
@@ -40,9 +38,7 @@ class CustomHelpCommand(commands.HelpCommand):
         return embed
 
     def make_default_embed(self, cogs, title="Pokétwo Categories", description=discord.Embed.Empty):
-        embed = self.context.bot.Embed(color=0xFE9AC9)
-        embed.title = title
-        embed.description = description
+        embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
 
         counter = 0
         for cog in cogs:
@@ -141,8 +137,9 @@ class CustomHelpCommand(commands.HelpCommand):
         await ctx.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = self.context.bot.Embed(color=0xFE9AC9)
-        embed.title = self.context.clean_prefix + command.qualified_name
+        embed = self.context.bot.Embed(
+            color=0xFE9AC9, title=f"{self.context.clean_prefix}{command.qualified_name}"
+        )
 
         if command.description:
             embed.description = f"{command.description}\n\n{command.help}"
