@@ -11,7 +11,7 @@ import humanfriendly
 import pymongo
 from discord.ext import commands, flags, tasks
 
-from helpers import checks, converters, pagination
+from helpers import checks, constants, converters, pagination
 
 
 class AuctionConverter(commands.Converter):
@@ -126,7 +126,10 @@ class Auctions(commands.Cog):
                 print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = self.bot.Embed(title=f"Auction #{auction_id} • {pokemon:ln}")
+        embed = self.bot.Embed(
+            title=f"Auction #{auction_id} • {pokemon:ln}",
+            color=pokemon.color or constants.PINK,
+        )
         embed.set_author(name=str(author), icon_url=author.avatar.url)
 
         if pokemon.shiny:

@@ -5,7 +5,7 @@ import bson
 import pymongo
 from discord.ext import commands, flags
 
-from helpers import checks, converters, pagination
+from helpers import checks, constants, converters, pagination
 
 
 class Market(commands.Cog):
@@ -346,7 +346,7 @@ class Market(commands.Cog):
 
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
 
-        embed = self.bot.Embed(title=f"{pokemon:ln}")
+        embed = self.bot.Embed(title=f"{pokemon:ln}", color=pokemon.color or constants.PINK)
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)
