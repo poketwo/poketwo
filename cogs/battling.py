@@ -125,8 +125,7 @@ class Battle:
         self.manager = manager
 
     async def send_selection(self, ctx):
-        embed = self.bot.Embed()
-        embed.title = "Choose your party"
+        embed = self.bot.Embed(title="Choose your party")
         embed.description = (
             "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
             "have chosen their party. "
@@ -150,9 +149,9 @@ class Battle:
         await ctx.send(embed=embed)
 
     async def send_ready(self):
-        embed = self.bot.Embed()
-        embed.title = "💥 Ready to battle!"
-        embed.description = "The battle will begin in 5 seconds."
+        embed = self.bot.Embed(
+            title="💥 Ready to battle!", description="The battle will begin in 5 seconds."
+        )
 
         for trainer in self.trainers:
             embed.add_field(
@@ -191,8 +190,9 @@ class Battle:
         for action, trainer, opponent in iterl:
             action["priority"] = get_priority(action, trainer.selected)
 
-        embed = self.bot.Embed()
-        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+        embed = self.bot.Embed(
+            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+        )
         embed.set_footer(text="The next round will begin in 5 seconds.")
 
         for trainer in self.trainers:
@@ -296,8 +296,9 @@ class Battle:
         await self.channel.send(embed=embed)
 
     async def send_battle(self):
-        embed = self.bot.Embed()
-        embed.title = f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+        embed = self.bot.Embed(
+            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+        )
 
         if self.stage == Stage.PROGRESS:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
@@ -435,8 +436,7 @@ class Battling(commands.Cog):
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
         species = self.bot.data.species_by_number(species_id)
 
-        embed = self.bot.Embed()
-        embed.title = f"What should {species} do?"
+        embed = self.bot.Embed(title=f"What should {species} do?")
 
         embed.description = "\n".join(
             f"{k} **{v['text']}** • `p!battle move {v['command']}`" for k, v in actions.items()
@@ -601,8 +601,7 @@ class Battling(commands.Cog):
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        embed = self.bot.Embed()
-        embed.title = f"Level {pokemon.level} {pokemon.species} — Moves"
+        embed = self.bot.Embed(title=f"Level {pokemon.level} {pokemon.species} — Moves")
         embed.description = (
             f"Here are the moves your pokémon can learn right now. View all moves and how to get "
             f"them using `{ctx.prefix}moveset`!"
@@ -710,8 +709,7 @@ class Battling(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed()
-            embed.title = f"{species} — Moveset"
+            embed = self.bot.Embed(title=f"{species} — Moveset")
 
             embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(species.moves)}.")
 
@@ -738,9 +736,7 @@ class Battling(commands.Cog):
         if move is None:
             return await ctx.send("Couldn't find a move with that name!")
 
-        embed = self.bot.Embed()
-        embed.title = move.name
-        embed.description = move.description
+        embed = self.bot.Embed(title=move.name, description=move.description)
         embed.add_field(name="Target", value=move.target_text, inline=False)
 
         for name, x in (

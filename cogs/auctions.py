@@ -73,7 +73,7 @@ class Auctions(commands.Cog):
         )
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
-        embed.title = "[SOLD] " + embed.title
+        embed.title = f"[SOLD] {embed.title}"
         auction_info = (
             f"**Winning Bid:** {auction.current_bid:,} Pokécoins",
             f"**Bidder:** {bidder.mention}",
@@ -126,9 +126,11 @@ class Auctions(commands.Cog):
                 print("Error trading auction logs.")
 
     def make_base_embed(self, author, pokemon, auction_id):
-        embed = self.bot.Embed(color=pokemon.color or constants.PINK)
+        embed = self.bot.Embed(
+            title=f"Auction #{auction_id} • {pokemon:ln}",
+            color=pokemon.color or constants.PINK,
+        )
         embed.set_author(name=str(author), icon_url=author.avatar.url)
-        embed.title = f"Auction #{auction_id} • {pokemon:ln}"
 
         if pokemon.shiny:
             embed.set_thumbnail(url=pokemon.species.shiny_image_url)

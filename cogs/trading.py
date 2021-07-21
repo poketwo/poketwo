@@ -81,8 +81,7 @@ class Trading(commands.Cog):
             embed_pages = [[[], []]]
 
         async def get_page(source, menu, pidx):
-            embed = self.bot.Embed()
-            embed.title = f"Trade between {a.display_name} and {b.display_name}."
+            embed = self.bot.Embed(f"Trade between {a.display_name} and {b.display_name}.")
 
             if done:
                 embed.title = f"✅ Completed trade between {a.display_name} and {b.display_name}."
@@ -207,8 +206,9 @@ class Trading(commands.Cog):
                             if len(evos) > 0:
                                 evo = random.choice(evos)
 
-                                evo_embed = self.bot.Embed()
-                                evo_embed.title = f"Congratulations {omem.display_name}!"
+                                evo_embed = self.bot.Embed(
+                                    title=f"Congratulations {omem.display_name}!"
+                                )
 
                                 name = str(pokemon.species)
 
@@ -776,8 +776,7 @@ class Trading(commands.Cog):
         except StopIteration:
             return await ctx.send("Couldn't find that pokémon in the trade!")
 
-        embed = self.bot.Embed()
-        embed.title = f"{pokemon:ln}"
+        embed = self.bot.Embed(title=f"{pokemon:ln}")
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)
