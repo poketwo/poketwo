@@ -166,7 +166,7 @@ class Bot(commands.Cog):
         prefix = await self.determine_prefix(guild)
         prefix = prefix[0]
 
-        embed = discord.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = "Thanks for adding me to your server! \N{WAVING HAND SIGN}"
         embed.description = f"To get started, do `{prefix}start` to pick your starter pokémon. As server members talk, wild pokémon will automatically spawn in the server, and you'll be able to catch them with `{prefix}catch <pokémon>`! For a full command list, do `{prefix}help`."
         embed.add_field(
@@ -213,7 +213,7 @@ class Bot(commands.Cog):
     async def invite(self, ctx):
         """View the invite link for the bot."""
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = "Want to add me to your server? Use the link below!"
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
@@ -311,7 +311,7 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = f"Pokétwo Statistics"
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
@@ -351,7 +351,7 @@ class Bot(commands.Cog):
     async def start(self, ctx):
         """View the starter pokémon."""
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = "Welcome to the world of Pokémon!"
         embed.description = f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. "
 
@@ -408,7 +408,7 @@ class Bot(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(color=0xFE9AC9)
+        embed = self.bot.Embed()
         embed.title = "Trainer Profile"
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar.url)
 

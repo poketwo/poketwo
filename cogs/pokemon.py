@@ -771,7 +771,7 @@ class Pokemon(commands.Cog):
                 f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]"
             )
         else:
-            embed = self.bot.Embed(color=0xFE9AC9)
+            embed = self.bot.Embed()
             embed.title = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]"
 
             embed.description = "\n".join(f"{x:spl} ({x.idx})" for x in mons)
@@ -1081,7 +1081,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(color=0xFE9AC9)
+                embed = self.bot.Embed()
                 embed.title = f"Your pokédex"
                 embed.description = f"You've caught {num} out of 898 pokémon!"
 
@@ -1141,7 +1141,7 @@ class Pokemon(commands.Cog):
                 ctx.author, species.dex_number, species.dex_number + 1
             )
 
-            embed = self.bot.Embed(color=0xFE9AC9)
+            embed = self.bot.Embed()
             embed.title = f"#{species.dex_number} — {species}"
 
             if species.description:
@@ -1217,7 +1217,7 @@ class Pokemon(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(color=0xFE9AC9, description="")
+        embed = self.bot.Embed(description="")
         embed.title = f"Congratulations {ctx.author.display_name}!"
 
         evolved = []
