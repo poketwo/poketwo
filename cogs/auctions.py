@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 import discord
 import humanfriendly
 import pymongo
-from discord.ext import commands, flags, tasks
+from discord.ext import commands, tasks
 
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters, pagination, flags
 
 
 class AuctionConverter(commands.Converter):

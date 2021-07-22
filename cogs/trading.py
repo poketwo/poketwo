@@ -4,8 +4,8 @@ import random
 from itertools import zip_longest
 
 import discord
-from discord.ext import commands, flags
-from helpers import checks, pagination
+from discord.ext import commands
+from helpers import checks, pagination, flags
 
 
 def chunks(lst, n):

@@ -3,9 +3,9 @@ import math
 
 import bson
 import pymongo
-from discord.ext import commands, flags
+from discord.ext import commands
 
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters, pagination, flags
 
 
 class Market(commands.Cog):
