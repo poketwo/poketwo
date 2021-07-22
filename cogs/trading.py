@@ -81,7 +81,7 @@ class Trading(commands.Cog):
             embed_pages = [[[], []]]
 
         async def get_page(source, menu, pidx):
-            embed = self.bot.Embed(f"Trade between {a.display_name} and {b.display_name}.")
+            embed = self.bot.Embed(title=f"Trade between {a.display_name} and {b.display_name}.")
 
             if done:
                 embed.title = f"✅ Completed trade between {a.display_name} and {b.display_name}."
