@@ -1,4 +1,5 @@
 import asyncio
+import collections
 from itertools import starmap
 
 from discord.errors import HTTPException
@@ -35,14 +36,15 @@ class Auctions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.check_auctions.start()
-        self.sem = asyncio.Semaphore(1)
+        self.locks = collections.defaultdict(asyncio.Lock)
 
     @tasks.loop(minutes=1)
     async def check_auctions(self):
         auctions = self.bot.mongo.Auction.find({"ends": {"$lt": datetime.utcnow()}})
         async for auction in auctions:
             try:
-                await self.end_auction(auction)
+                async with self.locks[auction.guild_id]:
+                    await self.end_auction(auction)
             except Exception as e:
                 print(e)
                 continue
@@ -386,7 +388,7 @@ class Auctions(commands.Cog):
 
         # go!
 
-        async with self.sem:
+        async with self.locks[ctx.guild.id]:
             auction = await self.bot.mongo.Auction.find_one(
                 {"guild_id": ctx.guild.id, "_id": auction.id}
             )
