@@ -1,5 +1,5 @@
 import asyncio
-import collections
+from collections import defaultdict
 from itertools import starmap
 
 from discord.errors import HTTPException
@@ -36,7 +36,7 @@ class Auctions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.check_auctions.start()
-        self.locks = collections.defaultdict(asyncio.Lock)
+        self.locks = defaultdict(asyncio.Lock)
 
     @tasks.loop(minutes=1)
     async def check_auctions(self):
