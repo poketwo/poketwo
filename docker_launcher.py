@@ -64,4 +64,5 @@ if __name__ == "__main__":
         allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
         intents=discord.Intents.default(),
         config=config,
+        strip_after_prefix=True,
     )
