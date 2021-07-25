@@ -3,6 +3,7 @@ import pickle
 import random
 import sys
 import traceback
+import re
 from datetime import datetime, timedelta
 from typing import Counter
 
@@ -166,7 +167,6 @@ class Bot(commands.Cog):
         except StopIteration:
             return
         prefix = await self.determine_prefix(guild)
-        prefix = prefix[0]
 
         embed = self.bot.Embed(
             title="Thanks for adding me to your server! \N{WAVING HAND SIGN}",
@@ -188,7 +188,16 @@ class Bot(commands.Cog):
         )
         await channel.send(embed=embed)
 
-    async def determine_prefix(self, guild):
+    def case_insensitive_prefix(self, prefix, content):
+        match = re.match(f"^({prefix}).*", content, flags=re.I)
+
+        if match:
+            return match.group(1)
+
+        return None
+
+    async def determine_prefix(self, guild, message=None):
+        prefix = "p!"
         if guild:
             if guild.id not in self.bot.prefixes:
                 data = await self.bot.mongo.Guild.find_one({"id": guild.id})
@@ -199,18 +208,16 @@ class Bot(commands.Cog):
                 self.bot.prefixes[guild.id] = data.prefix
 
             if self.bot.prefixes[guild.id] is not None:
-                return [
-                    self.bot.prefixes[guild.id],
-                    self.bot.user.mention + " ",
-                    self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
-                ]
+                prefix = self.bot.prefixes[guild.id]
 
-        return [
-            "p!",
-            "P!",
-            self.bot.user.mention + " ",
-            self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
-        ]
+        if message:
+            prefix = self.case_insensitive_prefix(prefix, message.content)
+            if not prefix:
+                return commands.when_mentioned(self.bot, message)
+
+            return commands.when_mentioned_or(prefix)(self.bot, message)
+
+        return prefix
 
     @commands.command()
     async def invite(self, ctx):

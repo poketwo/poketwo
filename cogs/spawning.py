@@ -240,7 +240,6 @@ class Spawning(commands.Cog):
             embed.title = "A wild pokémon has appeared!"
 
         prefix = await self.bot.get_cog("Bot").determine_prefix(channel.guild)
-        prefix = prefix[0]
         embed.description = f"Guess the pokémon and type `{prefix}catch <pokémon>` to catch it!"
 
         image = None

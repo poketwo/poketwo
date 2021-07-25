@@ -21,7 +21,7 @@ DEFAULT_DISABLED_MESSAGE = (
 
 async def determine_prefix(bot, message):
     cog = bot.get_cog("Bot")
-    return await cog.determine_prefix(message.guild)
+    return await cog.determine_prefix(message.guild, message)
 
 
 def is_enabled(ctx):
