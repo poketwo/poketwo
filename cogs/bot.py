@@ -220,8 +220,8 @@ class Bot(commands.Cog):
 
         return [
             prefix,
-            f"<@{self.bot.user.id}>",
-            f"<@!{self.bot.user.id}>",
+            f"<@{self.bot.user.id}> ",
+            f"<@!{self.bot.user.id}> ",
         ]  # we cannot use when_mentioned_or due to us missing message in this case
 
     @commands.command()
