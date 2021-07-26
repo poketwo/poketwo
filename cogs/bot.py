@@ -218,7 +218,11 @@ class Bot(commands.Cog):
 
             return commands.when_mentioned_or(prefix)(self.bot, message)
 
-        return [prefix, f"<@{self.bot.user.id}>", f"<@!{self.bot.user.id}>"] # we cannot use when_mentioned_or due to us missing message in this case
+        return [
+            prefix,
+            f"<@{self.bot.user.id}>",
+            f"<@!{self.bot.user.id}>",
+        ]  # we cannot use when_mentioned_or due to us missing message in this case
 
     @commands.command()
     async def invite(self, ctx):
