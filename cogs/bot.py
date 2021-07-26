@@ -167,6 +167,7 @@ class Bot(commands.Cog):
         except StopIteration:
             return
         prefix = await self.determine_prefix(guild)
+        prefix = prefix[0]
 
         embed = self.bot.Embed(
             title="Thanks for adding me to your server! \N{WAVING HAND SIGN}",
@@ -189,7 +190,7 @@ class Bot(commands.Cog):
         await channel.send(embed=embed)
 
     def case_insensitive_prefix(self, prefix, content):
-        match = re.match(f"^({prefix}).*", content, flags=re.I)
+        match = re.match(f"^({re.escape(prefix)}).*", content, flags=re.I)
 
         if match:
             return match.group(1)
@@ -217,7 +218,7 @@ class Bot(commands.Cog):
 
             return commands.when_mentioned_or(prefix)(self.bot, message)
 
-        return prefix
+        return [prefix, f"<@{self.bot.user.id}>", f"<@!{self.bot.user.id}>"] # we cannot use when_mentioned_or due to us missing message in this case
 
     @commands.command()
     async def invite(self, ctx):
