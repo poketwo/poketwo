@@ -148,7 +148,6 @@ class Cluster:
         self.launcher = launcher
         self.process = None
         self.kwargs = dict(
-            application_id=config.APPLICATION_ID,
             token=config.BOT_TOKEN,
             shard_ids=shard_ids,
             shard_count=max_shards,

@@ -10,7 +10,6 @@ from bot import ClusterBot
 Config = namedtuple(
     "Config",
     [
-        "APPLICATION_ID",
         "DATABASE_URI",
         "DATABASE_NAME",
         "BOT_TOKEN",
@@ -43,7 +42,6 @@ if __name__ == "__main__":
         discord.http.Route.BASE = os.getenv("API_BASE")
 
     config = Config(
-        APPLICATION_ID=os.environ["APPLICATION_ID"],
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
         BOT_TOKEN=os.environ["BOT_TOKEN"],
@@ -65,7 +63,6 @@ if __name__ == "__main__":
     shard_ids = list(range(cluster_idx, num_shards, num_clusters))
 
     ClusterBot(
-        application_id=config.APPLICATION_ID,
         token=config.BOT_TOKEN,
         shard_ids=shard_ids,
         shard_count=num_shards,

@@ -3,7 +3,6 @@ DATABASE_URI = None
 DATABASE_NAME = None
 
 # Bot Configuration
-APPLICATION_ID = None
 BOT_TOKEN = None
 REDIS_CONF = {}
 
