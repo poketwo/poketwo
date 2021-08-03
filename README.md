@@ -23,7 +23,6 @@ Right now, the code's still quite convoluted. I am working on refactoring and re
 I'm looking to add the following major features to the bot, in addition to QoL fixes and small updates:
 
 - Pokémon
-	- Generation 8 pokémon
 	- The rest of the forms
 	- Gender differences
 	- More customizations options, like Pokéballs
