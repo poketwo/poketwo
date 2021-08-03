@@ -20,19 +20,6 @@ class FetchUserConverter(commands.Converter):
             raise commands.UserNotFound(arg)
 
 
-class MemberOrIdConverter(commands.Converter):
-    async def convert(self, ctx, arg):
-        try:
-            return await commands.MemberConverter().convert(ctx, arg)
-        except commands.MemberNotFound:
-            pass
-
-        try:
-            return FakeUser(int(arg))
-        except ValueError:
-            raise commands.MemberNotFound(arg)
-
-
 class PokemonConverter(commands.Converter):
     def __init__(self, accept_blank=True, raise_errors=True):
         self.accept_blank = accept_blank

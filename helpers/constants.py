@@ -1,5 +1,9 @@
 import re
 
+import discord
+
+from helpers.converters import FetchUserConverter
+
 BOXES = {"n": "normal", "g": "great", "u": "ultra", "m": "master"}
 
 NUMBER_REACTIONS = [
@@ -368,6 +372,23 @@ NATURE_MULTIPLIERS = {
         "sdef": 1,
         "spd": 1,
     },
+}
+
+DEFAULT_DISABLED_MESSAGE = (
+    "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. "
+    "Try again later and check the #status channel in the official server for more details."
+)
+
+SLASH_COMMAND_CONVERTER_TYPES = {
+    str: 3,
+    int: 4,
+    bool: 5,
+    discord.Member: 6,
+    discord.User: 6,
+    FetchUserConverter: 6,
+    discord.TextChannel: 7,
+    discord.Role: 8,
+    float: 10,
 }
 
 

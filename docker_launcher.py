@@ -10,6 +10,7 @@ from bot import ClusterBot
 Config = namedtuple(
     "Config",
     [
+        "APPLICATION_ID",
         "DATABASE_URI",
         "DATABASE_NAME",
         "BOT_TOKEN",
@@ -17,8 +18,16 @@ Config = namedtuple(
         "DBL_TOKEN",
         "SERVER_URL",
         "EXT_SERVER_URL",
+        "SLASH_GUILD_ID",
     ],
 )
+
+
+def int_or_none(num):
+    if num is None:
+        return None
+    return int(num)
+
 
 if __name__ == "__main__":
     uri = os.getenv("DATABASE_URI")
@@ -34,6 +43,7 @@ if __name__ == "__main__":
         discord.http.Route.BASE = os.getenv("API_BASE")
 
     config = Config(
+        APPLICATION_ID=os.environ["APPLICATION_ID"],
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
         BOT_TOKEN=os.environ["BOT_TOKEN"],
@@ -44,6 +54,7 @@ if __name__ == "__main__":
         DBL_TOKEN=os.getenv("DBL_TOKEN"),
         SERVER_URL=os.environ["SERVER_URL"],
         EXT_SERVER_URL=os.getenv("EXT_SERVER_URL", os.environ["SERVER_URL"]),
+        SLASH_GUILD_ID=int_or_none(os.getenv("SLASH_GUILD_ID")),
     )
 
     num_shards = int(os.getenv("NUM_SHARDS", 1))
@@ -54,6 +65,7 @@ if __name__ == "__main__":
     shard_ids = list(range(cluster_idx, num_shards, num_clusters))
 
     ClusterBot(
+        application_id=config.APPLICATION_ID,
         token=config.BOT_TOKEN,
         shard_ids=shard_ids,
         shard_count=num_shards,

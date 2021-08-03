@@ -1,16 +1,16 @@
-from urllib.parse import urljoin
 import asyncio
 import io
 import random
 import time
 from collections import defaultdict
+from urllib.parse import urljoin
 
-import aiohttp
 import discord
-from data import models
 from discord.ext import commands, tasks
+from helpers import checks, slash
 
-from helpers import checks
+from data import models
+
 from . import mongo
 
 
@@ -275,6 +275,7 @@ class Spawning(commands.Cog):
 
         return True
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.cooldown(1, 20, commands.BucketType.user)
@@ -306,6 +307,7 @@ class Spawning(commands.Cog):
 
         await ctx.send(f"The pokémon is {hint}.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.channel, wait=True)
     @commands.command(aliases=("c",))
@@ -439,6 +441,7 @@ class Spawning(commands.Cog):
         self.bot.dispatch("catch", ctx, species)
         await ctx.send(message)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command()
     async def togglemention(self, ctx):
@@ -454,6 +457,7 @@ class Spawning(commands.Cog):
         else:
             await ctx.send("You will now be pinged on catches.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("sh",))
     async def shinyhunt(self, ctx, *, species: str = None):

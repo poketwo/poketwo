@@ -10,7 +10,7 @@ from operator import itemgetter
 import discord
 from discord.errors import DiscordException
 from discord.ext import commands, flags
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters, pagination, slash
 from pymongo import UpdateOne
 
 
@@ -29,6 +29,7 @@ class Pokemon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @slash.with_slash_command()
     @commands.command(aliases=("renumber",))
     async def reindex(self, ctx):
         """Re-number all pokémon in your collection."""
@@ -55,6 +56,7 @@ class Pokemon(commands.Cog):
         await self.bot.mongo.db.pokemon.bulk_write(ops)
         await ctx.send("Successfully reindexed all your pokémon!")
 
+    @slash.with_slash_command()
     @commands.command(aliases=("nick",))
     async def nickname(
         self,
@@ -199,13 +201,8 @@ class Pokemon(commands.Cog):
         else:
             await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
 
-    @commands.command(
-        aliases=(
-            "favourite",
-            "fav",
-        ),
-        rest_is_raw=True,
-    )
+    @slash.with_slash_command()
+    @commands.command(aliases=("favourite", "fav"), rest_is_raw=True)
     async def favorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Mark a pokémon as a favorite."""
 
@@ -239,13 +236,8 @@ class Pokemon(commands.Cog):
             for i in range(0, len(longmsg), 2000):
                 await ctx.send(longmsg[i : i + 2000])
 
-    @commands.command(
-        aliases=(
-            "unfavourite",
-            "unfav",
-        ),
-        rest_is_raw=True,
-    )
+    @slash.with_slash_command()
+    @commands.command(aliases=("unfavourite", "unfav"), rest_is_raw=True)
     async def unfavorite(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Unfavorite a selected pokemon."""
 
@@ -468,6 +460,7 @@ class Pokemon(commands.Cog):
             f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited."
         )
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.cooldown(3, 5, commands.BucketType.user)
     @commands.command(aliases=("i",), rest_is_raw=True)
@@ -550,6 +543,7 @@ class Pokemon(commands.Cog):
         ctx.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("s",), rest_is_raw=True)
     async def select(self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)):
@@ -570,6 +564,7 @@ class Pokemon(commands.Cog):
             f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}."
         )
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("or",))
     async def order(self, ctx, *, sort: str = ""):
@@ -1258,6 +1253,7 @@ class Pokemon(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(rest_is_raw=True)
     async def unmega(self, ctx, *, pokemon: converters.PokemonConverter):

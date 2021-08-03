@@ -3,13 +3,13 @@ import random
 import typing
 from datetime import datetime, timedelta
 
-import aiohttp
 import discord
 import humanfriendly
-from data import models
 from discord.ext import commands, tasks
+from helpers import checks, constants, converters, slash
 
-from helpers import checks, constants, converters
+from data import models
+
 from . import mongo
 
 
@@ -41,6 +41,7 @@ class Shop(commands.Cog):
         now = datetime.utcnow()
         return str(now.year * 12 + now.month)
 
+    @slash.with_slash_command()
     @commands.command()
     @checks.is_admin()
     async def stopincense(self, ctx):
@@ -76,6 +77,7 @@ class Shop(commands.Cog):
         )
         await ctx.send("Incense has been stopped.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("v", "daily", "boxes"))
     async def vote(self, ctx):
@@ -165,6 +167,7 @@ class Shop(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("o",))
     async def open(self, ctx, type: str = "", amt: int = 1):
@@ -283,6 +286,7 @@ class Shop(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("bal",))
     async def balance(self, ctx):
@@ -296,6 +300,7 @@ class Shop(commands.Cog):
         embed.set_thumbnail(url=ctx.author.avatar.url)
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("di",), rest_is_raw=True)
     async def dropitem(self, ctx, *, pokemon: converters.PokemonConverter):
@@ -321,6 +326,7 @@ class Shop(commands.Cog):
 
         await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("mvi",))
     async def moveitem(
@@ -369,6 +375,7 @@ class Shop(commands.Cog):
             f"Moved held item from your level {from_pokemon.level} {from_name} to your level {to_pokemon.level} {to_name}."
         )
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("togglebal",))
     async def togglebalance(self, ctx):
@@ -385,6 +392,7 @@ class Shop(commands.Cog):
         else:
             await ctx.send("Your balance is no longer hidden in shop pages.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("store",))
     async def shop(self, ctx, *, page: int = 0):
@@ -475,6 +483,7 @@ class Shop(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user, wait=True)
     @commands.guild_only()
@@ -864,6 +873,7 @@ class Shop(commands.Cog):
 
                     break
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command(aliases=("ec",))
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -896,6 +906,7 @@ class Shop(commands.Cog):
         await self.bot.mongo.update_pokemon(pokemon, {"$set": {"color": color.value}})
         await ctx.send(f"Changed embed color to **#{color.value:06x}** for your **{pokemon:ls}**.")
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command()
     async def redeem(self, ctx):
@@ -915,6 +926,7 @@ class Shop(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)

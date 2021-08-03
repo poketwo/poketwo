@@ -1,4 +1,3 @@
-import asyncio
 import pickle
 import random
 import sys
@@ -10,7 +9,7 @@ import aiohttp
 import discord
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
-from helpers import checks, constants, converters
+from helpers import checks, constants, converters, slash
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
 
@@ -212,6 +211,7 @@ class Bot(commands.Cog):
             self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
         ]
 
+    @slash.with_slash_command()
     @commands.command()
     async def invite(self, ctx):
         """View the invite link for the bot."""
@@ -223,6 +223,7 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @commands.command()
     async def donate(self, ctx):
         """Donate to receive shards."""
@@ -307,6 +308,7 @@ class Bot(commands.Cog):
     async def before_post_count(self):
         await self.bot.wait_until_ready()
 
+    @slash.with_slash_command()
     @commands.command(aliases=("botinfo",))
     async def stats(self, ctx):
         """View bot info."""
@@ -331,6 +333,7 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @commands.command()
     async def ping(self, ctx):
         """View the bot's latency."""
@@ -348,6 +351,7 @@ class Bot(commands.Cog):
         else:
             await message.edit(content=f"Pong! **{ms} ms**")
 
+    @slash.with_slash_command()
     @commands.command()
     async def start(self, ctx):
         """View the starter pokémon."""
@@ -362,6 +366,7 @@ class Bot(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @commands.command()
     async def pick(self, ctx, *, name: str):
         """Pick a starter pokémon to get started."""
@@ -403,6 +408,7 @@ class Bot(commands.Cog):
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"
         )
 
+    @slash.with_slash_command()
     @checks.has_started()
     @commands.command()
     async def profile(self, ctx):
@@ -452,9 +458,10 @@ class Bot(commands.Cog):
             self.post_dbl.cancel()
             self.remind_votes.cancel()
 
+    @slash.with_slash_command()
     @commands.command()
     @commands.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx, search=100):
+    async def cleanup(self, ctx, search: int = 100):
         """Cleans up the bot's messages from the channel."""
 
         def check(m):

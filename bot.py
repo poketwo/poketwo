@@ -1,7 +1,7 @@
 import asyncio
 from importlib import reload
-import aiohttp
 
+import aiohttp
 import discord
 import uvloop
 from aioredis_lock import RedisLock
@@ -10,13 +10,10 @@ from expiringdict import ExpiringDict
 
 import cogs
 import helpers
+from helpers import constants
+from helpers.slash import CommandWithSlashCommand, SlashCommand, SlashContext
 
 uvloop.install()
-
-DEFAULT_DISABLED_MESSAGE = (
-    "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. "
-    "Try again later and check the #status channel in the official server for more details."
-)
 
 
 async def determine_prefix(bot, message):
@@ -26,7 +23,7 @@ async def determine_prefix(bot, message):
 
 def is_enabled(ctx):
     if not ctx.bot.enabled:
-        raise commands.CheckFailure(DEFAULT_DISABLED_MESSAGE)
+        raise commands.CheckFailure(constants.DEFAULT_DISABLED_MESSAGE)
     return True
 
 
@@ -44,16 +41,21 @@ class ClusterBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         self.cluster_name = kwargs.pop("cluster_name")
         self.cluster_idx = kwargs.pop("cluster_idx")
+
         self.config = kwargs.pop("config", None)
         if self.config is None:
             self.config = __import__("config")
 
-        self.ready = False
-        self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
-
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
+
+        self.ready = False
+        self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
+        self.slash_commands: dict[str, SlashCommand] = {}
+        self.slash_commands_ready = False
+        self.activity = discord.Game("p!help • poketwo.net")
+        self.http_session = aiohttp.ClientSession()
 
         # Load extensions
 
@@ -74,13 +76,57 @@ class ClusterBot(commands.AutoShardedBot):
         )
         self.add_check(is_enabled)
 
-        self.activity = discord.Game("p!help • poketwo.net")
-        self.http_session = aiohttp.ClientSession()
-
         # Run bot
-
-        self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
+
+    # Slash
+
+    def add_command(self, command):
+        super().add_command(command)
+        if isinstance(command, CommandWithSlashCommand):
+            self.slash_commands[command.slash_command.name] = command.slash_command
+
+    def remove_command(self, name):
+        command = super().remove_command(name)
+        if isinstance(command, CommandWithSlashCommand):
+            del self.slash_commands[command.slash_command.name]
+        return command
+
+    async def get_slash_commands(self):
+        if self.config.SLASH_GUILD_ID is None:
+            return await self.http.get_global_commands(self.application_id)
+        return await self.http.get_guild_commands(self.application_id, self.config.SLASH_GUILD_ID)
+
+    async def bulk_upsert_slash_commands(self, payload):
+        if self.config.SLASH_GUILD_ID is None:
+            return await self.http.bulk_upsert_global_commands(self.application_id, payload)
+        return await self.http.bulk_upsert_guild_commands(
+            self.application_id, self.config.SLASH_GUILD_ID, payload
+        )
+
+    async def process_slash_commands(self, interaction: discord.Interaction):
+        if interaction.type is not discord.InteractionType.application_command:
+            return
+        if interaction.data is None:
+            return
+        try:
+            slash_cmd = self.slash_commands[interaction.data["name"]]
+        except KeyError:
+            return
+
+        ctx = SlashContext.build_from_interaction(self, interaction, slash_cmd)
+        await slash_cmd(ctx)
+
+    async def on_connect(self):
+        if self.slash_commands_ready:
+            return
+        # prev_cmds = await self.get_slash_commands()
+        cmds = [x.to_json() for x in self.slash_commands.values()]
+        await self.bulk_upsert_slash_commands(cmds)
+        self.slash_commands_ready = True
+
+    async def on_interaction(self, interaction):
+        await self.process_slash_commands(interaction)
 
     # Easy access to things
 
@@ -132,15 +178,9 @@ class ClusterBot(commands.AutoShardedBot):
         dm = await self.create_dm(user)
         return await dm.send(*args, **kwargs)
 
-    async def do_startup_tasks(self):
-        self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
-
+    async def on_ready(self):
         await self.wait_until_ready()
         self.ready = True
-        self.log.info(f"Logged in as {self.user}")
-
-    async def on_ready(self):
-        self.log.info(f"Ready called.")
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"Shard {shard_id} ready")
@@ -172,5 +212,3 @@ class ClusterBot(commands.AutoShardedBot):
 
         for i in cogs.default:
             self.reload_extension(f"cogs.{i}")
-
-        await self.do_startup_tasks()

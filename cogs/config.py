@@ -1,7 +1,7 @@
 import discord
 import geocoder
 from discord.ext import commands
-from helpers import checks
+from helpers import checks, slash
 
 
 def geocode(location):
@@ -70,6 +70,7 @@ class Configuration(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @slash.with_slash_command()
     @checks.is_admin()
     @commands.guild_only()
     @commands.command(aliases=("setprefix",))
