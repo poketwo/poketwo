@@ -465,7 +465,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        if amt <= 0:
+        if amt < 0:
             return await ctx.send("The amount must be positive!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -496,7 +496,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        if amt <= 0:
+        if amt < 0:
             return await ctx.send("The amount must be positive!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -578,7 +578,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        if amt <= 0:
+        if amt < 0:
             return await ctx.send("The amount must be positive!")
 
         if self.bot.trades[ctx.author.id]["pokecoins"][ctx.author.id] - amt < 0:
@@ -608,7 +608,7 @@ class Trading(commands.Cog):
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        if amt <= 0:
+        if amt < 0:
             return await ctx.send("The amount must be positive!")
 
         if self.bot.trades[ctx.author.id]["redeems"][ctx.author.id] - amt < 0:
