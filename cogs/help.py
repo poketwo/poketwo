@@ -2,8 +2,8 @@ import itertools
 import math
 
 import discord
-from discord.ext import commands, flags
-from helpers import pagination
+from discord.ext import commands
+from helpers import pagination, flags
 
 
 class CustomHelpCommand(commands.HelpCommand):
