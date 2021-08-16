@@ -129,8 +129,8 @@ class Spawning(commands.Cog):
 
                         for i in range(-c % 3):
                             embed.add_field(
-                                name="‎",
-                                value="‎",
+                                name="",
+                                value="",
                             )
 
                     await self.bot.mongo.update_pokemon(pokemon, update)
@@ -376,7 +376,9 @@ class Spawning(commands.Cog):
         if shiny:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention if member.catch_mention else ctx.author.display_name}! You caught a level {level} {species}!"
+        user_name = discord.utils.escape_markdown(ctx.author.display_name)
+        catch_name = user_name.replace("<", "\\<")
+        message = f"Congratulations {ctx.author.mention if member.catch_mention else catch_name}! You caught a level {level} {species}!"
 
         memberp = await self.bot.mongo.fetch_pokedex(
             ctx.author, species.dex_number, species.dex_number + 1
@@ -437,7 +439,10 @@ class Spawning(commands.Cog):
         await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
         self.bot.dispatch("catch", ctx, species)
-        await ctx.send(message)
+        if member.catch_mention:
+            await ctx.send(message)
+        else:
+            await ctx.send(message, discord.AllowedMentions.none())
 
     @checks.has_started()
     @commands.command()
