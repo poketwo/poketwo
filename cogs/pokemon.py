@@ -9,8 +9,8 @@ from operator import itemgetter
 
 import discord
 from discord.errors import DiscordException
-from discord.ext import commands, flags
-from helpers import checks, constants, converters, pagination
+from discord.ext import commands
+from helpers import checks, constants, converters, pagination, flags
 from pymongo import UpdateOne
 
 
