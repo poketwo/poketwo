@@ -59,7 +59,8 @@ class Bot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        await self.bot.process_commands(after)
+        if after.content != before.content:
+            await self.bot.process_commands(after)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
