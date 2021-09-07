@@ -218,7 +218,7 @@ class Bot(commands.Cog):
         """View the invite link for the bot."""
 
         embed = self.bot.Embed(title="Want to add me to your server? Use the link below!")
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
         embed.add_field(name="Join Server", value="https://discord.gg/poketwo", inline=False)
 
@@ -315,7 +315,7 @@ class Bot(commands.Cog):
         result = await self.get_stats()
 
         embed = self.bot.Embed(title=f"Pokétwo Statistics")
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
 
         embed.add_field(name="Servers", value=result["servers"], inline=False)
         embed.add_field(name="Shards", value=result["shards"], inline=False)
@@ -412,7 +412,7 @@ class Bot(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         embed = self.bot.Embed(title="Trainer Profile")
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar.url)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
         pokemon_caught = []
         pokemon_caught.append(

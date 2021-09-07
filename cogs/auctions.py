@@ -132,7 +132,7 @@ class Auctions(commands.Cog):
             title=f"Auction #{auction_id} • {pokemon:ln}",
             color=pokemon.color or constants.PINK,
         )
-        embed.set_author(name=str(author), icon_url=author.avatar.url)
+        embed.set_author(name=str(author), icon_url=author.display_avatar.url)
 
         if pokemon.shiny:
             embed.set_thumbnail(url=pokemon.species.shiny_image_url)

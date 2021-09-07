@@ -783,7 +783,7 @@ class Trading(commands.Cog):
         else:
             embed.set_image(url=pokemon.species.image_url)
 
-        embed.set_thumbnail(url=other.avatar.url)
+        embed.set_thumbnail(url=other.display_avatar.url)
 
         info = (
             f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
