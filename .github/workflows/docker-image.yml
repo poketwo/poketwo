@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GHCR_PAT }}
           submodules: true
+
       - uses: nelonoel/branch-name@v1.0.1
       - name: Publish Image
         uses: whoan/docker-build-with-cache-action@v5
