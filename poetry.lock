@@ -156,7 +156,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "discord-ext-menus"
-version = "1.0.0a30+g309c702"
+version = "1.0.0a31+gfbb8803"
 description = "An extension module to make reaction based menus with discord.py"
 category = "main"
 optional = false
@@ -170,7 +170,7 @@ develop = false
 type = "git"
 url = "https://github.com/Rapptz/discord-ext-menus.git"
 reference = "master"
-resolved_reference = "309c70222eec33acacb8c21bbb0fbe9bc57de661"
+resolved_reference = "fbb8803779373357e274e1540b368365fd9d8074"
 
 [[package]]
 name = "discord-ext-menus-views"
@@ -197,13 +197,20 @@ description = "A Discord.py extension allowing you to pass flags as arguments."
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
 
 [package.dependencies]
 "discord.py" = ">=1.2.5"
 
+[package.source]
+type = "git"
+url = "https://github.com/oliver-ni/Flag-Parsing.git"
+reference = "master"
+resolved_reference = "eda906075f6dab6776d6cb17ff9c977135bd4d72"
+
 [[package]]
 name = "discord.py"
-version = "2.0.0a3407+gfc51736b"
+version = "2.0.0a3575+g45d498c1"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -223,7 +230,7 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 type = "git"
 url = "https://github.com/Rapptz/discord.py.git"
 reference = "master"
-resolved_reference = "fc51736b34df3c37c06781ae948b18efb71616fa"
+resolved_reference = "45d498c1b76deaf3b394d17ccf56112fa691d160"
 
 [[package]]
 name = "dnspython"
@@ -578,7 +585,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "941bbe4741710a52a11d2cd4879f00c3977d4f5c19d523ea99abaa3dcc8b28dc"
+content-hash = "bf408ef884bf302542e71cb2200527a2be500e944e5a72257eae76b36347a88a"
 
 [metadata.files]
 aiohttp = [
@@ -673,10 +680,7 @@ decorator = [
 ]
 discord-ext-menus = []
 discord-ext-menus-views = []
-discord-flags = [
-    {file = "discord-flags-2.1.1.tar.gz", hash = "sha256:0fba0574fd21f29cb395f1bf66251d6f0b8415a50c160f1363589300e0174848"},
-    {file = "discord_flags-2.1.1-py3-none-any.whl", hash = "sha256:91075d38cfe2a2b7be6cff656645ebbcde7ee3afe402c69d5163f2021f6c1d04"},
-]
+discord-flags = []
 "discord.py" = []
 dnspython = [
     {file = "dnspython-2.1.0-py3-none-any.whl", hash = "sha256:95d12f6ef0317118d2a1a6fc49aac65ffec7eb8087474158f42f26a639135216"},
