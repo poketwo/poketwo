@@ -16,8 +16,8 @@ jobs:
       - name: Publish Image
         uses: whoan/docker-build-with-cache-action@v5
         with:
-          username: oliver-ni
+          username: poketwo
           password: ${{ secrets.GHCR_PAT }}
           registry: ghcr.io
-          image_name: p2-priv
+          image_name: poketwo
           image_tag: latest,${{ github.sha }}
