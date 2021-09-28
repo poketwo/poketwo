@@ -470,7 +470,7 @@ class Bot(commands.Cog):
             messages.append("")
             spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
             messages.extend(f"– **{author}**: {count}" for author, count in spammers)
-
+        await ctx.message.delete()
         await ctx.send("\n".join(messages), delete_after=5)
 
 
