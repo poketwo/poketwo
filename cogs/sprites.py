@@ -1872,6 +1872,7 @@ other = {
     "stone_shiny": 725820040468758589,
     "stone_dusk": 725820040510963854,
     "stone_dawn": 725820040451981383,
+    "stone_ice": 725820040213168179,
     "item_griseous_orb": 725820017853071552,
     "item_gracidea": 725820017828167690,
     "item_reveal_glass": 725820017735893098,
