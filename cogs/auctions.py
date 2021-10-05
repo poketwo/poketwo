@@ -1,18 +1,13 @@
 import asyncio
 from collections import defaultdict
-from itertools import starmap
-
-from discord.errors import HTTPException
-from helpers.utils import FakeUser
-import math
 from datetime import datetime, timedelta
 
 import discord
 import humanfriendly
 import pymongo
 from discord.ext import commands, tasks
-
-from helpers import checks, constants, converters, pagination, flags
+from helpers import checks, constants, converters, flags, pagination
+from helpers.utils import FakeUser
 
 
 class AuctionConverter(commands.Converter):
@@ -38,16 +33,17 @@ class Auctions(commands.Cog):
         self.check_auctions.start()
         self.locks = defaultdict(asyncio.Lock)
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=20)
     async def check_auctions(self):
         auctions = self.bot.mongo.Auction.find({"ends": {"$lt": datetime.utcnow()}})
         async for auction in auctions:
             try:
-                async with self.locks[auction.guild_id]:
+                async with self.locks[auction.id]:
                     await self.end_auction(auction)
             except Exception as e:
-                print(e)
-                continue
+                pass
+            else:
+                del self.locks[auction.id]
 
     @check_auctions.before_loop
     async def before_check_auctions(self):
@@ -65,12 +61,12 @@ class Auctions(commands.Cog):
 
         host = (
             self.bot.get_user(auction.user_id)
-            or await auction_guild.fetch_member(auction.user_id)
+            or await self.bot.fetch_user(auction.user_id)
             or FakeUser(auction.user_id)
         )
         bidder = (
             self.bot.get_user(auction.bidder_id)
-            or await auction_guild.fetch_member(auction.bidder_id)
+            or await self.bot.fetch_user(auction.bidder_id)
             or FakeUser(auction.bidder_id)
         )
 
@@ -388,7 +384,7 @@ class Auctions(commands.Cog):
 
         # go!
 
-        async with self.locks[ctx.guild.id]:
+        async with self.locks[auction.id]:
             auction = await self.bot.mongo.Auction.find_one(
                 {"guild_id": ctx.guild.id, "_id": auction.id}
             )
