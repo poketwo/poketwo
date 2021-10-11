@@ -924,9 +924,9 @@ class Shop(commands.Cog):
         """Use a redeem to spawn a pokémon of your choice."""
 
         # TODO I should really merge this and redeem into one function.
-        
+
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        
+
         if species is None:
             embed = self.bot.Embed(
                 title=f"Your Redeems: {member.redeems}",
