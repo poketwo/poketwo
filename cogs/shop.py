@@ -916,6 +916,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=("rs",))
@@ -923,9 +924,6 @@ class Shop(commands.Cog):
         """Use a redeem to spawn a pokémon of your choice."""
 
         # TODO I should really merge this and redeem into one function.
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
         
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         

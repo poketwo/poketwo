@@ -32,3 +32,11 @@ def has_started():
         return True
 
     return commands.check(predicate)
+
+def is_not_in_trade():
+    def predicate(ctx):
+        if ctx.bot.get_cog("Trading").is_in_trade(ctx.author):
+            raise commands.CheckFailure("You can't do that in a trade!")
+        else:
+            return True
+    return commands.check(predicate)
