@@ -246,7 +246,7 @@ class Auctions(commands.Cog):
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
-    
+            
         # TODO put counters in mongo cog
 
         counter = await self.bot.mongo.db.counter.find_one_and_update(
