@@ -172,6 +172,7 @@ class Auctions(commands.Cog):
         await ctx.send(f"Changed auctions channel to **{channel}**.")
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, per=commands.BucketType.user)
     @auction.command()
     async def start(
