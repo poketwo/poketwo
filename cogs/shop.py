@@ -924,11 +924,11 @@ class Shop(commands.Cog):
 
         # TODO I should really merge this and redeem into one function.
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
-
+        
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        
         if species is None:
             embed = self.bot.Embed(
                 title=f"Your Redeems: {member.redeems}",
