@@ -34,7 +34,7 @@ def has_started():
     return commands.check(predicate)
 
 def is_not_in_trade():
-    def predicate(ctx):
+    async def predicate(ctx):
         if await ctx.bot.get_cog("Trading").is_in_trade(ctx.author):
             raise commands.CheckFailure("You can't do that in a trade!")
         return True
