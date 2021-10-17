@@ -1,7 +1,7 @@
 import asyncio
 from importlib import reload
-import aiohttp
 
+import aiohttp
 import discord
 import uvloop
 from aioredis_lock import RedisLock
@@ -24,12 +24,6 @@ async def determine_prefix(bot, message):
     return await cog.determine_prefix(message.guild)
 
 
-def is_enabled(ctx):
-    if not ctx.bot.enabled:
-        raise commands.CheckFailure(DEFAULT_DISABLED_MESSAGE)
-    return True
-
-
 class ClusterBot(commands.AutoShardedBot):
     class BlueEmbed(discord.Embed):
         def __init__(self, **kwargs):
@@ -48,7 +42,6 @@ class ClusterBot(commands.AutoShardedBot):
         if self.config is None:
             self.config = __import__("config")
 
-        self.ready = False
         self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
 
         loop = asyncio.new_event_loop()
@@ -72,7 +65,6 @@ class ClusterBot(commands.AutoShardedBot):
                 external_emojis=True,
             ).predicate
         )
-        self.add_check(is_enabled)
 
         self.activity = discord.Game("p!help • poketwo.net")
         self.http_session = aiohttp.ClientSession()
@@ -104,16 +96,6 @@ class ClusterBot(commands.AutoShardedBot):
     def log(self):
         return self.get_cog("Logging").log
 
-    @property
-    def enabled(self):
-        for cog in self.cogs.values():
-            try:
-                if not cog.ready:
-                    return False
-            except AttributeError:
-                pass
-        return self.ready
-
     # Other stuff
 
     async def send_dm(self, user, *args, **kwargs):
@@ -136,7 +118,6 @@ class ClusterBot(commands.AutoShardedBot):
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
 
         await self.wait_until_ready()
-        self.ready = True
         self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
@@ -161,8 +142,6 @@ class ClusterBot(commands.AutoShardedBot):
         await super().close()
 
     async def reload_modules(self):
-        self.ready = False
-
         reload(cogs)
         reload(helpers)
 

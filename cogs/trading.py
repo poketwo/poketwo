@@ -5,7 +5,7 @@ from itertools import zip_longest
 
 import discord
 from discord.ext import commands
-from helpers import checks, pagination, flags
+from helpers import checks, flags, pagination
 
 
 def chunks(lst, n):
@@ -18,11 +18,8 @@ class Trading(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.ready = False
         if not hasattr(self.bot, "trades"):
             self.bot.loop.create_task(self.clear_trades())
-        else:
-            self.ready = True
 
     async def clear_trades(self):
         await self.bot.get_cog("Redis").wait_until_ready()
@@ -36,7 +33,6 @@ class Trading(commands.Cog):
             await self.bot.redis.hdel("trade", *todel)
 
         self.bot.trades = {}
-        self.ready = True
 
     def is_in_trade(self, user):
         return self.bot.redis.hexists("trade", user.id)

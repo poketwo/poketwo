@@ -1930,7 +1930,6 @@ enable_emojis_for = (716390085896962058, 717112814535442432, 848517317469405214)
 class Sprites(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.ready = True
 
     @property
     def status(self):

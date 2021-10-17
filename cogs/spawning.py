@@ -1,16 +1,17 @@
-from urllib.parse import urljoin
 import asyncio
 import io
 import random
 import time
 from collections import defaultdict
+from urllib.parse import urljoin
 
 import aiohttp
 import discord
-from data import models
 from discord.ext import commands, tasks
-
 from helpers import checks
+
+from data import models
+
 from . import mongo
 
 
@@ -38,9 +39,6 @@ class Spawning(commands.Cog):
 
     @tasks.loop(seconds=20)
     async def spawn_incense(self):
-        if not self.bot.enabled:
-            return
-
         channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
             if "guild_id" in result:
@@ -152,9 +150,7 @@ class Spawning(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # TODO this method is wayyy too long.
-
-        if not self.bot.enabled or message.author.bot or message.guild is None:
+        if message.author.bot or message.guild is None:
             return
 
         ctx = await self.bot.get_context(message)
