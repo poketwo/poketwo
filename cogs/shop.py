@@ -916,6 +916,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=("rs",))

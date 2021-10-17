@@ -99,6 +99,7 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -278,6 +279,7 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -375,6 +377,7 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -551,12 +554,10 @@ class Pokemon(commands.Cog):
         await pages.start(ctx)
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.command(aliases=("s",), rest_is_raw=True)
     async def select(self, ctx, *, pokemon: converters.PokemonConverter(accept_blank=False)):
         """Select a specific pokémon from your collection."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
@@ -620,7 +621,7 @@ class Pokemon(commands.Cog):
         if rarity:
             aggregations.append({"$match": {"pokemon.species_id": {"$in": rarity}}})
 
-        for x in ("alolan", "mega", "event"):
+        for x in ("alolan", "galarian", "mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append(
                     {"$match": {"pokemon.species_id": {"$in": getattr(self.bot.data, f"list_{x}")}}}
@@ -723,13 +724,11 @@ class Pokemon(commands.Cog):
         return aggregations
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=("r",))
     async def release(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Release pokémon from your collection for 2pc each."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -788,6 +787,9 @@ class Pokemon(commands.Cog):
         except asyncio.TimeoutError:
             return await ctx.send("Time's up. Aborted.")
 
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+            
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
@@ -807,6 +809,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -840,14 +843,12 @@ class Pokemon(commands.Cog):
 
     # Release all
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.cooldown(1, 5, commands.BucketType.user)
     @flags.command(aliases=("ra",))
     async def releaseall(self, ctx, **flags):
         """Mass release pokémon from your collection for 2 pc each."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         aggregations = await self.create_filter(flags, ctx)
 
@@ -888,6 +889,9 @@ class Pokemon(commands.Cog):
         except asyncio.TimeoutError:
             return await ctx.send("Time's up. Aborted.")
 
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+
         # confirmed, release all
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
@@ -916,6 +920,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")

@@ -172,6 +172,7 @@ class Auctions(commands.Cog):
         await ctx.send(f"Changed auctions channel to **{channel}**.")
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, per=commands.BucketType.user)
     @auction.command()
     async def start(
@@ -468,6 +469,7 @@ class Auctions(commands.Cog):
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")

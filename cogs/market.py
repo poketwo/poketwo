@@ -25,6 +25,7 @@ class Market(commands.Cog):
     # Filter
     @flags.add_flag("--shiny", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -107,13 +108,11 @@ class Market(commands.Cog):
             await ctx.send("No listings found.")
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=("list", "a", "l"))
     async def add(self, ctx, pokemon: converters.PokemonConverter, price: int):
         """List a pokémon on the marketplace."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
@@ -178,13 +177,11 @@ class Market(commands.Cog):
         )
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=("unlist", "r", "u"))
     async def remove(self, ctx, id: int):
         """Remove a pokémon from the marketplace."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         try:
             listing = await self.bot.mongo.db.listing.find_one({"_id": id})
@@ -232,13 +229,11 @@ class Market(commands.Cog):
         )
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.member)
     @market.command(aliases=("purchase", "b", "p"))
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
-
-        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
 
         try:
             listing = await self.bot.mongo.db.listing.find_one({"_id": id})
