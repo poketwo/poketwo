@@ -1,18 +1,18 @@
-import pickle
 import math
+import pickle
 import random
 from datetime import datetime, timedelta, timezone
 
 import discord
 import pymongo
 from bson.objectid import ObjectId
-from data import models
 from discord.ext import commands
+from helpers import constants
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
 
-from helpers import constants
+from data import models
 
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(constants.NATURES)
@@ -287,6 +287,7 @@ class Member(Document):
 
     # Events
     halloween_tickets = fields.IntegerField(default=0)
+    halloween_tickets_2021 = fields.IntegerField(default=0)
     hquests = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     hquest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     halloween_badge = fields.BooleanField(default=False)

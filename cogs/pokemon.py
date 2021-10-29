@@ -10,7 +10,7 @@ from operator import itemgetter
 import discord
 from discord.errors import DiscordException
 from discord.ext import commands
-from helpers import checks, constants, converters, pagination, flags
+from helpers import checks, constants, converters, flags, pagination
 from pymongo import UpdateOne
 
 
@@ -789,7 +789,7 @@ class Pokemon(commands.Cog):
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
-            
+
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
@@ -1200,6 +1200,9 @@ class Pokemon(commands.Cog):
             text = "You haven't caught this pokémon yet!"
             if str(species.dex_number) in member.pokedex:
                 text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
+
+            if species.art_credit:
+                text = f"Artwork by {species.art_credit}\n" + text
 
             embed.set_footer(text=text)
 
