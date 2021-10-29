@@ -69,7 +69,7 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
         embed = menu.ctx.bot.Embed(
             title=self.title,
-            description=f"\n".join(lines)[:2048],
+            description=f"\n".join(lines)[:4096],
         )
         embed.set_footer(text=footer)
         return embed
