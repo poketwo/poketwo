@@ -72,6 +72,11 @@ class Halloween(commands.Cog):
             value="You can also receive up to two tickets per day by simply voting for us on Top.gg! Click the link below to learn more.",
             inline=False,
         )
+        embed.add_field(
+            name="Halloween Badge",
+            value="Trick-or-Treat 30 times to receive the <:_:903483536865103912> Halloween 2021 badge when the event ends.",
+            inline=False,
+        )
 
         view = discord.ui.View()
         view.add_item(
@@ -101,7 +106,9 @@ class Halloween(commands.Cog):
         if member.halloween_tickets_2021 <= 0:
             return await ctx.send("You don't have enough tickets to do that!")
 
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2021": -1}})
+        await self.bot.mongo.update_member(
+            ctx.author, {"$inc": {"halloween_trick_or_treats": 1, "halloween_tickets_2021": -1}}
+        )
 
         # Go
 
