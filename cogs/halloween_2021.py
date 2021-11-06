@@ -43,15 +43,15 @@ class Halloween(commands.Cog):
         }
         return {k: [self.bot.data.species_by_number(i) for i in v] for k, v in p.items()}
 
-    @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
-        if "Ghost" in species.types or "Dark" in species.types:
-            if random.random() < 0.5:
-                return
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2021": 1}})
-            await ctx.send(
-                f"The Pokémon dropped a **🎫 Trick-or-Treat Ticket**! Use `{ctx.prefix}halloween` to view more info."
-            )
+    # @commands.Cog.listener()
+    # async def on_catch(self, ctx, species):
+    #     if "Ghost" in species.types or "Dark" in species.types:
+    #         if random.random() < 0.5:
+    #             return
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2021": 1}})
+    #         await ctx.send(
+    #             f"The Pokémon dropped a **🎫 Trick-or-Treat Ticket**! Use `{ctx.prefix}halloween` to view more info."
+    #         )
 
     @checks.has_started()
     @commands.group(aliases=("event",), invoke_without_command=True, case_insensitive=True)
@@ -64,14 +64,16 @@ class Halloween(commands.Cog):
         embed.title = f"Halloween 2021"
         embed.add_field(
             name=f"Trick-or-Treat Tickets — 🎫 {member.halloween_tickets_2021}",
-            value=f"Every **Dark** or **Ghost** type Pokémon caught has a 50% chance of dropping a ticket! Use these tickets with the `{ctx.prefix}halloween trickortreat` command for the possibility of receiving an exclusive event Pokémon!",
+            value=
+            # f"Every **Dark** or **Ghost** type Pokémon caught has a 50% chance of dropping a ticket! "
+            f"Use these tickets with the `{ctx.prefix}halloween trickortreat` command for the possibility of receiving an exclusive event Pokémon!",
             inline=False,
         )
-        embed.add_field(
-            name="Voting Rewards",
-            value="You can also receive up to two tickets per day by simply voting for us on Top.gg! Click the link below to learn more.",
-            inline=False,
-        )
+        # embed.add_field(
+        #     name="Voting Rewards",
+        #     value="You can also receive up to two tickets per day by simply voting for us on Top.gg! Click the link below to learn more.",
+        #     inline=False,
+        # )
         embed.add_field(
             name="Halloween Badge",
             value="Trick-or-Treat 30 times to receive the <:_:903483536865103912> Halloween 2021 badge when the event ends.",
