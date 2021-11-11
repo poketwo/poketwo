@@ -1,5 +1,5 @@
 import asyncio
-from collections import defaultdict
+import contextlib
 from datetime import datetime, timedelta
 
 import discord
@@ -45,6 +45,15 @@ class Auctions(commands.Cog):
     async def before_check_auctions(self):
         await self.bot.wait_until_ready()
 
+    async def try_get_member(self, guild, id):
+        if user := self.bot.get_user(id):
+            return user
+        with contextlib.suppress(discord.HTTPException):
+            return await guild.fetch_member(id)
+        with contextlib.suppress(discord.HTTPException):
+            return await self.bot.fetch_user(id)
+        return FakeUser(id)
+
     async def end_auction(self, auction):
         if (auction_guild := self.bot.get_guild(auction.guild_id)) is None:
             return
@@ -55,16 +64,8 @@ class Auctions(commands.Cog):
             auction.bidder_id = auction.user_id
             auction.current_bid = 0
 
-        host = (
-            self.bot.get_user(auction.user_id)
-            or await self.bot.fetch_user(auction.user_id)
-            or FakeUser(auction.user_id)
-        )
-        bidder = (
-            self.bot.get_user(auction.bidder_id)
-            or await self.bot.fetch_user(auction.bidder_id)
-            or FakeUser(auction.bidder_id)
-        )
+        host = await self.try_get_member(auction_guild, auction.user_id)
+        bidder = await self.try_get_member(auction_guild, auction.bidder_id)
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
         embed.title = f"[SOLD] {embed.title}"
@@ -404,11 +405,7 @@ class Auctions(commands.Cog):
 
         # send embed
 
-        host = (
-            self.bot.get_user(auction.user_id)
-            or await ctx.guild.fetch_member(auction.user_id)
-            or FakeUser(auction.user_id)
-        )
+        host = await self.try_get_member(ctx.guild, auction.user_id)
 
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
 
@@ -578,12 +575,7 @@ class Auctions(commands.Cog):
     async def info(self, ctx, auction: AuctionConverter):
         """View a pokémon from an auction."""
 
-        host = (
-            self.bot.get_user(auction.user_id)
-            or await ctx.guild.fetch_member(auction.user_id)
-            or FakeUser(auction.user_id)
-        )
-
+        host = await self.try_get_member(ctx.guild, auction.user_id)
         embed = self.make_base_embed(host, auction.pokemon, auction.id)
 
         if auction.bidder_id is None:
@@ -592,17 +584,13 @@ class Auctions(commands.Cog):
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
             )
         else:
-            bidder = (
-                self.bot.get_user(auction.bidder_id)
-                or await ctx.guild.fetch_member(auction.bidder_id)
-                or FakeUser(auction.bidder_id)
-            )
-
+            bidder = await self.try_get_member(ctx.guild, auction.bidder_id)
             auction_info = (
                 f"**Current Bid:** {auction.current_bid:,} Pokécoins",
                 f"**Bidder:** {bidder.mention}",
                 f"**Bid Increment:** {auction.bid_increment:,} Pokécoins",
             )
+
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
             text=f"Bid with `{ctx.prefix}auction bid {auction.id} <bid>`\n"
