@@ -6,7 +6,6 @@ default = (
     "bot",
     "config",
     "data",
-    "halloween_2021",
     "help",
     "market",
     "mongo",
