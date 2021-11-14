@@ -827,6 +827,9 @@ class Shop(commands.Cog):
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
+            if pokemon.nature == constants.NATURES[idx]:
+                return await ctx.send(f"Your selected pokémon's nature is already {constants.NATURES[idx]}!")
+
             await self.bot.mongo.update_pokemon(
                 pokemon, {"$set": {"nature": constants.NATURES[idx]}}
             )
