@@ -520,6 +520,10 @@ class Shop(commands.Cog):
 
         # Check to make sure it's purchasable.
 
+
+        if pokemon.held_item == item:
+            return await ctx.send(f"Your selected pokémon is already holding {'an' if item.name[0] in 'aeiou' else 'a'} {item.name}! Please select a different pokémon using `{ctx.prefix}select` and try again.")
+
         if item.action == "level":
             if pokemon.level + qty > 100:
                 return await ctx.send(
@@ -675,6 +679,22 @@ class Shop(commands.Cog):
 
             if pokemon.nickname is not None:
                 name += f' "{pokemon.nickname}"'
+
+            if pokemon.held_item:
+                await ctx.send(
+                    f"Your selected pokémon is already holding {'an' if pokemon.held_item.name[0] in 'aeiou' else 'a'} {pokemon.held_item.name}. Are you sure you want to replace it with {'an' if item.name[0] in 'aeiou' else 'a'} {item.name}? [y/N]"
+                )
+
+                def check(m):
+                    return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
+
+                try:
+                    msg = await self.bot.wait_for("message", timeout=30, check=check)
+                except asyncio.TimeoutError:
+                    return await ctx.send("Time's up. Aborted.")
+
+                if msg.content.lower() != "y":
+                    return await ctx.send("Aborted.")
 
             if qty > 1:
                 await ctx.send(f"You purchased {item.name} x {qty} for your {name}!")
