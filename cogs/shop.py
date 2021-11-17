@@ -611,7 +611,7 @@ class Shop(commands.Cog):
                 )
 
             await ctx.send(
-                f"You purchased {item.name}! Use `{ctx.prefix}!shop` to check how much time you have remaining."
+                f"You purchased {item.name}! Use `{ctx.prefix}shop` to check how much time you have remaining."
             )
 
         elif item.action == "shard":
