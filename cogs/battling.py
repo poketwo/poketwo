@@ -439,7 +439,7 @@ class Battling(commands.Cog):
         embed = self.bot.Embed(title=f"What should {species} do?")
 
         embed.description = "\n".join(
-            f"{k} **{v['text']}** • `{ctx.prefix}!battle move {v['command']}`" for k, v in actions.items()
+            f"{k} **{v['text']}** • `p!battle move {v['command']}`" for k, v in actions.items()
         )
         msg = await self.bot.send_dm(user_id, embed=embed)
 
