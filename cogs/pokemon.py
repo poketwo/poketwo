@@ -227,7 +227,7 @@ class Pokemon(commands.Cog):
 
                 if pokemon.favorite:
                     messages.append(
-                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `p!unfavorite`."
+                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `{ctx.prefix}unfavorite`."
                     )
                 else:
                     await self.bot.mongo.update_pokemon(

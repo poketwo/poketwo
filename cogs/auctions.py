@@ -207,7 +207,7 @@ class Auctions(commands.Cog):
             or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None
         ):
             return await ctx.send(
-                "Auctions have not been set up in this server. Have a server administrator do `p!auction channel #channel`."
+                f"Auctions have not been set up in this server. Have a server administrator do `{ctx.prefix}auction channel #channel`."
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
