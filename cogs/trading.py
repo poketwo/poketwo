@@ -1,11 +1,14 @@
 import asyncio
 import math
 import random
+from datetime import datetime, timedelta
 from itertools import zip_longest
 
 import discord
 from discord.ext import commands
 from helpers import checks, flags, pagination
+
+from data.models import deaccent
 
 
 def chunks(lst, n):
@@ -20,6 +23,26 @@ class Trading(commands.Cog):
         self.bot = bot
         if not hasattr(self.bot, "trades"):
             self.bot.loop.create_task(self.clear_trades())
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if (
+            message.author.bot
+            and message.author != self.bot.user
+            and deaccent(message.author.name) == "Poketwo"
+            and len(message.embeds) > 0
+            and "Trade between" in message.embeds[0].title
+        ):
+            try:
+                await message.delete()
+            except discord.HTTPException:
+                await message.channel.send(
+                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                )
+            else:
+                await message.channel.send(
+                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                )
 
     async def clear_trades(self):
         await self.bot.get_cog("Redis").wait_until_ready()
@@ -267,7 +290,11 @@ class Trading(commands.Cog):
         pages = pagination.ContinuablePages(pagination.FunctionPageSource(num_pages, get_page))
         self.bot.menus[a.id] = pages
         self.bot.menus[b.id] = pages
+        if menu := trade.get("menu"):
+            menu.stop()
+            await menu.message.delete()
         await pages.start(ctx)
+        trade["menu"] = pages
 
         for evo_embed in embeds:
             await ctx.send(embed=evo_embed)
@@ -323,6 +350,7 @@ class Trading(commands.Cog):
             user.id: False,
             "channel": ctx.channel,
             "executing": False,
+            "last_updated": datetime.utcnow(),
         }
         self.bot.trades[ctx.author.id] = trade
         self.bot.trades[user.id] = trade
@@ -359,6 +387,13 @@ class Trading(commands.Cog):
 
         if self.bot.trades[ctx.author.id]["executing"]:
             return await ctx.send("The trade is currently loading...")
+
+        last_updated = self.bot.trades[ctx.author.id]["last_updated"]
+        print(datetime.utcnow() - last_updated)
+        if datetime.utcnow() - last_updated < timedelta(seconds=3):
+            return await ctx.reply(
+                "The trade was recently modified. Please wait a few seconds, and then try again."
+            )
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][
             ctx.author.id
@@ -443,6 +478,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
