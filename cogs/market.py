@@ -1,11 +1,9 @@
 import asyncio
-import math
 
 import bson
 import pymongo
 from discord.ext import commands
-
-from helpers import checks, constants, converters, pagination, flags
+from helpers import checks, constants, converters, flags, pagination
 
 
 class Market(commands.Cog):
@@ -64,7 +62,7 @@ class Market(commands.Cog):
     )
     @flags.add_flag("--mine", "--listings", action="store_true")
     @checks.has_started()
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(3, 8, commands.BucketType.user)
     @market.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
