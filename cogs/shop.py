@@ -6,10 +6,11 @@ from datetime import datetime, timedelta
 import aiohttp
 import discord
 import humanfriendly
-from data import models
 from discord.ext import commands, tasks
-
 from helpers import checks, constants, converters
+
+from data import models
+
 from . import mongo
 
 
@@ -479,6 +480,7 @@ class Shop(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user, wait=True)
     @commands.guild_only()
     @commands.command()
+    @checks.is_not_in_trade()
     async def buy(self, ctx, *args: str):
         """Purchase an item from the shop."""
 
