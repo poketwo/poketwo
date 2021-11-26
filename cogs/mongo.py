@@ -291,6 +291,8 @@ class Member(Document):
     hquests = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     hquest_progress = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     halloween_badge = fields.BooleanField(default=False)
+    msf_notified = fields.BooleanField(default=False)
+    msf_donated_amount = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):

@@ -73,6 +73,29 @@ class Bot(commands.Cog):
                 "content": ctx.message.content,
             },
         )
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if member.msf_notified or random.random() < 0.95:
+            return
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"msf_notified": True}})
+        embed = discord.Embed(
+            title="Pokétwo Thanksgiving Fundraiser",
+            description=f"Greetings {ctx.author.name},\n\n"
+            "For Thanksgiving, Pokétwo is running a fundraiser to support [**Médecins Sans Frontières / Doctors Without Borders**](https://www.msf.org/), an international humanitarian organization that provides millions of consultations, surgeries, treatments and vaccinations across over 70 countries every year.\n\n"
+            "This is a great opportunity to help fund medical relief to save lives and ease suffering around the world, and you'll receive in-game rewards while you're at it. **100% of your donation will go to Médecins Sans Frontières / Doctors Without Borders. Pokétwo will cover all transaction fees and is matching the first $5,000 in donations.**\n\n"
+            "For every **$15** you contribute to the fundraiser, you will be rewarded 1× limited-time event Pokémon [**United Pikachu**](https://assets.poketwo.net/images/50032.png). This Pokémon is only obtainable through this fundraiser. There is no limit to the number of United Pikachu you can obtain.\n\n"
+            "In addition, we have various milestones toward our donation goal of **$10,000**. At $2,500 in total donations, donors will receive a profile badge; at $5,000, donors will receive 20,000 Pokécoins, and 5× Shiny United Pikachu will be raffled out; at $7,5000, donors will receive 50,000 Pokécoins; and at $10,000, all donors will receive 1,000 shards, and 10× additional Shiny United Pikachu will beraffled out.\n\n"
+            "You can donate to our fundraiser [at this website](https://msf-fundraiser.poketwo.net/). Happy Thanksgiving!",
+        )
+        embed.set_image(url="https://i.imgur.com/b8WnagA.png")
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.blurple,
+                label="Donate",
+                url="https://msf-fundraiser.poketwo.net/",
+            )
+        )
+        await ctx.author.send(embed=embed, view=view)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
