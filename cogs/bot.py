@@ -60,6 +60,9 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if after.content != before.content:
+            message.content = (
+            message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
+            )
             await self.bot.process_commands(after)
 
     @commands.Cog.listener()
