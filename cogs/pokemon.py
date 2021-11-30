@@ -1248,6 +1248,13 @@ class Pokemon(commands.Cog):
                     f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
                 )
 
+            memberp = await self.bot.mongo.fetch_pokedex(
+                ctx.author, evo.dex_number, evo.dex_number + 1
+            )
+
+            if str(evo.dex_number) not in memberp.pokedex:
+                message += " Added to Pokédex."
+
             if len(args) == 1:
                 if pokemon.shiny:
                     embed.set_thumbnail(url=evo.shiny_image_url)
@@ -1261,6 +1268,18 @@ class Pokemon(commands.Cog):
                 pokemon,
                 {"$set": {f"species_id": evo.id}},
             )
+
+            memberp = await self.bot.mongo.fetch_pokedex(
+                ctx.author, evo.dex_number, evo.dex_number + 1
+            )
+
+            if str(evo.dex_number) not in memberp.pokedex:
+                await self.bot.mongo.update_member(
+                    ctx.author,
+                    {
+                        "$set": {f"pokedex.{evo.dex_number}": 1},
+                    },
+                )
 
             self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
