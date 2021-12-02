@@ -87,6 +87,7 @@ class Auctions(commands.Cog):
                 {
                     **auction.pokemon.to_mongo(),
                     "owner_id": auction.bidder_id,
+                    "owned_by": "user",
                     "idx": await self.bot.mongo.fetch_next_idx(bidder),
                 }
             )

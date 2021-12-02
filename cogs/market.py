@@ -197,10 +197,12 @@ class Market(commands.Cog):
         if result is False:
             return await ctx.send("Aborted.")
 
+        del listing["pokemon"]["market_price"]
         try:
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     **listing["pokemon"],
+                    "owned_by": "user",
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )
@@ -260,11 +262,13 @@ class Market(commands.Cog):
         if member.balance < listing["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
+        del listing["pokemon"]["market_price"]
         try:
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     **listing["pokemon"],
                     "owner_id": ctx.author.id,
+                    "owned_by": "user",
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )

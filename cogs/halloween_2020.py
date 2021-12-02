@@ -242,6 +242,7 @@ class Halloween(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_one(
                 {
                     "owner_id": ctx.author.id,
+                    "owned_by": "user",
                     "species_id": 50001,
                     "level": min(max(int(random.normalvariate(20, 10)), 1), 100),
                     "xp": 0,
@@ -297,6 +298,7 @@ class Halloween(commands.Cog):
 
                 pokemon = {
                     "owner_id": ctx.author.id,
+                    "owned_by": "user",
                     "species_id": species.id,
                     "level": level,
                     "xp": 0,

@@ -131,6 +131,7 @@ class Administration(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": user.id,
+                "owned_by": "user",
                 "species_id": species.id,
                 "level": 1,
                 "xp": 0,
@@ -165,6 +166,7 @@ class Administration(commands.Cog):
             pokemon.append(
                 {
                     "owner_id": user.id,
+                    "owned_by": "user",
                     "species_id": spid,
                     "level": 80,
                     "xp": 0,

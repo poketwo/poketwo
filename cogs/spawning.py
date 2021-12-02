@@ -353,6 +353,7 @@ class Spawning(commands.Cog):
         await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": ctx.author.id,
+                "owned_by": "user",
                 "species_id": species.id,
                 "level": level,
                 "xp": 0,

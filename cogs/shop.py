@@ -244,6 +244,7 @@ class Shop(commands.Cog):
 
                 pokemon = {
                     "owner_id": ctx.author.id,
+                    "owned_by": "user",
                     "species_id": species.id,
                     "level": level,
                     "xp": 0,
