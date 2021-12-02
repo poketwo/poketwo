@@ -12,16 +12,18 @@ db = client[config.DATABASE_NAME]
 
 db.pokemon.update_many({"owned_by": {"$exists": False}}, {"$set": {"owned_by": "user"}})
 
-bulk_inserts = []
-
-for x in db.listing.find({}):
-    bulk_inserts.append(
+db.listing.aggregate(
+    [
         {
-            **x["pokemon"],
-            "owner_id": x["user_id"],
-            "owned_by": "market",
-            "market_data": {"_id": x["_id"], "price": x["price"]},
-        }
-    )
-
-db.pokemon.insert_many(bulk_inserts, ordered=False)
+            "$set": {
+                "pokemon.market_data._id": "$_id",
+                "pokemon.market_data.price": "$price",
+                "pokemon.owner_id": "$user_id",
+                "pokemon.owned_by": "market",
+            }
+        },
+        {"$replaceRoot": {"newRoot": "$pokemon"}},
+        {"$merge": {"into": "pokemon", "on": "_id", "whenMatched": "keepExisting"}},
+    ],
+    allowDiskUse=True,
+)
