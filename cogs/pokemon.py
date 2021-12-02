@@ -39,9 +39,15 @@ class Pokemon(commands.Cog):
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
         await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
-        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id, "owned_by": "user"}).sort(
-            "idx"
-        )
+        mons = self.bot.mongo.db.pokemon.find(
+            {
+                "owner_id": ctx.author.id,
+                "$or": [
+                    {"owned_by": "user"},
+                    {"owned_by": {"$exists": False}},
+                ],  # TODO Replace
+            }
+        ).sort("idx")
 
         ops = []
 
@@ -183,7 +189,7 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"nickname": nicknameall}},
         )
 
@@ -348,7 +354,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"favorite": True}},
         )
 
@@ -435,7 +441,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"favorite": False}},
         )
 
@@ -756,7 +762,7 @@ class Pokemon(commands.Cog):
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": list(ids)}, "owned_by": "user"},
+            {"_id": {"$in": list(ids)}},
             {"$set": {"owned_by": "released"}},
         )
         await self.bot.mongo.update_member(
@@ -857,10 +863,7 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {
-                "_id": {"$in": [x.id async for x in pokemon]},
-                "owned_by": "user",
-            },
+            {"_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"owned_by": "released"}},
         )
 
