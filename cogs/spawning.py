@@ -490,19 +490,12 @@ class Spawning(commands.Cog):
             )
 
         if member.shiny_streak > 0:
-            await ctx.send(
-                f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset. [y/N]"
+            result = await ctx.confirm(
+                f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset."
             )
-
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-            try:
-                msg = await self.bot.wait_for("message", timeout=30, check=check)
-            except asyncio.TimeoutError:
+            if result is None:
                 return await ctx.send("Time's up. Aborted.")
-
-            if msg.content.lower() != "y":
+            if result is False:
                 return await ctx.send("Aborted.")
 
         await self.bot.mongo.update_member(

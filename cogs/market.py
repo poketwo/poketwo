@@ -131,20 +131,13 @@ class Market(commands.Cog):
 
         # confirm
 
-        await ctx.send(
+        result = await ctx.confirm(
             f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon:s} "
-            f"No. {pokemon.idx}** for **{price:,}** Pokécoins? [y/N]"
+            f"No. {pokemon.idx}** for **{price:,}** Pokécoins?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
-
-        if msg.content.lower() != "y":
+        if result is False:
             return await ctx.send("Aborted.")
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
@@ -194,20 +187,14 @@ class Market(commands.Cog):
 
         # confirm
         pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
-        await ctx.send(
+
+        result = await ctx.confirm(
             f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** "
-            f"from the market? [y/N]"
+            f"from the market?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
-            return await ctx.send("Time's up. Aborted removal of listing.")
-
-        if msg.content.lower() != "y":
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
             return await ctx.send("Aborted.")
 
         try:
@@ -253,20 +240,13 @@ class Market(commands.Cog):
 
         # confirm
 
-        await ctx.send(
+        result = await ctx.confirm(
             f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon:s}** "
-            f"for **{listing['price']:,}** Pokécoins? [y/N]"
+            f"for **{listing['price']:,}** Pokécoins?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
-
-        if msg.content.lower() != "y":
+        if result is False:
             return await ctx.send("Aborted.")
 
         # buy

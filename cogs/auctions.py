@@ -220,25 +220,16 @@ class Auctions(commands.Cog):
 
         # confirm
 
-        await ctx.send(
+        result = await ctx.confirm(
             f"You are auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**:\n"
             f"**Starting Bid:** {starting_bid:,} Pokécoins\n"
             f"**Bid Increment:** {bid_increment:,} Pokécoins\n"
             f"**Duration:** {humanfriendly.format_timespan(duration.total_seconds())}\n"
-            "Auctions are server-specific and cannot be canceled. Are you sure? [y/N]"
+            "Auctions are server-specific and cannot be canceled. Are you sure?"
         )
-
-        # TODO factor confirmations into custom context
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
-
-        if msg.content.lower() != "y":
+        if result is False:
             return await ctx.send("Aborted.")
 
         # create auction
@@ -305,19 +296,12 @@ class Auctions(commands.Cog):
 
         # Verification
 
-        await ctx.send(
-            f"Do you want to lower starting bid to **{new_start} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**? [y/N]"
+        result = await ctx.confirm(
+            f"Do you want to lower starting bid to **{new_start} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
-
-        if msg.content.lower() != "y":
+        if result is False:
             return await ctx.send("Aborted.")
 
         # Go
@@ -367,19 +351,12 @@ class Auctions(commands.Cog):
 
         # confirm
 
-        await ctx.send(
-            f"Do you want to bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**? [y/N]"
+        result = await ctx.confirm(
+            f"Do you want to bid **{bid:,} Pokécoins** on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon:s}**?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
-
-        if msg.content.lower() != "y":
+        if result is False:
             return await ctx.send("Aborted.")
 
         # go!

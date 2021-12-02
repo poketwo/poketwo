@@ -745,21 +745,13 @@ class Trading(commands.Cog):
                 f"There are too many pokémon in this trade! Try adding `--limit {3000 - trade_size}` to the end of your trade."
             )
 
-        await ctx.send(
-            f"Are you sure you want to trade {num} pokémon? Favorited and selected pokémon won't be added. Type `confirm trade {num}` to confirm."
+        result = await ctx.confirm(
+            f"Are you sure you want to trade **{num} pokémon**? Favorited and selected pokémon won't be added."
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() != f"confirm trade {num}":
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         # confirmed, add all
 

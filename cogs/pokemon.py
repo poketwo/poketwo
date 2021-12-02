@@ -165,25 +165,15 @@ class Pokemon(commands.Cog):
 
         # confirm
         if nicknameall is None:
-            await ctx.send(
-                f"Are you sure you want to **remove** nickname for {num} pokémon? Type `confirm nickname {num}` to confirm."
-            )
+            message = f"Are you sure you want to **remove** nickname for {num} pokémon?"
         else:
-            await ctx.send(
-                f"Are you sure you want to rename {num} pokémon to `{nicknameall}`? Type `confirm nickname {num}` to confirm."
-            )
+            message = f"Are you sure you want to rename {num} pokémon to `{nicknameall}`?"
 
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() != f"confirm nickname {num}":
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        result = await ctx.confirm(message)
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         # confirmed, nickname all
         await ctx.send(f"Renaming {num} pokémon, this might take a while...")
@@ -346,24 +336,14 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         # confirm
-        await ctx.send(
-            f"Are you sure you want to **favorite** your {unfavnum} pokémon? Type `confirm favorite {unfavnum}` to confirm."
+
+        result = await ctx.confirm(
+            f"Are you sure you want to **favorite** your {unfavnum} pokémon?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() not in [
-                f"confirm favorite {unfavnum}",
-                f"confirm favourite {unfavnum}",
-            ]:
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x.id async for x in pokemon]}},
@@ -443,24 +423,14 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         # confirm
-        await ctx.send(
-            f"Are you sure you want to **unfavorite** your {favnum} pokémon? Type `confirm unfavorite {favnum}` to confirm."
+
+        result = await ctx.confirm(
+            f"Are you sure you want to **unfavorite** your {favnum} pokémon?"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() not in [
-                f"confirm unfavorite {favnum}",
-                f"confirm unfavourite {favnum}",
-            ]:
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x.id async for x in pokemon]}},
@@ -765,27 +735,18 @@ class Pokemon(commands.Cog):
             return
 
         if len(mons) == 1:
-            await ctx.send(
-                f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc? [y/N]"
-            )
+            message = f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc?"
         else:
-            embed = self.bot.Embed(
-                title=f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc? [y/N]",
-                description="\n".join(f"{x:spl} ({x.idx})" for x in mons),
+            message = (
+                f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\n\n"
+                + "\n".join(f"{x:spl} ({x.idx})" for x in mons),
             )
 
-            await ctx.send(embed=embed)
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() != "y":
-                return await ctx.send("Aborted.")
-        except asyncio.TimeoutError:
+        result = await ctx.confirm(message)
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -873,21 +834,13 @@ class Pokemon(commands.Cog):
 
         # confirm
 
-        await ctx.send(
-            f"Are you sure you want to release {num} pokémon for {num*2:,} pc? Favorited and selected pokémon won't be removed. Type `confirm release {num}` to confirm."
+        result = await ctx.confirm(
+            f"Are you sure you want to release **{num} pokémon** for {num*2:,} pc? Favorited and selected pokémon won't be removed."
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() != f"confirm release {num}":
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -1284,21 +1237,14 @@ class Pokemon(commands.Cog):
             return await ctx.send("This pokémon is not in mega form!")
 
         # confirm
-        await ctx.send(
-            f"Are you sure you want to switch **{pokemon:spl}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded! [y/N]"
+
+        result = await ctx.confirm(
+            f"Are you sure you want to switch **{pokemon:spl}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded!"
         )
-
-        def check(m):
-            return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-        try:
-            msg = await self.bot.wait_for("message", timeout=30, check=check)
-
-            if msg.content.lower() != "y":
-                return await ctx.send("Aborted.")
-
-        except asyncio.TimeoutError:
+        if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.bot.mongo.update_pokemon(
             pokemon,

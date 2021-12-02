@@ -49,25 +49,13 @@ class Shop(commands.Cog):
         if not channel.incense_active:
             return await ctx.send("There is no active incense in this channel!")
 
-        message = await ctx.send(
+        result = await ctx.confirm(
             "Are you sure you want to cancel the incense? You can't undo this!"
         )
-        self.bot.loop.create_task(add_reactions(message, "✅", "❌"))
-        try:
-            r, u = await self.bot.wait_for(
-                "reaction_add",
-                check=lambda r, u: u == ctx.author
-                and r.message.id == message.id
-                and r.emoji in ("✅", "❌"),
-                timeout=60,
-            )
-        except asyncio.TimeoutError:
-            await ctx.send("Hurry up and make up your mind. Aborted.")
-            return
-
-        if r.emoji == "❌":
-            await ctx.send("OK, aborted.")
-            return
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.bot.mongo.update_channel(
             ctx.channel,
@@ -617,25 +605,13 @@ class Shop(commands.Cog):
             )
 
         elif item.action == "shard":
-            message = await ctx.send(
+            result = await ctx.confirm(
                 f"Are you sure you want to exchange **{item.cost * qty:,}** Pokécoins for **{qty:,}** shards? Shards are non-transferable and non-refundable!"
             )
-            self.bot.loop.create_task(add_reactions(message, "✅", "❌"))
-            try:
-                r, u = await self.bot.wait_for(
-                    "reaction_add",
-                    check=lambda r, u: u == ctx.author
-                    and r.message.id == message.id
-                    and r.emoji in ("✅", "❌"),
-                    timeout=60,
-                )
-            except asyncio.TimeoutError:
-                await ctx.send("Hurry up and make up your mind. Aborted.")
-                return
-
-            if r.emoji == "❌":
-                await ctx.send("OK, aborted.")
-                return
+            if result is None:
+                return await ctx.send("Time's up. Aborted.")
+            if result is False:
+                return await ctx.send("Aborted.")
 
             await ctx.send(f"You purchased {qty:,} shards!")
 
