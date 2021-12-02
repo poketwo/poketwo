@@ -4,7 +4,7 @@ from importlib import reload
 import aiohttp
 import discord
 import uvloop
-from aioredis_lock import RedisLock
+from aioredis_lock import LockTimeoutError, RedisLock
 from discord.ext import commands
 from expiringdict import ExpiringDict
 
@@ -135,6 +135,20 @@ class ClusterBot(commands.AutoShardedBot):
         )
 
         await self.process_commands(message)
+
+    async def invoke(self, ctx):
+        if ctx.command.name in {"admin", "jishaku"} or (
+            ctx.command.root_parent and ctx.command.root_parent.name in {"admin", "jishaku"}
+        ):
+            return await super().invoke(ctx)
+
+        try:
+            async with RedisLock(self.redis, f"command:{ctx.author.id}", 60, 1):
+                return await super().invoke(ctx)
+        except LockTimeoutError:
+            await ctx.reply(
+                "You are currently running another command. Please wait and try again later."
+            )
 
     async def before_identify_hook(self, shard_id, *, initial=False):
         async with RedisLock(self.redis, f"identify:{shard_id % 16}", 5, None):
