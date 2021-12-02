@@ -129,10 +129,10 @@ STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in
 
 SORTING_FUNCTIONS = {
     "number": "idx",
-    "iv": "pokemon.iv_total",
-    "level": "pokemon.level",
-    "pokedex": "pokemon.species_id",
-    "price": "price",
+    "iv": "iv_total",
+    "level": "level",
+    "pokedex": "species_id",
+    "price": "market_data.price",
     "bid": "current_bid",
     "ends": "ends",
     "id": "_id",
@@ -141,14 +141,14 @@ SORTING_FUNCTIONS = {
 DEFAULT_DESCENDING = {"iv", "level"}
 
 FILTER_BY_NUMERICAL = {
-    "iv": "pokemon.iv_total",
-    "level": "pokemon.level",
-    "hpiv": "pokemon.iv_hp",
-    "atkiv": "pokemon.iv_atk",
-    "defiv": "pokemon.iv_defn",
-    "spatkiv": "pokemon.iv_satk",
-    "spdefiv": "pokemon.iv_sdef",
-    "spdiv": "pokemon.iv_spd",
+    "iv": "iv_total",
+    "level": "level",
+    "hpiv": "iv_hp",
+    "atkiv": "iv_atk",
+    "defiv": "iv_defn",
+    "spatkiv": "iv_satk",
+    "spdefiv": "iv_sdef",
+    "spdiv": "iv_spd",
 }
 
 FILTER_BY_DUPLICATES = {
@@ -159,12 +159,12 @@ FILTER_BY_DUPLICATES = {
 }
 
 IV_FIELDS = [
-    "pokemon.iv_hp",
-    "pokemon.iv_atk",
-    "pokemon.iv_defn",
-    "pokemon.iv_satk",
-    "pokemon.iv_sdef",
-    "pokemon.iv_spd",
+    "iv_hp",
+    "iv_atk",
+    "iv_defn",
+    "iv_satk",
+    "iv_sdef",
+    "iv_spd",
 ]
 
 NATURE_MULTIPLIERS = {

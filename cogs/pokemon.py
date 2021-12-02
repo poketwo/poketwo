@@ -583,7 +583,7 @@ class Pokemon(commands.Cog):
 
         return ops
 
-    async def create_filter(self, flags, ctx, order_by=None):
+    async def create_filter(self, flags, ctx, order_by=None, map_field=lambda x: x):
         aggregations = []
 
         if "mine" in flags and flags["mine"]:
@@ -597,40 +597,44 @@ class Pokemon(commands.Cog):
             if x in flags and flags[x]:
                 rarity += getattr(self.bot.data, f"list_{x}")
         if rarity:
-            aggregations.append({"$match": {"pokemon.species_id": {"$in": rarity}}})
+            aggregations.append({"$match": {map_field("species_id"): {"$in": rarity}}})
 
         for x in ("alolan", "galarian", "mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append(
-                    {"$match": {"pokemon.species_id": {"$in": getattr(self.bot.data, f"list_{x}")}}}
+                    {
+                        "$match": {
+                            map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}
+                        }
+                    }
                 )
 
         if "type" in flags and flags["type"]:
             all_species = [i for x in flags["type"] for i in self.bot.data.list_type(x)]
-            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
+            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
         if "region" in flags and flags["region"]:
             all_species = [i for x in flags["region"] for i in self.bot.data.list_region(x)]
-            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
+            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
         if "favorite" in flags and flags["favorite"]:
-            aggregations.append({"$match": {"pokemon.favorite": True}})
+            aggregations.append({"$match": {map_field("favorite"): True}})
 
         if "shiny" in flags and flags["shiny"]:
-            aggregations.append({"$match": {"pokemon.shiny": True}})
+            aggregations.append({"$match": {map_field("shiny"): True}})
 
         if "name" in flags and flags["name"] is not None:
             all_species = [
                 i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))
             ]
 
-            aggregations.append({"$match": {"pokemon.species_id": {"$in": all_species}}})
+            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
         if "nickname" in flags and flags["nickname"] is not None:
             aggregations.append(
                 {
                     "$match": {
-                        "pokemon.nickname": {
+                        map_field("nickname"): {
                             "$regex": "("
                             + ")|(".join(" ".join(x) for x in flags["nickname"])
                             + ")",
@@ -641,7 +645,7 @@ class Pokemon(commands.Cog):
             )
 
         if "embedcolor" in flags and flags["embedcolor"]:
-            aggregations.append({"$match": {"pokemon.has_color": True}})
+            aggregations.append({"$match": {map_field("has_color"): True}})
 
         if "ends" in flags and flags["ends"] is not None:
             aggregations.append({"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
@@ -662,15 +666,15 @@ class Pokemon(commands.Cog):
 
                 if ops[0] == "<":
                     aggregations.append(
-                        {"$match": {expr: {"$lt": math.ceil(ops[1])}}},
+                        {"$match": {map_field(expr): {"$lt": math.ceil(ops[1])}}},
                     )
                 elif ops[0] == "=":
                     aggregations.append(
-                        {"$match": {expr: {"$eq": round(ops[1])}}},
+                        {"$match": {map_field(expr): {"$eq": round(ops[1])}}},
                     )
                 elif ops[0] == ">":
                     aggregations.append(
-                        {"$match": {expr: {"$gt": math.floor(ops[1])}}},
+                        {"$match": {map_field(expr): {"$gt": math.floor(ops[1])}}},
                     )
 
         for flag, amt in constants.FILTER_BY_DUPLICATES.items():
@@ -679,7 +683,7 @@ class Pokemon(commands.Cog):
 
                 # Processing combinations
                 combinations = [
-                    {field: iv for field in combo}
+                    {map_field(field): iv for field in combo}
                     for combo in itertools.combinations(constants.IV_FIELDS, amt)
                 ]
                 aggregations.append({"$match": {"$or": combinations}})
@@ -691,7 +695,7 @@ class Pokemon(commands.Cog):
             else:
                 asc = -1 if order_by in constants.DEFAULT_DESCENDING else 1
 
-            aggregations.append({"$sort": {constants.SORTING_FUNCTIONS[order_by]: asc}})
+            aggregations.append({"$sort": {map_field(constants.SORTING_FUNCTIONS[order_by]): asc}})
 
         if "skip" in flags and flags["skip"] is not None:
             aggregations.append({"$skip": flags["skip"]})

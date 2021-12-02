@@ -515,10 +515,7 @@ class Mongo(commands.Cog):
                         ],  # TODO Replace
                     }
                 },
-                {"$sort": {"idx": 1}},
-                {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                 *aggregations,
-                {"$replaceRoot": {"newRoot": "$pokemon"}},
             ],
             allowDiskUse=True,
         ):
@@ -537,7 +534,6 @@ class Mongo(commands.Cog):
                         ],  # TODO Replace
                     }
                 },
-                {"$project": {"pokemon": "$$ROOT"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -627,16 +623,15 @@ class Mongo(commands.Cog):
                         }
                     },
                     {"$sort": {"idx": -1}},
-                    {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                     {"$limit": 1},
                 ],
                 allowDiskUse=True,
             ).to_list(None)
 
-            if len(result) == 0 or "pokemon" not in result[0]:
+            if len(result) == 0:
                 result = None
             else:
-                result = result[0]["pokemon"]
+                result = result[0]
         else:
             result = await self.db.pokemon.find_one(
                 {

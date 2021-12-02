@@ -67,8 +67,13 @@ class Market(commands.Cog):
     async def search(self, ctx, **flags):
         """Search pokémon from the marketplace."""
 
+        def map_field(field):
+            if field == "_id":
+                return f"market_data._id"
+            return field
+
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
-            flags, ctx, order_by=flags["order"]
+            flags, ctx, order_by=flags["order"], map_field=map_field
         )
 
         if aggregations is None:
