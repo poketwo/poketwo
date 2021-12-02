@@ -324,16 +324,6 @@ class Member(Document):
         return random.random() < chance
 
 
-class Listing(Document):
-    class Meta:
-        strict = False
-
-    id = fields.IntegerField(attribute="_id")
-    pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
-    user_id = fields.IntegerField(required=True)
-    price = fields.IntegerField(required=True)
-
-
 class Auction(Document):
     class Meta:
         strict = False
@@ -427,7 +417,6 @@ class Mongo(commands.Cog):
             "Pokemon",
             "EmbeddedPokemon",
             "Member",
-            "Listing",
             "Guild",
             "Channel",
             "Counter",
@@ -477,9 +466,14 @@ class Mongo(commands.Cog):
 
         return await self.Member.find_one({"id": member.id}, filter_obj)
 
-    async def fetch_market_list(self, aggregations=[]):
-        async for x in self.db.listing.aggregate(aggregations, allowDiskUse=True):
-            yield self.bot.mongo.Listing.build_from_mongo(x)
+    def fetch_market_list(self, aggregations=[]):
+        return self.db.pokemon.aggregate(
+            [
+                {"$match": {"owned_by": "market"}},
+                *aggregations,
+            ],
+            allowDiskUse=True,
+        )
 
     async def fetch_auction_list(self, guild, aggregations=[]):
         async for x in self.db.auction.aggregate(
@@ -510,7 +504,7 @@ class Mongo(commands.Cog):
     async def fetch_pokemon_list(self, member: discord.Member, aggregations=[]):
         async for x in self.db.pokemon.aggregate(
             [
-                {"$match": {"owner_id": member.id}},
+                {"$match": {"owner_id": member.id, "owned_by": "user"}},
                 {"$sort": {"idx": 1}},
                 {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                 *aggregations,
@@ -524,7 +518,7 @@ class Mongo(commands.Cog):
 
         result = await self.db.pokemon.aggregate(
             [
-                {"$match": {"owner_id": member.id}},
+                {"$match": {"owner_id": member.id, "owned_by": "user"}},
                 {"$project": {"pokemon": "$$ROOT"}},
                 *aggregations,
                 {"$count": "num_matches"},
@@ -593,11 +587,11 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):
-            result = await self.db.pokemon.find_one({"_id": idx})
+            result = await self.db.pokemon.find_one({"_id": idx, "owned_by": "user"})
         elif idx == -1:
             result = await self.db.pokemon.aggregate(
                 [
-                    {"$match": {"owner_id": member.id}},
+                    {"$match": {"owner_id": member.id, "owned_by": "user"}},
                     {"$sort": {"idx": -1}},
                     {"$project": {"pokemon": "$$ROOT", "idx": "$idx"}},
                     {"$limit": 1},
@@ -610,7 +604,9 @@ class Mongo(commands.Cog):
             else:
                 result = result[0]["pokemon"]
         else:
-            result = await self.db.pokemon.find_one({"owner_id": member.id, "idx": idx})
+            result = await self.db.pokemon.find_one(
+                {"owner_id": member.id, "idx": idx, "owned_by": "user"}
+            )
 
         if result is None:
             return None

@@ -77,13 +77,14 @@ class Market(commands.Cog):
         # Filter pokemon
 
         def padn(p, n):
-            return " " * (len(str(n)) - len(str(p.id))) + str(p.id)
+            return " " * (len(str(n)) - len(str(p))) + str(p)
 
         def prepare_page(menu, items):
-            menu.maxn = max(x.id for x in items)
+            menu.maxn = max(x["market_data"]["_id"] for x in items)
 
         def format_item(menu, x):
-            return f"`{padn(x, menu.maxn)}`　**{x.pokemon:li}**　•　{x.pokemon.iv_total / 186:.2%}　•　{x.price:,} pc"
+            pokemon = self.bot.mongo.Pokemon.build_from_mongo(x)
+            return f"`{padn(x['market_data']['_id'], menu.maxn)}`　**{pokemon:li}**　•　{pokemon.iv_total / 186:.2%}　•　{x['market_data']['price']:,} pc"
 
         pokemon = self.bot.mongo.fetch_market_list(aggregations)
 
@@ -151,16 +152,15 @@ class Market(commands.Cog):
         if counter is None:
             counter = {"next": 0}
 
-        await self.bot.mongo.db.listing.insert_one(
+        await self.bot.mongo.db.pokemon.update_one(
+            {"_id": pokemon.id},
             {
-                "_id": counter["next"],
-                "pokemon": pokemon.to_mongo(),
-                "user_id": ctx.author.id,
-                "price": price,
-            }
+                "$set": {
+                    "owned_by": "market",
+                    "market_data": {"_id": counter["next"], "price": price},
+                }
+            },
         )
-
-        await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
         await ctx.send(
             f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
@@ -174,19 +174,16 @@ class Market(commands.Cog):
     async def remove(self, ctx, id: int):
         """Remove a pokémon from the marketplace."""
 
-        try:
-            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
-        except bson.errors.InvalidId:
-            return await ctx.send("Couldn't find that listing!")
-
+        listing = await self.bot.mongo.db.pokemon.find_one(
+            {"owned_by": "market", "market_data._id": id}
+        )
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
-
-        if listing["user_id"] != ctx.author.id:
+        if listing["owner_id"] != ctx.author.id:
             return await ctx.send("That's not your listing!")
 
         # confirm
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         result = await ctx.confirm(
             f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** "
@@ -197,19 +194,10 @@ class Market(commands.Cog):
         if result is False:
             return await ctx.send("Aborted.")
 
-        del listing["pokemon"]["market_price"]
-        try:
-            await self.bot.mongo.db.pokemon.insert_one(
-                {
-                    **listing["pokemon"],
-                    "owned_by": "user",
-                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
-                }
-            )
-        except pymongo.errors.DuplicateKeyError:
-            return await ctx.send("Couldn't remove that pokémon.")
-
-        await self.bot.mongo.db.listing.delete_one({"_id": id})
+        await self.bot.mongo.db.pokemon.update_one(
+            {"_id": listing["_id"]},
+            {"$set": {"owned_by": "user"}, "$unset": {"market_data": 1}},
+        )
 
         await ctx.send(
             f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
@@ -222,29 +210,27 @@ class Market(commands.Cog):
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
 
-        try:
-            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
-        except bson.errors.InvalidId:
-            return await ctx.send("Couldn't find that listing!")
-
+        listing = await self.bot.mongo.db.pokemon.find_one(
+            {"owned_by": "market", "market_data._id": id}
+        )
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        if listing["user_id"] == ctx.author.id:
+        if listing["owner_id"] == ctx.author.id:
             return await ctx.send("You can't purchase your own listing!")
 
-        if member.balance < listing["price"]:
+        if member.balance < listing["market_data"]["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         # confirm
 
         result = await ctx.confirm(
             f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon:s}** "
-            f"for **{listing['price']:,}** Pokécoins?"
+            f"for **{listing['market_data']['price']:,}** Pokécoins?"
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
@@ -253,42 +239,37 @@ class Market(commands.Cog):
 
         # buy
 
-        listing = await self.bot.mongo.db.listing.find_one({"_id": id})
-
+        listing = await self.bot.mongo.db.pokemon.find_one(
+            {"owned_by": "market", "market_data._id": id}
+        )
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if member.balance < listing["price"]:
+        if member.balance < listing["market_data"]["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        del listing["pokemon"]["market_price"]
-        try:
-            await self.bot.mongo.db.pokemon.insert_one(
-                {
-                    **listing["pokemon"],
-                    "owner_id": ctx.author.id,
-                    "owned_by": "user",
-                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
-                }
-            )
-        except pymongo.errors.DuplicateKeyError:
-            return await ctx.send("Couldn't buy that pokémon.")
-
-        await self.bot.mongo.db.listing.delete_one({"_id": id})
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -listing["price"]}})
-
+        await self.bot.mongo.db.pokemon.update_one(
+            {"_id": listing["_id"]},
+            {
+                "$set": {"owner_id": ctx.author.id, "owned_by": "user"},
+                "$unset": {"market_data": 1},
+            },
+        )
         await self.bot.mongo.update_member(
-            listing["user_id"], {"$inc": {"balance": listing["price"]}}
+            ctx.author, {"$inc": {"balance": -listing["market_data"]["price"]}}
+        )
+        await self.bot.mongo.update_member(
+            listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}}
         )
         await ctx.send(
-            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
+            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )
 
         self.bot.loop.create_task(
             self.bot.send_dm(
-                listing["user_id"],
-                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['price']} Pokécoins!",
+                listing["owner_id"],
+                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['market_data']['price']} Pokécoins!",
             )
         )
 
@@ -299,9 +280,10 @@ class Market(commands.Cog):
                 {
                     "event": "market",
                     "user": ctx.author.id,
-                    "item": listing["pokemon"]["_id"],
-                    "seller_id": listing["user_id"],
-                    "price": listing["price"],
+                    "item": listing["_id"],
+                    "seller_id": listing["owner_id"],
+                    "price": listing["market_data"]["price"],
+                    "listing_id": listing["market_data"]["_id"],
                 }
             )
         except:
@@ -313,15 +295,13 @@ class Market(commands.Cog):
     async def info(self, ctx, id: int):
         """View a pokémon from the market."""
 
-        try:
-            listing = await self.bot.mongo.db.listing.find_one({"_id": id})
-        except bson.errors.InvalidId:
-            return await ctx.send("Couldn't find that listing!")
-
+        listing = await self.bot.mongo.db.pokemon.find_one(
+            {"owned_by": "market", "market_data._id": id}
+        )
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
-        pokemon = self.bot.mongo.EmbeddedPokemon.build_from_mongo(listing["pokemon"])
+        pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         embed = self.bot.Embed(title=f"{pokemon:ln}", color=pokemon.color or constants.PINK)
 
@@ -360,7 +340,7 @@ class Market(commands.Cog):
 
         embed.add_field(
             name="Market Listing",
-            value=f"**ID:** {id}\n**Price:** {listing['price']:,} pc",
+            value=f"**ID:** {id}\n**Price:** {listing['market_data']['price']:,} pc",
             inline=False,
         )
 
