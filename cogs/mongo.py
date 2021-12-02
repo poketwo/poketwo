@@ -225,6 +225,8 @@ class Pokemon(PokemonBase, Document):
     class Meta:
         strict = False
 
+    owned_by = fields.StringField(required=True)
+
 
 class EmbeddedPokemon(PokemonBase, EmbeddedDocument):
     class Meta:
@@ -583,7 +585,7 @@ class Mongo(commands.Cog):
             pokemon = pokemon._id
         if isinstance(pokemon, dict) and "_id" in pokemon:
             pokemon = pokemon["_id"]
-        return await self.db.pokemon.update_one({"_id": pokemon}, update)
+        return await self.db.pokemon.update_one({"_id": pokemon, "owned_by": "user"}, update)
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):

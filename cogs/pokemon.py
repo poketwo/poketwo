@@ -183,7 +183,7 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
             {"$set": {"nickname": nicknameall}},
         )
 
@@ -348,7 +348,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
             {"$set": {"favorite": True}},
         )
 
@@ -435,7 +435,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Aborted.")
 
         await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"_id": {"$in": [x.id async for x in pokemon]}, "owned_by": "user"},
             {"$set": {"favorite": False}},
         )
 
@@ -756,7 +756,8 @@ class Pokemon(commands.Cog):
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": list(ids)}, "owner_id": {"$ne": None}}, {"$set": {"owner_id": None}}
+            {"_id": {"$in": list(ids)}, "owned_by": "user"},
+            {"$set": {"owned_by": "released"}},
         )
         await self.bot.mongo.update_member(
             ctx.author,
@@ -856,8 +857,11 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}, "owner_id": {"$ne": None}},
-            {"$set": {"owner_id": None}},
+            {
+                "_id": {"$in": [x.id async for x in pokemon]},
+                "owned_by": "user",
+            },
+            {"$set": {"owned_by": "released"}},
         )
 
         await self.bot.mongo.update_member(
