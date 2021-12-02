@@ -10,7 +10,7 @@ import aiohttp
 import discord
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
-from helpers import checks, constants, converters
+from helpers import checks, constants
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
 

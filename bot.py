@@ -74,6 +74,9 @@ class ClusterBot(commands.AutoShardedBot):
         self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
 
+    async def get_context(self, message, *, cls=helpers.context.PoketwoContext):
+        return await super().get_context(message, cls=cls)
+
     # Easy access to things
 
     @property
