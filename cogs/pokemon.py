@@ -747,7 +747,7 @@ class Pokemon(commands.Cog):
         else:
             message = (
                 f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\n\n"
-                + "\n".join(f"{x:spl} ({x.idx})" for x in mons),
+                + "\n".join(f"{x:spl} ({x.idx})" for x in mons)
             )
 
         result = await ctx.confirm(message)
