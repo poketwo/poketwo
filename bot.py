@@ -137,9 +137,11 @@ class ClusterBot(commands.AutoShardedBot):
         await self.process_commands(message)
 
     async def invoke(self, ctx):
-        if ctx.command and (
-            ctx.command.name in {"admin", "jishaku"}
-            or (ctx.command.root_parent and ctx.command.root_parent.name in {"admin", "jishaku"})
+        if ctx.command is None:
+            return
+
+        if ctx.command.name in {"admin", "jishaku"} or (
+            ctx.command.root_parent and ctx.command.root_parent.name in {"admin", "jishaku"}
         ):
             return await super().invoke(ctx)
 
