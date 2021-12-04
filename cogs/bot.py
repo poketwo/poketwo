@@ -405,6 +405,7 @@ class Bot(commands.Cog):
 
         starter = self.bot.mongo.Pokemon.random(
             owner_id=ctx.author.id,
+            owned_by="user",
             species_id=species.id,
             level=1,
             xp=0,
