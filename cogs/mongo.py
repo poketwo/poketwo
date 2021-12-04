@@ -505,7 +505,7 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon_list(self, member: discord.Member, aggregations=[]):
         pipeline = [
-            {"$match": {"owner_id": member.id, "owned_by": "user"}},
+            {"$match": {"owner_id": member.id, "owned_by": {"$nin": ["market", "released"]}}},
             *aggregations,
         ]
         print(pipeline)
@@ -515,7 +515,7 @@ class Mongo(commands.Cog):
     async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
         result = await self.db.pokemon.aggregate(
             [
-                {"$match": {"owner_id": member.id, "owned_by": "user"}},
+                {"$match": {"owner_id": member.id, "owned_by": {"$nin": ["market", "released"]}}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -583,11 +583,18 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):
-            result = await self.db.pokemon.find_one({"_id": idx, "owned_by": "user"})
+            result = await self.db.pokemon.find_one(
+                {"_id": idx, "owned_by": {"$nin": ["market", "released"]}}
+            )
         elif idx == -1:
             result = await self.db.pokemon.aggregate(
                 [
-                    {"$match": {"owner_id": member.id, "owned_by": "user"}},
+                    {
+                        "$match": {
+                            "owner_id": member.id,
+                            "owned_by": {"$nin": ["market", "released"]},
+                        }
+                    },
                     {"$sort": {"idx": -1}},
                     {"$limit": 1},
                 ],
@@ -600,7 +607,7 @@ class Mongo(commands.Cog):
                 result = result[0]
         else:
             result = await self.db.pokemon.find_one(
-                {"owner_id": member.id, "idx": idx, "owned_by": "user"}
+                {"owner_id": member.id, "idx": idx, "owned_by": {"$nin": ["market", "released"]}}
             )
 
         if result is None:

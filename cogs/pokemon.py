@@ -39,9 +39,9 @@ class Pokemon(commands.Cog):
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
         await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
-        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id, "owned_by": "user"}).sort(
-            "idx"
-        )
+        mons = self.bot.mongo.db.pokemon.find(
+            {"owner_id": ctx.author.id, "owned_by": {"$nin": ["market", "released"]}}
+        ).sort("idx")
 
         ops = []
 
