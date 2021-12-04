@@ -504,36 +504,18 @@ class Mongo(commands.Cog):
         return result[0]["num_matches"]
 
     async def fetch_pokemon_list(self, member: discord.Member, aggregations=[]):
-        async for x in self.db.pokemon.aggregate(
-            [
-                {
-                    "$match": {
-                        "owner_id": member.id,
-                        "$or": [
-                            {"owned_by": "user"},
-                            {"owned_by": {"$exists": False}},
-                        ],  # TODO Replace
-                    }
-                },
-                *aggregations,
-            ],
-            allowDiskUse=True,
-        ):
+        pipeline = [
+            {"$match": {"owner_id": member.id, "owned_by": "user"}},
+            *aggregations,
+        ]
+        print(pipeline)
+        async for x in self.db.pokemon.aggregate(pipeline, allowDiskUse=True):
             yield self.bot.mongo.Pokemon.build_from_mongo(x)
 
     async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
-
         result = await self.db.pokemon.aggregate(
             [
-                {
-                    "$match": {
-                        "owner_id": member.id,
-                        "$or": [
-                            {"owned_by": "user"},
-                            {"owned_by": {"$exists": False}},
-                        ],  # TODO Replace
-                    }
-                },
+                {"$match": {"owner_id": member.id, "owned_by": "user"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -601,27 +583,11 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):
-            result = await self.db.pokemon.find_one(
-                {
-                    "_id": idx,
-                    "$or": [
-                        {"owned_by": "user"},
-                        {"owned_by": {"$exists": False}},
-                    ],  # TODO Replace
-                }
-            )
+            result = await self.db.pokemon.find_one({"_id": idx, "owned_by": "user"})
         elif idx == -1:
             result = await self.db.pokemon.aggregate(
                 [
-                    {
-                        "$match": {
-                            "owner_id": member.id,
-                            "$or": [
-                                {"owned_by": "user"},
-                                {"owned_by": {"$exists": False}},
-                            ],  # TODO Replace
-                        }
-                    },
+                    {"$match": {"owner_id": member.id, "owned_by": "user"}},
                     {"$sort": {"idx": -1}},
                     {"$limit": 1},
                 ],
@@ -634,14 +600,7 @@ class Mongo(commands.Cog):
                 result = result[0]
         else:
             result = await self.db.pokemon.find_one(
-                {
-                    "owner_id": member.id,
-                    "idx": idx,
-                    "$or": [
-                        {"owned_by": "user"},
-                        {"owned_by": {"$exists": False}},
-                    ],  # TODO Replace
-                }
+                {"owner_id": member.id, "idx": idx, "owned_by": "user"}
             )
 
         if result is None:

@@ -720,7 +720,7 @@ class Trading(commands.Cog):
         aggregations.extend(
             [
                 {"$match": {"_id": {"$not": {"$eq": member.selected_id}}}},
-                {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
+                {"$match": {"favorite": {"$not": {"$eq": True}}}},
             ]
         )
 

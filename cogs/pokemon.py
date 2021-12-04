@@ -39,15 +39,9 @@ class Pokemon(commands.Cog):
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
         await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
-        mons = self.bot.mongo.db.pokemon.find(
-            {
-                "owner_id": ctx.author.id,
-                "$or": [
-                    {"owned_by": "user"},
-                    {"owned_by": {"$exists": False}},
-                ],  # TODO Replace
-            }
-        ).sort("idx")
+        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id, "owned_by": "user"}).sort(
+            "idx"
+        )
 
         ops = []
 
@@ -330,7 +324,7 @@ class Pokemon(commands.Cog):
         # Check pokemon and unfavorited pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
-        aggregations.append({"$match": {"pokemon.favorite": {"$ne": True}}})
+        aggregations.append({"$match": {"favorite": {"$ne": True}}})
         unfavnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
@@ -419,7 +413,7 @@ class Pokemon(commands.Cog):
         # Check pokemon and unfavorited pokemon num
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
-        aggregations.append({"$match": {"pokemon.favorite": True}})
+        aggregations.append({"$match": {"favorite": True}})
         favnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
@@ -834,7 +828,7 @@ class Pokemon(commands.Cog):
         aggregations.extend(
             [
                 {"$match": {"_id": {"$not": {"$eq": member.selected_id}}}},
-                {"$match": {"pokemon.favorite": {"$not": {"$eq": True}}}},
+                {"$match": {"favorite": {"$not": {"$eq": True}}}},
             ]
         )
 
