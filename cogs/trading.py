@@ -29,7 +29,7 @@ class Trading(commands.Cog):
         if (
             message.author.bot
             and message.author != self.bot.user
-            and deaccent(message.author.name) == "Poketwo"
+            and deaccent(message.author.display_name) == "Poketwo"
             and len(message.embeds) > 0
             and "Trade between" in message.embeds[0].title
         ):
