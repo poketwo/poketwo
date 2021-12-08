@@ -12,9 +12,7 @@ class Market(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(
-        aliases=("marketplace", "m"), invoke_without_command=True, case_insensitive=True
-    )
+    @commands.group(aliases=("marketplace", "m"), invoke_without_command=True, case_insensitive=True)
     async def market(self, ctx, **flags):
         """Buy or sell pokémon on the Pokétwo marketplace."""
 
@@ -179,9 +177,7 @@ class Market(commands.Cog):
     async def remove(self, ctx, id: int):
         """Remove a pokémon from the marketplace."""
 
-        listing = await self.bot.mongo.db.pokemon.find_one(
-            {"owned_by": "market", "market_data._id": id}
-        )
+        listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
         if listing["owner_id"] != ctx.author.id:
@@ -204,9 +200,7 @@ class Market(commands.Cog):
             {"$set": {"owned_by": "user"}, "$unset": {"market_data": 1}},
         )
 
-        await ctx.send(
-            f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market."
-        )
+        await ctx.send(f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market.")
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -215,9 +209,7 @@ class Market(commands.Cog):
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
 
-        listing = await self.bot.mongo.db.pokemon.find_one(
-            {"owned_by": "market", "market_data._id": id}
-        )
+        listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
@@ -244,9 +236,7 @@ class Market(commands.Cog):
 
         # buy
 
-        listing = await self.bot.mongo.db.pokemon.find_one(
-            {"owned_by": "market", "market_data._id": id}
-        )
+        listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
             return await ctx.send("That listing no longer exists.")
 
@@ -300,9 +290,7 @@ class Market(commands.Cog):
     async def info(self, ctx, id: int):
         """View a pokémon from the market."""
 
-        listing = await self.bot.mongo.db.pokemon.find_one(
-            {"owned_by": "market", "market_data._id": id}
-        )
+        listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
             return await ctx.send("Couldn't find that listing!")
 
