@@ -505,7 +505,7 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon_list(self, member: discord.Member, aggregations=[]):
         pipeline = [
-            {"$match": {"owner_id": member.id, "owned_by": {"$nin": ["market", "released"]}}},
+            {"$match": {"owner_id": member.id, "owned_by": "user"}},
             *aggregations,
         ]
         print(pipeline)
@@ -515,7 +515,7 @@ class Mongo(commands.Cog):
     async def fetch_pokemon_count(self, member: discord.Member, aggregations=[]):
         result = await self.db.pokemon.aggregate(
             [
-                {"$match": {"owner_id": member.id, "owned_by": {"$nin": ["market", "released"]}}},
+                {"$match": {"owner_id": member.id, "owned_by": "user"}},
                 *aggregations,
                 {"$count": "num_matches"},
             ],
@@ -583,18 +583,11 @@ class Mongo(commands.Cog):
 
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):
-            result = await self.db.pokemon.find_one(
-                {"_id": idx, "owned_by": {"$nin": ["market", "released"]}}
-            )
+            result = await self.db.pokemon.find_one({"_id": idx, "owned_by": "user"})
         elif idx == -1:
             result = await self.db.pokemon.aggregate(
                 [
-                    {
-                        "$match": {
-                            "owner_id": member.id,
-                            "owned_by": {"$nin": ["market", "released"]},
-                        }
-                    },
+                    {"$match": {"owner_id": member.id, "owned_by": "user"}},
                     {"$sort": {"idx": -1}},
                     {"$limit": 1},
                 ],
@@ -607,7 +600,7 @@ class Mongo(commands.Cog):
                 result = result[0]
         else:
             result = await self.db.pokemon.find_one(
-                {"owner_id": member.id, "idx": idx, "owned_by": {"$nin": ["market", "released"]}}
+                {"owner_id": member.id, "idx": idx, "owned_by": "user"}
             )
 
         if result is None:
