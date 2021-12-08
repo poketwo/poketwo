@@ -486,6 +486,8 @@ class Auctions(commands.Cog):
             return await ctx.send("Page must be positive!")
 
         def map_field(field):
+            if field == "owner_id":
+                return "user_id"
             if field in {
                 "_id",
                 "guild_id",
