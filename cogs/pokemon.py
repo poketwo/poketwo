@@ -569,7 +569,7 @@ class Pokemon(commands.Cog):
         aggregations = []
 
         if "mine" in flags and flags["mine"]:
-            aggregations.append({"$match": {"owner_id": ctx.author.id}})
+            aggregations.append({"$match": {map_field("owner_id"): ctx.author.id}})
 
         if "bids" in flags and flags["bids"]:
             aggregations.append({"$match": {"bidder_id": ctx.author.id}})
