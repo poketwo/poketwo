@@ -33,15 +33,11 @@ class Pokemon(commands.Cog):
     async def reindex(self, ctx):
         """Re-number all pokémon in your collection."""
 
-        await ctx.send(
-            "Reindexing all your pokémon... please don't do anything else during this time."
-        )
+        await ctx.send("Reindexing all your pokémon... please don't do anything else during this time.")
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
         await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
-        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id, "owned_by": "user"}).sort(
-            "idx"
-        )
+        mons = self.bot.mongo.db.pokemon.find({"owner_id": ctx.author.id, "owned_by": "user"}).sort("idx")
 
         ops = []
 
@@ -339,9 +335,7 @@ class Pokemon(commands.Cog):
 
         # confirm
 
-        result = await ctx.confirm(
-            f"Are you sure you want to **favorite** your {unfavnum} pokémon?"
-        )
+        result = await ctx.confirm(f"Are you sure you want to **favorite** your {unfavnum} pokémon?")
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
@@ -426,9 +420,7 @@ class Pokemon(commands.Cog):
 
         # confirm
 
-        result = await ctx.confirm(
-            f"Are you sure you want to **unfavorite** your {favnum} pokémon?"
-        )
+        result = await ctx.confirm(f"Are you sure you want to **unfavorite** your {favnum} pokémon?")
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
@@ -518,9 +510,7 @@ class Pokemon(commands.Cog):
 
             return embed
 
-        pages = pagination.ContinuablePages(
-            pagination.FunctionPageSource(5, get_page), allow_go=False
-        )
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(5, get_page), allow_go=False)
         pages.current_page = 2
         ctx.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
@@ -539,9 +529,7 @@ class Pokemon(commands.Cog):
             {"$set": {f"selected_id": pokemon.id}},
         )
 
-        await ctx.send(
-            f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}."
-        )
+        await ctx.send(f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}.")
 
     @checks.has_started()
     @commands.command(aliases=("or",))
@@ -581,7 +569,7 @@ class Pokemon(commands.Cog):
         aggregations = []
 
         if "mine" in flags and flags["mine"]:
-            aggregations.append({"$match": {"user_id": ctx.author.id}})
+            aggregations.append({"$match": {"owner_id": ctx.author.id}})
 
         if "bids" in flags and flags["bids"]:
             aggregations.append({"$match": {"bidder_id": ctx.author.id}})
@@ -596,11 +584,7 @@ class Pokemon(commands.Cog):
         for x in ("alolan", "galarian", "mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append(
-                    {
-                        "$match": {
-                            map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}
-                        }
-                    }
+                    {"$match": {map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}}}
                 )
 
         if "type" in flags and flags["type"]:
@@ -618,9 +602,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {map_field("shiny"): True}})
 
         if "name" in flags and flags["name"] is not None:
-            all_species = [
-                i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))
-            ]
+            all_species = [i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))]
 
             aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
@@ -629,9 +611,7 @@ class Pokemon(commands.Cog):
                 {
                     "$match": {
                         map_field("nickname"): {
-                            "$regex": "("
-                            + ")|(".join(" ".join(x) for x in flags["nickname"])
-                            + ")",
+                            "$regex": "(" + ")|(".join(" ".join(x) for x in flags["nickname"]) + ")",
                             "$options": "i",
                         }
                     }
@@ -731,9 +711,7 @@ class Pokemon(commands.Cog):
                 mons.append(pokemon)
 
         if len(args) != len(mons):
-            await ctx.send(
-                f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!"
-            )
+            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!")
 
         # Confirmation msg
 
@@ -998,9 +976,7 @@ class Pokemon(commands.Cog):
 
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
-            do_emojis = (
-                ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
-            )
+            do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 898 + 1)
             pokedex = member.pokedex
@@ -1077,9 +1053,7 @@ class Pokemon(commands.Cog):
 
                 return embed
 
-            pages = pagination.ContinuablePages(
-                pagination.FunctionPageSource(math.ceil(898 / 20), get_page)
-            )
+            pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(898 / 20), get_page))
             pages.current_page = int(search_or_page) - 1
             self.bot.menus[ctx.author.id] = pages
             await pages.start(ctx)
@@ -1204,9 +1178,7 @@ class Pokemon(commands.Cog):
                 )
 
             else:
-                embed.description += (
-                    f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
-                )
+                embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
 
             if len(args) == 1:
                 if pokemon.shiny:

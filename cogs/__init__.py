@@ -7,7 +7,7 @@ default = (
     "config",
     "data",
     "help",
-    # "market",
+    "market",
     "mongo",
     "pokemon",
     "quests",

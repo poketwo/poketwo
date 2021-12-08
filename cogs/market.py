@@ -197,7 +197,10 @@ class Market(commands.Cog):
 
         await self.bot.mongo.db.pokemon.update_one(
             {"_id": listing["_id"]},
-            {"$set": {"owned_by": "user"}, "$unset": {"market_data": 1}},
+            {
+                "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(ctx.author)},
+                "$unset": {"market_data": 1},
+            },
         )
 
         await ctx.send(f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market.")
@@ -247,7 +250,11 @@ class Market(commands.Cog):
         await self.bot.mongo.db.pokemon.update_one(
             {"_id": listing["_id"]},
             {
-                "$set": {"owner_id": ctx.author.id, "owned_by": "user"},
+                "$set": {
+                    "owner_id": ctx.author.id,
+                    "owned_by": "user",
+                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
+                },
                 "$unset": {"market_data": 1},
             },
         )
@@ -264,7 +271,7 @@ class Market(commands.Cog):
         self.bot.loop.create_task(
             self.bot.send_dm(
                 listing["owner_id"],
-                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['market_data']['price']} Pokécoins!",
+                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['market_data']['price']:,} Pokécoins!",
             )
         )
 
