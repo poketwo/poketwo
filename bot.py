@@ -18,6 +18,30 @@ DEFAULT_DISABLED_MESSAGE = (
     "Try again later and check the #status channel in the official server for more details."
 )
 
+CONCURRENCY_LIMITED_COMMANDS = {
+    "auction",
+    "market",
+    "evolve",
+    "favorite",
+    "favoriteall",
+    "nickall",
+    "nickname",
+    "reindex",
+    "release",
+    "releaseall",
+    "select",
+    "unfavorite",
+    "unfavoriteall",
+    "unmega",
+    "buy",
+    "dropitem",
+    "embedcolor",
+    "moveitem",
+    "open",
+    "redeemspawn",
+    "trade",
+}
+
 
 async def determine_prefix(bot, message):
     cog = bot.get_cog("Bot")
@@ -140,18 +164,18 @@ class ClusterBot(commands.AutoShardedBot):
         if ctx.command is None:
             return
 
-        if ctx.command.name in {"admin", "jishaku"} or (
-            ctx.command.root_parent and ctx.command.root_parent.name in {"admin", "jishaku"}
+        if not (
+            ctx.command.name in CONCURRENCY_LIMITED_COMMANDS
+            or (ctx.command.root_parent and ctx.command.root_parent.name in CONCURRENCY_LIMITED_COMMANDS)
         ):
             return await super().invoke(ctx)
 
         try:
             async with RedisLock(self.redis, f"command:{ctx.author.id}", 60, 1):
+                await asyncio.sleep(4)
                 return await super().invoke(ctx)
         except LockTimeoutError:
-            await ctx.reply(
-                "You are currently running another command. Please wait and try again later."
-            )
+            await ctx.reply("You are currently running another command. Please wait and try again later.")
 
     async def before_identify_hook(self, shard_id, *, initial=False):
         async with RedisLock(self.redis, f"identify:{shard_id % 16}", 5, None):
