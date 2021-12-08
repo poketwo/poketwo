@@ -289,7 +289,7 @@ class Market(commands.Cog):
                 }
             )
         except:
-            print("Error trading market logs.")
+            pass
 
     @checks.has_started()
     @commands.cooldown(3, 5, commands.BucketType.user)

@@ -13,9 +13,7 @@ from helpers.utils import FakeUser
 class AuctionConverter(commands.Converter):
     async def convert(self, ctx, arg):
         try:
-            auction = await ctx.bot.mongo.Auction.find_one(
-                {"guild_id": ctx.guild.id, "_id": int(arg)}
-            )
+            auction = await ctx.bot.mongo.Auction.find_one({"guild_id": ctx.guild.id, "_id": int(arg)})
         except ValueError:
             raise commands.BadArgument("Invalid auction ID.")
 
@@ -121,7 +119,7 @@ class Auctions(commands.Cog):
                     }
                 )
             except:
-                print("Error trading auction logs.")
+                pass
 
     def make_base_embed(self, author, pokemon, auction_id):
         embed = self.bot.Embed(
@@ -186,9 +184,7 @@ class Auctions(commands.Cog):
         """Start an auction."""
 
         if ctx.guild.id != 716390832034414685:
-            return await ctx.send(
-                "Sorry, you cannot start auctions outside of the main server at this time."
-            )
+            return await ctx.send("Sorry, you cannot start auctions outside of the main server at this time.")
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
@@ -362,9 +358,7 @@ class Auctions(commands.Cog):
 
         # go!
 
-        auction = await self.bot.mongo.Auction.find_one(
-            {"guild_id": ctx.guild.id, "_id": auction.id}
-        )
+        auction = await self.bot.mongo.Auction.find_one({"guild_id": ctx.guild.id, "_id": auction.id})
 
         if auction is None:
             return await ctx.send("Couldn't find that auction!")
@@ -425,9 +419,7 @@ class Auctions(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -bid}})
 
         if auction.bidder_id is not None:
-            await self.bot.mongo.update_member(
-                auction.bidder_id, {"$inc": {"balance": auction.current_bid}}
-            )
+            await self.bot.mongo.update_member(auction.bidder_id, {"$inc": {"balance": auction.current_bid}})
             self.bot.loop.create_task(
                 self.bot.send_dm(
                     auction.bidder_id,

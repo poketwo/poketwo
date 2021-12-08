@@ -181,20 +181,12 @@ class Trading(commands.Cog):
                     idx = await self.bot.mongo.fetch_next_idx(omem, num_pokes)
 
                     if trade["pokecoins"][i] > 0:
-                        await self.bot.mongo.update_member(
-                            mem, {"$inc": {"balance": -trade["pokecoins"][i]}}
-                        )
-                        await self.bot.mongo.update_member(
-                            omem, {"$inc": {"balance": trade["pokecoins"][i]}}
-                        )
+                        await self.bot.mongo.update_member(mem, {"$inc": {"balance": -trade["pokecoins"][i]}})
+                        await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
 
                     if trade["redeems"][i] > 0:
-                        await self.bot.mongo.update_member(
-                            mem, {"$inc": {"redeems": -trade["redeems"][i]}}
-                        )
-                        await self.bot.mongo.update_member(
-                            omem, {"$inc": {"redeems": trade["redeems"][i]}}
-                        )
+                        await self.bot.mongo.update_member(mem, {"$inc": {"redeems": -trade["redeems"][i]}})
+                        await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
 
                     for x in side:
                         pokemon = x
@@ -216,18 +208,13 @@ class Trading(commands.Cog):
                             evos = [
                                 evo
                                 for evo in pokemon.species.trade_evolutions
-                                if (
-                                    evo.trigger.item is None
-                                    or evo.trigger.item.id == pokemon.held_item
-                                )
+                                if (evo.trigger.item is None or evo.trigger.item.id == pokemon.held_item)
                             ]
 
                             if len(evos) > 0:
                                 evo = random.choice(evos)
 
-                                evo_embed = self.bot.Embed(
-                                    title=f"Congratulations {omem.display_name}!"
-                                )
+                                evo_embed = self.bot.Embed(title=f"Congratulations {omem.display_name}!")
 
                                 name = str(pokemon.species)
 
@@ -280,7 +267,6 @@ class Trading(commands.Cog):
                     }
                 )
             except:
-                print("Error saving trading logs.")
                 pass
 
             await self.end_trade(a.id)
@@ -319,9 +305,7 @@ class Trading(commands.Cog):
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
-        message = await ctx.send(
-            f"Requesting a trade with {user.mention}. Click the checkmark to accept!"
-        )
+        message = await ctx.send(f"Requesting a trade with {user.mention}. Click the checkmark to accept!")
         await message.add_reaction("✅")
 
         def check(reaction, u):
@@ -334,9 +318,7 @@ class Trading(commands.Cog):
             return await ctx.send("The request to trade has timed out.")
 
         if await self.is_in_trade(ctx.author):
-            return await ctx.send(
-                "Sorry, the user who sent the request is already in another trade."
-            )
+            return await ctx.send("Sorry, the user who sent the request is already in another trade.")
 
         if await self.is_in_trade(user):
             return await ctx.send("Sorry, you can't accept a trade while you're already in one!")
@@ -389,15 +371,12 @@ class Trading(commands.Cog):
             return await ctx.send("The trade is currently loading...")
 
         last_updated = self.bot.trades[ctx.author.id]["last_updated"]
-        print(datetime.utcnow() - last_updated)
         if datetime.utcnow() - last_updated < timedelta(seconds=3):
             return await ctx.reply(
                 "The trade was recently modified. Please wait a few seconds, and then try again."
             )
 
-        self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][
-            ctx.author.id
-        ]
+        self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][ctx.author.id]
 
         await self.send_trade(ctx, ctx.author)
 
@@ -710,9 +689,7 @@ class Trading(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        aggregations = await self.bot.get_cog("Pokemon").create_filter(
-            flags, ctx, order_by=member.order_by
-        )
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
@@ -787,9 +764,7 @@ class Trading(commands.Cog):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
-        other_id = next(
-            x for x in self.bot.trades[ctx.author.id] if type(x) == int and x != ctx.author.id
-        )
+        other_id = next(x for x in self.bot.trades[ctx.author.id] if type(x) == int and x != ctx.author.id)
         other = ctx.guild.get_member(other_id) or await ctx.guild.fetch_member(other_id)
 
         try:
