@@ -63,40 +63,6 @@ class Bot(commands.Cog):
             await self.bot.process_commands(after)
 
     @commands.Cog.listener()
-    async def on_command(self, ctx):
-        self.bot.log.info(
-            "Command run",
-            extra={
-                "userid": ctx.author.id,
-                "user": str(ctx.author),
-                "command": ctx.command.qualified_name,
-                "content": ctx.message.content,
-            },
-        )
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if member.msf_notified or random.random() < 0.95:
-            return
-        await self.bot.mongo.update_member(ctx.author, {"$set": {"msf_notified": True}})
-        embed = discord.Embed(
-            title="Pokétwo Thanksgiving Fundraiser",
-            description=f"Greetings {ctx.author.name},\n\n"
-            "For Thanksgiving, Pokétwo is running a fundraiser to support [**Médecins Sans Frontières / Doctors Without Borders**](https://www.msf.org/), an international humanitarian organization that provides millions of consultations, surgeries, treatments and vaccinations across over 70 countries every year.\n\n"
-            "This is a great opportunity to help fund medical relief to save lives and ease suffering around the world, and you'll receive in-game rewards while you're at it. **100% of your donation will go to Médecins Sans Frontières / Doctors Without Borders. Pokétwo will cover all transaction fees and is matching the first $5,000 in donations.**\n\n"
-            "For every **$15** you contribute to the fundraiser, you will be rewarded 1× limited-time event Pokémon [**United Pikachu**](https://assets.poketwo.net/images/50032.png). This Pokémon is only obtainable through this fundraiser. There is no limit to the number of United Pikachu you can obtain. In addition, we have various milestones toward our donation goal of **$10,000**, which can be view on the donation site.\n\n"
-            "You can donate to our fundraiser [at this website](https://msf-fundraiser.poketwo.net/). Happy Thanksgiving!",
-        )
-        embed.set_image(url="https://i.imgur.com/b8WnagA.png")
-        view = discord.ui.View()
-        view.add_item(
-            discord.ui.Button(
-                style=discord.ButtonStyle.blurple,
-                label="Donate",
-                url="https://msf-fundraiser.poketwo.net/",
-            )
-        )
-        await ctx.author.send(embed=embed, view=view)
-
-    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
         if isinstance(error, commands.CommandOnCooldown):
