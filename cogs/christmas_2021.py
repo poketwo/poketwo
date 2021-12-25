@@ -84,14 +84,7 @@ class Christmas(commands.Cog):
             inline=False,
         )
 
-        view = discord.ui.View()
-        view.add_item(
-            discord.ui.Button(
-                label="Visit Top.gg", url="https://top.gg/bot/716390085896962058/vote"
-            )
-        )
-
-        await ctx.send(embed=embed, view=view)
+        await ctx.send(embed=embed)
 
     @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @christmas.command(aliases=("givebox", "ab", "gb"))
