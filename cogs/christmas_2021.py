@@ -135,9 +135,9 @@ class Christmas(commands.Cog):
             text = f"{shards} Shards"
 
         elif reward == "pokecoins":
-            shards = max(round(random.normalvariate(1000, 500)), 800)
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": shards}})
-            text = f"{shards} Pokécoins"
+            pokecoins = max(round(random.normalvariate(1000, 500)), 800)
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": pokecoins}})
+            text = f"{pokecoins} Pokécoins"
 
         elif reward == "redeem":
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"redeems": 1}})
