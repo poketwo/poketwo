@@ -68,12 +68,9 @@ class Christmas(commands.Cog):
     async def christmas(self, ctx):
         """View Christmas event information."""
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        
-        def christmas_2021_ec(self):
-            return random.choice([0x9ECFFC, 0xDE2E43, 0x79B15A])
+        member = await self.bot.mongo.fetch_member_info(ctx.author)  
 
-        embed = self.bot.Embed(color=self.christmas_2021_ec())
+        embed = self.bot.Embed(color=random.choice([0x9ECFFC, 0xDE2E43, 0x79B15A]))
         embed.title = f"Christmas 2021"
         embed.add_field(
             name=f"🎁 Boxes — Nice: {member.christmas_boxes_nice}, Naughty: {member.christmas_boxes_naughty}",
