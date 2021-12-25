@@ -24,7 +24,8 @@ def calc_stat(pokemon, stat):
     base = getattr(pokemon.species.base_stats, stat)
     iv = getattr(pokemon, f"iv_{stat}")
     return math.floor(
-        ((2 * base + iv + 5) * pokemon.level // 100 + 5) * constants.NATURE_MULTIPLIERS[pokemon.nature][stat]
+        ((2 * base + iv + 5) * pokemon.level // 100 + 5)
+        * constants.NATURE_MULTIPLIERS[pokemon.nature][stat]
     )
 
 
@@ -128,7 +129,9 @@ class PokemonBase(MixinDocument):
     def max_hp(self):
         if self.species_id == 292:
             return 1
-        return (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100 + self.level + 10
+        return (
+            (2 * self.species.base_stats.hp + self.iv_hp + 5) * self.level // 100 + self.level + 10
+        )
 
     @property
     def hp(self):
@@ -190,7 +193,10 @@ class PokemonBase(MixinDocument):
             if evo.trigger.move_id and evo.trigger.move_id not in self.moves:
                 can = False
             if evo.trigger.move_type_id and not any(
-                [self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id for x in self.moves]
+                [
+                    self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id
+                    for x in self.moves
+                ]
             ):
                 can = False
             if evo.trigger.time == "day" and not is_day or evo.trigger.time == "night" and is_day:
@@ -289,6 +295,10 @@ class Member(Document):
     halloween_badge = fields.BooleanField(default=False)
     msf_notified = fields.BooleanField(default=False)
     msf_donated_amount = fields.IntegerField(default=0)
+    christmas_boxes_nice = fields.IntegerField(default=0)
+    christmas_boxes_naughty = fields.IntegerField(default=0)
+    christmas_boxes_nice_opened = fields.IntegerField(default=0)
+    christmas_boxes_naughty_opened = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):
@@ -401,7 +411,9 @@ class Mongo(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.db = AsyncIOMotorClient(bot.config.DATABASE_URI, io_loop=bot.loop)[bot.config.DATABASE_NAME]
+        self.db = AsyncIOMotorClient(bot.config.DATABASE_URI, io_loop=bot.loop)[
+            bot.config.DATABASE_NAME
+        ]
         instance = Instance(self.db)
 
         g = globals()
@@ -588,7 +600,9 @@ class Mongo(commands.Cog):
             else:
                 result = result[0]
         else:
-            result = await self.db.pokemon.find_one({"owner_id": member.id, "idx": idx, "owned_by": "user"})
+            result = await self.db.pokemon.find_one(
+                {"owner_id": member.id, "idx": idx, "owned_by": "user"}
+            )
 
         if result is None:
             return None
