@@ -73,7 +73,7 @@ class Christmas(commands.Cog):
         embed = self.bot.Embed(color=0xE67D23)
         embed.title = f"Christmas 2021"
         embed.add_field(
-            name=f"🎁 Boxes — Naughty: {member.christmas_boxes_nice}, Nice: {member.christmas_boxes_naughty}",
+            name=f"🎁 Boxes — Nice: {member.christmas_boxes_nice}, Naughty: {member.christmas_boxes_naughty}",
             value=f"Some **Ice** or **Rock** Pokémon are carrying certain gift boxes for Santa... "
             f"Use these boxes with the `{ctx.prefix}event open` command for the possibility of receiving an exclusive event Pokémon!",
             inline=False,
