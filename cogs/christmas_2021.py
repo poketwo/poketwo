@@ -84,7 +84,7 @@ class Christmas(commands.Cog):
             inline=False,
         )
 
-        await ctx.send(embed=embed, view=view)
+        await ctx.send(embed=embed)
 
     @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
     @christmas.command(aliases=("givebox", "ab", "gb"))
