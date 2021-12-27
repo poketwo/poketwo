@@ -540,7 +540,6 @@ class Battling(commands.Cog):
         battle = self.bot.battles.new(ctx.author, user, ctx)
         await battle.send_selection(ctx)
 
-    @checks.has_started()
     @in_battle(True)
     @battle.command(aliases=("a",))
     async def add(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
@@ -585,7 +584,6 @@ class Battling(commands.Cog):
         else:
             await self.bot.battles[ctx.author].send_selection(ctx)
 
-    @checks.has_started()
     @in_battle(True)
     @battle.command(aliases=("m",))
     async def move(self, ctx, *, move):
@@ -756,7 +754,6 @@ class Battling(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.has_started()
     @in_battle(True)
     @battle.command(aliases=("x",))
     async def cancel(self, ctx):

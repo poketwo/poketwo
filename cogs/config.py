@@ -70,7 +70,6 @@ class Configuration(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.is_admin()
     @commands.guild_only()
     @commands.command(aliases=("setprefix",))
     async def prefix(self, ctx: commands.Context, *, prefix: str = None):
@@ -82,6 +81,9 @@ class Configuration(commands.Cog):
             if type(current) == list:
                 current = current[0]
             return await ctx.send(f"My prefix is `{current}` in this server.")
+
+        elif prefix is not None and not ctx.author.guild_permissions.administrator:
+            raise commands.MissingPermissions
 
         if prefix in ("reset", "p!", "P!"):
             await self.bot.mongo.update_guild(ctx.guild, {"$set": {"prefix": None}})

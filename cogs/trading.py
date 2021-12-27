@@ -297,6 +297,9 @@ class Trading(commands.Cog):
         if await self.is_in_trade(ctx.author):
             return await ctx.send("You are already in a trade!")
 
+        if user.suspended:
+            return await ctx.send(f"**{user}** is suspended from the bot!")
+
         if await self.is_in_trade(user):
             return await ctx.send(f"**{user}** is already in a trade!")
 
@@ -340,7 +343,6 @@ class Trading(commands.Cog):
         await self.bot.redis.hset("trade", user.id, self.bot.cluster_idx)
         await self.send_trade(ctx, ctx.author)
 
-    @checks.has_started()
     @commands.guild_only()
     @trade.command(aliases=("x",))
     async def cancel(self, ctx):

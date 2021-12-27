@@ -29,6 +29,7 @@ class Pokemon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @checks.has_started()
     @commands.command(aliases=("renumber",))
     async def reindex(self, ctx):
         """Re-number all pokémon in your collection."""
@@ -53,6 +54,7 @@ class Pokemon(commands.Cog):
         await self.bot.mongo.db.pokemon.bulk_write(ops)
         await ctx.send("Successfully reindexed all your pokémon!")
 
+    @checks.has_started()
     @commands.command(aliases=("nick",))
     async def nickname(
         self,
@@ -189,6 +191,7 @@ class Pokemon(commands.Cog):
         else:
             await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
 
+    @checks.has_started()
     @commands.command(
         aliases=(
             "favourite",
@@ -229,6 +232,7 @@ class Pokemon(commands.Cog):
             for i in range(0, len(longmsg), 2000):
                 await ctx.send(longmsg[i : i + 2000])
 
+    @checks.has_started()
     @commands.command(
         aliases=(
             "unfavourite",
@@ -1233,6 +1237,7 @@ class Pokemon(commands.Cog):
 
         await ctx.send("Successfully switched back to non-mega form.")
 
+    @checks.has_started()
     @commands.command(aliases=("f",))
     async def first(self, ctx):
         if ctx.author.id not in self.bot.menus:
@@ -1243,6 +1248,7 @@ class Pokemon(commands.Cog):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, 0)
 
+    @checks.has_started()
     @commands.command(aliases=("n", "forward"))
     async def next(self, ctx):
         if ctx.author.id not in self.bot.menus:
@@ -1253,6 +1259,7 @@ class Pokemon(commands.Cog):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page + 1)
 
+    @checks.has_started()
     @commands.command(aliases=("prev", "back", "b"))
     async def previous(self, ctx):
         if ctx.author.id not in self.bot.menus:
@@ -1267,6 +1274,7 @@ class Pokemon(commands.Cog):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
 
+    @checks.has_started()
     @commands.command(aliases=("l",))
     async def last(self, ctx):
         if ctx.author.id not in self.bot.menus:
@@ -1281,6 +1289,7 @@ class Pokemon(commands.Cog):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
 
+    @checks.has_started()
     @commands.command(aliases=("page", "g"))
     async def go(self, ctx, page: int):
         if ctx.author.id not in self.bot.menus:
