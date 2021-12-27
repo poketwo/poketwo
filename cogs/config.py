@@ -82,7 +82,7 @@ class Configuration(commands.Cog):
                 current = current[0]
             return await ctx.send(f"My prefix is `{current}` in this server.")
 
-        elif prefix is not None and not ctx.author.guild_permissions.administrator:
+        elif prefix is not None and not any(ctx.author.guild_permissions.administrator, await ctx.bot.is_owner(ctx.author)):
             raise commands.MissingPermissions
 
         if prefix in ("reset", "p!", "P!"):
