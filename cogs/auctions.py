@@ -162,7 +162,7 @@ class Auctions(commands.Cog):
         await ctx.send_help(ctx.command)
 
     @commands.has_permissions(administrator=True)
-    @auction.command(case_insensitive=True)
+    @auction.command()
     async def channel(self, ctx, channel: discord.TextChannel):
         """Change the auctions channel."""
 
@@ -172,7 +172,7 @@ class Auctions(commands.Cog):
     @checks.has_started()
     @checks.is_not_in_trade()
     @commands.max_concurrency(1, per=commands.BucketType.user)
-    @auction.command(case_insensitive=True)
+    @auction.command()
     async def start(
         self,
         ctx,
@@ -276,7 +276,7 @@ class Auctions(commands.Cog):
         )
 
     @checks.has_started()
-    @auction.command(case_insensitive=True)
+    @auction.command()
     async def lowerstart(self, ctx, auction: AuctionConverter, new_start: int):
         """Lower the starting bid for your auction."""
 
@@ -328,7 +328,7 @@ class Auctions(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, per=commands.BucketType.user)
-    @auction.command(aliases=("b",), case_insensitive=True)
+    @auction.command(aliases=("b",))
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
 
@@ -478,7 +478,7 @@ class Auctions(commands.Cog):
     @flags.add_flag("--ends", type=converters.to_timedelta)
     @checks.has_started()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @auction.command(aliases=("s",), case_insensitive=True, cls=flags.FlagCommand)
+    @auction.command(aliases=("s",), cls=flags.FlagCommand)
     async def search(self, ctx, **flags):
         """Search pokémon from auctions."""
 
@@ -554,7 +554,7 @@ class Auctions(commands.Cog):
 
     @checks.has_started()
     @commands.cooldown(3, 5, commands.BucketType.user)
-    @auction.command(aliases=("i",), case_insensitive=True)
+    @auction.command(aliases=("i",))
     async def info(self, ctx, auction: AuctionConverter):
         """View a pokémon from an auction."""
 
