@@ -102,7 +102,7 @@ class Christmas(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @christmas.command(aliases=("o"))
+    @christmas.command(aliases=("o",))
     async def open(self, ctx, box_type: str = "", amt: int = 1):
         """Open a box"""
 
