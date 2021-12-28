@@ -63,7 +63,7 @@ class Quests(commands.Cog):
         return ret
 
     @checks.has_started()
-    @commands.group(aliases=["q"], invoke_without_command=True)
+    @commands.group(aliases=["q"], invoke_without_command=True, case_insensitive=True)
     async def quests(self, ctx: commands.Context):
         """View quests."""
 
