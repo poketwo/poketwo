@@ -52,12 +52,12 @@ class Christmas(commands.Cog):
 
     @commands.Cog.listener()
     async def on_catch(self, ctx, species):
-        if "Ice" in species.types and random.random() < 0.3:
+        if "Ice" in species.types and random.random() < 0.5:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_nice": 1}})
             await ctx.send(
                 f"The Pokémon dropped a 🎁 **Nice Box**! Use `{ctx.prefix}event` to view more info."
             )
-        if "Rock" in species.types and random.random() < 0.2:
+        if "Rock" in species.types and random.random() < 0.35:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_naughty": 1}})
             await ctx.send(
                 f"The Pokémon dropped a 🎁 **Naughty Box**! Use `{ctx.prefix}event` to view more info."
