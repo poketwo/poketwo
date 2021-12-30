@@ -1,3 +1,5 @@
+from typing import Union
+
 import discord
 import geocoder
 from discord.ext import commands
@@ -130,7 +132,11 @@ class Configuration(commands.Cog):
 
     @checks.is_admin()
     @commands.group(invoke_without_command=True, case_insensitive=True)
-    async def redirect(self, ctx: commands.Context, channels: commands.Greedy[discord.TextChannel]):
+    async def redirect(
+        self,
+        ctx: commands.Context,
+        channels: commands.Greedy[Union[discord.TextChannel, discord.Thread]],
+    ):
         """Redirect pokémon catches to one or more channels."""
 
         if len(channels) == 0:

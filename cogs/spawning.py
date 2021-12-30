@@ -41,11 +41,8 @@ class Spawning(commands.Cog):
     async def spawn_incense(self):
         channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
         async for result in channels:
-            if "guild_id" in result:
-                guild = self.bot.get_guild(result["guild_id"])
-                channel = None if guild is None else guild.get_channel(result["_id"])
-            else:
-                channel = self.bot.get_channel(result["_id"])
+            guild = self.bot.get_guild(result["guild_id"])
+            channel = None if guild is None else guild.get_channel_or_thread(result["_id"])
 
             if channel is not None:
                 self.bot.loop.create_task(
@@ -190,7 +187,7 @@ class Spawning(commands.Cog):
             guild = await self.bot.mongo.fetch_guild(message.guild)
 
             if len(guild.channels) > 0:
-                channel = message.guild.get_channel(random.choice(guild.channels))
+                channel = message.guild.get_channel_or_thread(random.choice(guild.channels))
             else:
                 channel = message.channel
 
