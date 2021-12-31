@@ -105,7 +105,8 @@ class Bot(commands.Cog):
                 title="Account Suspended",
                 description="Your account was found to be in violation of Pokétwo rules and has been permanently blacklisted from using the bot.",
             )
-            embed.add_field(name="Reason", value=error.reason or "No reason provided")
+            embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
+            embed.add_field(name="", value="[Appeal Suspension](https://forms.poketwo.net/a/suspension-appeal)", inline=False)
             await ctx.send(embed=embed)
         elif isinstance(
             error,
