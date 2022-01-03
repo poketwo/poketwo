@@ -889,7 +889,7 @@ class Shop(commands.Cog):
 
         embed.add_field(
             name=f"{ctx.prefix}redeemspawn <pokémon>",
-            value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overrided).",
+            value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overridden).",
         )
 
         await ctx.send(embed=embed)
@@ -914,7 +914,7 @@ class Shop(commands.Cog):
 
             embed.add_field(
                 name=f"{ctx.prefix}redeemspawn <pokémon>",
-                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overrided)*.",
+                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overridden)*.",
             )
 
             return await ctx.send(embed=embed)
