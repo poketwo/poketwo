@@ -11,4 +11,4 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-dev
 
 COPY . .
-CMD ["python", "docker_launcher.py"]
+CMD ["python", "launcher_prod.py"]

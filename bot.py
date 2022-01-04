@@ -126,15 +126,6 @@ class ClusterBot(commands.AutoShardedBot):
     # Other stuff
 
     async def send_dm(self, user, *args, **kwargs):
-        # This code can wait until Messageable + Object comes out.
-        # user_data = await self.mongo.fetch_member_info(discord.Object(uid))
-        # if (priv := user_data.private_message_id) is None:
-        #     priv = await self.http.start_private_message(uid)
-        #     priv = int(priv["id"])
-        #     self.loop.create_task(
-        #         self.mongo.update_member(uid, {"$set": {"private_message_id": priv}})
-        #     )
-
         if not isinstance(user, discord.abc.Snowflake):
             user = discord.Object(user)
 
@@ -143,7 +134,6 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def do_startup_tasks(self):
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
-
         await self.wait_until_ready()
         self.log.info(f"Logged in as {self.user}")
 
@@ -154,10 +144,7 @@ class ClusterBot(commands.AutoShardedBot):
         self.log.info(f"Shard {shard_id} ready")
 
     async def on_message(self, message: discord.Message):
-        message.content = (
-            message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
-        )
-
+        message.content = message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
         await self.process_commands(message)
 
     async def invoke(self, ctx):
@@ -175,10 +162,6 @@ class ClusterBot(commands.AutoShardedBot):
                 return await super().invoke(ctx)
         except LockTimeoutError:
             await ctx.reply("You are currently running another command. Please wait and try again later.")
-
-    async def before_identify_hook(self, shard_id, *, initial=False):
-        async with RedisLock(self.redis, f"identify:{shard_id % 16}", 5, None):
-            await asyncio.sleep(5)
 
     async def close(self):
         self.log.info("shutting down")

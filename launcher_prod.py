@@ -4,8 +4,40 @@ from collections import namedtuple
 from urllib.parse import quote_plus
 
 import discord
+import discord.gateway
 
-from bot import ClusterBot
+import bot
+
+
+def patch_with_gateway(env_gateway):
+    class ProductionDiscordWebSocket(discord.gateway.DiscordWebSocket):
+        def is_ratelimited(self):
+            return False
+
+        @classmethod
+        async def from_client(
+            cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None, resume=False
+        ):
+            return await super().from_client(
+                client,
+                initial=initial,
+                gateway=env_gateway,
+                shard_id=shard_id,
+                session=session,
+                sequence=sequence,
+                resume=resume,
+            )
+
+    class ProductionBot(bot.ClusterBot):
+        async def before_identify_hook(self, shard_id, *, initial):
+            pass
+
+        def is_ws_ratelimited(self):
+            return False
+
+    discord.gateway.DiscordWebSocket = ProductionDiscordWebSocket
+    bot.ClusterBot = ProductionBot
+
 
 Config = namedtuple(
     "Config",
@@ -33,6 +65,9 @@ if __name__ == "__main__":
     if os.getenv("API_BASE") is not None:
         discord.http.Route.BASE = os.getenv("API_BASE")
 
+    if os.getenv("API_GATEWAY") is not None:
+        patch_with_gateway(os.getenv("API_GATEWAY"))
+
     config = Config(
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
@@ -53,7 +88,7 @@ if __name__ == "__main__":
 
     shard_ids = list(range(cluster_idx, num_shards, num_clusters))
 
-    ClusterBot(
+    bot.ClusterBot(
         token=config.BOT_TOKEN,
         shard_ids=shard_ids,
         shard_count=num_shards,
