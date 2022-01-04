@@ -145,7 +145,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def on_message(self, message: discord.Message):
         if message.guild and message.guild.me is None:
-            message.guild._members[self.bot.user.id] = await message.guild.fetch_member(self.bot.user.id)
+            message.guild._members[self.user.id] = await message.guild.fetch_member(self.user.id)
         message.content = message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
         await self.process_commands(message)
 
