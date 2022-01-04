@@ -5,39 +5,9 @@ from urllib.parse import quote_plus
 
 import discord
 import discord.gateway
+import discord.http
 
 import bot
-
-
-def patch_with_gateway(env_gateway):
-    class ProductionDiscordWebSocket(discord.gateway.DiscordWebSocket):
-        def is_ratelimited(self):
-            return False
-
-        @classmethod
-        async def from_client(
-            cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None, resume=False
-        ):
-            return await super().from_client(
-                client,
-                initial=initial,
-                gateway=env_gateway,
-                shard_id=shard_id,
-                session=session,
-                sequence=sequence,
-                resume=resume,
-            )
-
-    class ProductionBot(bot.ClusterBot):
-        async def before_identify_hook(self, shard_id, *, initial):
-            pass
-
-        def is_ws_ratelimited(self):
-            return False
-
-    discord.gateway.DiscordWebSocket = ProductionDiscordWebSocket
-    bot.ClusterBot = ProductionBot
-
 
 Config = namedtuple(
     "Config",
@@ -51,6 +21,36 @@ Config = namedtuple(
         "EXT_SERVER_URL",
     ],
 )
+
+
+def patch_with_gateway(env_gateway):
+    class ProductionHTTPClient(discord.http.HTTPClient):
+        async def get_gateway(self, **_):
+            return f"{env_gateway}?encoding=json&v=9"
+
+        async def get_bot_gateway(self, **_):
+            try:
+                data = await self.request(discord.http.Route("GET", "/gateway/bot"))
+            except discord.HTTPException as exc:
+                raise discord.GatewayNotFound() from exc
+            return data["shards"], f"{env_gateway}?encoding=json&v=9"
+
+    class ProductionDiscordWebSocket(discord.gateway.DiscordWebSocket):
+        def is_ratelimited(self):
+            return False
+
+    class ProductionBot(bot.ClusterBot):
+        async def before_identify_hook(self, shard_id, *, initial):
+            pass
+
+        def is_ws_ratelimited(self):
+            return False
+
+    discord.http.HTTPClient.get_gateway = ProductionHTTPClient.get_gateway
+    discord.http.HTTPClient.get_bot_gateway = ProductionHTTPClient.get_bot_gateway
+    discord.gateway.DiscordWebSocket.is_ratelimited = ProductionDiscordWebSocket.is_ratelimited
+    bot.ClusterBot = ProductionBot
+
 
 if __name__ == "__main__":
     uri = os.getenv("DATABASE_URI")
