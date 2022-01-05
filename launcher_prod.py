@@ -46,9 +46,16 @@ def patch_with_gateway(env_gateway):
         def is_ws_ratelimited(self):
             return False
 
+    class ProductionReconnectWebSocket(Exception):
+        def __init__(self, shard_id, *, resume=False):
+            self.shard_id = shard_id
+            self.resume = False
+            self.op = "IDENTIFY"
+
     discord.http.HTTPClient.get_gateway = ProductionHTTPClient.get_gateway
     discord.http.HTTPClient.get_bot_gateway = ProductionHTTPClient.get_bot_gateway
     discord.gateway.DiscordWebSocket.is_ratelimited = ProductionDiscordWebSocket.is_ratelimited
+    discord.gateway.ReconnectWebSocket.__init__ = ProductionReconnectWebSocket.__init__
     bot.ClusterBot = ProductionBot
 
 
