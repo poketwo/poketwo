@@ -79,10 +79,9 @@ class Christmas(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="Christmas Badge",
+            name=f"Christmas Badge\n🎁 Boxes opened — Nice: {member.christmas_boxes_nice_opened}, Naughty: {member.christmas_boxes_naughty_opened}",
             value="Open 15 Naughty Boxes and 15 Nice Boxes to receive the <:_:924126408693907507> **Christmas 2021** badge when the event ends.",
-            inline=False,
-        )
+            inline=False,        )
 
         await ctx.send(embed=embed)
 
