@@ -109,7 +109,7 @@ class Christmas(commands.Cog):
             return await ctx.send("Nice try...")
 
         if amt > 15:
-            return await ctx.send("You can only open 15 event boxes at once!")
+            return await ctx.send("You can only open up to 15 event boxes at once!")
         
         box_type = box_type.lower()
         if box_type not in {"nice", "naughty"}:
