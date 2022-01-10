@@ -50,31 +50,28 @@ class Christmas(commands.Cog):
         }
         return {k: [self.bot.data.species_by_number(i) for i in v] for k, v in p.items()}
 
-    @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
-        if "Ice" in species.types and random.random() < 0.5:
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_nice": 1}})
-            await ctx.send(
-                f"The Pokémon dropped a 🎁 **Nice Box**! Use `{ctx.prefix}event` to view more info."
-            )
-        if "Rock" in species.types and random.random() < 0.35:
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_naughty": 1}})
-            await ctx.send(
-                f"The Pokémon dropped a 🎁 **Naughty Box**! Use `{ctx.prefix}event` to view more info."
-            )
+    # @commands.Cog.listener()
+    # async def on_catch(self, ctx, species):
+    #     if "Ice" in species.types and random.random() < 0.5:
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_nice": 1}})
+    #         await ctx.send(f"The Pokémon dropped a 🎁 **Nice Box**! Use `{ctx.prefix}event` to view more info.")
+    #     if "Rock" in species.types and random.random() < 0.35:
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_naughty": 1}})
+    #         await ctx.send(f"The Pokémon dropped a 🎁 **Naughty Box**! Use `{ctx.prefix}event` to view more info.")
 
     @checks.has_started()
     @commands.group(aliases=("event",), invoke_without_command=True, case_insensitive=True)
     async def christmas(self, ctx):
         """View Christmas event information."""
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)  
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         embed = self.bot.Embed(color=random.choice([0x9ECFFC, 0xDE2E43, 0x79B15A]))
         embed.title = f"Christmas 2021"
         embed.add_field(
             name=f"🎁 Boxes — Nice: {member.christmas_boxes_nice}, Naughty: {member.christmas_boxes_naughty}",
-            value=f"Some **Ice** or **Rock** Pokémon are carrying certain gift boxes for Santa... "
+            value=
+            # f"Some **Ice** or **Rock** Pokémon are carrying certain gift boxes for Santa... "
             f"Use these boxes with the `{ctx.prefix}event open` command for the possibility of receiving an exclusive event Pokémon!",
             inline=False,
         )
@@ -168,9 +165,7 @@ class Christmas(commands.Cog):
                 "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
             }
 
-            text = (
-                f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
-            )
+            text = f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
 
             await self.bot.mongo.db.pokemon.insert_one(pokemon)
 
