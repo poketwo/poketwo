@@ -122,8 +122,7 @@ class Trading(commands.Cog):
                     return val
 
                 val = "\n".join(
-                    f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(x)
-                    for t, x in page or []
+                    f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(x) for t, x in page or []
                 )
 
                 if val == "":
@@ -136,7 +135,9 @@ class Trading(commands.Cog):
 
                 embed.add_field(name=f"{sign} {mem.display_name}", value=val)
 
-            embed.set_footer(text=f"Showing page {pidx + 1} out of {num_pages}.")
+            embed.set_footer(
+                text=f"Showing page {pidx + 1} out of {num_pages}.\nReminder: Trading Pokécoins or Pokémon for real-life currencies or items in other bots is prohibited and will result in the suspension of your Pokétwo account!"
+            )
 
             return embed
 
@@ -151,15 +152,11 @@ class Trading(commands.Cog):
                 for u in trade["users"]:
                     member = await self.bot.mongo.fetch_member_info(u)
                     if member.balance < trade["pokecoins"][u.id]:
-                        await ctx.send(
-                            "The trade could not be executed as one user does not have enough Pokécoins."
-                        )
+                        await ctx.send("The trade could not be executed as one user does not have enough Pokécoins.")
                         await self.end_trade(a.id)
                         return
                     if member.redeems < trade["redeems"][u.id]:
-                        await ctx.send(
-                            "The trade could not be executed as one user does not have enough redeems."
-                        )
+                        await ctx.send("The trade could not be executed as one user does not have enough redeems.")
                         await self.end_trade(a.id)
                         return
 
@@ -372,9 +369,7 @@ class Trading(commands.Cog):
 
         last_updated = self.bot.trades[ctx.author.id]["last_updated"]
         if datetime.utcnow() - last_updated < timedelta(seconds=3):
-            return await ctx.reply(
-                "The trade was recently modified. Please wait a few seconds, and then try again."
-            )
+            return await ctx.reply("The trade was recently modified. Please wait a few seconds, and then try again.")
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][ctx.author.id]
 
@@ -704,9 +699,7 @@ class Trading(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send(
-                "Found no pokémon matching this search (excluding favorited and selected pokémon)."
-            )
+            return await ctx.send("Found no pokémon matching this search (excluding favorited and selected pokémon).")
 
         # confirm
 
@@ -741,10 +734,7 @@ class Trading(commands.Cog):
                 x
                 async for x in pokemon
                 if all(
-                    (
-                        type(i) == int or x.idx != i.idx
-                        for i in self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id]
-                    )
+                    (type(i) == int or x.idx != i.idx for i in self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id])
                 )
             ]
         )
@@ -769,9 +759,7 @@ class Trading(commands.Cog):
 
         try:
             pokemon = next(
-                x
-                for x in self.bot.trades[ctx.author.id]["pokemon"][other_id]
-                if type(x) != int and x.idx == number
+                x for x in self.bot.trades[ctx.author.id]["pokemon"][other_id] if type(x) != int and x.idx == number
             )
         except StopIteration:
             return await ctx.send("Couldn't find that pokémon in the trade!")
