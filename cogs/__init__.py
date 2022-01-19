@@ -4,7 +4,6 @@ default = (
     "auctions",
     "battling",
     "bot",
-    "christmas_2021",
     "config",
     "data",
     "help",
