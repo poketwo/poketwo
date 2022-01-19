@@ -45,9 +45,7 @@ class Spawning(commands.Cog):
             channel = None if guild is None else guild.get_channel_or_thread(result["_id"])
 
             if channel is not None:
-                self.bot.loop.create_task(
-                    self.spawn_pokemon(channel, incense=result["spawns_remaining"])
-                )
+                self.bot.loop.create_task(self.spawn_pokemon(channel, incense=result["spawns_remaining"]))
                 await self.bot.mongo.update_channel(channel, {"$inc": {"spawns_remaining": -1}})
 
     @spawn_incense.before_loop
@@ -132,11 +130,7 @@ class Spawning(commands.Cog):
 
                     if not silence:
                         permissions = message.channel.permissions_for(message.guild.me)
-                        if (
-                            permissions.send_messages
-                            and permissions.attach_files
-                            and permissions.embed_links
-                        ):
+                        if permissions.send_messages and permissions.attach_files and permissions.embed_links:
                             await message.channel.send(embed=embed)
 
                     if silence and pokemon.level == 100:
@@ -175,9 +169,7 @@ class Spawning(commands.Cog):
             return
 
         self.bot.cooldown_guilds[message.guild.id] = current
-        self.bot.guild_counter[message.guild.id] = (
-            self.bot.guild_counter.get(message.guild.id, 0) + 1
-        )
+        self.bot.guild_counter[message.guild.id] = self.bot.guild_counter.get(message.guild.id, 0) + 1
 
         spawn_threshold = 8 if message.guild.id == 716390832034414685 else 24
 
@@ -370,11 +362,9 @@ class Spawning(commands.Cog):
         if shiny:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention if member.catch_mention else ctx.author.display_name}! You caught a level {level} {species}!"
+        message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
 
-        memberp = await self.bot.mongo.fetch_pokedex(
-            ctx.author, species.dex_number, species.dex_number + 1
-        )
+        memberp = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
 
         if str(species.dex_number) not in memberp.pokedex:
             message += " Added to Pokédex. You received 35 Pokécoins!"
@@ -431,7 +421,10 @@ class Spawning(commands.Cog):
         await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
         self.bot.dispatch("catch", ctx, species)
-        await ctx.send(message)
+        if member.catch_mention:
+            await ctx.send(message)
+        else:
+            await ctx.send(message, allowed_mentions=discord.AllowedMentions.none())
 
     @checks.has_started()
     @commands.command()
@@ -439,9 +432,7 @@ class Spawning(commands.Cog):
         """Toggle getting mentioned when catching a pokémon."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        await self.bot.mongo.update_member(
-            ctx.author, {"$set": {"catch_mention": not member.catch_mention}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"catch_mention": not member.catch_mention}})
 
         if member.catch_mention:
             await ctx.send(f"You will no longer receive catch pings.")
@@ -483,9 +474,7 @@ class Spawning(commands.Cog):
             return await ctx.send("This pokémon can't be caught in the wild!")
 
         if species.id == member.shiny_hunt:
-            return await ctx.send(
-                f"You are already hunting this pokémon with a streak of **{member.shiny_streak}**."
-            )
+            return await ctx.send(f"You are already hunting this pokémon with a streak of **{member.shiny_streak}**.")
 
         if member.shiny_streak > 0:
             result = await ctx.confirm(
