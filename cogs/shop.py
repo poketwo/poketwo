@@ -902,6 +902,8 @@ class Shop(commands.Cog):
     async def redeemspawn(self, ctx, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 
+        return await ctx.send("This command is currently disabled. Please check back later.")
+
         # TODO I should really merge this and redeem into one function.
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
