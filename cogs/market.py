@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 
 import bson
 import pymongo
@@ -116,6 +117,9 @@ class Market(commands.Cog):
     async def add(self, ctx, pokemon: converters.PokemonConverter, price: int):
         """List a pokémon on the marketplace."""
 
+        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
+
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
@@ -187,8 +191,7 @@ class Market(commands.Cog):
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         result = await ctx.confirm(
-            f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** "
-            f"from the market?"
+            f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** " f"from the market?"
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
@@ -211,6 +214,9 @@ class Market(commands.Cog):
     @market.command(aliases=("purchase", "b", "p"))
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
+
+        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
@@ -258,12 +264,8 @@ class Market(commands.Cog):
                 "$unset": {"market_data": 1},
             },
         )
-        await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {"balance": -listing["market_data"]["price"]}}
-        )
-        await self.bot.mongo.update_member(
-            listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -listing["market_data"]["price"]}})
+        await self.bot.mongo.update_member(listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}})
         await ctx.send(
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
         )

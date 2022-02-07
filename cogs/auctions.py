@@ -1,6 +1,6 @@
 import asyncio
 import contextlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import discord
 import humanfriendly
@@ -183,6 +183,9 @@ class Auctions(commands.Cog):
     ):
         """Start an auction."""
 
+        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
+
         if ctx.guild.id != 716390832034414685:
             return await ctx.send("Sorry, you cannot start auctions outside of the main server at this time.")
 
@@ -199,10 +202,7 @@ class Auctions(commands.Cog):
             return await ctx.send("The max duration is 1 week.")
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
-        if (
-            guild.auction_channel is None
-            or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None
-        ):
+        if guild.auction_channel is None or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None:
             return await ctx.send(
                 f"Auctions have not been set up in this server. Have a server administrator do `{ctx.prefix}auction channel #channel`."
             )
@@ -271,9 +271,7 @@ class Auctions(commands.Cog):
         await self.bot.mongo.db.pokemon.delete_one({"_id": pokemon.id})
 
         await auction_channel.send(embed=embed)
-        await ctx.send(
-            f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**."
-        )
+        await ctx.send(f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**.")
 
     @checks.has_started()
     @auction.command()
@@ -287,9 +285,7 @@ class Auctions(commands.Cog):
         if auction.current_bid + auction.bid_increment < new_start:
             return await ctx.send("You may only lower the starting bid, not increase it.")
         if auction.bid_increment > new_start:
-            return await ctx.send(
-                "You may not set the new starting bid to a value less than your bid increment."
-            )
+            return await ctx.send("You may not set the new starting bid to a value less than your bid increment.")
 
         # Verification
 
@@ -331,6 +327,9 @@ class Auctions(commands.Cog):
     @auction.command(aliases=("b",))
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
+
+        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
 
         if ctx.author.id == auction.user_id:
             return await ctx.send("You can't bid on your own auction.")
