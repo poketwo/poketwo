@@ -183,7 +183,7 @@ class Auctions(commands.Cog):
     ):
         """Start an auction."""
 
-        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+        if ctx.author.created_at > datetime(2022, 1, 1, tzinfo=timezone.utc):
             return await ctx.send("Market is temporarily disabled for your account. Check back later.")
 
         if ctx.guild.id != 716390832034414685:
@@ -328,7 +328,7 @@ class Auctions(commands.Cog):
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
         """Bid on an auction."""
 
-        if ctx.author.created_at > datetime(2021, 1, 1, tzinfo=timezone.utc):
+        if ctx.author.created_at > datetime(2022, 1, 1, tzinfo=timezone.utc):
             return await ctx.send("Market is temporarily disabled for your account. Check back later.")
 
         if ctx.author.id == auction.user_id:
