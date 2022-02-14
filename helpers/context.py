@@ -21,14 +21,20 @@ class ConfirmationView(discord.ui.View):
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
     async def confirm(self, button, interaction):
         await interaction.response.defer()
-        await interaction.delete_original_message()
+        if self.message:
+            await self.message.edit(view=None)
+        else:
+            await interaction.delete_original_message()
         self.result = True
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
     async def cancel(self, button, interaction):
         await interaction.response.defer()
-        await interaction.delete_original_message()
+        if self.message:
+            await self.message.edit(view=None)
+        else:
+            await interaction.delete_original_message()
         self.result = False
         self.stop()
 
@@ -40,6 +46,6 @@ class ConfirmationView(discord.ui.View):
 class PoketwoContext(commands.Context):
     async def confirm(self, message, *, timeout=30):
         view = ConfirmationView(self, timeout=timeout)
-        view.message = await self.send(message, view=view)
+        view.message = await self.send(message, view=view, allowed_mentions=discord.AllowedMentions.none())
         await view.wait()
         return view.result
