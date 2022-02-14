@@ -86,7 +86,7 @@ class Valentines(commands.Cog):
             return await ctx.send("You don't have enough Pokécoins for that!")
         if author_data.valentines_purchased >= 5:
             return await ctx.send("You have already purchased the maximum number of gifts!")
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -5000, "valentines_purchased": 1}})
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -price, "valentines_purchased": 1}})
 
         await self.bot.mongo.db.pokemon.insert_one(
             {
