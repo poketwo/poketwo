@@ -3,6 +3,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands
+from helpers import checks
 
 from cogs import mongo
 
@@ -17,6 +18,7 @@ class Valentines(commands.Cog):
 
     @commands.group(aliases=("event", "valentines"), invoke_without_command=True)
     async def valentine(self, ctx):
+        author_data = await self.bot.mongo.fetch_member_info(ctx.author)
         species = self.bot.data.species_by_number(50058)
         embed = discord.Embed(
             title="Valentine's Day 2022 \N{HEART WITH RIBBON}",
@@ -27,7 +29,7 @@ class Valentines(commands.Cog):
         embed.add_field(
             name="Nidoran Gifts",
             value=f"`{ctx.prefix}valentine gift <@user> [message]`\n"
-            "• You may purchase up to 5 gifts.\n"
+            f"• You may purchase up to 5 gifts (remaining: {5 - author_data.valentines_purchased}).\n"
             "• The first gift costs 5,000 Pokécoins.\n"
             "• Additional gifts cost 10,000 Pokécoins each.\n",
             inline=False,
@@ -39,6 +41,7 @@ class Valentines(commands.Cog):
         )
         await ctx.send(embed=embed)
 
+    @checks.has_started()
     @valentine.command(rest_is_raw=True)
     async def gift(self, ctx, user: discord.Member, *, message):
         if user == ctx.author:
@@ -48,6 +51,9 @@ class Valentines(commands.Cog):
         user_data = await self.bot.mongo.fetch_member_info(user)
 
         # Checks
+
+        if user_data is None:
+            return await ctx.send("That user has not picked a starter Pokémon!")
 
         if author_data.joined_at is not None and author_data.joined_at >= JOIN_DATE:
             return await ctx.send("Your account is not old enough to participate in this event.")
