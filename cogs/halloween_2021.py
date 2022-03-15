@@ -31,9 +31,7 @@ class Halloween(commands.Cog):
     def pools(self):
         p = {
             "event": (50022, 50023, 50024, 50025, 50026, 50027, 50028, 50029, 50030, 50031),
-            "spooky": [
-                *set(self.bot.data.list_type("Ghost")) | set(self.bot.data.list_type("Dark"))
-            ],
+            "spooky": [*set(self.bot.data.list_type("Ghost")) | set(self.bot.data.list_type("Dark"))],
             "rare": [
                 *self.bot.data.list_legendary,
                 *self.bot.data.list_mythical,
@@ -81,15 +79,13 @@ class Halloween(commands.Cog):
         )
 
         view = discord.ui.View()
-        view.add_item(
-            discord.ui.Button(
-                label="Visit Top.gg", url="https://top.gg/bot/716390085896962058/vote"
-            )
-        )
+        view.add_item(discord.ui.Button(label="Visit Top.gg", url="https://top.gg/bot/716390085896962058/vote"))
 
         await ctx.send(embed=embed, view=view)
 
-    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
+    @commands.check_any(
+        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
+    )
     @halloween.command(aliases=("giveticket", "at", "gt"))
     async def addticket(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a ticket."""
@@ -150,18 +146,14 @@ class Halloween(commands.Cog):
                 "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
             }
 
-            text = (
-                f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
-            )
+            text = f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
 
             await self.bot.mongo.db.pokemon.insert_one(pokemon)
 
         else:
             text = "Nothing"
 
-        embed = self.bot.Embed(
-            title="🍬 Treat!" if reward == "event" else "👻 Trick!", description=text
-        )
+        embed = self.bot.Embed(title="🍬 Treat!" if reward == "event" else "👻 Trick!", description=text)
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
         await ctx.send(embed=embed)

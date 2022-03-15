@@ -83,7 +83,9 @@ class Christmas(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.check_any(commands.is_owner(), commands.has_role(718006431231508481))
+    @commands.check_any(
+        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
+    )
     @christmas.command(aliases=("givebox", "ab", "gb"))
     async def addbox(self, ctx, user: FetchUserConverter, box_type, num: int = 1):
         """Give a box."""
