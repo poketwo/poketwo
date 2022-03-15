@@ -7,7 +7,7 @@ license = "GPLv3"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-"discord.py" = { git = "https://github.com/Rapptz/discord.py.git", branch = "master", extras = ["speed"] }
+"discord.py" = { git = "https://github.com/poketwo/discord.py.git", branch = "master", extras = ["speed"] }
 umongo = "3.0.0b10"
 motor = "^2.2.0"
 jishaku = "^2.1.0"
