@@ -540,7 +540,7 @@ class Pokemon(commands.Cog):
         sort = sort.lower()
 
         if sort not in [a + b for a in ("number", "iv", "level", "pokedex") for b in ("+", "-", "")]:
-            return await ctx.send("Please specify either `number`, `IV`, `level`, or `pokedex`.")
+            return await ctx.send(f"Invalid choice. Please specify `iv`, `iv+`, `iv-`, `level`, `level+`, `level-`, `number`, `number+`, `number-`, `pokedex`, `pokedex+` or `pokedex-`")
 
         await self.bot.mongo.update_member(
             ctx.author,
