@@ -60,18 +60,28 @@ class Bot(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if after.content != before.content:
-            after.content = (
-                after.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
-            )
+            after.content = after.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
             await self.bot.process_commands(after)
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx):
+        self.bot.log.info(
+            "Command run",
+            extra={
+                "guild_id": ctx.guild.id,
+                "channel_id": ctx.channel.id,
+                "user_id": ctx.author.id,
+                "user": str(ctx.author),
+                "command": ctx.command.qualified_name,
+                "content": ctx.message.content,
+            },
+        )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
         if isinstance(error, commands.CommandOnCooldown):
-            self.bot.log.info(
-                "Command cooldown hit", extra={"userid": ctx.author.id, "user": str(ctx.author)}
-            )
+            self.bot.log.info("Command cooldown hit", extra={"userid": ctx.author.id, "user": str(ctx.author)})
             await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
             name = error.per.name
@@ -85,14 +95,13 @@ class Bot(commands.Cog):
             await ctx.send("Sorry. This command is disabled and cannot be used.")
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [
-                f"`{perm.replace('_', ' ').replace('guild', 'server').title()}`"
-                for perm in error.missing_permissions
+                f"`{perm.replace('_', ' ').replace('guild', 'server').title()}`" for perm in error.missing_permissions
             ]
             fmt = "\n".join(missing)
-            message = f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            botmember = (
-                self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
+            message = (
+                f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
             )
+            botmember = self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
         elif isinstance(error, commands.ConversionError):
@@ -142,18 +151,14 @@ class Bot(commands.Cog):
         priority_channels = []
         channels = []
         for channel in guild.channels:
-            if channel == guild.system_channel or any(
-                x in channel.name for x in GENERAL_CHANNEL_NAMES
-            ):
+            if channel == guild.system_channel or any(x in channel.name for x in GENERAL_CHANNEL_NAMES):
                 priority_channels.append(channel)
             else:
                 channels.append(channel)
         channels = priority_channels + channels
         try:
             channel = next(
-                x
-                for x in channels
-                if isinstance(x, TextChannel) and x.permissions_for(guild.me).send_messages
+                x for x in channels if isinstance(x, TextChannel) and x.permissions_for(guild.me).send_messages
             )
         except StopIteration:
             return
@@ -368,9 +373,7 @@ class Bot(commands.Cog):
         species = self.bot.data.species_by_name(name)
 
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
-            return await ctx.send(
-                f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`."
-            )
+            return await ctx.send(f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`.")
 
         starter = self.bot.mongo.Pokemon.random(
             owner_id=ctx.author.id,
@@ -407,9 +410,7 @@ class Bot(commands.Cog):
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
         pokemon_caught = []
-        pokemon_caught.append(
-            "**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author))
-        )
+        pokemon_caught.append("**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author)))
 
         for name, filt in (
             ("Mythical", self.bot.data.list_mythical),

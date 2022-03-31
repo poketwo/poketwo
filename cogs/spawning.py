@@ -203,10 +203,12 @@ class Spawning(commands.Cog):
         self.bot.log.info(
             "Pokemon spawned",
             extra={
-                "channelid": channel.id,
-                "channel": channel.name,
-                "speciesid": species.id,
+                "guild_id": channel.id,
+                "channel_id": channel.id,
+                "species_id": species.id,
                 "species": species,
+                "incense": incense,
+                "redeem": redeem,
             },
         )
 
