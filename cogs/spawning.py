@@ -287,6 +287,8 @@ class Spawning(commands.Cog):
         species_id = await self.bot.redis.hget("wild", ctx.channel.id)
         species = self.bot.data.species_by_number(int(species_id))
 
+        species = self.bot.data.species_by_number(132)
+
         inds = [i for i, x in enumerate(species.name) if x.isalpha()]
         blanks = random.sample(inds, len(inds) // 2)
         hint = "".join("\\_" if i in blanks else x for i, x in enumerate(species.name))
