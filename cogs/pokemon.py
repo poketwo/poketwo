@@ -87,9 +87,7 @@ class Pokemon(commands.Cog):
         if nickname is None:
             await ctx.send(f"Removed nickname for your level {pokemon.level} {pokemon.species}.")
         else:
-            await ctx.send(
-                f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}."
-            )
+            await ctx.send(f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}.")
 
     # Nickname
     @flags.add_flag("newname", nargs="+")
@@ -347,9 +345,7 @@ class Pokemon(commands.Cog):
             {"$set": {"favorite": True}},
         )
 
-        await ctx.send(
-            f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited."
-        )
+        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited.")
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
@@ -432,9 +428,7 @@ class Pokemon(commands.Cog):
             {"$set": {"favorite": False}},
         )
 
-        await ctx.send(
-            f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited."
-        )
+        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited.")
 
     @checks.has_started()
     @commands.cooldown(3, 5, commands.BucketType.user)
@@ -540,7 +534,9 @@ class Pokemon(commands.Cog):
         sort = sort.lower()
 
         if sort not in [a + b for a in ("number", "iv", "level", "pokedex") for b in ("+", "-", "")]:
-            return await ctx.send("Please specify either `iv`, `iv+`, `iv-`, `level`, `level+`, `level-`, `number`, `number+`, `number-`, `pokedex`, `pokedex+` or `pokedex-`")
+            return await ctx.send(
+                "Please specify either `iv`, `iv+`, `iv-`, `level`, `level+`, `level-`, `number`, `number+`, `number-`, `pokedex`, `pokedex+` or `pokedex-`"
+            )
 
         await self.bot.mongo.update_member(
             ctx.author,
@@ -584,9 +580,7 @@ class Pokemon(commands.Cog):
 
         for x in ("alolan", "galarian", "mega", "event"):
             if x in flags and flags[x]:
-                aggregations.append(
-                    {"$match": {map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}}}
-                )
+                aggregations.append({"$match": {map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}}})
 
         if "type" in flags and flags["type"]:
             all_species = [i for x in flags["type"] for i in self.bot.data.list_type(x)]
@@ -722,9 +716,8 @@ class Pokemon(commands.Cog):
         if len(mons) == 1:
             message = f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc?"
         else:
-            message = (
-                f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\n\n"
-                + "\n".join(f"{x:spl} ({x.idx})" for x in mons)
+            message = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\n\n" + "\n".join(
+                f"{x:spl} ({x.idx})" for x in mons
             )
 
         result = await ctx.confirm(message)
@@ -739,7 +732,7 @@ class Pokemon(commands.Cog):
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": list(ids)}},
+            {"_id": {"owner_id": ctx.author.id, "$in": list(ids)}},
             {"$set": {"owned_by": "released"}},
         )
         await self.bot.mongo.update_member(
@@ -814,9 +807,7 @@ class Pokemon(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send(
-                "Found no pokémon matching this search (excluding favorited and selected pokémon)."
-            )
+            return await ctx.send("Found no pokémon matching this search (excluding favorited and selected pokémon).")
 
         # confirm
 
@@ -840,7 +831,7 @@ class Pokemon(commands.Cog):
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"$in": [x.id async for x in pokemon]}},
+            {"owner_id": ctx.author.id, "_id": {"$in": [x.id async for x in pokemon]}},
             {"$set": {"owned_by": "released"}},
         )
 
@@ -1022,9 +1013,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(
-                    title=f"Your pokédex", description=f"You've caught {num} out of 898 pokémon!"
-                )
+                embed = self.bot.Embed(title=f"Your pokédex", description=f"You've caught {num} out of 898 pokémon!")
 
                 embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
@@ -1076,9 +1065,7 @@ class Pokemon(commands.Cog):
                 if species is None:
                     return await ctx.send(f"Could not find a pokemon matching `{search_or_page}`.")
 
-            member = await self.bot.mongo.fetch_pokedex(
-                ctx.author, species.dex_number, species.dex_number + 1
-            )
+            member = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
 
             embed = self.bot.Embed(title=f"#{species.dex_number} — {species}")
 
@@ -1128,9 +1115,7 @@ class Pokemon(commands.Cog):
 
             embed.add_field(name="Base Stats", value="\n".join(base_stats))
             embed.add_field(name="Names", value="\n".join(f"{x} {y}" for x, y in species.names))
-            embed.add_field(
-                name="Appearance", value=f"Height: {species.height} m\nWeight: {species.weight} kg"
-            )
+            embed.add_field(name="Appearance", value=f"Height: {species.height} m\nWeight: {species.weight} kg")
 
             text = "You haven't caught this pokémon yet!"
             if str(species.dex_number) in member.pokedex:
