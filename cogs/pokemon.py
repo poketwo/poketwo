@@ -732,7 +732,7 @@ class Pokemon(commands.Cog):
         # confirmed, release
 
         result = await self.bot.mongo.db.pokemon.update_many(
-            {"_id": {"owner_id": ctx.author.id, "$in": list(ids)}},
+            {"owner_id": ctx.author.id, "_id": {"$in": list(ids)}},
             {"$set": {"owned_by": "released"}},
         )
         await self.bot.mongo.update_member(
