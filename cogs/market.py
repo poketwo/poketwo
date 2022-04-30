@@ -117,9 +117,6 @@ class Market(commands.Cog):
     async def add(self, ctx, pokemon: converters.PokemonConverter, price: int):
         """List a pokémon on the marketplace."""
 
-        if ctx.author.created_at > datetime(2022, 1, 1, tzinfo=timezone.utc):
-            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
-
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
@@ -214,9 +211,6 @@ class Market(commands.Cog):
     @market.command(aliases=("purchase", "b", "p"))
     async def buy(self, ctx, id: int):
         """Buy a pokémon on the marketplace."""
-
-        if ctx.author.created_at > datetime(2022, 1, 1, tzinfo=timezone.utc):
-            return await ctx.send("Market is temporarily disabled for your account. Check back later.")
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
