@@ -247,6 +247,13 @@ class Market(commands.Cog):
         if member.balance < listing["market_data"]["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
+        # to try to avoid race conditions
+        await asyncio.sleep(1)
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if member.balance < listing["market_data"]["price"]:
+            return await ctx.send("You don't have enough Pokécoins for that!")
+
         await self.bot.mongo.db.pokemon.update_one(
             {"_id": listing["_id"]},
             {
