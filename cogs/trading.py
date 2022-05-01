@@ -195,12 +195,20 @@ class Trading(commands.Cog):
                     idx = await self.bot.mongo.fetch_next_idx(omem, num_pokes)
 
                     if trade["pokecoins"][i] > 0:
-                        await self.bot.mongo.update_member(mem, {"$inc": {"balance": -trade["pokecoins"][i]}})
-                        await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
+                        res = await self.bot.mongo.db.member.find_one_and_update(
+                            {"_id": mem.id}, {"$inc": {"balance": -trade["pokecoins"][i]}}
+                        )
+                        await self.bot.redis.hdel("db:member", mem.id)
+                        if res["balance"] >= trade["pokecoins"][i]:
+                            await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
 
                     if trade["redeems"][i] > 0:
-                        await self.bot.mongo.update_member(mem, {"$inc": {"redeems": -trade["redeems"][i]}})
-                        await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
+                        res = await self.bot.mongo.db.member.find_one_and_update(
+                            {"_id": mem.id}, {"$inc": {"redeems": -trade["redeems"][i]}}
+                        )
+                        await self.bot.redis.hdel("db:member", mem.id)
+                        if res["redeems"] >= trade["redeems"][i]:
+                            await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
 
                     for x in side:
                         pokemon = x

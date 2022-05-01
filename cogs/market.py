@@ -265,7 +265,14 @@ class Market(commands.Cog):
                 "$unset": {"market_data": 1},
             },
         )
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -listing["market_data"]["price"]}})
+        res = await self.bot.mongo.db.member.find_one_and_update(
+            {"_id": ctx.author.id}, {"$inc": {"balance": -listing["market_data"]["price"]}}
+        )
+        await self.bot.redis.hdel("db:member", ctx.author.id)
+        if res["balance"] < listing["market_data"]["price"]:
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": listing["market_data"]["price"]}})
+            return await ctx.send("You don't have enough Pokécoins for that!")
+
         await self.bot.mongo.update_member(listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}})
         await ctx.send(
             f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.prefix}info latest` to view it!"
