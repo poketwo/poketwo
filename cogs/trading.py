@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from itertools import zip_longest
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from helpers import checks, flags, pagination
 
 from data.models import deaccent
@@ -23,6 +23,17 @@ class Trading(commands.Cog):
         self.bot = bot
         if not hasattr(self.bot, "trades"):
             self.bot.loop.create_task(self.clear_trades())
+        self.process_cancel_trades.start()
+
+    @tasks.loop(seconds=0.1)
+    async def process_cancel_trades(self):
+        with await self.bot.redis as r:
+            req = await r.blpop(f"cancel_trade:{self.bot.cluster_idx}")
+            await self.end_trade(int(req[1]))
+
+    @process_cancel_trades.before_loop
+    async def before_process_cancel_trades(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -50,7 +61,7 @@ class Trading(commands.Cog):
 
         todel = []
         async for key, val in self.bot.redis.ihscan("trade"):
-            if val == str(self.bot.cluster_idx):
+            if int(val) == self.bot.cluster_idx:
                 todel.append(key)
         if len(todel) > 0:
             await self.bot.redis.hdel("trade", *todel)
@@ -61,14 +72,20 @@ class Trading(commands.Cog):
         return self.bot.redis.hexists("trade", user.id)
 
     async def end_trade(self, user_id):
-        if user_id in self.bot.trades:
-            a, b = self.bot.trades[user_id]["users"]
-            self.bot.dispatch("trade", self.bot.trades[user_id])
-            del self.bot.trades[a.id]
-            del self.bot.trades[b.id]
-            await self.bot.redis.hdel("trade", a.id, b.id)
+        cluster_id = int(await self.bot.redis.hget("trade", user_id))
+        if cluster_id == self.bot.cluster_idx:
+            if user_id in self.bot.trades:
+                a, b = self.bot.trades[user_id]["users"]
+                self.bot.dispatch("trade", self.bot.trades[user_id])
+                await self.bot.redis.hdel("trade", a.id, b.id)
+                del self.bot.trades[a.id]
+                del self.bot.trades[b.id]
+            else:
+                await self.bot.redis.hdel("trade", user_id)
+            return True
         else:
-            await self.bot.redis.hdel("trade", user_id)
+            await self.bot.redis.rpush(f"cancel_trade:{cluster_id}", user_id)
+            return False
 
     async def send_trade(self, ctx, user: discord.Member):
         # TODO this code is pretty shit. although it does work
@@ -352,8 +369,10 @@ class Trading(commands.Cog):
         except KeyError:
             pass
 
-        await self.end_trade(ctx.author.id)
-        await ctx.send("The trade has been canceled.")
+        if await self.end_trade(ctx.author.id):
+            await ctx.send("The trade has been canceled.")
+        else:
+            await ctx.send("Attempting to cancel trade...")
 
     @checks.has_started()
     @commands.guild_only()
@@ -802,6 +821,9 @@ class Trading(commands.Cog):
         embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}.")
 
         await ctx.send(embed=embed)
+
+    def cog_unload(self):
+        self.process_cancel_trades.cancel()
 
 
 def setup(bot):
