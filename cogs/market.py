@@ -250,6 +250,10 @@ class Market(commands.Cog):
         # to try to avoid race conditions
         await asyncio.sleep(1)
 
+        listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
+        if listing is None:
+            return await ctx.send("That listing no longer exists.")
+
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.balance < listing["market_data"]["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
