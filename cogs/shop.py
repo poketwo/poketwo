@@ -49,9 +49,7 @@ class Shop(commands.Cog):
         if not channel.incense_active:
             return await ctx.send("There is no active incense in this channel!")
 
-        result = await ctx.confirm(
-            "Are you sure you want to cancel the incense? You can't undo this!"
-        )
+        result = await ctx.confirm("Are you sure you want to cancel the incense? You can't undo this!")
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
@@ -200,9 +198,7 @@ class Shop(commands.Cog):
                 + "..."
             )
         else:
-            embed.title = (
-                f" Opening {amt} {type.title()} Mystery Box" + ("" if amt == 1 else "es") + "..."
-            )
+            embed.title = f" Opening {amt} {type.title()} Mystery Box" + ("" if amt == 1 else "es") + "..."
 
         text = []
 
@@ -260,9 +256,7 @@ class Shop(commands.Cog):
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
 
-                text.append(
-                    f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
-                )
+                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
 
                 added_pokemon.append(pokemon)
 
@@ -341,9 +335,7 @@ class Shop(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
         await self.bot.mongo.update_pokemon(from_pokemon, {"$set": {f"held_item": None}})
-        await self.bot.mongo.update_pokemon(
-            to_pokemon, {"$set": {f"held_item": from_pokemon.held_item}}
-        )
+        await self.bot.mongo.update_pokemon(to_pokemon, {"$set": {f"held_item": from_pokemon.held_item}})
 
         from_name = str(from_pokemon.species)
 
@@ -366,9 +358,7 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        await self.bot.mongo.update_member(
-            ctx.author, {"$set": {"show_balance": not member.show_balance}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"show_balance": not member.show_balance}})
 
         if member.show_balance:
             await ctx.send(f"Your balance is now hidden in shop pages.")
@@ -416,9 +406,7 @@ class Shop(commands.Cog):
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
-            do_emojis = (
-                ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
-            )
+            do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
             for item in items:
                 emote = ""
@@ -505,9 +493,7 @@ class Shop(commands.Cog):
             return await ctx.send("You can't buy multiple of this item!")
 
         if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
-            return await ctx.send(
-                f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!"
-            )
+            return await ctx.send(f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!")
 
         # Check to make sure it's purchasable.
 
@@ -562,8 +548,7 @@ class Shop(commands.Cog):
                 try:
                     evoto = next(
                         filter(
-                            lambda evo: isinstance(evo.trigger, models.ItemTrigger)
-                            and evo.trigger.item == item,
+                            lambda evo: isinstance(evo.trigger, models.ItemTrigger) and evo.trigger.item == item,
                             pokemon.species.evolution_to.items,
                         )
                     ).target
@@ -584,11 +569,7 @@ class Shop(commands.Cog):
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
-                if (
-                    form.id != pokemon.species.id
-                    and form.form_item is not None
-                    and form.form_item == item.id
-                ):
+                if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
                     break
             else:
                 return await ctx.send(
@@ -634,9 +615,7 @@ class Shop(commands.Cog):
             permissions = ctx.channel.permissions_for(ctx.author)
 
             if not permissions.administrator:
-                return await ctx.send(
-                    "You must have administrator permissions in order to do this!"
-                )
+                return await ctx.send("You must have administrator permissions in order to do this!")
 
             channel = await self.bot.mongo.fetch_channel(ctx.channel)
             if channel.incense_active:
@@ -665,9 +644,7 @@ class Shop(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
-            return await ctx.send(
-                f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!"
-            )
+            return await ctx.send(f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!")
 
         await self.bot.mongo.update_member(
             ctx.author,
@@ -793,9 +770,7 @@ class Shop(commands.Cog):
                         value="‎",
                     )
 
-            await self.bot.mongo.db.pokemon.update_one(
-                {"_id": pokemon.id, "level": pokemon.level - qty}, update
-            )
+            await self.bot.mongo.db.pokemon.update_one({"_id": pokemon.id, "level": pokemon.level - qty}, update)
 
             if member.silence and pokemon.level == 100:
                 await ctx.author.send(embed=embed)
@@ -806,13 +781,9 @@ class Shop(commands.Cog):
         if "nature" in item.action:
             idx = int(item.action.split("_")[1])
 
-            await self.bot.mongo.update_pokemon(
-                pokemon, {"$set": {"nature": constants.NATURES[idx]}}
-            )
+            await self.bot.mongo.update_pokemon(pokemon, {"$set": {"nature": constants.NATURES[idx]}})
 
-            await ctx.send(
-                f"You changed your selected pokémon's nature to {constants.NATURES[idx]}!"
-            )
+            await ctx.send(f"You changed your selected pokémon's nature to {constants.NATURES[idx]}!")
 
         if item.action == "held_item":
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"held_item": item.id}})
@@ -820,11 +791,7 @@ class Shop(commands.Cog):
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
-                if (
-                    form.id != pokemon.species.id
-                    and form.form_item is not None
-                    and form.form_item == item.id
-                ):
+                if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
                     embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
                     name = str(pokemon.species)
@@ -901,8 +868,6 @@ class Shop(commands.Cog):
     @commands.command(aliases=("rs",))
     async def redeemspawn(self, ctx, *, species: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
-
-        return await ctx.send("This command is currently disabled. Please check back later.")
 
         # TODO I should really merge this and redeem into one function.
 
