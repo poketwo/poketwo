@@ -323,6 +323,7 @@ class Auctions(commands.Cog):
         await ctx.send(f"Lowered the starting bid on your auction to **{new_start:,} Pokécoins**.")
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, per=commands.BucketType.user)
     @auction.command(aliases=("b",))
     async def bid(self, ctx, auction: AuctionConverter, bid: int):
