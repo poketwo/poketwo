@@ -5,10 +5,10 @@ import os
 import signal
 import time
 
-import config
 import discord
 import requests
 
+import config
 from bot import ClusterBot
 
 log = logging.getLogger("Cluster#Launcher")
@@ -76,11 +76,9 @@ class Launcher:
         )
         data.raise_for_status()
         content = data.json()
-        log.info(
-            f"Successfully got shard count of {content['shards']} ({data.status_code}, {data.reason})"
-        )
-        # return 16
-        return content["shards"]
+        log.info(f"Successfully got shard count of {content['shards']} ({data.status_code}, {data.reason})")
+        return 2
+        # return content["shards"]
 
     def start(self):
         self.fut = asyncio.ensure_future(self.startup(), loop=self.loop)
@@ -104,7 +102,7 @@ class Launcher:
 
     async def startup(self):
         shards = list(range(self.get_shard_count()))
-        size = [shards[x : x + 4] for x in range(0, len(shards), 4)]
+        size = [shards[x : x + 1] for x in range(0, len(shards), 1)]
         log.info(f"Preparing {len(size)} clusters")
         for shard_ids in size:
             self.cluster_queue.append(Cluster(self, next(NAMES), shard_ids, len(shards)))
@@ -140,7 +138,6 @@ class Launcher:
             self.clusters.append(cluster)
             log.info(f"Starting Cluster#{cluster.name}")
             self.loop.create_task(cluster.start())
-            await asyncio.sleep(0.5)
 
 
 class Cluster:
@@ -174,9 +171,7 @@ class Cluster:
     async def start(self, *, force=False):
         if self.process and self.process.is_alive():
             if not force:
-                self.log.warning(
-                    "Start called with already running cluster, pass `force=True` to override"
-                )
+                self.log.warning("Start called with already running cluster, pass `force=True` to override")
                 return
             self.log.info("Terminating existing process")
             self.process.terminate()

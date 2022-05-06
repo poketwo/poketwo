@@ -177,22 +177,11 @@ class Trading(commands.Cog):
                         await self.end_trade(a.id)
                         return
 
-                for idx, tup in bothsides:
-                    i, side = tup
-
-                    oidx, otup = bothsides[(idx + 1) % 2]
-                    oi, oside = otup
+                for idx, (i, side) in bothsides:
+                    _, (oi, _) = bothsides[(idx + 1) % 2]
 
                     mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
                     omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
-
-                    member = await self.bot.mongo.fetch_member_info(mem)
-                    omember = await self.bot.mongo.fetch_member_info(omem)
-
-                    idxs = set()
-
-                    num_pokes = len(list(x for x in side if type(x) != int))
-                    idx = await self.bot.mongo.fetch_next_idx(omem, num_pokes)
 
                     if trade["pokecoins"][i] > 0:
                         res = await self.bot.mongo.db.member.find_one_and_update(
@@ -201,6 +190,11 @@ class Trading(commands.Cog):
                         await self.bot.redis.hdel("db:member", mem.id)
                         if res["balance"] >= trade["pokecoins"][i]:
                             await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
+                        else:
+                            await self.bot.mongo.update_member(mem, {"$inc": {"balance": trade["pokecoins"][i]}})
+                            return await ctx.send(
+                                "The trade could not be executed as one user does not have enough pokécoins."
+                            )
 
                     if trade["redeems"][i] > 0:
                         res = await self.bot.mongo.db.member.find_one_and_update(
@@ -209,6 +203,22 @@ class Trading(commands.Cog):
                         await self.bot.redis.hdel("db:member", mem.id)
                         if res["redeems"] >= trade["redeems"][i]:
                             await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
+                        else:
+                            await self.bot.mongo.update_member(mem, {"$inc": {"redeems": trade["redeems"][i]}})
+                            return await ctx.send(
+                                "The trade could not be executed as one user does not have enough redeems."
+                            )
+
+                for idx, (i, side) in bothsides:
+                    _, (oi, _) = bothsides[(idx + 1) % 2]
+
+                    mem = ctx.guild.get_member(i) or await ctx.guild.fetch_member(i)
+                    omem = ctx.guild.get_member(oi) or await ctx.guild.fetch_member(oi)
+
+                    idxs = set()
+
+                    num_pokes = len(list(x for x in side if type(x) != int))
+                    idx = await self.bot.mongo.fetch_next_idx(omem, num_pokes)
 
                     for x in side:
                         pokemon = x
