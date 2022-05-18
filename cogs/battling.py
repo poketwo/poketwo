@@ -762,7 +762,6 @@ class Battling(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.has_started()
     @in_battle(True)
     @battle.command(aliases=("x",))
     async def cancel(self, ctx):

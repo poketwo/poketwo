@@ -377,7 +377,6 @@ class Trading(commands.Cog):
         await self.bot.redis.hset("trade", user.id, self.bot.cluster_idx)
         await self.send_trade(ctx, ctx.author)
 
-    @checks.has_started()
     @commands.guild_only()
     @trade.command(aliases=("x",))
     async def cancel(self, ctx):
