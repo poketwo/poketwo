@@ -500,9 +500,15 @@ class Battling(commands.Cog):
         if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
-        member = await self.bot.mongo.Member.find_one({"id": user.id})
+        member = await ctx.bot.mongo.Member.find_one(
+            {"id": user.id}, {"suspended": 1, "suspension_reason": 1}
+        )
+        
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
+
+        if member.suspended:
+            return await ctx.send(f"**{member}** is suspended from the bot!")
 
         # Challenge to battle
 
@@ -756,7 +762,6 @@ class Battling(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.has_started()
     @in_battle(True)
     @battle.command(aliases=("x",))
     async def cancel(self, ctx):
