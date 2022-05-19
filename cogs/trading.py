@@ -340,7 +340,7 @@ class Trading(commands.Cog):
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
         if member.suspended:
-            return await ctx.send(f"**{str(user)}** is suspended from the bot!")
+            return await ctx.send(f"**{user}** is suspended from the bot!")
 
         message = await ctx.send(f"Requesting a trade with {user.mention}. Click the checkmark to accept!")
         await message.add_reaction("✅")
