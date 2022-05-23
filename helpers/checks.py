@@ -42,7 +42,9 @@ def is_not_in_trade():
 
 def general_check():
     async def predicate(ctx):
-        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1, "tos": 1})
+        member = await ctx.bot.mongo.Member.find_one(
+            {"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1, "tos": 1}
+        )
         if member is None:
             return True
         if member.suspended:
