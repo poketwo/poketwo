@@ -1,7 +1,13 @@
 from discord.ext import commands
 
+from helpers.views import ConfirmUpdatedTermsOfServiceView
+
 
 class NotStarted(commands.CheckFailure):
+    pass
+
+
+class AcceptTermsOfService(commands.CheckFailure):
     pass
 
 
@@ -17,18 +23,9 @@ def is_admin():
 
 def has_started():
     async def predicate(ctx):
-        member = await ctx.bot.mongo.Member.find_one(
-            {"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1}
-        )
-
+        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1})
         if member is None:
-            raise NotStarted(
-                f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!"
-            )
-
-        if member.suspended:
-            raise Suspended(member.suspension_reason)
-
+            raise NotStarted(f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!")
         return True
 
     return commands.check(predicate)
@@ -39,5 +36,32 @@ def is_not_in_trade():
         if await ctx.bot.get_cog("Trading").is_in_trade(ctx.author):
             raise commands.CheckFailure("You can't do that in a trade!")
         return True
+
+    return commands.check(predicate)
+
+
+def general_check():
+    async def predicate(ctx):
+        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"tos": 1})
+        if member is None:
+            return True
+        if member.suspended:
+            raise Suspended(member.suspension_reason)
+        if member.tos is not None:
+            return True
+
+        embed = ctx.bot.Embed(
+            title="Updated Terms of Service (Effective May 23, 2022)",
+            description="Please read, understand, and accept our new Terms of Service to continue. "
+            "Violations of these Terms may result in the suspension of your account. "
+            "If you choose not to accept the new user terms, you will no longer able to use Pokétwo.",
+            url="https://poketwo.net/terms",
+        )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+        embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
+        view = ConfirmUpdatedTermsOfServiceView(ctx)
+        view.message = await ctx.send(embed=embed, view=view)
+
+        raise AcceptTermsOfService()
 
     return commands.check(predicate)

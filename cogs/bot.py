@@ -11,6 +11,7 @@ import discord
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
 from helpers import checks, constants
+from helpers.views import ConfirmTermsOfServiceView
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
 
@@ -116,14 +117,9 @@ class Bot(commands.Cog):
             )
             embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
             await ctx.send(embed=embed)
-        elif isinstance(
-            error,
-            (
-                commands.CheckFailure,
-                commands.UserInputError,
-                flags.ArgumentParsingError,
-            ),
-        ):
+        elif isinstance(error, checks.AcceptTermsOfService):
+            return
+        elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
             await ctx.send(error)
         elif isinstance(error, commands.CommandNotFound):
             return
@@ -375,6 +371,29 @@ class Bot(commands.Cog):
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`.")
 
+        # ToS
+
+        embed = ctx.bot.Embed(
+            title="Pokétwo Terms of Service",
+            description="Please read, understand, and accept our Terms of Service to continue. "
+            "Violations of these Terms may result in the suspension of your account. "
+            "If you choose not to accept the user terms, you will not be able to use Pokétwo.",
+            url="https://poketwo.net/terms",
+        )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+        embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
+
+        result = await ctx.confirm(embed=embed, cls=ConfirmTermsOfServiceView)
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send(
+                "Since you chose not to accept the new user terms, we are unable to grant you access to Pokétwo.\n"
+                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue.",
+            )
+
+        # Go
+
         starter = self.bot.mongo.Pokemon.random(
             owner_id=ctx.author.id,
             owned_by="user",
@@ -390,6 +409,7 @@ class Bot(commands.Cog):
                 "_id": ctx.author.id,
                 "selected_id": result.inserted_id,
                 "joined_at": datetime.utcnow(),
+                "tos": datetime.utcnow(),
                 "next_idx": 2,
             }
         )

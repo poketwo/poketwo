@@ -77,7 +77,7 @@ class Launcher:
         data.raise_for_status()
         content = data.json()
         log.info(f"Successfully got shard count of {content['shards']} ({data.status_code}, {data.reason})")
-        return 2
+        return 1
         # return content["shards"]
 
     def start(self):

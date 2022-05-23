@@ -10,6 +10,7 @@ from expiringdict import ExpiringDict
 
 import cogs
 import helpers
+from helpers import checks
 
 uvloop.install()
 
@@ -89,6 +90,8 @@ class ClusterBot(commands.AutoShardedBot):
                 external_emojis=True,
             ).predicate
         )
+
+        self.add_check(checks.general_check().predicate)
 
         self.activity = discord.Game("p!help • poketwo.net")
         self.http_session = aiohttp.ClientSession()

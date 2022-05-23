@@ -7,6 +7,7 @@ class ConfirmationView(discord.ui.View):
         super().__init__(timeout=timeout)
         self.result = None
         self.ctx = ctx
+        self.message = None
 
     async def interaction_check(self, interaction):
         if interaction.user.id not in {
@@ -23,8 +24,6 @@ class ConfirmationView(discord.ui.View):
         await interaction.response.defer()
         if self.message:
             await self.message.edit(view=None)
-        else:
-            await interaction.delete_original_message()
         self.result = True
         self.stop()
 
@@ -33,8 +32,6 @@ class ConfirmationView(discord.ui.View):
         await interaction.response.defer()
         if self.message:
             await self.message.edit(view=None)
-        else:
-            await interaction.delete_original_message()
         self.result = False
         self.stop()
 
@@ -44,8 +41,13 @@ class ConfirmationView(discord.ui.View):
 
 
 class PoketwoContext(commands.Context):
-    async def confirm(self, message, *, timeout=30):
-        view = ConfirmationView(self, timeout=timeout)
-        view.message = await self.send(message, view=view, allowed_mentions=discord.AllowedMentions.none())
+    async def confirm(self, message=None, *, embed=None, timeout=180, cls=ConfirmationView):
+        view = cls(self, timeout=timeout)
+        view.message = await self.send(
+            message,
+            embed=embed,
+            view=view,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
         await view.wait()
         return view.result

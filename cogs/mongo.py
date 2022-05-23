@@ -237,6 +237,7 @@ class Member(Document):
     suspended = fields.BooleanField(default=False)
     suspension_reason = fields.StringField(default=None)
     private_message_id = fields.IntegerField(default=None)
+    tos = fields.DateTimeField(default=None)
 
     # Pokémon
     next_idx = fields.IntegerField(default=1)
