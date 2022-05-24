@@ -56,7 +56,7 @@ def general_check():
             title="Updated Terms of Service (Effective May 23, 2022)",
             description="Please read, understand, and accept our new Terms of Service to continue. "
             "Violations of these Terms may result in the suspension of your account. "
-            "If you choose not to accept the new user terms, you will no longer able to use Pokétwo.",
+            "If you choose not to accept the new user terms, you will no longer be able to use Pokétwo.",
             url="https://poketwo.net/terms",
         )
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
