@@ -416,7 +416,7 @@ class Auctions(commands.Cog):
             self.bot.loop.create_task(
                 self.bot.send_dm(
                     auction.bidder_id,
-                    f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}).",
+                    f"You have been outbid on the **{auction.pokemon.iv_percentage:.2%} {auction.pokemon.species}** (Auction #{auction.id}). New bid: {bid} pokécoins.",
                 )
             )
         await ctx.send(
