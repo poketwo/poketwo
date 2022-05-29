@@ -227,9 +227,7 @@ class Halloween(commands.Cog):
         if member.halloween_tickets < item["price"]:
             return await ctx.send("You don't have enough candies to buy that!")
 
-        await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {"halloween_tickets": -item["price"]}}
-        )
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets": -item["price"]}})
 
         message = f"You bought a **{item['name']}** for **{item['price']} candies**."
 
@@ -313,9 +311,7 @@ class Halloween(commands.Cog):
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
 
-                text.append(
-                    f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
-                )
+                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
 
                 await self.bot.mongo.db.pokemon.insert_one(pokemon)
 
@@ -329,5 +325,5 @@ class Halloween(commands.Cog):
         await ctx.send(message)
 
 
-def setup(bot):
-    bot.add_cog(Halloween(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Halloween(bot))

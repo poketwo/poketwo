@@ -14,5 +14,5 @@ class Data(commands.Cog):
         self.instance = data.DataManager(getattr(bot.config, "ASSETS_BASE_URL", None))
 
 
-def setup(bot):
-    bot.add_cog(Data(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Data(bot))

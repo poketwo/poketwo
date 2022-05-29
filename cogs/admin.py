@@ -209,5 +209,5 @@ class Administration(commands.Cog):
         await ctx.send(f"Gave **{user}** {num} pokémon.")
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Administration(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Administration(bot))

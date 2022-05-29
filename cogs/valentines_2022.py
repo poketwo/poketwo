@@ -123,5 +123,5 @@ class Valentines(commands.Cog):
         await ctx.send("Your gift has been sent.")
 
 
-def setup(bot):
-    bot.add_cog(Valentines(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Valentines(bot))

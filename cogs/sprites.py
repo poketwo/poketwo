@@ -1953,5 +1953,5 @@ class Sprites(commands.Cog):
         return ""
 
 
-def setup(bot):
-    bot.add_cog(Sprites(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Sprites(bot))

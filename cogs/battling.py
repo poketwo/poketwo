@@ -29,8 +29,7 @@ def get_priority(action, selected):
         if "Paralysis" in selected.ailments:
             s *= 0.5
         return (
-            action["value"].priority * 1e20
-            + selected.spd * data.constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
+            action["value"].priority * 1e20 + selected.spd * data.constants.STAT_STAGE_MULTIPLIERS[selected.stages.spd]
         )
 
     return 1e99
@@ -104,9 +103,7 @@ class Trainer:
 
         uid, action = await self.bot.wait_for("move_decide", check=lambda u, a: u == self.user.id)
 
-        await self.user.send(
-            f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}"
-        )
+        await self.user.send(f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}")
 
         if action["type"] == "move":
             action["value"] = self.bot.data.move_by_number(action["value"])
@@ -135,30 +132,22 @@ class Battle:
             if len(trainer.pokemon) > 0:
                 embed.add_field(
                     name=f"{trainer.user}'s Party",
-                    value="\n".join(
-                        f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})" for x in trainer.pokemon
-                    ),
+                    value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})" for x in trainer.pokemon),
                 )
             else:
                 embed.add_field(name=f"{trainer.user}'s Party", value="None")
 
-        embed.set_footer(
-            text=f"Use `{ctx.prefix}battle add <pokemon>` to add a pokémon to the party!"
-        )
+        embed.set_footer(text=f"Use `{ctx.prefix}battle add <pokemon>` to add a pokémon to the party!")
 
         await ctx.send(embed=embed)
 
     async def send_ready(self):
-        embed = self.bot.Embed(
-            title="💥 Ready to battle!", description="The battle will begin in 5 seconds."
-        )
+        embed = self.bot.Embed(title="💥 Ready to battle!", description="The battle will begin in 5 seconds.")
 
         for trainer in self.trainers:
             embed.add_field(
                 name=f"{trainer.user}'s Party",
-                value="\n".join(
-                    f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})" for x in trainer.pokemon
-                ),
+                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})" for x in trainer.pokemon),
             )
 
         await self.channel.send(embed=embed)
@@ -171,17 +160,13 @@ class Battle:
         if self.stage != Stage.PROGRESS:
             return
 
-        actions = await asyncio.gather(
-            self.trainers[0].get_action(message), self.trainers[1].get_action(message)
-        )
+        actions = await asyncio.gather(self.trainers[0].get_action(message), self.trainers[1].get_action(message))
 
         if actions[0]["type"] == "pass" and actions[1]["type"] == "pass":
             self.passed_turns += 1
 
         if self.passed_turns >= 3:
-            await self.channel.send(
-                "Both trainers passed three times in a row. I'll end the battle here."
-            )
+            await self.channel.send("Both trainers passed three times in a row. I'll end the battle here.")
             self.end()
             return
 
@@ -201,17 +186,13 @@ class Battle:
             if "Poison" in trainer.selected.ailments:
                 trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
-        for action, trainer, opponent in sorted(
-            iterl, key=lambda x: x[0]["priority"], reverse=True
-        ):
+        for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
             title = None
             text = None
 
             if action["type"] == "flee":
                 # battle's over
-                await self.channel.send(
-                    f"{trainer.user.mention} has fled the battle! {opponent.user.mention} has won."
-                )
+                await self.channel.send(f"{trainer.user.mention} has fled the battle! {opponent.user.mention} has won.")
                 self.end()
                 return
 
@@ -277,9 +258,7 @@ class Battle:
                 text = (text or "") + f" {opponent.selected.species} has fainted."
 
                 try:
-                    opponent.selected_idx = next(
-                        idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0
-                    )
+                    opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
                 except StopIteration:
                     # battle's over
                     self.end()
@@ -450,11 +429,7 @@ class Battling(commands.Cog):
         self.bot.loop.create_task(add_reactions())
 
         def check(payload):
-            return (
-                payload.message_id == msg.id
-                and payload.user_id == user_id
-                and payload.emoji.name in actions
-            )
+            return payload.message_id == msg.id and payload.user_id == user_id and payload.emoji.name in actions
 
         async def listen_for_reactions():
             try:
@@ -468,13 +443,9 @@ class Battling(commands.Cog):
 
         try:
             while True:
-                _, move_name = await self.bot.wait_for(
-                    "battle_move", timeout=35, check=lambda u, m: u == user_id
-                )
+                _, move_name = await self.bot.wait_for("battle_move", timeout=35, check=lambda u, m: u == user_id)
                 try:
-                    action = next(
-                        x for x in actions.values() if x["command"].lower() == move_name.lower()
-                    )
+                    action = next(x for x in actions.values() if x["command"].lower() == move_name.lower())
                 except StopIteration:
                     await self.bot.send_dm(user_id, "That's not a valid move here!")
                 else:
@@ -500,10 +471,8 @@ class Battling(commands.Cog):
         if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
-        member = await ctx.bot.mongo.Member.find_one(
-            {"id": user.id}, {"suspended": 1, "suspension_reason": 1}
-        )
-        
+        member = await ctx.bot.mongo.Member.find_one({"id": user.id}, {"suspended": 1, "suspension_reason": 1})
+
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
@@ -512,17 +481,11 @@ class Battling(commands.Cog):
 
         # Challenge to battle
 
-        message = await ctx.send(
-            f"Challenging {user.mention} to a battle. Click the checkmark to accept!"
-        )
+        message = await ctx.send(f"Challenging {user.mention} to a battle. Click the checkmark to accept!")
         await message.add_reaction("✅")
 
         def check(payload):
-            return (
-                payload.message_id == message.id
-                and payload.user_id == user.id
-                and payload.emoji.name == "✅"
-            )
+            return payload.message_id == message.id and payload.user_id == user.id and payload.emoji.name == "✅"
 
         try:
             await self.bot.wait_for("raw_reaction_add", timeout=30, check=check)
@@ -534,14 +497,10 @@ class Battling(commands.Cog):
         # Accepted, continue
 
         if ctx.author in self.bot.battles:
-            return await ctx.send(
-                "Sorry, the user who sent the challenge is already in another battle."
-            )
+            return await ctx.send("Sorry, the user who sent the challenge is already in another battle.")
 
         if user in self.bot.battles:
-            return await ctx.send(
-                "Sorry, you can't accept a challenge while you're already in a battle!"
-            )
+            return await ctx.send("Sorry, you can't accept a challenge while you're already in a battle!")
 
         battle = self.bot.battles.new(ctx.author, user, ctx)
         await battle.send_selection(ctx)
@@ -615,9 +574,7 @@ class Battling(commands.Cog):
 
         embed.add_field(
             name="Available Moves",
-            value="\n".join(
-                x.move.name for x in pokemon.species.moves if pokemon.level >= x.method.level
-            ),
+            value="\n".join(x.move.name for x in pokemon.species.moves if pokemon.level >= x.method.level),
         )
 
         embed.add_field(
@@ -660,8 +617,7 @@ class Battling(commands.Cog):
         if len(pokemon.moves) >= 4:
             await ctx.send(
                 "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, "
-                "or anything else to abort:\n "
-                + "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves)
+                "or anything else to abort:\n " + "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves)
             )
 
             def check(m):
@@ -727,9 +683,7 @@ class Battling(commands.Cog):
 
             return embed
 
-        pages = pagination.ContinuablePages(
-            pagination.FunctionPageSource(math.ceil(len(species.moves) / 20), get_page)
-        )
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(species.moves) / 20), get_page))
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
@@ -775,5 +729,5 @@ class Battling(commands.Cog):
             self.process_move_requests.cancel()
 
 
-def setup(bot):
-    bot.add_cog(Battling(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Battling(bot))

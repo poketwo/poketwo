@@ -332,10 +332,8 @@ class Trading(commands.Cog):
         if await self.is_in_trade(user):
             return await ctx.send(f"**{user}** is already in a trade!")
 
-        member = await ctx.bot.mongo.Member.find_one(
-            {"id": user.id}, {"suspended": 1, "suspension_reason": 1}
-        )
-        
+        member = await ctx.bot.mongo.Member.find_one({"id": user.id}, {"suspended": 1, "suspension_reason": 1})
+
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
@@ -848,5 +846,5 @@ class Trading(commands.Cog):
         self.process_cancel_trades.cancel()
 
 
-def setup(bot):
-    bot.add_cog(Trading(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Trading(bot))

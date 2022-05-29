@@ -16,5 +16,5 @@ class NoEvent(commands.Cog):
         await ctx.send("There is no event currently active.")
 
 
-def setup(bot):
-    bot.add_cog(NoEvent(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(NoEvent(bot))

@@ -487,5 +487,5 @@ class Bot(commands.Cog):
         await ctx.send("\n".join(messages), delete_after=5)
 
 
-def setup(bot):
-    bot.add_cog(Bot(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Bot(bot))

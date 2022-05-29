@@ -24,7 +24,7 @@ class ConfirmTermsOfServiceView(discord.ui.View):
         return True
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not self.message:
             return
         self.result = True
@@ -33,7 +33,7 @@ class ConfirmTermsOfServiceView(discord.ui.View):
         self.stop()
 
     @discord.ui.button(label="Decline", style=discord.ButtonStyle.red)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.result = False
         await interaction.response.defer()
         await self.message.edit(view=ViewTermsOfServiceView())
@@ -58,7 +58,7 @@ class ConfirmUpdatedTermsOfServiceView(discord.ui.View):
         return True
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not self.message:
             return
         await self.ctx.bot.mongo.update_member(interaction.user, {"$set": {"tos": datetime.utcnow()}})
@@ -69,7 +69,7 @@ class ConfirmUpdatedTermsOfServiceView(discord.ui.View):
         await self.message.edit(view=ViewTermsOfServiceView())
 
     @discord.ui.button(label="Decline", style=discord.ButtonStyle.red)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(
             "Since you chose not to accept the new user terms, we are unable to grant you access to Pokétwo.\n"
             "If you wish to continue, please run any command and agree to our updated Terms of Service to continue.",

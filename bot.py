@@ -75,10 +75,6 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Load extensions
 
-        self.load_extension("jishaku")
-        for i in cogs.default:
-            self.load_extension(f"cogs.{i}")
-
         self.add_check(
             commands.bot_has_permissions(
                 read_messages=True,
@@ -98,7 +94,6 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Run bot
 
-        self.loop.create_task(self.do_startup_tasks())
         self.run(kwargs["token"])
 
     async def get_context(self, message, *, cls=helpers.context.PoketwoContext):
@@ -135,7 +130,10 @@ class ClusterBot(commands.AutoShardedBot):
         dm = await self.create_dm(user)
         return await dm.send(*args, **kwargs)
 
-    async def do_startup_tasks(self):
+    async def setup_hook(self):
+        await self.load_extension("jishaku")
+        for i in cogs.default:
+            await self.load_extension(f"cogs.{i}")
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
         await self.wait_until_ready()
         self.log.info(f"Logged in as {self.user}")
@@ -169,16 +167,3 @@ class ClusterBot(commands.AutoShardedBot):
     async def close(self):
         self.log.info("shutting down")
         await super().close()
-
-    async def reload_modules(self):
-        reload(cogs)
-        reload(helpers)
-
-        for i in dir(helpers):
-            if not i.startswith("_"):
-                reload(getattr(helpers, i))
-
-        for i in cogs.default:
-            self.reload_extension(f"cogs.{i}")
-
-        await self.do_startup_tasks()

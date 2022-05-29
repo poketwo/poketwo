@@ -626,5 +626,5 @@ class Mongo(commands.Cog):
         return await self.db.channel.update_one({"_id": channel.id}, update, upsert=True)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Mongo(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Mongo(bot))

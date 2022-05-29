@@ -501,5 +501,5 @@ class Spawning(commands.Cog):
         self.send_spawns.cancel()
 
 
-def setup(bot):
-    bot.add_cog(Spawning(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Spawning(bot))

@@ -1290,5 +1290,5 @@ class Pokemon(commands.Cog):
         await pages.continue_at(ctx, page - 1)
 
 
-def setup(bot):
-    bot.add_cog(Pokemon(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Pokemon(bot))

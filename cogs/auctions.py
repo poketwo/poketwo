@@ -582,5 +582,5 @@ class Auctions(commands.Cog):
         self.check_auctions.cancel()
 
 
-def setup(bot):
-    bot.add_cog(Auctions(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Auctions(bot))

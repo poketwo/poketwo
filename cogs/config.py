@@ -142,9 +142,7 @@ class Configuration(commands.Cog):
         if len(channels) == 0:
             return await ctx.send("Please specify channels to redirect to!")
 
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$set": {"channels": [x.id for x in channels]}}
-        )
+        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": [x.id for x in channels]}})
         await ctx.send("Now redirecting spawns to " + ", ".join(x.mention for x in channels))
 
     @checks.is_admin()
@@ -160,9 +158,7 @@ class Configuration(commands.Cog):
     async def location(self, ctx: commands.Context, *, location: str = None):
         if location is None:
             guild = await self.bot.mongo.fetch_guild(ctx.guild)
-            return await ctx.send(
-                f"The server's current location is **{guild.loc}** ({guild.lat}, {guild.lng})."
-            )
+            return await ctx.send(f"The server's current location is **{guild.loc}** ({guild.lat}, {guild.lng}).")
 
         async with ctx.typing():
             g = await self.bot.loop.run_in_executor(None, geocode, location)
@@ -171,9 +167,7 @@ class Configuration(commands.Cog):
                 return await ctx.send("Couldn't find that location!")
 
             lat, lng = g.latlng
-            await self.bot.mongo.update_guild(
-                ctx.guild, {"$set": {"lat": lat, "lng": lng, "loc": g.address}}
-            )
+            await self.bot.mongo.update_guild(ctx.guild, {"$set": {"lat": lat, "lng": lng, "loc": g.address}})
             await ctx.send(f"Set server location to **{g.address}** ({lat}, {lng}).")
 
     @commands.command()
@@ -181,13 +175,11 @@ class Configuration(commands.Cog):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         embed = self.bot.Embed(title=f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
-        embed.description = (
-            f"It is currently {'day' if guild.is_day else 'night'} time in this server."
-        )
+        embed.description = f"It is currently {'day' if guild.is_day else 'night'} time in this server."
         embed.add_field(name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}")
 
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Configuration(bot))
+async def setup(bot):
+    await bot.add_cog(Configuration(bot))

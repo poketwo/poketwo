@@ -183,5 +183,5 @@ class Christmas(commands.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Christmas(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Christmas(bot))

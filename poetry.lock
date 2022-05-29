@@ -214,7 +214,7 @@ resolved_reference = "eda906075f6dab6776d6cb17ff9c977135bd4d72"
 
 [[package]]
 name = "discord.py"
-version = "2.1.0a3578+g0eca5516"
+version = "2.0.0a4308+gf24f34e3"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -222,19 +222,19 @@ python-versions = ">=3.8.0"
 develop = false
 
 [package.dependencies]
-aiohttp = ">=3.6.0,<3.8.0"
-orjson = {version = ">=3.5.4", optional = true, markers = "extra == \"speed\""}
+aiohttp = ">=3.7.4,<4"
 
 [package.extras]
-docs = ["sphinx (==4.0.2)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
-speed = ["orjson (>=3.5.4)"]
-voice = ["PyNaCl (>=1.3.0,<1.5)"]
+docs = ["sphinx (==4.4.0)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport", "typing-extensions"]
+speed = ["orjson (>=3.5.4)", "aiodns (>=1.1)", "brotli", "cchardet"]
+test = ["coverage", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock"]
+voice = ["PyNaCl (>=1.3.0,<1.6)"]
 
 [package.source]
 type = "git"
-url = "https://github.com/poketwo/discord.py.git"
+url = "https://github.com/Rapptz/discord.py.git"
 reference = "master"
-resolved_reference = "0eca5516aed59498d5c74d5d95fa709b5f4632e9"
+resolved_reference = "f24f34e3f1fc350664cc93b1f57510bd9c714a7b"
 
 [[package]]
 name = "dnspython"
@@ -336,8 +336,24 @@ astunparse = ">=1.6.3,<2.0.0"
 test = ["pytest", "pytest-cov"]
 
 [[package]]
+name = "importlib-metadata"
+version = "4.11.4"
+description = "Read metadata from Python packages"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+zipp = ">=0.5"
+
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
+perf = ["ipython"]
+testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
+
+[[package]]
 name = "jishaku"
-version = "2.3.2"
+version = "2.5.0"
 description = "A discord.py extension including useful tools for bot development and debugging."
 category = "main"
 optional = false
@@ -347,13 +363,16 @@ python-versions = ">=3.8.0"
 braceexpand = ">=0.1.7"
 click = ">=8.0.1"
 import-expression = ">=1.0.0,<2.0.0"
+importlib-metadata = {version = ">=3.7.0", markers = "python_version < \"3.10\""}
+typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-docs = ["sphinx (>=3.5.4)", "sphinxcontrib-asyncio"]
-procinfo = ["psutil"]
-publish = ["jinja2"]
-test = ["click", "coverage", "flake8", "isort", "pylint", "pytest", "pytest-cov", "pytest-mock"]
-voice = ["youtube-dl"]
+discordpy = ["discord.py (>=1.7.3)"]
+docs = ["Sphinx (>=4.4.0)", "sphinxcontrib-asyncio (>=0.3.0)"]
+procinfo = ["psutil (>=5.8.0)"]
+publish = ["Jinja2 (>=3.0.3)"]
+test = ["coverage (>=6.3.2)", "flake8 (>=4.0.1)", "isort (>=5.10.1)", "pylint (>=2.11.1)", "pytest (>=7.0.1)", "pytest-asyncio (>=0.18.1)", "pytest-cov (>=3.0.0)", "pytest-mock (>=3.7.0)"]
+voice = ["yt-dlp (>=2022.3.8)"]
 
 [[package]]
 name = "marshmallow"
@@ -401,14 +420,6 @@ description = "Experimental type system extensions for programs checked with the
 category = "dev"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "orjson"
-version = "3.6.7"
-description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
-category = "main"
-optional = false
-python-versions = ">=3.7"
 
 [[package]]
 name = "packaging"
@@ -608,10 +619,22 @@ python-versions = ">=3.6"
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[[package]]
+name = "zipp"
+version = "3.8.0"
+description = "Backport of pathlib-compatible object wrapper for zip files"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
+testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)"]
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ce489cb84298d0eaac6855cc056c293d00aa654cdae2563bcb0b045f0922330b"
+content-hash = "08d63f85baa7bf9f88ddd4def790248584677f3ab558fa519c275361ad8dd3f3"
 
 [metadata.files]
 aiohttp = [
@@ -782,12 +805,16 @@ import-expression = [
     {file = "import_expression-1.1.4-py3-none-any.whl", hash = "sha256:292099910a4dcc65ba562377cd2265487ba573dd63d73bdee5deec36ca49555b"},
     {file = "import_expression-1.1.4.tar.gz", hash = "sha256:06086a6ab3bfa528b1c478e633d6adf2b3a990e31440f6401b0f3ea12b0659a9"},
 ]
+importlib-metadata = [
+    {file = "importlib_metadata-4.11.4-py3-none-any.whl", hash = "sha256:c58c8eb8a762858f49e18436ff552e83914778e50e9d2f1660535ffb364552ec"},
+    {file = "importlib_metadata-4.11.4.tar.gz", hash = "sha256:5d26852efe48c0a32b0509ffbc583fda1a2266545a78d104a6f4aff3db17d700"},
+]
 jishaku = [
-    {file = "jishaku-2.3.2-py3-none-any.whl", hash = "sha256:a395781b152a63b38c3cf48ffe94b218b49327f3d22536f3ab9a8b0c7ed62576"},
-    {file = "jishaku-2.3.2-py3.10.egg", hash = "sha256:42239a1b07202e11950eee2eb02a6666960eff19db35a2fc16470b89f7efbe13"},
-    {file = "jishaku-2.3.2-py3.8.egg", hash = "sha256:3019932367384ea5a07d51b70ffa699fa530f16d10413d50880475dff08217e3"},
-    {file = "jishaku-2.3.2-py3.9.egg", hash = "sha256:c3da7e69dd8c08df93cd75df28d0e41e3ab626b4b12b42649c11f867902f10c8"},
-    {file = "jishaku-2.3.2.tar.gz", hash = "sha256:9bbc973ebb8070091b801d0af4fc94e40a3904539bef2dadd0eb7fda755c91b6"},
+    {file = "jishaku-2.5.0-py3-none-any.whl", hash = "sha256:8719cd8bdc75b404e89b8ef35144fa22bdd867ebd05fa54bace144c60612fba6"},
+    {file = "jishaku-2.5.0-py3.10.egg", hash = "sha256:b9a2bcb2234e1333c61c1a8e2eab97779243642ef7fc7715b61c138b85635032"},
+    {file = "jishaku-2.5.0-py3.8.egg", hash = "sha256:260a737e0ead895684a976251a551a8cc0ea0b75918344b6a6fd82faf8b45679"},
+    {file = "jishaku-2.5.0-py3.9.egg", hash = "sha256:efbe761861dd6394de7915e60bd24538ab7f1c7a3a4dad4be523206bb126decf"},
+    {file = "jishaku-2.5.0.tar.gz", hash = "sha256:0949a1bf6758feffe2b91279e4fb68ac46325bf6c00b42accd31fe017f74771b"},
 ]
 marshmallow = [
     {file = "marshmallow-3.15.0-py3-none-any.whl", hash = "sha256:ff79885ed43b579782f48c251d262e062bce49c65c52412458769a4fb57ac30f"},
@@ -861,40 +888,6 @@ multidict = [
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
-]
-orjson = [
-    {file = "orjson-3.6.7-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:93188a9d6eb566419ad48befa202dfe7cd7a161756444b99c4ec77faea9352a4"},
-    {file = "orjson-3.6.7-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:82515226ecb77689a029061552b5df1802b75d861780c401e96ca6bc8495f775"},
-    {file = "orjson-3.6.7-cp310-cp310-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:3af57ffab7848aaec6ba6b9e9b41331250b57bf696f9d502bacdc71a0ebab0ba"},
-    {file = "orjson-3.6.7-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:a7297504d1142e7efa236ffc53f056d73934a993a08646dbcee89fc4308a8fcf"},
-    {file = "orjson-3.6.7-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:5a50cde0dbbde255ce751fd1bca39d00ecd878ba0903c0480961b31984f2fab7"},
-    {file = "orjson-3.6.7-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:d21f9a2d1c30e58070f93988db4cad154b9009fafbde238b52c1c760e3607fbe"},
-    {file = "orjson-3.6.7-cp310-none-win_amd64.whl", hash = "sha256:e152464c4606b49398afd911777decebcf9749cc8810c5b4199039e1afb0991e"},
-    {file = "orjson-3.6.7-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:0a65f3c403f38b0117c6dd8e76e85a7bd51fcd92f06c5598dfeddbc44697d3e5"},
-    {file = "orjson-3.6.7-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:6c47cfca18e41f7f37b08ff3e7abf5ada2d0f27b5ade934f05be5fc5bb956e9d"},
-    {file = "orjson-3.6.7-cp37-cp37m-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:63185af814c243fad7a72441e5f98120c9ecddf2675befa486d669fb65539e9b"},
-    {file = "orjson-3.6.7-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b2da6fde42182b80b40df2e6ab855c55090ebfa3fcc21c182b7ad1762b61d55c"},
-    {file = "orjson-3.6.7-cp37-cp37m-manylinux_2_24_aarch64.whl", hash = "sha256:48c5831ec388b4e2682d4ff56d6bfa4a2ef76c963f5e75f4ff4785f9cf338a80"},
-    {file = "orjson-3.6.7-cp37-cp37m-manylinux_2_24_x86_64.whl", hash = "sha256:913fac5d594ccabf5e8fbac15b9b3bb9c576d537d49eeec9f664e7a64dde4c4b"},
-    {file = "orjson-3.6.7-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:58f244775f20476e5851e7546df109f75160a5178d44257d437ba6d7e562bfe8"},
-    {file = "orjson-3.6.7-cp37-none-win_amd64.whl", hash = "sha256:2d5f45c6b85e5f14646df2d32ecd7ff20fcccc71c0ea1155f4d3df8c5299bbb7"},
-    {file = "orjson-3.6.7-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:612d242493afeeb2068bc72ff2544aa3b1e627578fcf92edee9daebb5893ffea"},
-    {file = "orjson-3.6.7-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:539cdc5067db38db27985e257772d073cd2eb9462d0a41bde96da4e4e60bd99b"},
-    {file = "orjson-3.6.7-cp38-cp38-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:6d103b721bbc4f5703f62b3882e638c0b65fcdd48622531c7ffd45047ef8e87c"},
-    {file = "orjson-3.6.7-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb10a20f80e95102dd35dfbc3a22531661b44a09b55236b012a446955846b023"},
-    {file = "orjson-3.6.7-cp38-cp38-manylinux_2_24_aarch64.whl", hash = "sha256:bb68d0da349cf8a68971a48ad179434f75256159fe8b0715275d9b49fa23b7a3"},
-    {file = "orjson-3.6.7-cp38-cp38-manylinux_2_24_x86_64.whl", hash = "sha256:4a2c7d0a236aaeab7f69c17b7ab4c078874e817da1bfbb9827cb8c73058b3050"},
-    {file = "orjson-3.6.7-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:3be045ca3b96119f592904cf34b962969ce97bd7843cbfca084009f6c8d2f268"},
-    {file = "orjson-3.6.7-cp38-none-win_amd64.whl", hash = "sha256:bd765c06c359d8a814b90f948538f957fa8a1f55ad1aaffcdc5771996aaea061"},
-    {file = "orjson-3.6.7-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:7dd9e1e46c0776eee9e0649e3ae9584ea368d96851bcaeba18e217fa5d755283"},
-    {file = "orjson-3.6.7-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:c4b4f20a1e3df7e7c83717aff0ef4ab69e42ce2fb1f5234682f618153c458406"},
-    {file = "orjson-3.6.7-cp39-cp39-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7107a5673fd0b05adbb58bf71c1578fc84d662d29c096eb6d998982c8635c221"},
-    {file = "orjson-3.6.7-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a08b6940dd9a98ccf09785890112a0f81eadb4f35b51b9a80736d1725437e22c"},
-    {file = "orjson-3.6.7-cp39-cp39-manylinux_2_24_aarch64.whl", hash = "sha256:f5d1648e5a9d1070f3628a69a7c6c17634dbb0caf22f2085eca6910f7427bf1f"},
-    {file = "orjson-3.6.7-cp39-cp39-manylinux_2_24_x86_64.whl", hash = "sha256:e6201494e8dff2ce7fd21da4e3f6dfca1a3fed38f9dcefc972f552f6596a7621"},
-    {file = "orjson-3.6.7-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:70d0386abe02879ebaead2f9632dd2acb71000b4721fd8c1a2fb8c031a38d4d5"},
-    {file = "orjson-3.6.7-cp39-none-win_amd64.whl", hash = "sha256:d9a3288861bfd26f3511fb4081561ca768674612bac59513cb9081bb61fcc87f"},
-    {file = "orjson-3.6.7.tar.gz", hash = "sha256:a4bb62b11289b7620eead2f25695212e9ac77fcfba76f050fa8a540fb5c32401"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1148,4 +1141,8 @@ yarl = [
     {file = "yarl-1.7.2-cp39-cp39-win32.whl", hash = "sha256:1edc172dcca3f11b38a9d5c7505c83c1913c0addc99cd28e993efeaafdfaa18d"},
     {file = "yarl-1.7.2-cp39-cp39-win_amd64.whl", hash = "sha256:797c2c412b04403d2da075fb93c123df35239cd7b4cc4e0cd9e5839b73f52c58"},
     {file = "yarl-1.7.2.tar.gz", hash = "sha256:45399b46d60c253327a460e99856752009fcee5f5d3c80b2f7c0cae1c38d56dd"},
+]
+zipp = [
+    {file = "zipp-3.8.0-py3-none-any.whl", hash = "sha256:c4f6e5bbf48e74f7a38e7cc5b0480ff42b0ae5178957d564d18932525d5cf099"},
+    {file = "zipp-3.8.0.tar.gz", hash = "sha256:56bf8aadb83c24db6c4b577e13de374ccfb67da2078beba1d037c17980bf43ad"},
 ]

@@ -33,9 +33,7 @@ EXCLUDE = {
 class LogfmtFormatter(logging.Formatter):
     def format(self, record):
         attrs = {"message": record.getMessage()}
-        attrs.update(
-            {k: getattr(record, k) for k in dir(record) if not (k in EXCLUDE or k.startswith("_"))}
-        )
+        attrs.update({k: getattr(record, k) for k in dir(record) if not (k in EXCLUDE or k.startswith("_"))})
         attrs.update(getattr(record, "extra", None) or {})
         return " ".join(
             '{}="{}"'.format(k, str(v).replace('"', r"\"")) if " " in str(v) else f"{k}={v}"
@@ -78,5 +76,5 @@ class Logging(commands.Cog):
         self.log.setLevel(logging.INFO)
 
 
-def setup(bot):
-    bot.add_cog(Logging(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Logging(bot))

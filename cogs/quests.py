@@ -67,9 +67,7 @@ class Quests(commands.Cog):
     async def quests(self, ctx: commands.Context):
         """View quests."""
 
-        embed = self.bot.Embed(
-            title=f"Quests", description="Complete these quests to earn special rewards!"
-        )
+        embed = self.bot.Embed(title=f"Quests", description="Complete these quests to earn special rewards!")
 
         quests = await self.get_quests(ctx.author)
 
@@ -122,20 +120,16 @@ class Quests(commands.Cog):
             if "quest_progress." + q["_id"] not in incs:
                 continue
             if m["quest_progress"][q["_id"]] == q["next_count"]:
-                await self.bot.mongo.update_member(
-                    ctx.author, {"$inc": {"balance": q["next_reward"]}}
-                )
+                await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": q["next_reward"]}})
                 await ctx.send(
                     f"You have completed the quest **{q['description']}** and received **{q['next_reward']:,}** Pokécoins!"
                 )
                 if q["next_is_last"]:
-                    await self.bot.mongo.update_member(
-                        ctx.author, {"$set": {f"badges.{q['final_reward']}": True}}
-                    )
+                    await self.bot.mongo.update_member(ctx.author, {"$set": {f"badges.{q['final_reward']}": True}})
                     await ctx.send(
                         f"You have completed this quest track and received the **{q['final_reward'].title()}** badge!"
                     )
 
 
-def setup(bot):
-    bot.add_cog(Quests(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Quests(bot))
