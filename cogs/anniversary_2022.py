@@ -215,6 +215,11 @@ class Anniversary(commands.Cog):
     async def reset(self, ctx):
         """Reset your bingo board"""
 
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        if member.bingos_awarded < 12:
+            return await ctx.send("You must have a full board to do this!")
+
         result = await ctx.confirm("Are you sure you would like to reset your board? This cannot be undone.")
         if result is None:
             return await ctx.send("Time's up. Aborted.")
