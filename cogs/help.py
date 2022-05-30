@@ -14,7 +14,7 @@ class CustomHelpCommand(commands.HelpCommand):
         if isinstance(error, commands.CommandInvokeError):
             await ctx.send(str(error.original))
 
-    def make_page_embed(self, commands, title="Pokétwo Help", description=discord.None):
+    def make_page_embed(self, commands, title="Pokétwo Help", description=None):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
         embed.set_footer(text=f'Use "{self.context.clean_prefix}help command" for more info on a command.')
 
@@ -31,7 +31,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         return embed
 
-    def make_default_embed(self, cogs, title="Pokétwo Categories", description=discord.None):
+    def make_default_embed(self, cogs, title="Pokétwo Categories", description=None):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
 
         counter = 0
@@ -65,7 +65,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             total += len(commands)
             cog = bot.get_cog(cog_name)
-            description = (cog and cog.description) if (cog and cog.description) is not None else discord.None
+            description = (cog and cog.description) if (cog and cog.description) is not None else None
             embed_pages.append((cog, description, commands))
 
         async def get_page(source, menu, pidx):
@@ -96,7 +96,7 @@ class CustomHelpCommand(commands.HelpCommand):
         embed = self.make_page_embed(
             filtered,
             title=(cog and cog.qualified_name or "Other") + " Commands",
-            description=discord.None if cog is None else cog.description,
+            description=None if cog is None else cog.description,
         )
 
         await ctx.send(embed=embed)
