@@ -163,7 +163,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "discord-ext-menus"
-version = "1.0.0a31+gfbb8803"
+version = "1.0.0a32+g8686b5d"
 description = "An extension module to make reaction based menus with discord.py"
 category = "main"
 optional = false
@@ -177,7 +177,7 @@ develop = false
 type = "git"
 url = "https://github.com/Rapptz/discord-ext-menus.git"
 reference = "master"
-resolved_reference = "fbb8803779373357e274e1540b368365fd9d8074"
+resolved_reference = "8686b5d1bbc1d3c862292eb436ab630d6e9c9b53"
 
 [[package]]
 name = "discord-ext-menus-views"
