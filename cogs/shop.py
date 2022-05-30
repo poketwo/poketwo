@@ -265,6 +265,7 @@ class Shop(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, update)
         if len(added_pokemon) > 0:
             await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
+        self.bot.dispatch("open_box", ctx.author, amt)
         await ctx.send(embed=embed)
 
     @checks.has_started()

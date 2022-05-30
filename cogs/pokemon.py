@@ -748,6 +748,7 @@ class Pokemon(commands.Cog):
         await ctx.send(
             f"You released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
         )
+        self.bot.dispatch("release", ctx.author, result.modified_count)
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
@@ -849,6 +850,7 @@ class Pokemon(commands.Cog):
         await ctx.send(
             f"You have released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
         )
+        self.bot.dispatch("release", ctx.author, result.modified_count)
 
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
