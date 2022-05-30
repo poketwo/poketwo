@@ -97,6 +97,9 @@ if __name__ == "__main__":
 
     shard_ids = list(range(cluster_idx, num_shards, num_clusters))
 
+    intents = discord.Intents.default()
+    intents.message_content = True
+
     bot.ClusterBot(
         token=config.BOT_TOKEN,
         shard_ids=shard_ids,
@@ -106,6 +109,6 @@ if __name__ == "__main__":
         case_insensitive=True,
         member_cache_flags=discord.MemberCacheFlags.none(),
         allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
-        intents=discord.Intents.default(),
+        intents=intents,
         config=config,
     )

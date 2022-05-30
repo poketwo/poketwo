@@ -51,6 +51,7 @@ CLUSTER_NAMES = (
 NAMES = iter(CLUSTER_NAMES)
 
 intents = discord.Intents.default()
+intents.message_content = True
 
 
 class Launcher:

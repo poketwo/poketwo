@@ -1,6 +1,3 @@
-import asyncio
-from importlib import reload
-
 import aiohttp
 import discord
 import uvloop
@@ -69,9 +66,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        super().__init__(**kwargs, loop=loop, command_prefix=determine_prefix)
+        super().__init__(**kwargs, command_prefix=determine_prefix)
 
         # Load extensions
 
@@ -90,7 +85,6 @@ class ClusterBot(commands.AutoShardedBot):
         self.add_check(checks.general_check().predicate)
 
         self.activity = discord.Game("p!help • poketwo.net")
-        self.http_session = aiohttp.ClientSession()
 
         # Run bot
 
@@ -131,12 +125,11 @@ class ClusterBot(commands.AutoShardedBot):
         return await dm.send(*args, **kwargs)
 
     async def setup_hook(self):
+        self.http_session = aiohttp.ClientSession()
         await self.load_extension("jishaku")
         for i in cogs.default:
             await self.load_extension(f"cogs.{i}")
         self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
-        await self.wait_until_ready()
-        self.log.info(f"Logged in as {self.user}")
 
     async def on_ready(self):
         self.log.info(f"Ready called.")
