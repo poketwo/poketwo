@@ -4,6 +4,8 @@ from functools import cached_property
 
 from discord.ext import commands
 from helpers import checks, constants
+from helpers.converters import FetchUserConverter
+from helpers.utils import FakeUser
 
 from cogs import mongo
 
@@ -52,8 +54,8 @@ def make_catch_region_quest(region):
 GUARANTEED_QUESTS = [
     lambda: {
         "event": "open_box",
-        "count": (count := random.randint(5, 8)),
-        "description": f"Open {count} voting boxes",
+        "count": 1,
+        "description": "Open a voting box",
     },
     lambda: {
         "event": "trade",
@@ -120,8 +122,20 @@ class Anniversary(commands.Cog):
 
     async def get_quests(self, user):
         member = await self.bot.mongo.db.member.find_one({"_id": user.id})
-        if member.get("anniversary_quests"):
-            return member["anniversary_quests"]
+        quests = member.get("anniversary_quests")
+        if quests is None:
+            return quests
+        for q in quests:
+            if q["event"] == "open_box" and q["count"] > 1:
+                q["count"] = 1
+                q["description"] = "Open a voting box"
+                break
+        else:
+            return quests
+        await self.bot.mongo.update_member(user, {"$set": {"anniversary_quests": quests}})
+        return quests
+
+    async def make_quests(self, user):
         quests = [{**x, "progress": 0} for x in self.generate_quests()]
         await self.bot.mongo.update_member(user, {"$set": {"anniversary_quests": quests}})
         return quests
@@ -169,9 +183,14 @@ class Anniversary(commands.Cog):
     async def anniversary(self, ctx: commands.Context):
         """View Anniversary event information."""
 
+        await self.check_quests(ctx.author)
+
         member = await self.bot.mongo.db.member.find_one({"_id": ctx.author.id})
 
         quests = await self.get_quests(ctx.author)
+        if quests is None:
+            quests = await self.make_quests(ctx.author)
+
         quests_state = [x["progress"] >= x["count"] for x in quests]
         quests_text = "\n".join(
             f"**{'ABCDE'[i % 5]}{i // 5 + 1}.** {x['description']} ({x['progress']}/{x['count']})"
@@ -186,7 +205,7 @@ class Anniversary(commands.Cog):
         )
         embed.add_field(
             name=f"Anniversary Boxes — {member.get('anniversary_boxes', 0)}",
-            value=f"You will receive an **Anniversary Box** for each quest you complete. Use `{ctx.prefix}annivesary open` to open boxes for rewards!",
+            value=f"You will receive an **Anniversary Box** for each quest you complete. Use `{ctx.prefix}anniversary open` to open boxes for rewards!",
             inline=False,
         )
         embed.add_field(
@@ -267,8 +286,8 @@ class Anniversary(commands.Cog):
             text = "1 redeem"
 
         elif reward in ("event", "sunflora", "rare", "shiny"):
-            pool = [x for x in self.pools[reward] if x.catchable or reward == "event"]
-            species = random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]
+            pool = [x for x in self.pools[reward] if x.catchable or reward == "sunflora"]
+            species = random.choices(pool, weights=[x.abundance + 1 for x in pool], k=1)[0]
             level = min(max(int(random.normalvariate(30, 10)), 1), 100)
             shiny = reward == "shiny" or member.determine_shiny(species)
             ivs = [mongo.random_iv() for i in range(6)]
@@ -300,6 +319,16 @@ class Anniversary(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @commands.check_any(
+        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
+    )
+    @anniversary.command(aliases=("givebox", "ab", "gb"))
+    async def addbox(self, ctx, user: FetchUserConverter, num: int = 1):
+        """Give a box."""
+
+        await self.bot.mongo.update_member(user, {"$inc": {"anniversary_boxes": num}})
+        await ctx.send(f"Gave **{user}** {num} Anniversary Boxes.")
+
     def verify_condition(self, condition, species, to=None):
         if condition is not None:
             for k, v in condition.items():
@@ -316,6 +345,8 @@ class Anniversary(commands.Cog):
     @commands.Cog.listener()
     async def on_catch(self, ctx, species):
         quests = await self.get_quests(ctx.author)
+        if quests is None:
+            return
         incs = defaultdict(lambda: 0)
         for i, q in enumerate(quests):
             if q["event"] != "catch":
@@ -332,6 +363,8 @@ class Anniversary(commands.Cog):
     @commands.Cog.listener()
     async def on_market_buy(self, user, listing):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
         incs = defaultdict(lambda: 0)
         for i, q in enumerate(quests):
             if q["event"] != "market_buy":
@@ -350,24 +383,18 @@ class Anniversary(commands.Cog):
 
     @commands.Cog.listener()
     async def on_trade(self, trade):
-        a, b = trade["pokemon"].keys()
-        a = self.bot.get_user(a) or await self.bot.fetch_user(a)
-        b = self.bot.get_user(b) or await self.bot.fetch_user(b)
+        a, b = trade["users"]
 
         for user in (a, b):
             quests = await self.get_quests(user)
+            if quests is None:
+                continue
+
             incs = defaultdict(lambda: 0)
             for i, q in enumerate(quests):
                 if q["event"] != "trade":
                     continue
-
-                for side in trade["pokemon"].values():
-                    for item in side:
-                        if type(item) == int:
-                            continue
-
-                        if self.verify_condition(q.get("condition"), item.species):
-                            incs[f"anniversary_quests.{i}.progress"] += 1
+                incs[f"anniversary_quests.{i}.progress"] += 1
 
             if len(incs) > 0:
                 await self.bot.mongo.update_member(user, {"$inc": incs})
@@ -378,6 +405,8 @@ class Anniversary(commands.Cog):
     async def on_battle_start(self, battle):
         for trainer in battle.trainers:
             quests = await self.get_quests(trainer.user)
+            if quests is None:
+                continue
             incs = defaultdict(lambda: 0)
             for i, q in enumerate(quests):
                 if q["event"] != "battle_start":
@@ -395,13 +424,14 @@ class Anniversary(commands.Cog):
     @commands.Cog.listener()
     async def on_evolve(self, user, pokemon, evo):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
+
         incs = defaultdict(lambda: 0)
         for i, q in enumerate(quests):
             if q["event"] != "evolve":
                 continue
-
-            if self.verify_condition(q.get("condition"), pokemon.species, to=evo):
-                incs[f"anniversary_quests.{i}.progress"] += 1
+            incs[f"anniversary_quests.{i}.progress"] += 1
 
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
@@ -411,6 +441,9 @@ class Anniversary(commands.Cog):
     @commands.Cog.listener()
     async def on_release(self, user, count):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
+
         incs = defaultdict(lambda: 0)
         for i, q in enumerate(quests):
             if q["event"] != "release":
@@ -426,6 +459,9 @@ class Anniversary(commands.Cog):
     @commands.Cog.listener()
     async def on_open_box(self, user, count):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
+
         incs = defaultdict(lambda: 0)
         for i, q in enumerate(quests):
             if q["event"] != "open_box":
@@ -440,23 +476,30 @@ class Anniversary(commands.Cog):
 
     async def check_quests(self, user):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
 
-        sets = {}
-        incs = defaultdict(int)
         for i, q in enumerate(quests):
             if q["progress"] >= q["count"] and not q.get("complete"):
-                sets[f"anniversary_quests.{i}.complete"] = True
-                incs["anniversary_boxes"] += 1
-                await user.send(
-                    f"You have completed Anniversary Quest {'ABCDE'[i % 5]}{i // 5 + 1} ({q['description']}) and received an **Anniversary Box**!"
+                member = await self.bot.mongo.db.member.find_one_and_update(
+                    {"_id": user.id, f"anniversary_quests.{i}.complete": {"$ne": True}},
+                    {"$set": {f"anniversary_quests.{i}.complete": True}, "$inc": {"anniversary_boxes": 1}},
                 )
+                await self.bot.redis.hdel("db:member", user.id)
+                if member is not None:
+                    try:
+                        await user.send(
+                            f"You have completed Anniversary Quest {'ABCDE'[i % 5]}{i // 5 + 1} ({q['description']}) and received an **Anniversary Box**!"
+                        )
+                    except:
+                        pass
 
-        if len(sets) > 0:
-            await self.bot.mongo.update_member(user, {"$set": sets, "$inc": incs})
-            await self.check_bingos(user)
+        await self.check_bingos(user)
 
     async def check_bingos(self, user):
         quests = await self.get_quests(user)
+        if quests is None:
+            return
         quests_state = [x["progress"] >= x["count"] for x in quests]
         board = [quests_state[i * 5 : i * 5 + 5] for i in range(5)]
 
@@ -467,7 +510,10 @@ class Anniversary(commands.Cog):
         bingos += all(board[i][i] for i in range(5))
         bingos += all(board[i][4 - i] for i in range(5))
 
-        member = await self.bot.mongo.db.member.find_one({"_id": user.id})
+        member = await self.bot.mongo.db.member.find_one_and_update(
+            {"_id": user.id}, {"$set": {"bingos_awarded": bingos}}
+        )
+        await self.bot.redis.hdel("db:member", user.id)
         member_t = self.bot.mongo.Member.build_from_mongo(member)
         awarded = member.get("bingos_awarded", 0)
 
@@ -476,7 +522,12 @@ class Anniversary(commands.Cog):
         for i in range(awarded, bingos):
             incs["anniversary_boxes"] += 1
             incs["balance"] += 10000
-            await user.send("You have completed a Bingo and received an **Anniversary Box** and **10,000 pokécoins**!")
+            try:
+                await user.send(
+                    "You have completed a Bingo and received an **Anniversary Box** and **10,000 pokécoins**!"
+                )
+            except:
+                pass
             if i == 2:
                 ivs = [random.randint(0, 31) for i in range(6)]
                 await self.bot.mongo.db.pokemon.insert_one(
@@ -499,10 +550,13 @@ class Anniversary(commands.Cog):
                         "idx": await self.bot.mongo.fetch_next_idx(user),
                     }
                 )
-                await user.send("Since this is your third Bingo, you have received an **Anniversary Sunflora**!")
+                try:
+                    await user.send("Since this is your third Bingo, you have received an **Anniversary Sunflora**!")
+                except:
+                    pass
 
         if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs, "$set": {"bingos_awarded": bingos}})
+            await self.bot.mongo.update_member(user, {"$inc": incs})
 
 
 async def setup(bot: commands.Bot):
