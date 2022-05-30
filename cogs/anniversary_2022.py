@@ -201,7 +201,7 @@ class Anniversary(commands.Cog):
         if len(incs) > 0:
             await self.bot.mongo.update_member(ctx.author, {"$inc": incs})
 
-        await self.check_bingos(ctx.author)
+        await self.check_quests(ctx.author)
 
     @commands.Cog.listener()
     async def on_market_buy(self, user, listing):
@@ -220,7 +220,7 @@ class Anniversary(commands.Cog):
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_bingos(user)
+        await self.check_quests(user)
 
     @commands.Cog.listener()
     async def on_trade(self, trade):
@@ -246,7 +246,7 @@ class Anniversary(commands.Cog):
             if len(incs) > 0:
                 await self.bot.mongo.update_member(user, {"$inc": incs})
 
-            await self.check_bingos(user)
+            await self.check_quests(user)
 
     @commands.Cog.listener()
     async def on_battle_start(self, battle):
@@ -264,7 +264,7 @@ class Anniversary(commands.Cog):
             if len(incs) > 0:
                 await self.bot.mongo.update_member(trainer.user, {"$inc": incs})
 
-            await self.check_bingos(trainer.user)
+            await self.check_quests(trainer.user)
 
     @commands.Cog.listener()
     async def on_evolve(self, user, pokemon, evo):
@@ -280,7 +280,7 @@ class Anniversary(commands.Cog):
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_bingos(user)
+        await self.check_quests(user)
 
     @commands.Cog.listener()
     async def on_release(self, user, count):
@@ -295,7 +295,7 @@ class Anniversary(commands.Cog):
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_bingos(user)
+        await self.check_quests(user)
 
     @commands.Cog.listener()
     async def on_open_box(self, user, count):
@@ -310,7 +310,22 @@ class Anniversary(commands.Cog):
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_bingos(user)
+        await self.check_quests(user)
+
+    async def check_quests(self, user):
+        quests = await self.get_quests(user)
+
+        sets = {}
+        for i, q in enumerate(quests):
+            if q["progress"] >= q["count"] and not q.get("complete"):
+                sets[f"anniversary_quests.{i}.complete"] = True
+                await user.send(
+                    f"You have completed Anniversary Quest **{'ABCDE'[i % 5]}{i // 5 + 1}:** {q['description']}"
+                )
+
+        if len(sets) > 0:
+            await self.bot.mongo.update_member(user, {"$set": sets})
+            await self.check_bingos(user)
 
     async def check_bingos(self, user):
         quests = await self.get_quests(user)
