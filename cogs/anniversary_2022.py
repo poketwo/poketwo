@@ -2,7 +2,7 @@ import random
 from collections import defaultdict
 
 from discord.ext import commands
-from helpers import constants
+from helpers import checks, constants
 
 TYPES = [
     "Normal",
@@ -137,6 +137,7 @@ class Anniversary(commands.Cog):
 
         return "\n".join("".join(x) for x in board)
 
+    @checks.has_started()
     @commands.command(aliases=("event",))
     async def anniversary(self, ctx: commands.Context):
         """View Anniversary event information."""
@@ -224,7 +225,7 @@ class Anniversary(commands.Cog):
 
     @commands.Cog.listener()
     async def on_trade(self, trade):
-        a, b = trade["items"].keys()
+        a, b = trade["pokemon"].keys()
         a = self.bot.get_user(a) or await self.bot.fetch_user(a)
         b = self.bot.get_user(b) or await self.bot.fetch_user(b)
 
@@ -235,7 +236,7 @@ class Anniversary(commands.Cog):
                 if q["event"] != "trade":
                     continue
 
-                for side in trade["items"].values():
+                for side in trade["pokemon"].values():
                     for item in side:
                         if type(item) == int:
                             continue
