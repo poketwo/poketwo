@@ -183,7 +183,7 @@ class Administration(commands.Cog):
         idx = await self.bot.mongo.fetch_next_idx(user, reserve=num)
 
         for i in range(num):
-            spid = random.randint(1, 898)
+            spid = random.randint(1, 905)
             ivs = [mongo.random_iv() for i in range(6)]
             pokemon.append(
                 {
