@@ -56,6 +56,8 @@ class Spawning(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(message.author)
 
         if member is not None:
+            if member.suspended:
+                return
 
             silence = member.silence
             if message.guild:
