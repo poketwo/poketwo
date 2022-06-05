@@ -123,7 +123,7 @@ class Auctions(commands.Cog):
 
     def make_base_embed(self, author, pokemon, auction_id):
         embed = self.bot.Embed(
-            title=f"Auction #{auction_id} • {pokemon:ln}",
+            title=f"Auction #{auction_id} • {pokemon:l}",
             color=pokemon.color or constants.PINK,
         )
         embed.set_author(name=str(author), icon_url=author.display_avatar.url)
