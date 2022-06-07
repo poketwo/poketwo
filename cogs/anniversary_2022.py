@@ -235,7 +235,6 @@ class Anniversary(commands.Cog):
         """Reset your bingo board"""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-
         if member.bingos_awarded < 12:
             return await ctx.send("You must have a full board to do this!")
 
@@ -244,6 +243,10 @@ class Anniversary(commands.Cog):
             return await ctx.send("Time's up. Aborted.")
         if result is False:
             return await ctx.send("Aborted.")
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if member.bingos_awarded < 12:
+            return await ctx.send("You must have a full board to do this!")
 
         quests = [{**x, "progress": 0} for x in self.generate_quests()]
         await self.bot.mongo.update_member(
