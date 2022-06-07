@@ -259,8 +259,8 @@ class Market(commands.Cog):
         if member.balance < listing["market_data"]["price"]:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
-        await self.bot.mongo.db.pokemon.update_one(
-            {"_id": listing["_id"]},
+        listing = await self.bot.mongo.db.pokemon.find_one_and_update(
+            {"_id": listing["_id"], "owned_by": "market"},
             {
                 "$set": {
                     "owner_id": ctx.author.id,
@@ -270,6 +270,9 @@ class Market(commands.Cog):
                 "$unset": {"market_data": 1},
             },
         )
+        if listing is None:
+            return await ctx.send("That listing no longer exists.")
+
         res = await self.bot.mongo.db.member.find_one_and_update(
             {"_id": ctx.author.id}, {"$inc": {"balance": -listing["market_data"]["price"]}}
         )
