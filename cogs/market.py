@@ -13,7 +13,7 @@ class Market(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(aliases=("marketplace", "m"), invoke_without_command=True, case_insensitive=True)
+    @commands.group(aliases=("marketplace", "m", "mp"), invoke_without_command=True, case_insensitive=True)
     async def market(self, ctx, **flags):
         """Buy or sell pokémon on the Pokétwo marketplace."""
 
