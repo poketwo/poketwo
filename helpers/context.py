@@ -41,7 +41,7 @@ class ConfirmationView(discord.ui.View):
 
 
 class PoketwoContext(commands.Context):
-    async def confirm(self, message=None, *, embed=None, timeout=180, cls=ConfirmationView):
+    async def confirm(self, message=None, *, embed=None, timeout=40, cls=ConfirmationView):
         view = cls(self, timeout=timeout)
         view.message = await self.send(
             message,
