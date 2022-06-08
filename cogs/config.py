@@ -21,7 +21,7 @@ class Configuration(commands.Cog):
 
         embed = self.bot.Embed(title="Server Configuration")
         
-        if ctx.guild.icon:
+        if ctx.guild.icon is not None:
             embed.set_thumbnail(url=ctx.guild.icon.url)
             
         embed.add_field(
