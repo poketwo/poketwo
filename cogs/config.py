@@ -20,7 +20,10 @@ class Configuration(commands.Cog):
         prefix = guild.prefix if guild.prefix is not None else "p!"
 
         embed = self.bot.Embed(title="Server Configuration")
-        embed.set_thumbnail(url=ctx.guild.icon.url)
+        
+        if ctx.guild.icon is not None:
+            embed.set_thumbnail(url=ctx.guild.icon.url)
+            
         embed.add_field(
             name=f"Prefix {commands.get('prefix_command', '')}",
             value=f"`{prefix}`",
