@@ -257,69 +257,85 @@ class Anniversary(commands.Cog):
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @anniversary.command()
-    async def open(self, ctx):
+    @anniversary.command(aliases=("o",))
+    async def open(self, ctx, amt: int = 1):
         """Open a box"""
+
+        if amt <= 0:
+            return await ctx.send("Nice try...")
+
+        if amt > 15:
+            return await ctx.send("You can only open up to 15 anniversary boxes at once!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        if member.anniversary_boxes <= 0:
+        if member.anniversary_boxes < amt:
             return await ctx.send("You don't have enough boxes to do that!")
 
         await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {"anniversary_boxes": -1, "anniversary_boxes_opened": 1}}
+            ctx.author, {"$inc": {"anniversary_boxes": -amt, "anniversary_boxes_opened": amt}}
         )
 
         # Go
 
-        reward = random.choices(list(BOX_REWARDS.keys()), list(BOX_REWARDS.values()), k=1)[0]
+        rewards = random.choices(list(BOX_REWARDS.keys()), list(BOX_REWARDS.values()), k=amt)
 
-        if reward == "shards":
-            shards = max(round(random.normalvariate(35, 10)), 2)
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"premium_balance": shards}})
-            text = f"{shards} Shards"
+        update = {
+            "$inc": {"premium_balance": 0, "balance": 0, "redeems": 0},
+        }
+        text = []
+        added_pokemon = []
+        for reward in rewards:
+            if reward == "shards":
+                shards = max(round(random.normalvariate(35, 10)), 2)
+                update["$inc"]["premium_balance"] += shards
+                text.append(f"{shards} Shards")
 
-        elif reward == "pokecoins":
-            pokecoins = max(round(random.normalvariate(3000, 500)), 800)
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": pokecoins}})
-            text = f"{pokecoins} Pokécoins"
+            elif reward == "pokecoins":
+                pokecoins = max(round(random.normalvariate(3000, 500)), 800)
+                update["$inc"]["balance"] += pokecoins
+                text.append(f"{pokecoins} Pokécoins")
 
-        elif reward == "redeem":
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"redeems": 1}})
-            text = "1 redeem"
+            elif reward == "redeem":
+                update["$inc"]["redeems"] += 1
+                text.append("1 redeem")
 
-        elif reward in ("event", "sunflora", "rare", "shiny"):
-            pool = [x for x in self.pools[reward] if x.catchable or reward == "sunflora"]
-            species = random.choices(pool, weights=[x.abundance + 1 for x in pool], k=1)[0]
-            level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-            shiny = reward == "shiny" or member.determine_shiny(species)
-            ivs = [mongo.random_iv() for i in range(6)]
+            elif reward in ("event", "sunflora", "rare", "shiny"):
+                pool = [x for x in self.pools[reward] if x.catchable or reward == "sunflora"]
+                species = random.choices(pool, weights=[x.abundance + 1 for x in pool], k=1)[0]
+                level = min(max(int(random.normalvariate(30, 10)), 1), 100)
+                shiny = reward == "shiny" or member.determine_shiny(species)
+                ivs = [mongo.random_iv() for i in range(6)]
 
-            pokemon = {
-                "owner_id": ctx.author.id,
-                "owned_by": "user",
-                "species_id": species.id,
-                "level": level,
-                "xp": 0,
-                "nature": mongo.random_nature(),
-                "iv_hp": ivs[0],
-                "iv_atk": ivs[1],
-                "iv_defn": ivs[2],
-                "iv_satk": ivs[3],
-                "iv_sdef": ivs[4],
-                "iv_spd": ivs[5],
-                "iv_total": sum(ivs),
-                "shiny": shiny,
-                "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
-            }
+                pokemon = {
+                    "owner_id": ctx.author.id,
+                    "owned_by": "user",
+                    "species_id": species.id,
+                    "level": level,
+                    "xp": 0,
+                    "nature": mongo.random_nature(),
+                    "iv_hp": ivs[0],
+                    "iv_atk": ivs[1],
+                    "iv_defn": ivs[2],
+                    "iv_satk": ivs[3],
+                    "iv_sdef": ivs[4],
+                    "iv_spd": ivs[5],
+                    "iv_total": sum(ivs),
+                    "shiny": shiny,
+                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
+                }
+                added_pokemon.append(pokemon)
+                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
 
-            text = f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
-
-            await self.bot.mongo.db.pokemon.insert_one(pokemon)
-
-        embed = self.bot.Embed(title=f"Anniversary Box Reward", description=text)
+        embed = self.bot.Embed(
+            title=f"Opening {amt} Anniversary Box{'' if amt == 1 else 'es'}...",
+        )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
+        embed.add_field(name="Rewards Received", value="\n".join(text))
 
+        await self.bot.mongo.update_member(ctx.author, update)
+        if len(added_pokemon) > 0:
+            await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
         await ctx.send(embed=embed)
 
     @commands.check_any(
