@@ -183,21 +183,23 @@ class Anniversary(commands.Cog):
     async def anniversary(self, ctx: commands.Context):
         """View Anniversary event information."""
 
-        await self.check_quests(ctx.author)
+        # await self.check_quests(ctx.author)
 
         member = await self.bot.mongo.db.member.find_one({"_id": ctx.author.id})
 
-        quests = await self.get_quests(ctx.author)
-        if quests is None:
-            quests = await self.make_quests(ctx.author)
+        # quests = await self.get_quests(ctx.author)
+        # if quests is None:
+        #     quests = await self.make_quests(ctx.author)
 
-        quests_state = [x["progress"] >= x["count"] for x in quests]
-        quests_text = "\n".join(
-            f"**{'ABCDE'[i % 5]}{i // 5 + 1}.** {x['description']} ({x['progress']}/{x['count']})"
-            for i, x in enumerate(quests)
-            if not quests_state[i]
-        )
-        board = [quests_state[i * 5 : i * 5 + 5] for i in range(5)]
+        # quests_state = [x["progress"] >= x["count"] for x in quests]
+        # quests_text = "\n".join(
+        #     f"**{'ABCDE'[i % 5]}{i // 5 + 1}.** {x['description']} ({x['progress']}/{x['count']})"
+        #     for i, x in enumerate(quests)
+        #     if not quests_state[i]
+        # )
+        # board = [quests_state[i * 5 : i * 5 + 5] for i in range(5)]
+
+        quests_text = "The event has now ended. You may still open boxes."
 
         embed = self.bot.Embed(
             title="Anniversary Bingo",
@@ -205,55 +207,55 @@ class Anniversary(commands.Cog):
         )
         embed.add_field(
             name=f"Anniversary Boxes — {member.get('anniversary_boxes', 0)}",
-            value=f"You will receive an **Anniversary Box** for each quest you complete. Use `{ctx.prefix}anniversary open` to open boxes for rewards!",
+            value=f"Use `{ctx.prefix}anniversary open` to open boxes for rewards!",
             inline=False,
         )
-        embed.add_field(
-            name="Bingo Rewards",
-            value=(
-                "Create Bingos to receive extra rewards! A Bingo is a full row, column, or diagonal of quests completed (there are 12 Bingos per board).\n"
-                "**Each Bingo:** On every Bingo, you will receive a box and **10,000 pokécoins**!\n"
-                "**Third Bingo:** On your third Bingo, you will receive **Anniversary Sunflora**."
-            ),
-            inline=False,
-        )
-        reset_text = ""
-        if member.get("bingos_awarded", 0) == 12:
-            reset_text = f"\nYou have completed the whole board! If you would like to restart, type `{ctx.prefix}anniversary reset` to get a fresh board and new quests."
-        embed.add_field(
-            name=f"Your Bingo Board (#{member.get('boards_completed', 0) + 1})",
-            value=f"**# Bingos:** {member.get('bingos_awarded', 0)}{reset_text}\n\n" + self.generate_bingo_board(board),
-            inline=False,
-        )
+        # embed.add_field(
+        #     name="Bingo Rewards",
+        #     value=(
+        #         "Create Bingos to receive extra rewards! A Bingo is a full row, column, or diagonal of quests completed (there are 12 Bingos per board).\n"
+        #         "**Each Bingo:** On every Bingo, you will receive a box and **10,000 pokécoins**!\n"
+        #         "**Third Bingo:** On your third Bingo, you will receive **Anniversary Sunflora**."
+        #     ),
+        #     inline=False,
+        # )
+        # reset_text = ""
+        # if member.get("bingos_awarded", 0) == 12:
+        #     reset_text = f"\nYou have completed the whole board! If you would like to restart, type `{ctx.prefix}anniversary reset` to get a fresh board and new quests."
+        # embed.add_field(
+        #     name=f"Your Bingo Board (#{member.get('boards_completed', 0) + 1})",
+        #     value=f"**# Bingos:** {member.get('bingos_awarded', 0)}{reset_text}\n\n" + self.generate_bingo_board(board),
+        #     inline=False,
+        # )
 
         await ctx.send(embed=embed)
 
-    @checks.has_started()
-    @commands.max_concurrency(1, commands.BucketType.user)
-    @anniversary.command()
-    async def reset(self, ctx):
-        """Reset your bingo board"""
+    # @checks.has_started()
+    # @commands.max_concurrency(1, commands.BucketType.user)
+    # @anniversary.command()
+    # async def reset(self, ctx):
+    #     """Reset your bingo board"""
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if member.bingos_awarded < 12:
-            return await ctx.send("You must have a full board to do this!")
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     if member.bingos_awarded < 12:
+    #         return await ctx.send("You must have a full board to do this!")
 
-        result = await ctx.confirm("Are you sure you would like to reset your board? This cannot be undone.")
-        if result is None:
-            return await ctx.send("Time's up. Aborted.")
-        if result is False:
-            return await ctx.send("Aborted.")
+    #     result = await ctx.confirm("Are you sure you would like to reset your board? This cannot be undone.")
+    #     if result is None:
+    #         return await ctx.send("Time's up. Aborted.")
+    #     if result is False:
+    #         return await ctx.send("Aborted.")
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if member.bingos_awarded < 12:
-            return await ctx.send("You must have a full board to do this!")
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     if member.bingos_awarded < 12:
+    #         return await ctx.send("You must have a full board to do this!")
 
-        quests = [{**x, "progress": 0} for x in self.generate_quests()]
-        await self.bot.mongo.update_member(
-            ctx.author, {"$set": {"anniversary_quests": quests, "bingos_awarded": 0}, "$inc": {"boards_completed": 1}}
-        )
+    #     quests = [{**x, "progress": 0} for x in self.generate_quests()]
+    #     await self.bot.mongo.update_member(
+    #         ctx.author, {"$set": {"anniversary_quests": quests, "bingos_awarded": 0}, "$inc": {"boards_completed": 1}}
+    #     )
 
-        await ctx.send("Your board has been reset.")
+    #     await ctx.send("Your board has been reset.")
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -361,221 +363,221 @@ class Anniversary(commands.Cog):
                     return False
         return True
 
-    @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
-        quests = await self.get_quests(ctx.author)
-        if quests is None:
-            return
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != "catch":
-                continue
+    # @commands.Cog.listener()
+    # async def on_catch(self, ctx, species):
+    #     quests = await self.get_quests(ctx.author)
+    #     if quests is None:
+    #         return
+    #     incs = defaultdict(lambda: 0)
+    #     for i, q in enumerate(quests):
+    #         if q["event"] != "catch":
+    #             continue
 
-            if self.verify_condition(q.get("condition"), species):
-                incs[f"anniversary_quests.{i}.progress"] += 1
+    #         if self.verify_condition(q.get("condition"), species):
+    #             incs[f"anniversary_quests.{i}.progress"] += 1
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(ctx.author, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": incs})
 
-        await self.check_quests(ctx.author)
+    #     await self.check_quests(ctx.author)
 
-    @commands.Cog.listener()
-    async def on_market_buy(self, user, listing):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != "market_buy":
-                continue
+    # @commands.Cog.listener()
+    # async def on_market_buy(self, user, listing):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
+    #     incs = defaultdict(lambda: 0)
+    #     for i, q in enumerate(quests):
+    #         if q["event"] != "market_buy":
+    #             continue
 
-            if self.verify_condition(
-                q.get("condition"),
-                self.bot.data.species_by_number(listing["species_id"]),
-            ):
-                incs[f"anniversary_quests.{i}.progress"] += 1
+    #         if self.verify_condition(
+    #             q.get("condition"),
+    #             self.bot.data.species_by_number(listing["species_id"]),
+    #         ):
+    #             incs[f"anniversary_quests.{i}.progress"] += 1
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_quests(user)
+    #     await self.check_quests(user)
 
-    @commands.Cog.listener()
-    async def on_trade(self, trade):
-        a, b = trade["users"]
+    # @commands.Cog.listener()
+    # async def on_trade(self, trade):
+    #     a, b = trade["users"]
 
-        for user in (a, b):
-            quests = await self.get_quests(user)
-            if quests is None:
-                continue
+    #     for user in (a, b):
+    #         quests = await self.get_quests(user)
+    #         if quests is None:
+    #             continue
 
-            incs = defaultdict(lambda: 0)
-            for i, q in enumerate(quests):
-                if q["event"] != "trade":
-                    continue
-                incs[f"anniversary_quests.{i}.progress"] += 1
+    #         incs = defaultdict(lambda: 0)
+    #         for i, q in enumerate(quests):
+    #             if q["event"] != "trade":
+    #                 continue
+    #             incs[f"anniversary_quests.{i}.progress"] += 1
 
-            if len(incs) > 0:
-                await self.bot.mongo.update_member(user, {"$inc": incs})
+    #         if len(incs) > 0:
+    #             await self.bot.mongo.update_member(user, {"$inc": incs})
 
-            await self.check_quests(user)
+    #         await self.check_quests(user)
 
-    @commands.Cog.listener()
-    async def on_battle_start(self, battle):
-        for trainer in battle.trainers:
-            quests = await self.get_quests(trainer.user)
-            if quests is None:
-                continue
-            incs = defaultdict(lambda: 0)
-            for i, q in enumerate(quests):
-                if q["event"] != "battle_start":
-                    continue
+    # @commands.Cog.listener()
+    # async def on_battle_start(self, battle):
+    #     for trainer in battle.trainers:
+    #         quests = await self.get_quests(trainer.user)
+    #         if quests is None:
+    #             continue
+    #         incs = defaultdict(lambda: 0)
+    #         for i, q in enumerate(quests):
+    #             if q["event"] != "battle_start":
+    #                 continue
 
-                for pokemon in trainer.pokemon:
-                    if self.verify_condition(q.get("condition"), pokemon.species):
-                        incs[f"anniversary_quests.{i}.progress"] += 1
+    #             for pokemon in trainer.pokemon:
+    #                 if self.verify_condition(q.get("condition"), pokemon.species):
+    #                     incs[f"anniversary_quests.{i}.progress"] += 1
 
-            if len(incs) > 0:
-                await self.bot.mongo.update_member(trainer.user, {"$inc": incs})
+    #         if len(incs) > 0:
+    #             await self.bot.mongo.update_member(trainer.user, {"$inc": incs})
 
-            await self.check_quests(trainer.user)
+    #         await self.check_quests(trainer.user)
 
-    @commands.Cog.listener()
-    async def on_evolve(self, user, pokemon, evo):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
+    # @commands.Cog.listener()
+    # async def on_evolve(self, user, pokemon, evo):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
 
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != "evolve":
-                continue
-            incs[f"anniversary_quests.{i}.progress"] += 1
+    #     incs = defaultdict(lambda: 0)
+    #     for i, q in enumerate(quests):
+    #         if q["event"] != "evolve":
+    #             continue
+    #         incs[f"anniversary_quests.{i}.progress"] += 1
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_quests(user)
+    #     await self.check_quests(user)
 
-    @commands.Cog.listener()
-    async def on_release(self, user, count):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
+    # @commands.Cog.listener()
+    # async def on_release(self, user, count):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
 
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != "release":
-                continue
+    #     incs = defaultdict(lambda: 0)
+    #     for i, q in enumerate(quests):
+    #         if q["event"] != "release":
+    #             continue
 
-            incs[f"anniversary_quests.{i}.progress"] += count
+    #         incs[f"anniversary_quests.{i}.progress"] += count
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_quests(user)
+    #     await self.check_quests(user)
 
-    @commands.Cog.listener()
-    async def on_open_box(self, user, count):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
+    # @commands.Cog.listener()
+    # async def on_open_box(self, user, count):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
 
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != "open_box":
-                continue
+    #     incs = defaultdict(lambda: 0)
+    #     for i, q in enumerate(quests):
+    #         if q["event"] != "open_box":
+    #             continue
 
-            incs[f"anniversary_quests.{i}.progress"] += count
+    #         incs[f"anniversary_quests.{i}.progress"] += count
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(user, {"$inc": incs})
 
-        await self.check_quests(user)
+    #     await self.check_quests(user)
 
-    async def check_quests(self, user):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
+    # async def check_quests(self, user):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
 
-        for i, q in enumerate(quests):
-            if q["progress"] >= q["count"] and not q.get("complete"):
-                member = await self.bot.mongo.db.member.find_one_and_update(
-                    {"_id": user.id, f"anniversary_quests.{i}.complete": {"$ne": True}},
-                    {"$set": {f"anniversary_quests.{i}.complete": True}, "$inc": {"anniversary_boxes": 1}},
-                )
-                await self.bot.redis.hdel("db:member", user.id)
-                if member is not None:
-                    try:
-                        await user.send(
-                            f"You have completed Anniversary Quest {'ABCDE'[i % 5]}{i // 5 + 1} ({q['description']}) and received an **Anniversary Box**!"
-                        )
-                    except:
-                        pass
+    #     for i, q in enumerate(quests):
+    #         if q["progress"] >= q["count"] and not q.get("complete"):
+    #             member = await self.bot.mongo.db.member.find_one_and_update(
+    #                 {"_id": user.id, f"anniversary_quests.{i}.complete": {"$ne": True}},
+    #                 {"$set": {f"anniversary_quests.{i}.complete": True}, "$inc": {"anniversary_boxes": 1}},
+    #             )
+    #             await self.bot.redis.hdel("db:member", user.id)
+    #             if member is not None:
+    #                 try:
+    #                     await user.send(
+    #                         f"You have completed Anniversary Quest {'ABCDE'[i % 5]}{i // 5 + 1} ({q['description']}) and received an **Anniversary Box**!"
+    #                     )
+    #                 except:
+    #                     pass
 
-        await self.check_bingos(user)
+    #     await self.check_bingos(user)
 
-    async def check_bingos(self, user):
-        quests = await self.get_quests(user)
-        if quests is None:
-            return
-        quests_state = [x["progress"] >= x["count"] for x in quests]
-        board = [quests_state[i * 5 : i * 5 + 5] for i in range(5)]
+    # async def check_bingos(self, user):
+    #     quests = await self.get_quests(user)
+    #     if quests is None:
+    #         return
+    #     quests_state = [x["progress"] >= x["count"] for x in quests]
+    #     board = [quests_state[i * 5 : i * 5 + 5] for i in range(5)]
 
-        bingos = 0
-        for i in range(5):
-            bingos += all(board[i])
-            bingos += all(row[i] for row in board)
-        bingos += all(board[i][i] for i in range(5))
-        bingos += all(board[i][4 - i] for i in range(5))
+    #     bingos = 0
+    #     for i in range(5):
+    #         bingos += all(board[i])
+    #         bingos += all(row[i] for row in board)
+    #     bingos += all(board[i][i] for i in range(5))
+    #     bingos += all(board[i][4 - i] for i in range(5))
 
-        member = await self.bot.mongo.db.member.find_one_and_update(
-            {"_id": user.id}, {"$set": {"bingos_awarded": bingos}}
-        )
-        await self.bot.redis.hdel("db:member", user.id)
-        member_t = self.bot.mongo.Member.build_from_mongo(member)
-        awarded = member.get("bingos_awarded", 0)
+    #     member = await self.bot.mongo.db.member.find_one_and_update(
+    #         {"_id": user.id}, {"$set": {"bingos_awarded": bingos}}
+    #     )
+    #     await self.bot.redis.hdel("db:member", user.id)
+    #     member_t = self.bot.mongo.Member.build_from_mongo(member)
+    #     awarded = member.get("bingos_awarded", 0)
 
-        incs = defaultdict(int)
+    #     incs = defaultdict(int)
 
-        for i in range(awarded, bingos):
-            incs["anniversary_boxes"] += 1
-            incs["balance"] += 10000
-            try:
-                await user.send(
-                    "You have completed a Bingo and received an **Anniversary Box** and **10,000 pokécoins**!"
-                )
-            except:
-                pass
-            if i == 2:
-                ivs = [random.randint(0, 31) for i in range(6)]
-                await self.bot.mongo.db.pokemon.insert_one(
-                    {
-                        "owner_id": user.id,
-                        "owned_by": "user",
-                        "species_id": 50064,
-                        "level": max(1, min(int(random.normalvariate(20, 10)), 100)),
-                        "xp": 0,
-                        "nature": random.choice(constants.NATURES),
-                        "iv_hp": ivs[0],
-                        "iv_atk": ivs[1],
-                        "iv_defn": ivs[2],
-                        "iv_satk": ivs[3],
-                        "iv_sdef": ivs[4],
-                        "iv_spd": ivs[5],
-                        "iv_total": sum(ivs),
-                        "moves": [],
-                        "shiny": member_t.determine_shiny(self.bot.data.species_by_number(50064)),
-                        "idx": await self.bot.mongo.fetch_next_idx(user),
-                    }
-                )
-                try:
-                    await user.send("Since this is your third Bingo, you have received an **Anniversary Sunflora**!")
-                except:
-                    pass
+    #     for i in range(awarded, bingos):
+    #         incs["anniversary_boxes"] += 1
+    #         incs["balance"] += 10000
+    #         try:
+    #             await user.send(
+    #                 "You have completed a Bingo and received an **Anniversary Box** and **10,000 pokécoins**!"
+    #             )
+    #         except:
+    #             pass
+    #         if i == 2:
+    #             ivs = [random.randint(0, 31) for i in range(6)]
+    #             await self.bot.mongo.db.pokemon.insert_one(
+    #                 {
+    #                     "owner_id": user.id,
+    #                     "owned_by": "user",
+    #                     "species_id": 50064,
+    #                     "level": max(1, min(int(random.normalvariate(20, 10)), 100)),
+    #                     "xp": 0,
+    #                     "nature": random.choice(constants.NATURES),
+    #                     "iv_hp": ivs[0],
+    #                     "iv_atk": ivs[1],
+    #                     "iv_defn": ivs[2],
+    #                     "iv_satk": ivs[3],
+    #                     "iv_sdef": ivs[4],
+    #                     "iv_spd": ivs[5],
+    #                     "iv_total": sum(ivs),
+    #                     "moves": [],
+    #                     "shiny": member_t.determine_shiny(self.bot.data.species_by_number(50064)),
+    #                     "idx": await self.bot.mongo.fetch_next_idx(user),
+    #                 }
+    #             )
+    #             try:
+    #                 await user.send("Since this is your third Bingo, you have received an **Anniversary Sunflora**!")
+    #             except:
+    #                 pass
 
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+    #     if len(incs) > 0:
+    #         await self.bot.mongo.update_member(user, {"$inc": incs})
 
 
 async def setup(bot: commands.Bot):
