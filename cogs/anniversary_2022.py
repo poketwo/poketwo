@@ -303,7 +303,7 @@ class Anniversary(commands.Cog):
                 text.append("1 redeem")
 
             elif reward in ("event", "sunflora", "rare", "shiny"):
-                pool = [x for x in self.pools[reward] if x.catchable or reward == "sunflora"]
+                pool = [x for x in self.pools[reward] if x.catchable or reward == "event" or reward == "sunflora"]
                 species = random.choices(pool, weights=[x.abundance + 1 for x in pool], k=1)[0]
                 level = min(max(int(random.normalvariate(30, 10)), 1), 100)
                 shiny = reward == "shiny" or member.determine_shiny(species)
