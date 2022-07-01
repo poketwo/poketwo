@@ -615,8 +615,8 @@ class Shop(commands.Cog):
 
             permissions = ctx.channel.permissions_for(ctx.author)
 
-            if not permissions.administrator:
-                return await ctx.send("You must have administrator permissions in order to do this!")
+            if not permissions.administrator and discord.utils.get(ctx.author.roles, name="Incense") is None:
+                return await ctx.send("You must have administrator permissions or a role named Incense in order to do this!")
 
             channel = await self.bot.mongo.fetch_channel(ctx.channel)
             if channel.incense_active:
