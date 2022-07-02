@@ -1157,17 +1157,22 @@ class Pokemon(commands.Cog):
         embed = self.bot.Embed(description="", title=f"Congratulations {ctx.author.display_name}!")
 
         evolved = []
+        
+        to_evolve = []  # list to work on
+        for pokemon in args:
+            if not any(pokemon.id == x.id for x in to_evolve): # if pokemon id not already being evolved
+                to_evolve.append(pokemon)
 
-        if len(args) > 30:
+        if len(to_evolve) > 30:
             return await ctx.send("You can't evolve more than 30 pokémon at once!")
 
-        for pokemon in args:
+        for pokemon in to_evolve:
             name = format(pokemon, "n")
 
             if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
                 return await ctx.send(f"Your {name} can't be evolved!")
 
-            if len(args) < 20:
+            if len(to_evolve) < 20:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",
@@ -1177,7 +1182,7 @@ class Pokemon(commands.Cog):
             else:
                 embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
 
-            if len(args) == 1:
+            if len(to_evolve) == 1:
                 if pokemon.shiny:
                     embed.set_thumbnail(url=evo.shiny_image_url)
                 else:
