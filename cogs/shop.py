@@ -43,8 +43,18 @@ class Shop(commands.Cog):
         return str(now.year * 12 + now.month)
 
     @commands.command()
-    @checks.is_admin()
     async def stopincense(self, ctx):
+        permissions = ctx.channel.permissions_for(ctx.author)
+
+        if (
+            not permissions.administrator
+            and discord.utils.find(lambda r: r.name.lower() == "incense", ctx.author.roles) is None
+        ):
+            return await ctx.send(
+                "You must have administrator permissions or a role named Incense in order to do this!"
+            )
+        
+        
         channel = await self.bot.mongo.fetch_channel(ctx.channel)
         if not channel.incense_active:
             return await ctx.send("There is no active incense in this channel!")
