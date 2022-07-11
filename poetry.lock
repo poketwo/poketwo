@@ -192,7 +192,7 @@ develop = false
 type = "git"
 url = "https://github.com/oliver-ni/discord-ext-menus-views.git"
 reference = "master"
-resolved_reference = "ebe27e606fbacedfd472a65275bcaa197bf30666"
+resolved_reference = "a472f3de648eb9e0fcffc2e101c69841de92f3ff"
 
 [[package]]
 name = "discord-flags"
@@ -214,7 +214,7 @@ resolved_reference = "e42a248a3f5d52b768940e417daa3ee19757af5e"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a4308+gf24f34e3"
+version = "2.0.0a4405+ge0341c9e"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -234,7 +234,7 @@ voice = ["PyNaCl (>=1.3.0,<1.6)"]
 type = "git"
 url = "https://github.com/Rapptz/discord.py.git"
 reference = "master"
-resolved_reference = "f24f34e3f1fc350664cc93b1f57510bd9c714a7b"
+resolved_reference = "e0341c9ef25c0093bff991ff09c87dba0414e58c"
 
 [[package]]
 name = "dnspython"
