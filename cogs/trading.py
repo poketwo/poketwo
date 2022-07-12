@@ -150,7 +150,7 @@ class Trading(commands.Cog):
 
                 sign = "🟢" if trade[mem.id] else "🔴"
 
-                embed.add_field(name=f"{sign} {mem.display_name}", value=val)
+                embed.add_field(name=f"{sign} {mem.display_name}", value=val[:1024])
 
             embed.set_footer(
                 text=f"Showing page {pidx + 1} out of {num_pages}.\nReminder: Trading Pokécoins or Pokémon for real-life currencies or items in other bots is prohibited and will result in the suspension of your Pokétwo account!"
