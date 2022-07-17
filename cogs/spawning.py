@@ -147,6 +147,11 @@ class Spawning(commands.Cog):
             return
 
         ctx = await self.bot.get_context(message)
+        member = await self.bot.mongo.fetch_member_info(message.author)
+
+        if member is not None:
+            if member.suspended:
+                return
 
         if ctx.valid:
             return
