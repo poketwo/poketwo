@@ -52,13 +52,8 @@ class Spawning(commands.Cog):
     async def before_spawn_incense(self):
         await self.bot.wait_until_ready()
 
-    async def increase_xp(self, message):
-        member = await self.bot.mongo.fetch_member_info(message.author)
-
+    async def increase_xp(self, message, member):
         if member is not None:
-            if member.suspended:
-                return
-
             silence = member.silence
             if message.guild:
                 guild = await self.bot.mongo.fetch_guild(message.guild)
@@ -149,12 +144,12 @@ class Spawning(commands.Cog):
         ctx = await self.bot.get_context(message)
         member = await self.bot.mongo.fetch_member_info(message.author)
 
+        if ctx.valid:
+            return
+
         if member is not None:
             if member.suspended:
                 return
-
-        if ctx.valid:
-            return
 
         current = time.time()
 
@@ -165,7 +160,7 @@ class Spawning(commands.Cog):
 
         # Increase XP on selected pokemon
 
-        await self.increase_xp(message)
+        await self.increase_xp(message, member)
 
         # Increment guild activity counter
 
