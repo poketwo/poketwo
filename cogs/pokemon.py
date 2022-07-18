@@ -141,7 +141,8 @@ class Pokemon(commands.Cog):
 
         nicknameall = " ".join(flags["newname"])
 
-        aggregations = await self.create_filter(flags, ctx)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
@@ -317,7 +318,8 @@ class Pokemon(commands.Cog):
     async def favoriteall(self, ctx, **flags):
         """Mass favorite selected pokemon."""
 
-        aggregations = await self.create_filter(flags, ctx)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
@@ -403,7 +405,8 @@ class Pokemon(commands.Cog):
     async def unfavoriteall(self, ctx, **flags):
         """Mass unfavorite selected pokemon."""
 
-        aggregations = await self.create_filter(flags, ctx)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
@@ -799,7 +802,8 @@ class Pokemon(commands.Cog):
     async def releaseall(self, ctx, **flags):
         """Mass release pokémon from your collection for 2 pc each."""
 
-        aggregations = await self.create_filter(flags, ctx)
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        aggregations = await self.create_filter(flags, ctx, order_by=member.order_by)
 
         if aggregations is None:
             return
