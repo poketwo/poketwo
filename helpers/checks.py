@@ -69,7 +69,12 @@ def general_check():
 
             raise AcceptTermsOfService()
 
-        if ctx.prefix not in (f"<@{ctx.bot.user.id}> ", f"<@!{ctx.bot.user.id}> "):
+        if ctx.prefix not in (
+            f"<@{ctx.bot.user.id}> ",
+            f"<@!{ctx.bot.user.id}> ",
+            f"<@{ctx.bot.user.id}>",
+            f"<@!{ctx.bot.user.id}>",
+        ):
             embed = ctx.bot.Embed(
                 title="Mention Prefix Now Required",
                 description="Due to limitations imposed by Discord, starting August 17, 2022, "
