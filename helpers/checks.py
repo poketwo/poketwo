@@ -65,7 +65,7 @@ def general_check():
             embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
             embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
             view = ConfirmUpdatedTermsOfServiceView(ctx)
-            view.message = await ctx.send(embed=embed, view=view)
+            view.message = await ctx.reply(embed=embed, view=view)
 
             raise AcceptTermsOfService()
 
@@ -82,7 +82,7 @@ def general_check():
                 name="Please re-run the command with the mention prefix to continue:",
                 value=f"{ctx.bot.user.mention} {ctx.message.content[len(ctx.prefix):]}\n\n",
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
 
             raise AcceptTermsOfService()
 
