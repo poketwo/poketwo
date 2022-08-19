@@ -84,7 +84,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         self.add_check(checks.general_check().predicate)
 
-        self.activity = discord.Game("p!help • poketwo.net")
+        self.activity = discord.Game("@Pokétwo help • poketwo.net")
 
         # Run bot
 

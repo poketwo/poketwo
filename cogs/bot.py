@@ -159,8 +159,8 @@ class Bot(commands.Cog):
             )
         except StopIteration:
             return
-        prefix = await self.determine_prefix(guild)
-        prefix = prefix[0]
+
+        prefix = f"{self.bot.user.mention} "
 
         embed = self.bot.Embed(
             title="Thanks for adding me to your server! \N{WAVING HAND SIGN}",
@@ -169,7 +169,6 @@ class Bot(commands.Cog):
         embed.add_field(
             name="Common Configuration Options",
             value=(
-                f"• `{prefix}prefix <new prefix>` to set a different prefix (default: `p!`)\n"
                 f"• `{prefix}redirect <channel>` to redirect pokémon spawns to one channel\n"
                 f"• More can be found in `{prefix}config help`\n"
             ),

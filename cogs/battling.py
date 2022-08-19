@@ -1,17 +1,16 @@
-from urllib.parse import urljoin
-import pickle
 import asyncio
 import math
+import pickle
 import typing
 from enum import Enum
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
+
+import discord
+from discord.ext import commands, tasks
+from helpers import checks, constants, converters, pagination
 
 import data.constants
-import discord
 from data import models
-from discord.ext import commands, tasks
-
-from helpers import checks, constants, converters, pagination
 
 
 def in_battle(bool=True):
@@ -418,7 +417,7 @@ class Battling(commands.Cog):
         embed = self.bot.Embed(title=f"What should {species} do?")
 
         embed.description = "\n".join(
-            f"{k} **{v['text']}** • `p!battle move {v['command']}`" for k, v in actions.items()
+            f"{k} **{v['text']}** • `@Pokétwo battle move {v['command']}`" for k, v in actions.items()
         )
         msg = await self.bot.send_dm(user_id, embed=embed)
 
