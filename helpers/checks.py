@@ -11,6 +11,10 @@ class AcceptTermsOfService(commands.CheckFailure):
     pass
 
 
+class MentionPrefixRequired(commands.CheckFailure):
+    pass
+
+
 class Suspended(commands.CheckFailure):
     def __init__(self, reason, *args):
         super().__init__(*args)
@@ -47,23 +51,41 @@ def general_check():
         )
         if member is None:
             return True
+
         if member.suspended:
             raise Suspended(member.suspension_reason)
-        if member.tos is not None:
-            return True
 
-        embed = ctx.bot.Embed(
-            title="Updated Terms of Service (Effective May 23, 2022)",
-            description="Please read, understand, and accept our new Terms of Service to continue. "
-            "Violations of these Terms may result in the suspension of your account. "
-            "If you choose not to accept the new user terms, you will no longer be able to use Pokétwo.",
-            url="https://poketwo.net/terms",
-        )
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-        embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
-        view = ConfirmUpdatedTermsOfServiceView(ctx)
-        view.message = await ctx.send(embed=embed, view=view)
+        if member.tos is None:
+            embed = ctx.bot.Embed(
+                title="Updated Terms of Service (Effective May 23, 2022)",
+                description="Please read, understand, and accept our new Terms of Service to continue. "
+                "Violations of these Terms may result in the suspension of your account. "
+                "If you choose not to accept the new user terms, you will no longer be able to use Pokétwo.",
+            )
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+            embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
+            view = ConfirmUpdatedTermsOfServiceView(ctx)
+            view.message = await ctx.send(embed=embed, view=view)
 
-        raise AcceptTermsOfService()
+            raise AcceptTermsOfService()
+
+        if ctx.prefix not in (f"<@{ctx.bot.user.id}> ", f"<@!{ctx.bot.user.id}> "):
+            embed = ctx.bot.Embed(
+                title="Mention Prefix Now Required",
+                description="Due to limitations imposed by Discord, starting August 17, 2022, "
+                f"Pokétwo commands must be used with the mention prefix ({ctx.bot.user.mention}). "
+                "This notice will be displayed until August 31, 2022.",
+                url="https://poketwo.net/terms",
+            )
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+            embed.add_field(
+                name="Please re-run the command with the mention prefix to continue:",
+                value=f"{ctx.bot.user.mention} {ctx.message.content[len(ctx.prefix):]}\n\n",
+            )
+            await ctx.send(embed=embed)
+
+            raise AcceptTermsOfService()
+
+        return True
 
     return commands.check(predicate)

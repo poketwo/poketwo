@@ -1,4 +1,3 @@
-import asyncio
 import pickle
 import random
 import sys
@@ -69,7 +68,7 @@ class Bot(commands.Cog):
         self.bot.log.info(
             "Command run",
             extra={
-                "guild_id": ctx.guild.id,
+                "guild_id": ctx.guild and ctx.guild.id,
                 "channel_id": ctx.channel.id,
                 "user_id": ctx.author.id,
                 "user": str(ctx.author),
@@ -118,6 +117,8 @@ class Bot(commands.Cog):
             embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
             await ctx.send(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
+            return
+        elif isinstance(error, checks.MentionPrefixRequired):
             return
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
             await ctx.send(error)
