@@ -1,7 +1,6 @@
 default = (
     "logging",
     "admin",
-    "anniversary_2022",
     "auctions",
     "battling",
     "bot",
