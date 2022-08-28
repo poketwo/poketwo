@@ -8,7 +8,7 @@ from typing import Counter
 import aiohttp
 import discord
 from discord.channel import TextChannel
-from discord.ext import commands, flags, tasks
+from discord.ext import commands, tasks
 from helpers import checks, constants
 from helpers.views import ConfirmTermsOfServiceView
 
@@ -112,9 +112,14 @@ class Bot(commands.Cog):
             embed = discord.Embed(
                 color=discord.Color.red(),
                 title="Account Suspended",
-                description="Your account was found to be in violation of Pokétwo rules and has been permanently blacklisted from using the bot. If you would like to appeal, [click here](https://forms.poketwo.net/a/suspension-appeal).",
+                description="Your account was found to be in violation of the [Pokétwo Terms of Service](https://poketwo.net/terms) and has been blacklisted from Pokétwo.",
             )
             embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
+            embed.add_field(
+                name="Appeals",
+                value="If, after reading and understanding the reason provided above, you believe your account was suspended in error, and that you did not violate the Terms of Service, you may submit a [Bot Suspension Appeal](https://forms.poketwo.net/a/suspension-appeal) to request a re-review of your case.",
+                inline=False,
+            )
             await ctx.send(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
             return
