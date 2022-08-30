@@ -228,7 +228,7 @@ class Spawning(commands.Cog):
         else:
             embed.title = "A wild pokémon has appeared!"
 
-        embed.description = f"Guess the pokémon and type `{self.bot.user.mention}catch <pokémon>` to catch it!"
+        embed.description = f"Guess the pokémon and type `@{self.bot.user.name}catch <pokémon>` to catch it!"
 
         image = None
 
