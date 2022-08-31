@@ -48,7 +48,7 @@ class Halloween(commands.Cog):
     #             return
     #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2021": 1}})
     #         await ctx.send(
-    #             f"The Pokémon dropped a **🎫 Trick-or-Treat Ticket**! Use `{ctx.prefix}halloween` to view more info."
+    #             f"The Pokémon dropped a **🎫 Trick-or-Treat Ticket**! Use `{ctx.clean_prefix}halloween` to view more info."
     #         )
 
     @checks.has_started()
@@ -64,7 +64,7 @@ class Halloween(commands.Cog):
             name=f"Trick-or-Treat Tickets — 🎫 {member.halloween_tickets_2021}",
             value=
             # f"Every **Dark** or **Ghost** type Pokémon caught has a 50% chance of dropping a ticket! "
-            f"Use these tickets with the `{ctx.prefix}halloween trickortreat` command for the possibility of receiving an exclusive event Pokémon!",
+            f"Use these tickets with the `{ctx.clean_prefix}halloween trickortreat` command for the possibility of receiving an exclusive event Pokémon!",
             inline=False,
         )
         # embed.add_field(

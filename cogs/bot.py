@@ -8,7 +8,7 @@ from typing import Counter
 import aiohttp
 import discord
 from discord.channel import TextChannel
-from discord.ext import commands, tasks
+from discord.ext import commands, flags, tasks
 from helpers import checks, constants
 from helpers.views import ConfirmTermsOfServiceView
 
@@ -26,9 +26,6 @@ class Bot(commands.Cog):
         self.bot = bot
         headers = {"Authorization": self.bot.config.DBL_TOKEN}
         self.dbl_session = aiohttp.ClientSession(headers=headers)
-
-        if not hasattr(self.bot, "prefixes"):
-            self.bot.prefixes = {}
 
         self.post_count.start()
 
@@ -123,8 +120,6 @@ class Bot(commands.Cog):
             await ctx.send(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
             return
-        elif isinstance(error, checks.MentionPrefixRequired):
-            return
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
             await ctx.send(error)
         elif isinstance(error, commands.CommandNotFound):
@@ -165,7 +160,7 @@ class Bot(commands.Cog):
         except StopIteration:
             return
 
-        prefix = f"{self.bot.user.mention} "
+        prefix = f"@{self.bot.user} "
 
         embed = self.bot.Embed(
             title="Thanks for adding me to your server! \N{WAVING HAND SIGN}",
@@ -185,30 +180,6 @@ class Bot(commands.Cog):
             inline=False,
         )
         await channel.send(embed=embed)
-
-    async def determine_prefix(self, guild):
-        if guild:
-            if guild.id not in self.bot.prefixes:
-                data = await self.bot.mongo.Guild.find_one({"id": guild.id})
-                if data is None:
-                    data = self.bot.mongo.Guild(id=guild.id)
-                    await data.commit()
-
-                self.bot.prefixes[guild.id] = data.prefix
-
-            if self.bot.prefixes[guild.id] is not None:
-                return [
-                    self.bot.prefixes[guild.id],
-                    self.bot.user.mention + " ",
-                    self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
-                ]
-
-        return [
-            "p!",
-            "P!",
-            self.bot.user.mention + " ",
-            self.bot.user.mention[:2] + "!" + self.bot.user.mention[2:] + " ",
-        ]
 
     @commands.command()
     async def invite(self, ctx):
@@ -352,7 +323,7 @@ class Bot(commands.Cog):
 
         embed = self.bot.Embed(
             title="Welcome to the world of Pokémon!",
-            description=f"To start, choose one of the starter pokémon using the `{ctx.prefix}pick <pokemon>` command. ",
+            description=f"To start, choose one of the starter pokémon using the `{ctx.clean_prefix}pick <pokemon>` command. ",
         )
 
         for gen, pokemon in constants.STARTER_GENERATION.items():
@@ -368,13 +339,15 @@ class Bot(commands.Cog):
 
         if member is not None:
             return await ctx.send(
-                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.prefix}pokemon`."
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
             )
 
         species = self.bot.data.species_by_name(name)
 
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
-            return await ctx.send(f"Please select one of the starter pokémon. To view them, type `{ctx.prefix}start`.")
+            return await ctx.send(
+                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix}start`."
+            )
 
         # ToS
 
@@ -421,7 +394,7 @@ class Bot(commands.Cog):
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
         await ctx.send(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.prefix}info` to view it!"
+            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
         )
 
     @checks.has_started()
@@ -477,7 +450,7 @@ class Bot(commands.Cog):
         """Cleans up the bot's messages from the channel."""
 
         def check(m):
-            return m.author == ctx.me or m.content.startswith(ctx.prefix)
+            return m.author == ctx.me or m.content.startswith(ctx.clean_prefix)
 
         deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
         spammers = Counter(m.author.display_name for m in deleted)

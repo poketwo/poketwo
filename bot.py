@@ -42,8 +42,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
 
 
 async def determine_prefix(bot, message):
-    cog = bot.get_cog("Bot")
-    return await cog.determine_prefix(message.guild)
+    return [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
 
 
 class ClusterBot(commands.AutoShardedBot):
@@ -66,7 +65,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         self.menus = ExpiringDict(max_len=300, max_age_seconds=300)
 
-        super().__init__(**kwargs, command_prefix=determine_prefix)
+        super().__init__(**kwargs, command_prefix=determine_prefix, strip_after_prefix=True)
 
         # Load extensions
 

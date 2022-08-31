@@ -1,6 +1,5 @@
 import random
 
-import discord
 from discord.ext import commands
 from discord.utils import cached_property
 from helpers import checks
@@ -54,10 +53,10 @@ class Christmas(commands.Cog):
     # async def on_catch(self, ctx, species):
     #     if "Ice" in species.types and random.random() < 0.5:
     #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_nice": 1}})
-    #         await ctx.send(f"The Pokémon dropped a 🎁 **Nice Box**! Use `{ctx.prefix}event` to view more info.")
+    #         await ctx.send(f"The Pokémon dropped a 🎁 **Nice Box**! Use `{ctx.clean_prefix}event` to view more info.")
     #     if "Rock" in species.types and random.random() < 0.35:
     #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_boxes_naughty": 1}})
-    #         await ctx.send(f"The Pokémon dropped a 🎁 **Naughty Box**! Use `{ctx.prefix}event` to view more info.")
+    #         await ctx.send(f"The Pokémon dropped a 🎁 **Naughty Box**! Use `{ctx.clean_prefix}event` to view more info.")
 
     @checks.has_started()
     @commands.group(aliases=("event",), invoke_without_command=True, case_insensitive=True)
@@ -72,7 +71,7 @@ class Christmas(commands.Cog):
             name=f"🎁 Boxes — Nice: {member.christmas_boxes_nice}, Naughty: {member.christmas_boxes_naughty}",
             value=
             # f"Some **Ice** or **Rock** Pokémon are carrying certain gift boxes for Santa... "
-            f"Use these boxes with the `{ctx.prefix}event open` command for the possibility of receiving an exclusive event Pokémon!",
+            f"Use these boxes with the `{ctx.clean_prefix}event open` command for the possibility of receiving an exclusive event Pokémon!",
             inline=False,
         )
         embed.add_field(

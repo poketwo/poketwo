@@ -1,18 +1,15 @@
-import asyncio
 import io
 import random
 import time
 from collections import defaultdict
 from urllib.parse import urljoin
 
-import aiohttp
 import discord
 from discord.ext import commands, tasks
 from helpers import checks
 
+from cogs import mongo
 from data import models
-
-from . import mongo
 
 
 def write_fp(data):
@@ -458,7 +455,7 @@ class Spawning(commands.Cog):
                 name=f"Currently Hunting",
                 value=self.bot.data.species_by_number(member.shiny_hunt).name
                 if member.shiny_hunt
-                else f"Type `{ctx.prefix}shinyhunt <pokémon>` to begin!",
+                else f"Type `{ctx.clean_prefix}shinyhunt <pokémon>` to begin!",
             )
 
             if member.shiny_hunt:

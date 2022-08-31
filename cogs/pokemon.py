@@ -1,13 +1,10 @@
-import asyncio
 import contextlib
 import itertools
 import math
-import re
 import typing
 from datetime import datetime
 from operator import itemgetter
 
-import discord
 from discord.errors import DiscordException
 from discord.ext import commands
 from helpers import checks, constants, converters, flags, pagination
@@ -219,7 +216,7 @@ class Pokemon(commands.Cog):
 
                 if pokemon.favorite:
                     messages.append(
-                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `{ctx.prefix}unfavorite`."
+                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `{ctx.clean_prefix}unfavorite`."
                     )
                 else:
                     await self.bot.mongo.update_pokemon(
@@ -334,7 +331,7 @@ class Pokemon(commands.Cog):
             return await ctx.send("Found no pokémon matching this search.")
         elif unfavnum == 0:
             return await ctx.send(
-                f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.prefix}unfavoriteall`."
+                f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.clean_prefix}unfavoriteall`."
             )
 
         # Fetch pokemon list
@@ -1264,7 +1261,7 @@ class Pokemon(commands.Cog):
         pages = self.bot.menus[ctx.author.id]
         if pages.current_page == 0 and not pages.allow_last:
             return await ctx.send(
-                f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
+                f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.clean_prefix}market search --order price` to sort by price."
             )
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
@@ -1279,7 +1276,7 @@ class Pokemon(commands.Cog):
         pages = self.bot.menus[ctx.author.id]
         if not pages.allow_last:
             return await ctx.send(
-                f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.prefix}market search --order price` to sort by price."
+                f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.clean_prefix}market search --order price` to sort by price."
             )
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()

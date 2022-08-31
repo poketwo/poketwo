@@ -350,7 +350,6 @@ class Guild(Document):
     id = fields.IntegerField(attribute="_id")
     channel = fields.IntegerField(default=None)
     channels = fields.ListField(fields.IntegerField, default=list)
-    prefix = fields.StringField(default=None)
     silence = fields.BooleanField(default=False)
     display_images = fields.BooleanField(default=True)
     auction_channel = fields.IntegerField(default=None)

@@ -11,10 +11,6 @@ class AcceptTermsOfService(commands.CheckFailure):
     pass
 
 
-class MentionPrefixRequired(commands.CheckFailure):
-    pass
-
-
 class Suspended(commands.CheckFailure):
     def __init__(self, reason, *args):
         super().__init__(*args)
@@ -29,7 +25,9 @@ def has_started():
     async def predicate(ctx):
         member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1})
         if member is None:
-            raise NotStarted(f"Please pick a starter pokémon by typing `{ctx.prefix}start` before using this command!")
+            raise NotStarted(
+                f"Please pick a starter pokémon by typing `{ctx.clean_prefix}start` before using this command!"
+            )
         return True
 
     return commands.check(predicate)
@@ -66,28 +64,6 @@ def general_check():
             embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
             view = ConfirmUpdatedTermsOfServiceView(ctx)
             view.message = await ctx.reply(embed=embed, view=view)
-
-            raise AcceptTermsOfService()
-
-        if ctx.prefix not in (
-            f"<@{ctx.bot.user.id}> ",
-            f"<@!{ctx.bot.user.id}> ",
-            f"<@{ctx.bot.user.id}>",
-            f"<@!{ctx.bot.user.id}>",
-        ):
-            embed = ctx.bot.Embed(
-                title="Mention Prefix Now Required",
-                description="Due to limitations imposed by Discord, starting August 17, 2022, "
-                f"Pokétwo commands must be used with the mention prefix ({ctx.bot.user.mention}). "
-                "This notice will be displayed until August 31, 2022.",
-                url="https://poketwo.net/terms",
-            )
-            embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-            embed.add_field(
-                name="Please re-run the command with the mention prefix to continue:",
-                value=f"{ctx.bot.user.mention} {ctx.message.content[len(ctx.prefix):]}\n\n",
-            )
-            await ctx.reply(embed=embed)
 
             raise AcceptTermsOfService()
 

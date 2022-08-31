@@ -1,7 +1,5 @@
 import math
-import re
 
-import discord
 from discord.ext import menus
 from discord.ext.menus.views import ViewMenuPages
 
@@ -63,9 +61,6 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
             footer += f" out of {self.count}."
         else:
             footer += "."
-
-        prefix = re.sub(f"<@!?{menu.ctx.me.id}>", f"@{menu.ctx.me.name}", menu.ctx.prefix)
-        # footer += f"\nUse {prefix}n and {prefix}b to navigate between pages."
 
         embed = menu.ctx.bot.Embed(
             title=self.title,
