@@ -435,7 +435,7 @@ class Trading(commands.Cog):
 
         if len(args) <= 2 and args[-1].lower().endswith(("pp", "pc")):
             return await ctx.send(
-                f"`{ctx.clean_prefix}trade add <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix}trade add pc <amount>` instead!"
+                f"`{ctx.clean_prefix} trade add <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix} trade add pc <amount>` instead!"
             )
 
         else:
@@ -581,7 +581,7 @@ class Trading(commands.Cog):
 
         if len(args) <= 2 and args[-1].lower().endswith(("pp", "pc")):
             return await ctx.send(
-                f"`{ctx.clean_prefix}trade remove <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix}trade remove pc <amount>` instead!"
+                f"`{ctx.clean_prefix} trade remove <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix} trade remove pc <amount>` instead!"
             )
         else:
             updated = False

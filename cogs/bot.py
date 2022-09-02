@@ -323,7 +323,7 @@ class Bot(commands.Cog):
 
         embed = self.bot.Embed(
             title="Welcome to the world of Pokémon!",
-            description=f"To start, choose one of the starter pokémon using the `{ctx.clean_prefix}pick <pokemon>` command. ",
+            description=f"To start, choose one of the starter pokémon using the `{ctx.clean_prefix} pick <pokemon>` command. ",
         )
 
         for gen, pokemon in constants.STARTER_GENERATION.items():
@@ -339,14 +339,14 @@ class Bot(commands.Cog):
 
         if member is not None:
             return await ctx.send(
-                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix} pokemon`."
             )
 
         species = self.bot.data.species_by_name(name)
 
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
             return await ctx.send(
-                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix}start`."
+                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix} start`."
             )
 
         # ToS
@@ -394,7 +394,7 @@ class Bot(commands.Cog):
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
         await ctx.send(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
+            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix} info` to view it!"
         )
 
     @checks.has_started()

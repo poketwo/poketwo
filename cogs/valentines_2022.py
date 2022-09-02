@@ -28,7 +28,7 @@ class Valentines(commands.Cog):
         embed.set_thumbnail(url=species.image_url)
         embed.add_field(
             name="Nidoran Gifts",
-            value=f"`{ctx.clean_prefix}valentine gift <@user> [message]`\n"
+            value=f"`{ctx.clean_prefix} valentine gift <@user> [message]`\n"
             f"• You may purchase up to 5 gifts (remaining: {5 - author_data.valentines_purchased}).\n"
             "• The first gift costs 5,000 Pokécoins.\n"
             "• Additional gifts cost 10,000 Pokécoins each.\n",

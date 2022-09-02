@@ -233,7 +233,7 @@ class Halloween(commands.Cog):
 
         if item["action"] == "embed_color":
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"has_color": True}})
-            message = f"You bought custom embed colors for your **{pokemon:ls}** for **{item['price']} candies**. Use it with `{ctx.clean_prefix}embedcolor <pokemon #> <hex color>`."
+            message = f"You bought custom embed colors for your **{pokemon:ls}** for **{item['price']} candies**. Use it with `{ctx.clean_prefix} embedcolor <pokemon #> <hex color>`."
 
         elif item["action"] == "shadow_lugia":
             ivs = [mongo.random_iv() for i in range(6)]
@@ -256,7 +256,7 @@ class Halloween(commands.Cog):
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
             )
-            message += f" Use `{ctx.clean_prefix}info latest` to view it!"
+            message += f" Use `{ctx.clean_prefix} info latest` to view it!"
 
         elif item["action"] == "badge":
             await self.bot.mongo.update_member(ctx.author, {"$set": {"halloween_badge": True}})

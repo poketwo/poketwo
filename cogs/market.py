@@ -280,7 +280,7 @@ class Market(commands.Cog):
 
         await self.bot.mongo.update_member(listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}})
         await ctx.send(
-            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.clean_prefix}info latest` to view it!"
+            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.clean_prefix} info latest` to view it!"
         )
 
         self.bot.loop.create_task(
