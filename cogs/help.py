@@ -1,7 +1,6 @@
 import itertools
 import math
 
-import discord
 from discord.ext import commands
 from helpers import flags, pagination
 
@@ -16,10 +15,10 @@ class CustomHelpCommand(commands.HelpCommand):
 
     def make_page_embed(self, commands, title="Pokétwo Help", description=None):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
-        embed.set_footer(text=f'Use "{self.context.clean_prefix}help command" for more info on a command.')
+        embed.set_footer(text=f'Use "{self.context.clean_prefix} help command" for more info on a command.')
 
         for command in commands:
-            signature = f"{self.context.clean_prefix}{command.qualified_name} "
+            signature = f"{self.context.clean_prefix} {command.qualified_name} "
 
             signature += "[args...]" if isinstance(command, flags.FlagCommand) else command.signature
 
@@ -75,8 +74,8 @@ class CustomHelpCommand(commands.HelpCommand):
                 cogs,
                 title=f"Pokétwo Command Categories (Page {pidx+1}/{len(embed_pages)//6+1})",
                 description=(
-                    f"Use `{self.context.clean_prefix}help <command>` for more info on a command.\n"
-                    f"Use `{self.context.clean_prefix}help <category>` for more info on a category."
+                    f"Use `{self.context.clean_prefix} help <command>` for more info on a command.\n"
+                    f"Use `{self.context.clean_prefix} help <category>` for more info on a category."
                 ),
             )
 
@@ -123,7 +122,7 @@ class CustomHelpCommand(commands.HelpCommand):
         await ctx.send(embed=embed)
 
     async def send_command_help(self, command):
-        embed = self.context.bot.Embed(color=0xFE9AC9, title=f"{self.context.clean_prefix}{command.qualified_name}")
+        embed = self.context.bot.Embed(color=0xFE9AC9, title=f"{self.context.clean_prefix} {command.qualified_name}")
 
         if command.description:
             embed.description = f"{command.description}\n\n{command.help}"
