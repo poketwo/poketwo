@@ -614,23 +614,14 @@ class Battling(commands.Cog):
         update = {}
 
         if len(pokemon.moves) >= 4:
-            await ctx.send(
-                "Your pokémon already knows the max number of moves! Please enter the name of a move to replace, "
-                "or anything else to abort:\n " + "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves)
+            result = await ctx.select(
+                "Your pokémon already knows the max number of moves! Please select a move to replace.",
+                options=[discord.SelectOption(label=self.bot.data.move_by_number(x).name) for x in pokemon.moves],
             )
-
-            def check(m):
-                return m.channel.id == ctx.channel.id and m.author.id == ctx.author.id
-
-            try:
-                msg = await self.bot.wait_for("message", timeout=60, check=check)
-            except asyncio.TimeoutError:
+            if result is None:
                 return await ctx.send("Time's up. Aborted.")
 
-            rep_move = self.bot.data.move_by_name(msg.content)
-            if rep_move is None or rep_move.id not in pokemon.moves:
-                return await ctx.send("Aborted.")
-
+            rep_move = self.bot.data.move_by_name(result[0])
             idx = pokemon.moves.index(rep_move.id)
             update["$set"] = {f"moves.{idx}": move.id}
 
