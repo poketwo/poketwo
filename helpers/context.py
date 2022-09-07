@@ -1,3 +1,5 @@
+import typing
+
 import discord
 from discord.ext import commands
 
@@ -12,7 +14,7 @@ class Select(discord.ui.Select):
 
 
 class SelectView(discord.ui.View):
-    def __init__(self, ctx, *, options: list[discord.SelectOption], timeout) -> None:
+    def __init__(self, ctx, *, options: typing.List[discord.SelectOption], timeout) -> None:
         super().__init__(timeout=timeout)
         self.result = None
         self.ctx = ctx
@@ -85,7 +87,7 @@ class PoketwoContext(commands.Context):
         return view.result
 
     async def select(
-        self, message=None, *, embed=None, timeout=40, options: list[discord.SelectOption], cls=SelectView
+        self, message=None, *, embed=None, timeout=40, options: typing.List[discord.SelectOption], cls=SelectView
     ):
         view = cls(self, options=options, timeout=timeout)
         view.message = await self.send(
