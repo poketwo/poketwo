@@ -38,6 +38,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "open",
     "redeemspawn",
     "trade",
+    "learn",
 }
 
 
