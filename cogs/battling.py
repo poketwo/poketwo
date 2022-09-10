@@ -1,5 +1,4 @@
 import asyncio
-import math
 import pickle
 import typing
 from enum import Enum
@@ -7,7 +6,7 @@ from urllib.parse import urlencode, urljoin
 
 import discord
 from discord.ext import commands, tasks
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters
 
 import data.constants
 from data import models
@@ -616,7 +615,7 @@ class Battling(commands.Cog):
         if len(pokemon.moves) >= 4:
             result = await ctx.select(
                 "Your pokémon already knows the max number of moves! Please select a move to replace.",
-                options=[discord.SelectOption(label=self.bot.data.move_by_number(x).name) for x in pokemon.moves],
+                options=[discord.SelectOption(label=self.bot.data.move_by_number(x).name) for x in set(pokemon.moves)],
             )
             if result is None:
                 return await ctx.send("Time's up. Aborted.")
