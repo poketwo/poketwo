@@ -112,7 +112,7 @@ class CustomHelpCommand(commands.HelpCommand):
         filtered = await self.filter_commands(subcommands, sort=True)
 
         embed = self.make_page_embed(
-            filtered,
+            [group, *filtered],
             title=group.qualified_name,
             description=f"{group.description}\n\n{group.help}"
             if group.description
