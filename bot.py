@@ -13,7 +13,7 @@ uvloop.install()
 
 DEFAULT_DISABLED_MESSAGE = (
     "The bot's currently disabled. It may be refreshing for some quick updates, or down for another reason. "
-    "Try again later and check the #status channel in the official server for more details."
+    "Try again later and check the #bot-outages channel in the official server for more details."
 )
 
 CONCURRENCY_LIMITED_COMMANDS = {

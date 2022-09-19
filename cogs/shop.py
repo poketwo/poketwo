@@ -1,17 +1,14 @@
-import asyncio
 import random
 import typing
 from datetime import datetime, timedelta
 
-import aiohttp
 import discord
 import humanfriendly
 from discord.ext import commands, tasks
 from helpers import checks, constants, converters
 
-from data import models
-
 from cogs import mongo
+from data import models
 
 
 async def add_reactions(message, *emojis):
@@ -621,6 +618,12 @@ class Shop(commands.Cog):
             ):
                 return await ctx.send(
                     "You must have administrator permissions or a role named Incense in order to do this!"
+                )
+
+            if self.bot.redis.get("incense_disabled") is not None:
+                return await ctx.send(
+                    "Incenses are currently unavailable. This could be due to bot instability or upcoming maintenance. "
+                    "Check the #bot-outages channel in the official server for more details."
                 )
 
             channel = await self.bot.mongo.fetch_channel(ctx.channel)
