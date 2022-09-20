@@ -620,7 +620,7 @@ class Shop(commands.Cog):
                     "You must have administrator permissions or a role named Incense in order to do this!"
                 )
 
-            if self.bot.redis.get("incense_disabled") is not None:
+            if await self.bot.redis.get("incense_disabled") is not None:
                 return await ctx.send(
                     "Incenses are currently unavailable. This could be due to bot instability or upcoming maintenance. "
                     "Check the #bot-outages channel in the official server for more details."
