@@ -170,7 +170,7 @@ class Bot(commands.Cog):
             name="Common Configuration Options",
             value=(
                 f"• `{prefix}redirect <channel>` to redirect pokémon spawns to one channel\n"
-                f"• More can be found in `{prefix}config help`\n"
+                f"• More can be found in `{prefix}help config`\n"
             ),
             inline=False,
         )
