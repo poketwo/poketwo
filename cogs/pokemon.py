@@ -104,7 +104,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
-    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
 
@@ -278,7 +278,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
-    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
 
@@ -365,7 +365,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
-    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
 
@@ -766,7 +766,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
-    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
 
@@ -871,7 +871,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
-    @flags.add_flag("--nickname", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
 
