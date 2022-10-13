@@ -6,6 +6,7 @@ from urllib.parse import quote_plus
 import discord
 import discord.gateway
 import discord.http
+import yarl
 
 import bot
 
@@ -37,6 +38,8 @@ def patch_with_gateway(env_gateway):
             return data["shards"], f"{env_gateway}?encoding=json&v=9"
 
     class ProductionDiscordWebSocket(discord.gateway.DiscordWebSocket):
+        DEFAULT_GATEWAY = yarl.URL(env_gateway)
+
         def is_ratelimited(self):
             return False
 
@@ -55,6 +58,7 @@ def patch_with_gateway(env_gateway):
 
     discord.http.HTTPClient.get_gateway = ProductionHTTPClient.get_gateway
     discord.http.HTTPClient.get_bot_gateway = ProductionHTTPClient.get_bot_gateway
+    discord.gateway.DiscordWebSocket.DEFAULT_GATEWAY = ProductionDiscordWebSocket.DEFAULT_GATEWAY
     discord.gateway.DiscordWebSocket.is_ratelimited = ProductionDiscordWebSocket.is_ratelimited
     discord.gateway.ReconnectWebSocket.__init__ = ProductionReconnectWebSocket.__init__
     bot.ClusterBot = ProductionBot

@@ -9,7 +9,7 @@ license = "GPLv3"
 python = "^3.8"
 umongo = "3.0.0b10"
 motor = "^2.2.0"
-jishaku = "^2.1.0"
+jishaku = { git = "https://github.com/Gorialis/jishaku.git" }
 dnspython = "^2.0.0"
 suntime = "^1.2.5"
 geocoder = "^1.38.1"
