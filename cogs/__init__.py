@@ -16,4 +16,5 @@ default = (
     "spawning",
     "sprites",
     "trading",
+    "halloween_2022",
 )
