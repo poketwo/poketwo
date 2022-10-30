@@ -12,9 +12,8 @@ CRATE_REWARDS = {
     "redeem": 4.5,
     "shiny": 0.5,
     "shards": 20,
-    "spooky": 10,
+    "spooky": 15,
     "rare": 10,
-    "nothing": 5,
 }
 
 CRATE_REWARDS = list(CRATE_REWARDS.keys()), list(CRATE_REWARDS.values())
@@ -180,14 +179,13 @@ class Halloween(commands.Cog):
 
         for reward in random.choices(*CRATE_REWARDS, k=amount):
             title = {
-                "event": "🍭 Treat!",
-                "event2": "🍬 Treat!",
-                "redeem": "🍬 Treat!",
-                "shiny": "✨ Treat!",
-                "shards": "🍬 Treat!",
-                "spooky": "👻 Trick!",
-                "rare": "🎃 Trick!",
-                "nothing": "👻 Trick!",
+                "event": "**🍬 Treat!**",
+                "event2": "**🍬 Treat!**",
+                "redeem": "**🍬 Treat!**",
+                "shiny": "**🍬 Treat!**",
+                "shards": "**👻 Treat!**",
+                "spooky": "**👻 Trick!**",
+                "rare": "**👻 Trick!**",
             }[reward]
 
             if reward == "shards":
@@ -229,9 +227,6 @@ class Halloween(commands.Cog):
                 )
                 inserts.append(pokemon)
 
-            else:
-                text.append([title, "Nothing"])
-
         await self.bot.mongo.update_member(ctx.author, update)
         await self.bot.mongo.db.pokemon.insert_many(inserts)
 
@@ -239,7 +234,7 @@ class Halloween(commands.Cog):
             embed = self.bot.Embed(title=text[0][0], description=text[0][1])
         else:
             embed = self.bot.Embed(
-                title=f"Trick-or-treated {amount} times...", description="\n".join(" ".join(x) for x in text)
+                title=f"Trick-or-treated {amount} times...", description="\n".join("　".join(x) for x in text)
             )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
