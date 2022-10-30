@@ -211,7 +211,9 @@ class Halloween(commands.Cog):
         else:
             text = "Nothing"
 
-        embed = self.bot.Embed(title="🍬 Treat!" if reward in ("event", "shiny") else "👻 Trick!", description=text)
+        embed = self.bot.Embed(
+            title="🍬 Treat!" if reward in ("event", "event2", "shiny") else "👻 Trick!", description=text
+        )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
         await ctx.send(embed=embed)
