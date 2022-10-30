@@ -8,12 +8,12 @@ from cogs import mongo
 
 CRATE_REWARDS = {
     "event": 40,
-    "event2": 20,
+    "event2": 10,
     "redeem": 4.5,
     "shiny": 0.5,
-    "shards": 15,
+    "shards": 20,
     "spooky": 10,
-    "rare": 5,
+    "rare": 10,
     "nothing": 5,
 }
 
@@ -108,6 +108,9 @@ class Halloween(commands.Cog):
                 if pk.favorite:
                     await ctx.send(f"{pk.idx}: You can't offer favorited pokémon!")
                     continue
+                if pk.shiny:
+                    await ctx.send(f"{pk.idx}: You can't offer shiny pokémon!")
+                    continue
                 ids.add(pk.id)
                 mons.append(pk)
 
@@ -148,71 +151,93 @@ class Halloween(commands.Cog):
         self.bot.dispatch("release", ctx.author, result.modified_count)
 
     @checks.has_started()
+    @commands.cooldown(1, 2, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
     @halloween.command(aliases=("tot", "tt", "open"))
-    async def trickortreat(self, ctx):
+    async def trickortreat(self, ctx, amount: int = 1):
         """Use a ticket to trick or treat."""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        if member.halloween_tickets_2022 <= 0:
+        if not 1 <= amount <= 15:
+            return await ctx.send("You can only trick-or-treat 15 times at once!")
+
+        if member.halloween_tickets_2022 < amount:
             return await ctx.send("You don't have enough tickets to do that!")
 
         await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {"halloween_trick_or_treats_2022": 1, "halloween_tickets_2022": -1}}
+            ctx.author, {"$inc": {"halloween_trick_or_treats_2022": amount, "halloween_tickets_2022": -amount}}
         )
         await self.bot.mongo.db.counter.find_one_and_update(
-            {"_id": "halloween_2022"}, {"$inc": {"next": 1}}, upsert=True
+            {"_id": "halloween_2022"}, {"$inc": {"next": amount}}, upsert=True
         )
 
         # Go
 
-        reward = random.choices(*CRATE_REWARDS, k=1)[0]
+        update = {"$inc": {"premium_balance": 0, "balance": 0, "redeems": 0}}
+        inserts = []
+        text = []
 
-        if reward == "shards":
-            shards = round(random.normalvariate(25, 10))
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"premium_balance": shards}})
-            text = f"{shards} Shards"
+        for reward in random.choices(*CRATE_REWARDS, k=amount):
+            title = {
+                "event": "🍭 Treat!",
+                "event2": "🍬 Treat!",
+                "redeem": "🍬 Treat!",
+                "shiny": "✨ Treat!",
+                "shards": "🍬 Treat!",
+                "spooky": "👻 Trick!",
+                "rare": "🎃 Trick!",
+                "nothing": "👻 Trick!",
+            }[reward]
 
-        elif reward == "redeem":
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"redeems": 1}})
-            text = "1 redeem"
+            if reward == "shards":
+                shards = round(random.normalvariate(25, 10))
+                update["$inc"]["premium_balance"] += shards
+                text.append([title, f"{shards} Shards"])
 
-        elif reward in ("event", "event2", "spooky", "rare", "shiny"):
-            pool = [x for x in self.pools[reward] if x.catchable or reward in ("event", "event2")]
-            print(reward, pool)
-            species = random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]
-            level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-            shiny = reward == "shiny" or member.determine_shiny(species)
-            ivs = [mongo.random_iv() for i in range(6)]
+            elif reward == "redeem":
+                update["$inc"]["redeems"] += 1
+                text.append([title, "1 redeem"])
 
-            pokemon = {
-                "owner_id": ctx.author.id,
-                "owned_by": "user",
-                "species_id": species.id,
-                "level": level,
-                "xp": 0,
-                "nature": mongo.random_nature(),
-                "iv_hp": ivs[0],
-                "iv_atk": ivs[1],
-                "iv_defn": ivs[2],
-                "iv_satk": ivs[3],
-                "iv_sdef": ivs[4],
-                "iv_spd": ivs[5],
-                "iv_total": sum(ivs),
-                "shiny": shiny,
-                "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
-            }
+            elif reward in ("event", "event2", "spooky", "rare", "shiny"):
+                pool = [x for x in self.pools[reward] if x.catchable or reward in ("event", "event2")]
+                species = random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]
+                level = min(max(int(random.normalvariate(30, 10)), 1), 100)
+                shiny = reward == "shiny" or member.determine_shiny(species)
+                ivs = [mongo.random_iv() for i in range(6)]
 
-            text = f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"
+                pokemon = {
+                    "owner_id": ctx.author.id,
+                    "owned_by": "user",
+                    "species_id": species.id,
+                    "level": level,
+                    "xp": 0,
+                    "nature": mongo.random_nature(),
+                    "iv_hp": ivs[0],
+                    "iv_atk": ivs[1],
+                    "iv_defn": ivs[2],
+                    "iv_satk": ivs[3],
+                    "iv_sdef": ivs[4],
+                    "iv_spd": ivs[5],
+                    "iv_total": sum(ivs),
+                    "shiny": shiny,
+                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
+                }
 
-            await self.bot.mongo.db.pokemon.insert_one(pokemon)
+                text.append(
+                    [title, f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)"]
+                )
+                inserts.append(pokemon)
 
-        else:
-            text = "Nothing"
+            else:
+                text.append([title, "Nothing"])
+
+        await self.bot.mongo.update_member(ctx.author, update)
+        await self.bot.mongo.db.pokemon.insert_many(inserts)
 
         embed = self.bot.Embed(
-            title="🍬 Treat!" if reward in ("event", "event2", "shiny") else "👻 Trick!", description=text
+            title=f"Trick-or-treated {amount} times...",
+            description="\n".join(" ".join(x) for x in text),
         )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
