@@ -134,7 +134,7 @@ class Shop(commands.Cog):
 
         embed.add_field(
             name="Claiming Rewards",
-            value=f"Use `{ctx.clean_prefix} open <normal|great|ultra|master> [amt]` to open your boxes!",
+            value=f"Use `{ctx.clean_prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
             inline=False,
         )
 
@@ -378,7 +378,7 @@ class Shop(commands.Cog):
                 embed.title += f", {member.premium_balance:,} Shards"
 
         if page == 0:
-            embed.description = f"Use `{ctx.clean_prefix} shop <page>` to view different pages."
+            embed.description = f"Use `{ctx.clean_prefix}shop <page>` to view different pages."
 
             embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
             embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
@@ -392,7 +392,7 @@ class Shop(commands.Cog):
             embed.description = (
                 "We have a variety of items you can buy in the shop. "
                 "Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. "
-                f"Use `{ctx.clean_prefix} buy <item>` to buy an item!"
+                f"Use `{ctx.clean_prefix}buy <item>` to buy an item!"
             )
 
             if page == 7:
@@ -498,13 +498,13 @@ class Shop(commands.Cog):
         if item.action == "level":
             if pokemon.level + qty > 100:
                 return await ctx.send(
-                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
         if item.action == "evolve_mega":
             if pokemon.species.mega is None:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega
@@ -517,7 +517,7 @@ class Shop(commands.Cog):
         if item.action == "evolve_megax":
             if pokemon.species.mega_x is None:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega_x
@@ -530,7 +530,7 @@ class Shop(commands.Cog):
         if item.action == "evolve_megay":
             if pokemon.species.mega_y is None:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
             evoto = pokemon.species.mega_y
@@ -552,11 +552,11 @@ class Shop(commands.Cog):
                     ).target
                 except StopIteration:
                     return await ctx.send(
-                        f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                        f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                     )
             else:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
             if pokemon.held_item == 13001:
@@ -571,7 +571,7 @@ class Shop(commands.Cog):
                     break
             else:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix} select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
                 )
 
         if "xpboost" in item.action:
@@ -581,7 +581,7 @@ class Shop(commands.Cog):
                 )
 
             await ctx.send(
-                f"You purchased {item.name}! Use `{ctx.clean_prefix} shop` to check how much time you have remaining."
+                f"You purchased {item.name}! Use `{ctx.clean_prefix}shop` to check how much time you have remaining."
             )
 
         elif item.action == "shard":
@@ -605,7 +605,7 @@ class Shop(commands.Cog):
                 )
 
             await ctx.send(
-                f"You purchased a {item.name}! Use `{ctx.clean_prefix} shop` to check how much time you have remaining."
+                f"You purchased a {item.name}! Use `{ctx.clean_prefix}shop` to check how much time you have remaining."
             )
 
         elif item.action == "incense":
@@ -864,7 +864,7 @@ class Shop(commands.Cog):
         )
 
         embed.add_field(
-            name=f"{ctx.clean_prefix} redeemspawn <pokémon>",
+            name=f"{ctx.clean_prefix}redeemspawn <pokémon>",
             value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overridden).",
         )
 
@@ -889,7 +889,7 @@ class Shop(commands.Cog):
             )
 
             embed.add_field(
-                name=f"{ctx.clean_prefix} redeemspawn <pokémon>",
+                name=f"{ctx.clean_prefix}redeemspawn <pokémon>",
                 value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overridden)*.",
             )
 

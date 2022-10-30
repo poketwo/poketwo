@@ -455,7 +455,7 @@ class Spawning(commands.Cog):
                 name=f"Currently Hunting",
                 value=self.bot.data.species_by_number(member.shiny_hunt).name
                 if member.shiny_hunt
-                else f"Type `{ctx.clean_prefix} shinyhunt <pokémon>` to begin!",
+                else f"Type `{ctx.clean_prefix}shinyhunt <pokémon>` to begin!",
             )
 
             if member.shiny_hunt:

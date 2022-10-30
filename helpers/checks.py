@@ -26,7 +26,7 @@ def has_started():
         member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1})
         if member is None:
             raise NotStarted(
-                f"Please pick a starter pokémon by typing `{ctx.clean_prefix} start` before using this command!"
+                f"Please pick a starter pokémon by typing `{ctx.clean_prefix}start` before using this command!"
             )
         return True
 

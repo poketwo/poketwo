@@ -200,7 +200,7 @@ class Auctions(commands.Cog):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
         if guild.auction_channel is None or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None:
             return await ctx.send(
-                f"Auctions have not been set up in this server. Have a server administrator do `{ctx.clean_prefix} auction channel #channel`."
+                f"Auctions have not been set up in this server. Have a server administrator do `{ctx.clean_prefix}auction channel #channel`."
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -247,7 +247,7 @@ class Auctions(commands.Cog):
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.clean_prefix} auction bid {counter['next']} <bid>`\n"
+            text=f"Bid with `{ctx.clean_prefix}auction bid {counter['next']} <bid>`\n"
             f"Ends in {converters.strfdelta(ends - datetime.utcnow())} at"
         )
         embed.timestamp = ends
@@ -303,7 +303,7 @@ class Auctions(commands.Cog):
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.clean_prefix} auction bid {auction.id} <bid>`\n"
+            text=f"Bid with `{ctx.clean_prefix}auction bid {auction.id} <bid>`\n"
             f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
         )
         embed.timestamp = auction.ends
@@ -380,7 +380,7 @@ class Auctions(commands.Cog):
         )
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.clean_prefix} auction bid {auction.id} <bid>`\n"
+            text=f"Bid with `{ctx.clean_prefix}auction bid {auction.id} <bid>`\n"
             f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
         )
         embed.timestamp = auction.ends
@@ -571,7 +571,7 @@ class Auctions(commands.Cog):
 
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
-            text=f"Bid with `{ctx.clean_prefix} auction bid {auction.id} <bid>`\n"
+            text=f"Bid with `{ctx.clean_prefix}auction bid {auction.id} <bid>`\n"
             f"Ends in {converters.strfdelta(auction.ends - datetime.utcnow())} at"
         )
         embed.timestamp = auction.ends

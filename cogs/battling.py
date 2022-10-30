@@ -135,7 +135,7 @@ class Battle:
             else:
                 embed.add_field(name=f"{trainer.user}'s Party", value="None")
 
-        embed.set_footer(text=f"Use `{ctx.clean_prefix} battle add <pokemon>` to add a pokémon to the party!")
+        embed.set_footer(text=f"Use `{ctx.clean_prefix}battle add <pokemon>` to add a pokémon to the party!")
 
         await ctx.send(embed=embed)
 
@@ -567,7 +567,7 @@ class Battling(commands.Cog):
         embed = self.bot.Embed(title=f"Level {pokemon.level} {pokemon.species} — Moves")
         embed.description = (
             f"Here are the moves your pokémon can learn right now. View all moves and how to get "
-            f"them using `{ctx.clean_prefix} moveset`!"
+            f"them using `{ctx.clean_prefix}moveset`!"
         )
 
         embed.add_field(

@@ -205,7 +205,7 @@ class Anniversary(commands.Cog):
         )
         embed.add_field(
             name=f"Anniversary Boxes — {member.get('anniversary_boxes', 0)}",
-            value=f"Use `{ctx.clean_prefix} anniversary open` to open boxes for rewards!",
+            value=f"Use `{ctx.clean_prefix}anniversary open` to open boxes for rewards!",
             inline=False,
         )
         # embed.add_field(
@@ -219,7 +219,7 @@ class Anniversary(commands.Cog):
         # )
         # reset_text = ""
         # if member.get("bingos_awarded", 0) == 12:
-        #     reset_text = f"\nYou have completed the whole board! If you would like to restart, type `{ctx.clean_prefix} anniversary reset` to get a fresh board and new quests."
+        #     reset_text = f"\nYou have completed the whole board! If you would like to restart, type `{ctx.clean_prefix}anniversary reset` to get a fresh board and new quests."
         # embed.add_field(
         #     name=f"Your Bingo Board (#{member.get('boards_completed', 0) + 1})",
         #     value=f"**# Bingos:** {member.get('bingos_awarded', 0)}{reset_text}\n\n" + self.generate_bingo_board(board),

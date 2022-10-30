@@ -98,3 +98,7 @@ class PoketwoContext(commands.Context):
         )
         await view.wait()
         return view.result
+    
+    @property
+    def clean_prefix(self) -> str:
+        return super().clean_prefix.strip() + " "
