@@ -235,10 +235,12 @@ class Halloween(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, update)
         await self.bot.mongo.db.pokemon.insert_many(inserts)
 
-        embed = self.bot.Embed(
-            title=f"Trick-or-treated {amount} times...",
-            description="\n".join(" ".join(x) for x in text),
-        )
+        if len(text) == 1:
+            embed = self.bot.Embed(title=text[0][0], description=text[0][1])
+        else:
+            embed = self.bot.Embed(
+                title=f"Trick-or-treated {amount} times...", description="\n".join(" ".join(x) for x in text)
+            )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
         await ctx.send(embed=embed)
