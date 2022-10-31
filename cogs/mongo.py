@@ -315,8 +315,7 @@ class Member(Document):
 
     @property
     def shiny_hunt_multiplier(self):
-        # NOTE math.log is the natural log (log base e)
-        return 1 + math.log(1 + self.shiny_streak / 30)
+        return 1 + math.sqrt(self.shiny_streak) / 7
 
     def determine_shiny(self, species):
         chance = 1 / 4096
