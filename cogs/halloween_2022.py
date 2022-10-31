@@ -231,7 +231,8 @@ class Halloween(commands.Cog):
                 inserts.append(pokemon)
 
         await self.bot.mongo.update_member(ctx.author, update)
-        await self.bot.mongo.db.pokemon.insert_many(inserts)
+        if len(inserts) > 0:
+            await self.bot.mongo.db.pokemon.insert_many(inserts)
 
         if len(text) == 1:
             embed = self.bot.Embed(title=text[0][0], description=text[0][1])
