@@ -60,7 +60,7 @@ class Halloween(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="Using Trick-or-treat Tickets",
+            name="Using Trick-or-Treat Tickets",
             value=f"Use these tickets with the `@Pokétwo halloween trickortreat` command for a chance to receive limited-time Halloween Pokémon!",
             inline=False,
         )
@@ -237,7 +237,7 @@ class Halloween(commands.Cog):
             embed = self.bot.Embed(title=text[0][0], description=text[0][1])
         else:
             embed = self.bot.Embed(
-                title=f"Trick-or-treated {amount} times...", description="\n".join("　".join(x) for x in text)
+                title=f"Trick-or-Treated {amount} times...", description="\n".join("　".join(x) for x in text)
             )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
 
