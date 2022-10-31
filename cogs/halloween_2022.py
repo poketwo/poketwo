@@ -49,11 +49,14 @@ class Halloween(commands.Cog):
         count = await self.bot.mongo.db.counter.find_one({"_id": "halloween_2022"})
         count = count.get("next", 0) if count is not None else 0
 
-        embed = self.bot.Embed(color=0xE67D23)
-        embed.title = f"Autumn & Halloween 2022 — 🎫 {member.halloween_tickets_2022}"
+        embed = self.bot.Embed(
+            color=0xE67D23,
+            title=f"Autumn & Halloween 2022 — 🎫 {member.halloween_tickets_2022}",
+            description="These two weeks, some new Pokémon wearing new Autumn outfits have been spotted in the Pokétwo wilderness. What's more, there have been reports of spooky Halloween Pokémon roaming around as well. Join us in the Autumn & Halloween event for chances to obtain these new limited-time Event Pokémon!",
+        )
         embed.add_field(
             name=f"Obtaining Trick-or-Treat Tickets",
-            value=f"Offer any Autumn 2022 Pokémon to the bot with the `@Pokétwo halloween offer` command to receive trick-or-treat tickets!",
+            value=f"Some *spooky* entities have been searching for some Autumn Pokémon.... Offer any Autumn 2022 Pokémon you have with the `@Pokétwo halloween offer` command to receive trick-or-treat tickets!",
             inline=False,
         )
         embed.add_field(
