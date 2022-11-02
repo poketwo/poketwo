@@ -186,7 +186,7 @@ class Halloween(commands.Cog):
                 "event2": "**🍬 Treat!**",
                 "redeem": "**🍬 Treat!**",
                 "shiny": "**🍬 Treat!**",
-                "shards": "**👻 Treat!**",
+                "shards": "**👻 Trick!**",
                 "spooky": "**👻 Trick!**",
                 "rare": "**👻 Trick!**",
             }[reward]
