@@ -7,13 +7,13 @@ from helpers import checks, converters
 from cogs import mongo
 
 CRATE_REWARDS = {
-    "event": 60,
-    "event2": 20,
-    "redeem": 4.5,
-    "shiny": 0.5,
+    "event": 50,
+    "event2": 10,
+    "redeem": 6.3,
+    "shiny": 0.7,
     "shards": 15,
-    "spooky": 5,
-    "rare": 5,
+    "spooky": 10,
+    "rare": 10,
 }
 
 CRATE_REWARDS = list(CRATE_REWARDS.keys()), list(CRATE_REWARDS.values())
