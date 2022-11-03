@@ -39,6 +39,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "redeemspawn",
     "trade",
     "learn",
+    "halloween",
 }
 
 
