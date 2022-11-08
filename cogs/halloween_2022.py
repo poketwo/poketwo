@@ -1,10 +1,10 @@
 import random
 from functools import cached_property
 
-from discord.ext import commands
-from helpers import checks, converters
+from discord.ext import commands, flags
 
 from cogs import mongo
+from helpers import checks, converters
 
 CRATE_REWARDS = {
     "event": 50,
@@ -140,7 +140,7 @@ class Halloween(commands.Cog):
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
 
-        # confirmed, release
+        # confirmed, offer
 
         result = await self.bot.mongo.db.pokemon.update_many(
             {"owner_id": ctx.author.id, "_id": {"$in": list(ids)}},
@@ -149,6 +149,109 @@ class Halloween(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2022": result.modified_count}})
         await ctx.send(
             f"You offered {result.modified_count} pokémon. You received {result.modified_count:,} **🎫 Trick-or-Treat Tickets**!"
+        )
+        self.bot.dispatch("release", ctx.author, result.modified_count)
+
+    # Filter
+    @flags.add_flag("page", nargs="?", type=int, default=1)
+    @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
+    @flags.add_flag("--hisuian", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--embedcolor", "--ec", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--nickname", nargs="*", action="append")
+    @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
+
+    # IV
+    @flags.add_flag("--level", nargs="+", action="append")
+    @flags.add_flag("--hpiv", nargs="+", action="append")
+    @flags.add_flag("--atkiv", nargs="+", action="append")
+    @flags.add_flag("--defiv", nargs="+", action="append")
+    @flags.add_flag("--spatkiv", nargs="+", action="append")
+    @flags.add_flag("--spdefiv", nargs="+", action="append")
+    @flags.add_flag("--spdiv", nargs="+", action="append")
+    @flags.add_flag("--iv", nargs="+", action="append")
+
+    # Duplicate IV's
+    @flags.add_flag("--triple", "--three", type=int)
+    @flags.add_flag("--quadruple", "--four", "--quadra", "--quad", "--tetra", type=int)
+    @flags.add_flag("--pentuple", "--quintuple", "--penta", "--pent", "--five", type=int)
+    @flags.add_flag("--hextuple", "--sextuple", "--hexa", "--hex", "--six", type=int)
+
+    # Skip/limit
+    @flags.add_flag("--skip", type=int)
+    @flags.add_flag("--limit", type=int)
+
+    # Offer all
+    @checks.has_started()
+    @checks.is_not_in_trade()
+    @commands.max_concurrency(1, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @halloween.command(cls=flags.FlagCommand)
+    async def offerall(self, ctx, **flags):
+        """Mass offer pokémon to receive Trick-or-treat tickets!"""
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        aggregations = await self.bot.get_cog("Pokemon").create_filter(flags, ctx, order_by=member.order_by)
+
+        if aggregations is None:
+            return
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        aggregations.extend(
+            [
+                {"$match": {"_id": {"$not": {"$eq": member.selected_id}}}},
+                {"$match": {"species_id": {"$in": (50071, 50072, 50073, 50074, 50075)}}},
+                {"$match": {"shiny": {"$not": {"$eq": True}}}},
+                {"$match": {"favorite": {"$not": {"$eq": True}}}},
+            ]
+        )
+
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+
+        if num == 0:
+            return await ctx.send(
+                "Found no Autumn 2022 pokémon matching this search (excluding favorited, selected, and shiny pokémon)."
+            )
+
+        # confirm
+
+        result = await ctx.confirm(
+            f"Are you sure you want to offer **{num} pokémon** for {num*2:,} pc? Favorited, selected, and shiny pokémon won't be offered."
+        )
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
+
+        if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
+            return await ctx.send("You can't do that in a trade!")
+
+        # confirmed, offer all
+
+        num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
+
+        await ctx.send(f"Offering {num} pokémon, this might take a while...")
+
+        pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
+
+        result = await self.bot.mongo.db.pokemon.update_many(
+            {"owner_id": ctx.author.id, "_id": {"$in": [x.id async for x in pokemon]}},
+            {"$set": {"owned_by": "offered"}},
+        )
+
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {"halloween_tickets_2022": result.modified_count}})
+
+        await ctx.send(
+            f"You have offered {result.modified_count} pokémon. You received {result.modified_count:,} **🎫 Trick-or-Treat Tickets**!"
         )
         self.bot.dispatch("release", ctx.author, result.modified_count)
 
