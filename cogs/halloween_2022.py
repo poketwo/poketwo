@@ -225,7 +225,7 @@ class Halloween(commands.Cog):
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to offer **{num} pokémon** for {num*2:,} pc? Favorited, selected, and shiny pokémon won't be offered."
+            f"Are you sure you want to offer **{num} pokémon**? Favorited, selected, and shiny pokémon won't be offered."
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
