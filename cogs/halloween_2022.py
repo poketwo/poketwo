@@ -8,12 +8,12 @@ from helpers import checks, converters
 
 CRATE_REWARDS = {
     "event": 50,
-    "event2": 10,
+    "event2": 13,
     "redeem": 6.3,
     "shiny": 0.7,
     "shards": 15,
-    "spooky": 10,
-    "rare": 10,
+    "spooky": 0,
+    "rare": 15,
 }
 
 CRATE_REWARDS = list(CRATE_REWARDS.keys()), list(CRATE_REWARDS.values())
