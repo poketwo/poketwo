@@ -310,7 +310,7 @@ class Bot(commands.Cog):
                 formatted = humanfriendly.format_timespan(timespan.total_seconds())
                 message = f"You can vote again in **{formatted}**."
 
-            embed.add_field(name=f"{provider['name']} Timer", value=message)
+            embed.add_field(name=f"{provider['name']} Timer", value=message, inline=True)
             view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
 
         embed.add_field(
