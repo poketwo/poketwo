@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 import discord
 import humanfriendly
 from discord.ext import commands, tasks
-from helpers import checks, constants, converters
 
 from cogs import mongo
 from data import models
+from helpers import checks, constants, converters
 
 
 async def add_reactions(message, *emojis):
@@ -59,95 +59,6 @@ class Shop(commands.Cog):
             },
         )
         await ctx.send("Incense has been stopped.")
-
-    @checks.has_started()
-    @commands.command(aliases=("v", "daily", "boxes"))
-    async def vote(self, ctx):
-        """View information on voting rewards."""
-
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-
-        # if member.vote_streak > 0 and datetime.utcnow() - member.last_voted > timedelta(
-        #     days=2
-        # ):
-        #     await self.bot.mongo.update_member(
-        #         ctx.author,
-        #         {
-        #             "$set": {"vote_streak": 0},
-        #         },
-        #     )
-        #     member = await self.bot.mongo.fetch_member_info(ctx.author)
-
-        do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
-
-        embed = self.bot.Embed(title=f"Voting Rewards")
-
-        embed.description = (
-            "[Vote for us on top.gg](https://top.gg/bot/716390085896962058/vote) to receive mystery boxes! "
-            "You can vote once per 12 hours. Vote multiple days in a row to get better rewards!"
-        )
-
-        if do_emojis:
-            embed.add_field(
-                name="Voting Streak",
-                value=str(self.bot.sprites.check) * min(member.vote_streak, 14)
-                + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
-                + f"\nCurrent Streak: {member.vote_streak} votes!",
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name="Voting Streak",
-                value=f"Current Streak: {member.vote_streak} votes!",
-                inline=False,
-            )
-
-        if (later := member.last_voted + timedelta(hours=12)) < datetime.utcnow():
-            embed.add_field(name="Vote Timer", value="You can vote right now!")
-        else:
-            timespan = later - datetime.utcnow()
-            formatted = humanfriendly.format_timespan(timespan.total_seconds())
-            embed.add_field(name="Vote Timer", value=f"You can vote again in **{formatted}**.")
-
-        if do_emojis:
-            embed.add_field(
-                name="Your Rewards",
-                value=(
-                    f"{self.bot.sprites.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
-                    f"{self.bot.sprites.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
-                    f"{self.bot.sprites.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
-                    f"{self.bot.sprites.gift_master} **Master Mystery Box:** {member.gifts_master}\n"
-                ),
-                inline=False,
-            )
-        else:
-            embed.add_field(
-                name="Your Rewards",
-                value=(
-                    f"**Normal Mystery Box:** {member.gifts_normal}\n"
-                    f"**Great Mystery Box:** {member.gifts_great}\n"
-                    f"**Ultra Mystery Box:** {member.gifts_ultra}\n"
-                    f"**Master Mystery Box:** {member.gifts_master}\n"
-                ),
-                inline=False,
-            )
-
-        embed.add_field(
-            name="Claiming Rewards",
-            value=f"Use `{ctx.clean_prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
-            inline=False,
-        )
-
-        embed.set_footer(text="You will automatically receive your rewards when you vote.")
-
-        if ctx.guild and ctx.guild.id == 716390832034414685:
-            embed.add_field(
-                name="Server Voting",
-                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
-                inline=False,
-            )
-
-        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=("o",))

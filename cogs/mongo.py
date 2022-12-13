@@ -7,12 +7,12 @@ import discord
 import pymongo
 from bson.objectid import ObjectId
 from discord.ext import commands
-from helpers import constants
 from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
 
 from data import models
+from helpers import constants
 
 random_iv = lambda: random.randint(0, 31)
 random_nature = lambda: random.choice(constants.NATURES)
@@ -264,8 +264,8 @@ class Member(Document):
     shiny_charm_expires = fields.DateTimeField(default=datetime.min)
 
     # Voting
-    last_voted = fields.DateTimeField(default=datetime.min)
-    need_vote_reminder = fields.BooleanField(default=False)
+    last_voted_on = fields.DictField(fields.StringField(), fields.DateTimeField(), default=dict)
+    need_vote_reminder_on = fields.DictField(fields.StringField(), fields.BooleanField())
     vote_total = fields.IntegerField(default=0)
     vote_streak = fields.IntegerField(default=0)
     gifts_normal = fields.IntegerField(default=0)

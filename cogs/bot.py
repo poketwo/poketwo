@@ -7,12 +7,19 @@ from typing import Counter
 
 import aiohttp
 import discord
+import humanfriendly
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
+
 from helpers import checks, constants
 from helpers.views import ConfirmTermsOfServiceView
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
+
+VOTING_PROVIDERS = {
+    "topgg": {"name": "Top.gg", "url": "https://top.gg/bot/716390085896962058/vote"},
+    "dbl": {"name": "Discord Bot List", "url": "https://discordbotlist.com/bots/poketwo/upvote"},
+}
 
 
 class Blacklisted(commands.CheckFailure):
@@ -29,7 +36,7 @@ class Bot(commands.Cog):
 
         self.post_count.start()
 
-        if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
+        if self.bot.cluster_idx == 0:
             self.post_dbl.start()
             self.remind_votes.start()
 
@@ -229,30 +236,31 @@ class Bot(commands.Cog):
     async def before_post_dbl(self):
         await self.bot.wait_until_ready()
 
+    async def send_voting_reminder(self, uid, provider):
+        message = f"Your vote timer on **{provider['name']}** has refreshed. You can now vote again!"
+        view = discord.ui.View(timeout=0)
+        view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
+        await self.bot.send_dm(uid, message, view=view)
+
     @tasks.loop(seconds=15)
     async def remind_votes(self):
-        query = {
-            "need_vote_reminder": True,
-            "last_voted": {"$lt": datetime.utcnow() - timedelta(hours=12)},
-        }
+        for pid, provider in VOTING_PROVIDERS.items():
+            query = {
+                f"need_vote_reminder_on.{pid}": True,
+                f"last_voted_on.{pid}": {"$lt": datetime.utcnow() - timedelta(hours=12)},
+            }
 
-        ids = set()
+            ids = [int(x["_id"]) async for x in self.bot.mongo.db.member.find(query, {"_id": 1})]
+            if len(ids) == 0:
+                continue
 
-        async for x in self.bot.mongo.db.member.find(query, {"_id": 1}, no_cursor_timeout=True):
-            try:
-                ids.add(x["_id"])
-                self.bot.loop.create_task(
-                    self.bot.send_dm(
-                        x["_id"],
-                        "Your vote timer has refreshed. You can now vote again! https://top.gg/bot/716390085896962058/vote",
-                    )
-                )
-            except:
-                pass
+            for uid in ids:
+                self.bot.loop.create_task(self.send_voting_reminder(uid, provider))
 
-        await self.bot.mongo.db.member.update_many(query, {"$set": {"need_vote_reminder": False}})
-        if len(ids) > 0:
-            await self.bot.redis.hdel("db:member", *[int(x) for x in ids])
+            await self.bot.mongo.db.member.update_many(
+                {"_id": {"$in": ids}}, {"$set": {f"need_vote_reminder_on.{pid}": False}}
+            )
+            await self.bot.redis.hdel("db:member", *ids)
 
     @remind_votes.before_loop
     async def before_remind_votes(self):
@@ -275,6 +283,71 @@ class Bot(commands.Cog):
     @post_count.before_loop
     async def before_post_count(self):
         await self.bot.wait_until_ready()
+
+    @checks.has_started()
+    @commands.command(aliases=("v", "daily", "boxes"))
+    async def vote(self, ctx):
+        """View information on voting rewards."""
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        embed = self.bot.Embed(title=f"Voting Rewards")
+        view = discord.ui.View(timeout=0)
+
+        embed.description = (
+            f"Vote for us on "
+            + " and ".join(f"**[{provider['name']}]({provider['url']})**" for provider in VOTING_PROVIDERS.values())
+            + " to receive mystery boxes! "
+            + "You can vote once per 12 hours on each site. Build your streak to get better rewards!"
+        )
+
+        for pid, provider in VOTING_PROVIDERS.items():
+            next_vote = member.last_voted_on.get(pid, datetime.min) + timedelta(hours=12)
+
+            if next_vote < datetime.utcnow():
+                message = f"[You can vote right now!]({provider['url']})"
+            else:
+                timespan = next_vote - datetime.utcnow()
+                formatted = humanfriendly.format_timespan(timespan.total_seconds())
+                message = f"You can vote again in **{formatted}**."
+
+            embed.add_field(name=f"{provider['name']} Timer", value=message)
+            view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
+
+        embed.add_field(
+            name="Voting Streak",
+            value=str(self.bot.sprites.check) * min(member.vote_streak, 14)
+            + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
+            + f"\nCurrent Streak: {member.vote_streak} votes!",
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Your Rewards",
+            value=(
+                f"{self.bot.sprites.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
+                f"{self.bot.sprites.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
+                f"{self.bot.sprites.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
+                f"{self.bot.sprites.gift_master} **Master Mystery Box:** {member.gifts_master}\n"
+            ),
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Claiming Rewards",
+            value=f"Use `{ctx.clean_prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
+            inline=False,
+        )
+
+        embed.set_footer(text="You will automatically receive your rewards when you vote.")
+
+        if ctx.guild and ctx.guild.id == 716390832034414685:
+            embed.add_field(
+                name="Server Voting",
+                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
+                inline=False,
+            )
+
+        await ctx.send(embed=embed, view=view)
 
     @commands.command(aliases=("botinfo",))
     async def stats(self, ctx):
