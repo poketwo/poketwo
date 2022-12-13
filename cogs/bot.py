@@ -36,7 +36,7 @@ class Bot(commands.Cog):
 
         self.post_count.start()
 
-        if self.bot.cluster_idx == 0:
+        if self.bot.cluster_idx == 0 and self.bot.config.DBL_TOKEN is not None:
             self.post_dbl.start()
             self.remind_votes.start()
 
