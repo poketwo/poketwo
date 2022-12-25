@@ -115,9 +115,7 @@ class Christmas(commands.Cog):
             inline=False,
         )
         embed.add_field(name="Community Quest Progress", value=f"Current Progress: **🪙 {count:,}** / 200,000 ")
-        embed.set_image(
-            url="https://cdn.discordapp.com/attachments/1037664190980177960/1054067302980657214/Untitled_Artwork.png"
-        )
+        embed.set_image(url="https://i.imgur.com/MWbuFqI.png")
 
         await ctx.send(embed=embed)
 
