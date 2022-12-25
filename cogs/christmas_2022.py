@@ -74,8 +74,10 @@ class Christmas(commands.Cog):
 
     @commands.Cog.listener()
     async def on_catch(self, ctx, species):
-        if random.random() < 0.05:
+        count = await self.bot.redis.hincrby("christmas_pity", ctx.author.id, 1)
+        if random.random() < 0.05 or count == 20:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_coins_2022": 1}})
+            await self.bot.redis.hdel("christmas_pity", ctx.author.id)
             await ctx.send(
                 f"The Pokémon dropped a **🪙 Christmas Coin**! Use `{ctx.clean_prefix}christmas` to view more info."
             )
