@@ -104,15 +104,18 @@ class Christmas(commands.Cog):
             value="\n".join(
                 (
                     "You can donate coins to Santa to receive different boxes:",
-                    f"**Random Box** (1 coin) — `{ctx.clean_prefix}christmas buy random` — {member.christmas_boxes_2022_random}",
-                    f"**Pokémon Box** (4 coins) — `{ctx.clean_prefix}christmas buy pokemon` — {member.christmas_boxes_2022_pokemon}",
-                    f"**Currency Box** (4 coins) — `{ctx.clean_prefix}christmas buy currency` — {member.christmas_boxes_2022_currency}",
-                    f"**Event Box** (8 coins) — `{ctx.clean_prefix}christmas buy event` — {member.christmas_boxes_2022_event}",
+                    f"**Random Box** (1c) — `@Pokétwo christmas buy random` — {member.christmas_boxes_2022_random}",
+                    f"**Pokémon Box** (4c) — `@Pokétwo christmas buy pokemon` — {member.christmas_boxes_2022_pokemon}",
+                    f"**Currency Box** (4c) — `@Pokétwo christmas buy currency` — {member.christmas_boxes_2022_currency}",
+                    f"**Event Box** (8c) — `@Pokétwo christmas buy event` — {member.christmas_boxes_2022_event}",
                 )
             ),
             inline=False,
         )
         embed.add_field(name="Community Quest Progress", value=f"Current Progress: **🪙 {count:,}** / 200,000 ")
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/1037664190980177960/1054067302980657214/Untitled_Artwork.png"
+        )
 
         await ctx.send(embed=embed)
 
