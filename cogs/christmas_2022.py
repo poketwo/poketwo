@@ -165,7 +165,9 @@ class Christmas(commands.Cog):
         await self.bot.mongo.db.counter.find_one_and_update(
             {"_id": "christmas_2022"}, {"$inc": {"next": COSTS[type] * qty}}, upsert=True
         )
-        await ctx.send(f"You purchased {qty}x **{NAMES[type]}** for 🪙 {COSTS[type] * qty}!")
+        await ctx.send(
+            f"You purchased {qty}x **{NAMES[type]}** for 🪙 {COSTS[type] * qty}! You can open this box with `@Pokétwo christmas open {type}`."
+        )
 
     @checks.has_started()
     @commands.cooldown(1, 2, commands.BucketType.user)
