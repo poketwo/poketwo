@@ -299,6 +299,16 @@ class Member(Document):
     bingos_awarded = fields.IntegerField(default=0)
     halloween_tickets_2022 = fields.IntegerField(default=0)
 
+    christmas_coins_2022 = fields.IntegerField(default=0)
+    christmas_boxes_2022_random = fields.IntegerField(default=0)
+    christmas_boxes_2022_pokemon = fields.IntegerField(default=0)
+    christmas_boxes_2022_currency = fields.IntegerField(default=0)
+    christmas_boxes_2022_event = fields.IntegerField(default=0)
+    christmas_boxes_2022_random_opened = fields.IntegerField(default=0)
+    christmas_boxes_2022_pokemon_opened = fields.IntegerField(default=0)
+    christmas_boxes_2022_currency_opened = fields.IntegerField(default=0)
+    christmas_boxes_2022_event_opened = fields.IntegerField(default=0)
+
     @property
     def selected_pokemon(self):
         try:
