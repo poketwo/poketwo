@@ -92,7 +92,7 @@ class Christmas(commands.Cog):
         embed = self.bot.Embed(
             color=0xE67D23,
             title=f"Christmas 2022 — 🪙 {member.christmas_coins_2022}",
-            description="It's Christmas Eve, but unfortunately, somebody has hacked into Santa's workshop and stole all his presents! Santa needs your help to raise enough money to recover his gifts and spread his holiday cheer.",
+            description="It's Christmas Eve, but unfortunately, somebody has hacked into Santa's workshop and stolen all his presents! Santa needs your help to raise enough money to recover his gifts and spread his holiday cheer.",
         )
         embed.add_field(
             name=f"Obtaining and Spending Coins",
