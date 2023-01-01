@@ -304,10 +304,12 @@ class Member(Document):
     christmas_boxes_2022_pokemon = fields.IntegerField(default=0)
     christmas_boxes_2022_currency = fields.IntegerField(default=0)
     christmas_boxes_2022_event = fields.IntegerField(default=0)
+    christmas_boxes_2022_santa = fields.IntegerField(default=0)
     christmas_boxes_2022_random_opened = fields.IntegerField(default=0)
     christmas_boxes_2022_pokemon_opened = fields.IntegerField(default=0)
     christmas_boxes_2022_currency_opened = fields.IntegerField(default=0)
     christmas_boxes_2022_event_opened = fields.IntegerField(default=0)
+    christmas_boxes_2022_santa_opened = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):

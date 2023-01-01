@@ -11,10 +11,12 @@ BOXES = {
     "pokemon": "pokemon",
     "currency": "currency",
     "event": "event",
+    "santa": "santa",
     "r": "random",
     "p": "pokemon",
     "c": "currency",
     "e": "event",
+    "s": "santa",
 }
 
 NAMES = {
@@ -22,9 +24,10 @@ NAMES = {
     "pokemon": "Pokémon Box",
     "currency": "Currency Box",
     "event": "Event Box",
+    "santa": "Santa Box",
 }
 
-COSTS = {"random": 1, "pokemon": 4, "currency": 4, "event": 8}
+COSTS = {"random": 1, "pokemon": 4, "currency": 4, "event": 8, "santa": float("inf")}
 
 CRATE_REWARDS = {
     "random": {
@@ -46,6 +49,9 @@ CRATE_REWARDS = {
     },
     "event": {
         "event": 100,
+    },
+    "santa": {
+        "santa": 100,
     },
 }
 
@@ -114,8 +120,17 @@ class Christmas(commands.Cog):
             ),
             inline=False,
         )
-        embed.add_field(name="Community Quest Progress", value=f"Current Progress: **🪙 {count:,}** / 200,000 ")
+        embed.add_field(
+            name="Community Quest Progress", value=f"Current Progress: **🪙 {count:,}** / 200,000 ", inline=False
+        )
         embed.set_image(url="https://i.imgur.com/MWbuFqI.png")
+
+        if member.christmas_boxes_2022_santa > 0:
+            embed.add_field(
+                name="Santa Box Available",
+                value=f"You have **{member.christmas_boxes_2022_santa}x 🎁 Santa Box** available!\nUse `@Pokétwo christmas open santa` to open it.",
+                inline=False,
+            )
 
         await ctx.send(embed=embed)
 
@@ -177,7 +192,7 @@ class Christmas(commands.Cog):
         """Open a box."""
 
         if type.lower() not in BOXES:
-            return await ctx.send("Please type `random`, `pokemon`, `currency`, or `event`!")
+            return await ctx.send("Please type `random`, `pokemon`, `currency`, `event`, or `santa`!")
 
         type = BOXES[type.lower()]
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -216,33 +231,38 @@ class Christmas(commands.Cog):
                 update["$inc"]["redeems"] += 1
                 text.append("1 redeem")
 
-            elif reward in ("event", "non-event", "rare", "shiny"):
-                pool = [x for x in self.pools[reward] if x.catchable or reward == "event"]
-                species = random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]
-                level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-                shiny = reward == "shiny" or member.determine_shiny(species)
-                ivs = [mongo.random_iv() for i in range(6)]
+            elif reward in ("event", "non-event", "rare", "shiny", "santa"):
+                if reward == "santa":
+                    species = [self.bot.data.species_by_number(x) for x in [50087, 50088]]
+                else:
+                    pool = [x for x in self.pools[reward] if x.catchable or reward == "event"]
+                    species = [random.choices(pool, weights=[x.abundance for x in pool], k=1)[0]]
 
-                pokemon = {
-                    "owner_id": ctx.author.id,
-                    "owned_by": "user",
-                    "species_id": species.id,
-                    "level": level,
-                    "xp": 0,
-                    "nature": mongo.random_nature(),
-                    "iv_hp": ivs[0],
-                    "iv_atk": ivs[1],
-                    "iv_defn": ivs[2],
-                    "iv_satk": ivs[3],
-                    "iv_sdef": ivs[4],
-                    "iv_spd": ivs[5],
-                    "iv_total": sum(ivs),
-                    "shiny": shiny,
-                    "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
-                }
+                for sp in species:
+                    level = min(max(int(random.normalvariate(30, 10)), 1), 100)
+                    shiny = reward == "shiny" or member.determine_shiny(sp)
+                    ivs = [mongo.random_iv() for i in range(6)]
 
-                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
-                inserts.append(pokemon)
+                    pokemon = {
+                        "owner_id": ctx.author.id,
+                        "owned_by": "user",
+                        "species_id": sp.id,
+                        "level": level,
+                        "xp": 0,
+                        "nature": mongo.random_nature(),
+                        "iv_hp": ivs[0],
+                        "iv_atk": ivs[1],
+                        "iv_defn": ivs[2],
+                        "iv_satk": ivs[3],
+                        "iv_sdef": ivs[4],
+                        "iv_spd": ivs[5],
+                        "iv_total": sum(ivs),
+                        "shiny": shiny,
+                        "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
+                    }
+
+                    text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
+                    inserts.append(pokemon)
 
         await self.bot.mongo.update_member(ctx.author, update)
         if len(inserts) > 0:
