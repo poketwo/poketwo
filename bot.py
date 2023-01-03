@@ -123,7 +123,7 @@ class ClusterBot(commands.AutoShardedBot):
             processors=[
                 # Remove _record & _from_structlog.
                 structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                structlog.dev.ConsoleRenderer(),
+                structlog.dev.ConsoleRenderer() if self.config.DEBUG else structlog.processors.JSONRenderer(),
             ],
         )
 

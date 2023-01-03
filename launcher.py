@@ -13,6 +13,7 @@ import bot
 Config = namedtuple(
     "Config",
     [
+        "DEBUG",
         "DATABASE_URI",
         "DATABASE_NAME",
         "BOT_TOKEN",
@@ -81,6 +82,7 @@ if __name__ == "__main__":
         patch_with_gateway(os.getenv("API_GATEWAY"))
 
     config = Config(
+        DEBUG=os.getenv("DEBUG") in ("1", "True", "true"),
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
         BOT_TOKEN=os.environ["BOT_TOKEN"],
