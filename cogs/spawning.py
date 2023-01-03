@@ -201,15 +201,14 @@ class Spawning(commands.Cog):
             return
 
         self.bot.log.info(
-            "Pokemon spawned",
-            extra={
-                "guild_id": channel.id,
-                "channel_id": channel.id,
-                "species_id": species.id,
-                "species": species,
-                "incense": incense,
-                "redeem": redeem,
-            },
+            "pokemon_spawned",
+            guild=channel.guild.name,
+            guild_id=channel.guild.id,
+            channel=channel.name,
+            channel_id=channel.id,
+            species=species,
+            incense=incense,
+            redeem=redeem,
         )
 
         permissions = channel.permissions_for(channel.guild.me)

@@ -69,25 +69,15 @@ class Bot(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
-        self.bot.log.info(
-            "Command run",
-            extra={
-                "guild_id": ctx.guild and ctx.guild.id,
-                "channel_id": ctx.channel.id,
-                "user_id": ctx.author.id,
-                "user": str(ctx.author),
-                "command": ctx.command.qualified_name,
-                "content": ctx.message.content,
-            },
-        )
+        ctx.log.info("command")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-
         if isinstance(error, commands.CommandOnCooldown):
-            self.bot.log.info("Command cooldown hit", extra={"userid": ctx.author.id, "user": str(ctx.author)})
+            ctx.log.info("command.error.ComamndOnCooldown", retry_after=error.retry_after)
             await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
+            ctx.log.info("command.error.MaxConcurrencyReached")
             name = error.per.name
             suffix = "per %s" % name if error.per.name != "default" else "globally"
             plural = "%s times %s" if error.number > 1 else "%s time %s"
@@ -96,8 +86,10 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.DisabledCommand):
+            ctx.log.info("command.error.DisabledCommand")
             await ctx.send("Sorry. This command is disabled and cannot be used.")
         elif isinstance(error, commands.BotMissingPermissions):
+            ctx.log.info("command.error.BotMissingPermissions")
             missing = [
                 f"`{perm.replace('_', ' ').replace('guild', 'server').title()}`" for perm in error.missing_permissions
             ]
@@ -113,6 +105,7 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send_help(ctx.command)
         elif isinstance(error, checks.Suspended):
+            ctx.log.info("command.error.Suspended", reason=error.reason)
             embed = discord.Embed(
                 color=discord.Color.red(),
                 title="Account Suspended",
@@ -126,24 +119,17 @@ class Bot(commands.Cog):
             )
             await ctx.send(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
-            return
+            ctx.log.info("command.error.AcceptTermsOfService")
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
             await ctx.send(error)
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
-            print(f"Ignoring exception in command {ctx.command}")
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-            print("\n\n")
+            ctx.log.exception("command.error")
 
     @commands.Cog.listener()
-    async def on_error(self, ctx: commands.Context, error):
-        if isinstance(error, discord.NotFound):
-            return
-        else:
-            print(f"Ignoring exception in command {ctx.command}:")
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-            print("\n\n")
+    async def on_error(self, event, *args, **kwargs):
+        self.bot.log.info("error", event=event, event_args=args, event_kwargs=kwargs)
 
     def sendable_channel(self, channel):
         if channel.permissions_for(channel.guild.me).send_messages:

@@ -1,5 +1,4 @@
 default = (
-    "logging",
     "admin",
     "auctions",
     "battling",

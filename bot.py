@@ -1,9 +1,13 @@
+import logging
+
 import aiohttp
 import discord
+import structlog
 import uvloop
 from aioredis_lock import LockTimeoutError, RedisLock
 from discord.ext import commands
 from expiringdict import ExpiringDict
+from pythonjsonlogger import jsonlogger
 
 import cogs
 import helpers
@@ -89,7 +93,45 @@ class ClusterBot(commands.AutoShardedBot):
 
         # Run bot
 
-        self.run(kwargs["token"])
+        self.setup_logging()
+        self.run(kwargs["token"], log_handler=None)
+
+    def setup_logging(self):
+        self.log: structlog.BoundLogger = structlog.get_logger()
+
+        def add_cluster_name(logger, name, event_dict):
+            event_dict["cluster"] = self.cluster_name
+            return event_dict
+
+        timestamper = structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S")
+        shared_processors = [structlog.stdlib.add_log_level, timestamper, add_cluster_name]
+
+        structlog.configure(
+            processors=[
+                *shared_processors,
+                structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+            ],
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            cache_logger_on_first_use=True,
+        )
+
+        formatter = structlog.stdlib.ProcessorFormatter(
+            # These run ONLY on `logging` entries that do NOT originate within
+            # structlog.
+            foreign_pre_chain=shared_processors,
+            # These run on ALL entries after the pre_chain is done.
+            processors=[
+                # Remove _record & _from_structlog.
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                structlog.dev.ConsoleRenderer(),
+            ],
+        )
+
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        root_logger = logging.getLogger()
+        root_logger.addHandler(handler)
+        root_logger.setLevel(logging.INFO)
 
     async def get_context(self, message, *, cls=helpers.context.PoketwoContext):
         return await super().get_context(message, cls=cls)
@@ -112,10 +154,6 @@ class ClusterBot(commands.AutoShardedBot):
     def sprites(self):
         return self.get_cog("Sprites")
 
-    @property
-    def log(self):
-        return self.get_cog("Logging").log
-
     # Other stuff
 
     async def send_dm(self, user, *args, **kwargs):
@@ -130,13 +168,13 @@ class ClusterBot(commands.AutoShardedBot):
         await self.load_extension("jishaku")
         for i in cogs.default:
             await self.load_extension(f"cogs.{i}")
-        self.log.info(f"Starting with shards {self.shard_ids} and total {self.shard_count}")
+        self.log.info(f"init", shard_ids=self.shard_ids, shard_count=self.shard_count)
 
     async def on_ready(self):
-        self.log.info(f"Ready called.")
+        self.log.info("ready")
 
     async def on_shard_ready(self, shard_id):
-        self.log.info(f"Shard {shard_id} ready")
+        self.log.info("shard_ready", shard_id=shard_id)
 
     async def on_message(self, message: discord.Message):
         message.content = message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
@@ -159,5 +197,5 @@ class ClusterBot(commands.AutoShardedBot):
             await ctx.reply("You are currently running another command. Please wait and try again later.")
 
     async def close(self):
-        self.log.info("shutting down")
+        self.log.info("close")
         await super().close()

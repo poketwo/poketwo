@@ -1,6 +1,7 @@
 import typing
 
 import discord
+import structlog
 from discord.ext import commands
 
 
@@ -75,6 +76,22 @@ class ConfirmationView(discord.ui.View):
 
 
 class PoketwoContext(commands.Context):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.log = self.bot.log.bind(
+            guild=self.guild and self.guild.name,
+            guild_id=self.guild and self.guild.id,
+            channel=self.channel.name,
+            channel_id=self.channel.id,
+            user_id=self.author.id,
+            user=str(self.author),
+            message=self.message.content,
+            message_id=self.message.id,
+            command=self.command and self.command.qualified_name,
+            command_args=self.args,
+            command_kwargs=self.kwargs,
+        )
+
     async def confirm(self, message=None, *, embed=None, timeout=40, cls=ConfirmationView):
         view = cls(self, timeout=timeout)
         view.message = await self.send(
@@ -98,7 +115,7 @@ class PoketwoContext(commands.Context):
         )
         await view.wait()
         return view.result
-    
+
     @property
     def clean_prefix(self) -> str:
         return super().clean_prefix.strip() + " "
