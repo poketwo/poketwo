@@ -336,7 +336,6 @@ class Member(Document):
             chance *= 1.2
         if self.shiny_hunt == species.dex_number:
             chance *= self.shiny_hunt_multiplier
-        chance *= 2  # TODO: Boost rate temporarily
         return random.random() < chance
 
 

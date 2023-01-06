@@ -171,7 +171,6 @@ class Spawning(commands.Cog):
         self.bot.guild_counter[message.guild.id] = self.bot.guild_counter.get(message.guild.id, 0) + 1
 
         spawn_threshold = 8 if message.guild.id == 716390832034414685 else 24
-        spawn_threshold = spawn_threshold * 2 // 3  # TODO: Boost rate temporarily (24)
 
         if self.bot.guild_counter[message.guild.id] >= spawn_threshold:
             self.bot.guild_counter[message.guild.id] = 0
