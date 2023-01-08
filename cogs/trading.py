@@ -6,9 +6,9 @@ from itertools import zip_longest
 
 import discord
 from discord.ext import commands, tasks
-from helpers import checks, flags, pagination
 
 from data.models import deaccent
+from helpers import checks, flags, pagination
 
 
 def chunks(lst, n):

@@ -339,21 +339,6 @@ class Member(Document):
         return random.random() < chance
 
 
-class Auction(Document):
-    class Meta:
-        strict = False
-
-    id = fields.IntegerField(attribute="_id")
-    guild_id = fields.IntegerField(required=True)
-    message_id = fields.IntegerField(required=True)
-    pokemon = fields.EmbeddedField(EmbeddedPokemon, required=True)
-    user_id = fields.IntegerField(required=True)
-    current_bid = fields.IntegerField(required=True)
-    bid_increment = fields.IntegerField(required=True)
-    bidder_id = fields.IntegerField(default=None)
-    ends = fields.DateTimeField(required=True)
-
-
 class Guild(Document):
     class Meta:
         strict = False
@@ -435,7 +420,6 @@ class Mongo(commands.Cog):
             "Counter",
             "Blacklist",
             "Sponsor",
-            "Auction",
         ):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot
@@ -486,26 +470,20 @@ class Mongo(commands.Cog):
         ]
         return self.db.pokemon.aggregate(pipeline, allowDiskUse=True)
 
-    async def fetch_auction_list(self, guild, aggregations=[]):
-        async for x in self.db.auction.aggregate(
-            [
-                {"$match": {"guild_id": guild.id}},
-                *aggregations,
-            ],
-            allowDiskUse=True,
-        ):
-            yield self.bot.mongo.Auction.build_from_mongo(x)
+    def fetch_auction_list(self, guild, aggregations=[]):
+        pipeline = [
+            {"$match": {"owned_by": "auction", "auction_data.guild_id": guild.id}},
+            *aggregations,
+        ]
+        return self.db.pokemon.aggregate(pipeline, allowDiskUse=True)
 
     async def fetch_auction_count(self, guild, aggregations=[]):
-
-        result = await self.db.auction.aggregate(
-            [
-                {"$match": {"guild_id": guild.id}},
-                *aggregations,
-                {"$count": "num_matches"},
-            ],
-            allowDiskUse=True,
-        ).to_list(None)
+        pipeline = [
+            {"$match": {"owned_by": "auction", "auction_data.guild_id": guild.id}},
+            *aggregations,
+            {"$count": "num_matches"},
+        ]
+        result = await self.db.pokemon.aggregate(pipeline, allowDiskUse=True).to_list(None)
 
         if len(result) == 0:
             return 0

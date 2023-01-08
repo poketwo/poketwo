@@ -125,6 +125,7 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
+            print(error)
             ctx.log.exception("command.error")
 
     @commands.Cog.listener()
