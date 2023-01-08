@@ -109,7 +109,7 @@ class Auctions(commands.Cog):
         # ok, bid
 
         await self.bot.mongo.db.pokemon.update_one(
-            {"auction_data._id": auction["auction_data"]["_id"]},
+            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]},
             {
                 "$set": {
                     "owner_id": new_owner.id,
@@ -317,7 +317,7 @@ class Auctions(commands.Cog):
             self.bot.loop.create_task(auction_channel.send(embed=embed))
 
         await self.bot.mongo.db.pokemon.update_one(
-            {"auction_data._id": auction["auction_data"]["_id"]},
+            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]},
             {"$set": {"auction_data.current_bid": new_start - auction["auction_data"]["bid_increment"]}},
         )
         await ctx.send(f"Lowered the starting bid on your auction to **{new_start:,} Pokécoins**.")
@@ -353,7 +353,9 @@ class Auctions(commands.Cog):
 
         # go!
 
-        auction = await self.bot.mongo.db.pokemon.find_one({"auction_data._id": auction["auction_data"]["_id"]})
+        auction = await self.bot.mongo.db.pokemon.find_one(
+            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]}
+        )
 
         if auction is None:
             return await ctx.send("Couldn't find that auction!")
@@ -400,7 +402,9 @@ class Auctions(commands.Cog):
 
         # check to make sure still there
 
-        r = await self.bot.mongo.db.pokemon.update_one({"auction_data._id": auction["auction_data"]["_id"]}, update)
+        r = await self.bot.mongo.db.pokemon.update_one(
+            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]}, update
+        )
 
         if r.modified_count == 0:
             return await ctx.send("That auction has already ended.")
