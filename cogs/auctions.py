@@ -488,19 +488,9 @@ class Auctions(commands.Cog):
             return await ctx.send("Page must be positive!")
 
         def map_field(field):
-            if field == "owner_id":
-                return "user_id"
-            if field in {
-                "_id",
-                "guild_id",
-                "user_id",
-                "current_bid",
-                "bid_increment",
-                "bidder_id",
-                "ends",
-            }:
-                return field
-            return f"pokemon.{field}"
+            if field == "_id":
+                return "auction_data._id"
+            return field
 
         aggregations = await self.bot.get_cog("Pokemon").create_filter(
             flags, ctx, order_by=flags["order"], map_field=map_field

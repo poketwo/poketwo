@@ -133,8 +133,8 @@ SORTING_FUNCTIONS = {
     "level": "level",
     "pokedex": "species_id",
     "price": "market_data.price",
-    "bid": "current_bid",
-    "ends": "ends",
+    "bid": "auction_data.current_bid",
+    "ends": "auction_data.ends",
     "id": "_id",
 }
 
@@ -371,9 +371,7 @@ NATURE_MULTIPLIERS = {
 }
 
 
-URL_REGEX = re.compile(
-    r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)"
-)
+URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[\.\?\=\&\%\/\w\-]*\b([^@]|$)")
 
 PINK = 0xFE9AC9
 BLUE = 0x9CCFFF

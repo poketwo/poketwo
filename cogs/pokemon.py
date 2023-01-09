@@ -7,8 +7,9 @@ from operator import itemgetter
 
 from discord.errors import DiscordException
 from discord.ext import commands
-from helpers import checks, constants, converters, flags, pagination
 from pymongo import UpdateOne
+
+from helpers import checks, constants, converters, flags, pagination
 
 
 def isfloat(x):
@@ -576,7 +577,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {map_field("owner_id"): ctx.author.id}})
 
         if "bids" in flags and flags["bids"]:
-            aggregations.append({"$match": {"bidder_id": ctx.author.id}})
+            aggregations.append({"$match": {"auction_data.bidder_id": ctx.author.id}})
 
         rarity = []
         for x in ("mythical", "legendary", "ub"):
@@ -624,7 +625,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {map_field("has_color"): True}})
 
         if "ends" in flags and flags["ends"] is not None:
-            aggregations.append({"$match": {"ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
+            aggregations.append({"$match": {"auction_data.ends": {"$lt": datetime.utcnow() + flags["ends"]}}})
 
         # Numerical flags
 
