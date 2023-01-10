@@ -372,6 +372,49 @@ class Auctions(commands.Cog):
         if member.balance < bid:
             return await ctx.send("You don't have enough Pokécoins for that!")
 
+        # ok, bid
+
+        res = await self.bot.mongo.db.member.find_one_and_update({"_id": ctx.author.id}, {"$inc": {"balance": -bid}})
+        await self.bot.redis.hdel("db:member", ctx.author.id)
+        if res["balance"] < bid:
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": bid}})
+            return await ctx.send("You don't have enough Pokécoins for that!")
+
+        # check to make sure still there
+
+        update = {
+            "$set": {
+                "auction_data.current_bid": bid,
+                "auction_data.bidder_id": ctx.author.id,
+            }
+        }
+
+        if datetime.utcnow() + timedelta(minutes=5) > auction["auction_data"]["ends"]:
+            update["$set"]["auction_data.ends"] = datetime.utcnow() + timedelta(minutes=5)
+
+        r = await self.bot.mongo.db.pokemon.update_one(
+            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]}, update
+        )
+
+        if r.modified_count == 0:
+            await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": bid}})
+            return await ctx.send("That auction has already ended.")
+
+        if auction["auction_data"]["bidder_id"] is not None:
+            await self.bot.mongo.update_member(
+                auction["auction_data"]["bidder_id"], {"$inc": {"balance": auction["auction_data"]["current_bid"]}}
+            )
+            self.bot.loop.create_task(
+                self.bot.send_dm(
+                    auction["auction_data"]["bidder_id"],
+                    f"You have been outbid on the **{pokemon:pl}** (Auction #{auction['auction_data']['_id']}). New bid: {bid} pokécoins.",
+                )
+            )
+
+        await ctx.send(
+            f"You bid **{bid:,} Pokécoins** on the **{pokemon:pl}** (Auction #{auction['auction_data']['_id']})."
+        )
+
         # send embed
 
         host = await self.try_get_member(ctx.guild, auction["owner_id"])
@@ -390,46 +433,9 @@ class Auctions(commands.Cog):
         )
         embed.timestamp = auction["auction_data"]["ends"]
 
-        update = {
-            "$set": {
-                "auction_data.current_bid": bid,
-                "auction_data.bidder_id": ctx.author.id,
-            }
-        }
-
-        if datetime.utcnow() + timedelta(minutes=5) > auction["auction_data"]["ends"]:
-            update["$set"]["auction_data.ends"] = datetime.utcnow() + timedelta(minutes=5)
-
-        # check to make sure still there
-
-        r = await self.bot.mongo.db.pokemon.update_one(
-            {"owned_by": "auction", "auction_data._id": auction["auction_data"]["_id"]}, update
-        )
-
-        if r.modified_count == 0:
-            return await ctx.send("That auction has already ended.")
-
         auction_channel = ctx.guild.get_channel(guild.auction_channel)
         if auction_channel is not None:
             self.bot.loop.create_task(auction_channel.send(embed=embed))
-
-        # ok, bid
-
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": -bid}})
-
-        if auction["auction_data"]["bidder_id"] is not None:
-            await self.bot.mongo.update_member(
-                auction["auction_data"]["bidder_id"], {"$inc": {"balance": auction["auction_data"]["current_bid"]}}
-            )
-            self.bot.loop.create_task(
-                self.bot.send_dm(
-                    auction["auction_data"]["bidder_id"],
-                    f"You have been outbid on the **{pokemon:pl}** (Auction #{auction['auction_data']['_id']}). New bid: {bid} pokécoins.",
-                )
-            )
-        await ctx.send(
-            f"You bid **{bid:,} Pokécoins** on the **{pokemon:pl}** (Auction #{auction['auction_data']['_id']})."
-        )
 
     # TODO put all these flags into a single decorator
 
