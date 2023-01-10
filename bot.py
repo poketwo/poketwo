@@ -136,6 +136,12 @@ class ClusterBot(commands.AutoShardedBot):
     async def get_context(self, message, *, cls=helpers.context.PoketwoContext):
         return await super().get_context(message, cls=cls)
 
+    async def is_owner(self, user):
+        if isinstance(user, discord.Member):
+            if any(x.id in (718006431231508481, 930346842586218607) for x in user.roles):
+                return True
+        return await super().is_owner(user)
+
     # Easy access to things
 
     @property

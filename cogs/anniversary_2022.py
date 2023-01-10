@@ -2,10 +2,10 @@ import random
 from functools import cached_property
 
 from discord.ext import commands
-from helpers import checks
-from helpers.converters import FetchUserConverter
 
 from cogs import mongo
+from helpers import checks
+from helpers.converters import FetchUserConverter
 
 TYPES = [
     "Normal",
@@ -338,9 +338,7 @@ class Anniversary(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_many(added_pokemon)
         await ctx.send(embed=embed)
 
-    @commands.check_any(
-        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
-    )
+    @commands.is_owner()
     @anniversary.command(aliases=("givebox", "ab", "gb"))
     async def addbox(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a box."""

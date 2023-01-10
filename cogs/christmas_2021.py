@@ -2,10 +2,10 @@ import random
 
 from discord.ext import commands
 from discord.utils import cached_property
-from helpers import checks
-from helpers.converters import FetchUserConverter
 
 from cogs import mongo
+from helpers import checks
+from helpers.converters import FetchUserConverter
 
 NAUGHTY = {
     "pokemon": 65,
@@ -82,9 +82,7 @@ class Christmas(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.check_any(
-        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
-    )
+    @commands.is_owner()
     @christmas.command(aliases=("givebox", "ab", "gb"))
     async def addbox(self, ctx, user: FetchUserConverter, box_type, num: int = 1):
         """Give a box."""

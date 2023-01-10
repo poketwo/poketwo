@@ -134,9 +134,7 @@ class Christmas(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.check_any(
-        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
-    )
+    @commands.is_owner()
     @christmas.command(aliases=("givecoin", "gc", "ac"))
     async def addcoin(self, ctx, user: converters.FetchUserConverter, num: int = 1):
         """Give a coin."""

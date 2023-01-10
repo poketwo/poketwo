@@ -3,10 +3,10 @@ import random
 import discord
 from discord.ext import commands
 from discord.utils import cached_property
-from helpers import checks
-from helpers.converters import FetchUserConverter
 
 from cogs import mongo
+from helpers import checks
+from helpers.converters import FetchUserConverter
 
 CRATE_REWARDS = {
     "event": 50,
@@ -83,9 +83,7 @@ class Halloween(commands.Cog):
 
         await ctx.send(embed=embed, view=view)
 
-    @commands.check_any(
-        commands.is_owner(), commands.has_role(718006431231508481), commands.has_role(930346842586218607)
-    )
+    @commands.is_owner()
     @halloween.command(aliases=("giveticket", "at", "gt"))
     async def addticket(self, ctx, user: FetchUserConverter, num: int = 1):
         """Give a ticket."""
