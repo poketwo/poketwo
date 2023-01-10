@@ -81,7 +81,7 @@ class PoketwoContext(commands.Context):
         self.log = self.bot.log.bind(
             guild=self.guild and self.guild.name,
             guild_id=self.guild and self.guild.id,
-            channel=self.channel.name,
+            channel=self.guild and self.channel.name,
             channel_id=self.channel.id,
             user_id=self.author.id,
             user=str(self.author),
