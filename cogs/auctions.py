@@ -97,7 +97,7 @@ class Auctions(commands.Cog):
                     "user": auction["auction_data"]["bidder_id"],
                     "item": auction["_id"],
                     "seller_id": auction["owner_id"],
-                    "listing": auction["auction_data"]["_id"],
+                    "listing_id": auction["auction_data"]["_id"],
                     "price": auction["auction_data"]["current_bid"],
                 }
             )
