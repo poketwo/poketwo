@@ -78,15 +78,15 @@ class Christmas(commands.Cog):
         }
         return {k: [self.bot.data.species_by_number(i) for i in v] for k, v in p.items()}
 
-    @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
-        count = await self.bot.redis.hincrby("christmas_pity", ctx.author.id, 1)
-        if random.random() < 0.05 or count == 20:
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_coins_2022": 1}})
-            await self.bot.redis.hdel("christmas_pity", ctx.author.id)
-            await ctx.send(
-                f"The Pokémon dropped a **🪙 Christmas Coin**! Use `{ctx.clean_prefix}christmas` to view more info."
-            )
+    # @commands.Cog.listener()
+    # async def on_catch(self, ctx, species):
+    #     count = await self.bot.redis.hincrby("christmas_pity", ctx.author.id, 1)
+    #     if random.random() < 0.05 or count == 20:
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"christmas_coins_2022": 1}})
+    #         await self.bot.redis.hdel("christmas_pity", ctx.author.id)
+    #         await ctx.send(
+    #             f"The Pokémon dropped a **🪙 Christmas Coin**! Use `{ctx.clean_prefix}christmas` to view more info."
+    #         )
 
     @checks.has_started()
     @commands.group(aliases=("event",), invoke_without_command=True, case_insensitive=True)
