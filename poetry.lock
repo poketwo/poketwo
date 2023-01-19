@@ -214,7 +214,7 @@ resolved_reference = "e42a248a3f5d52b768940e417daa3ee19757af5e"
 
 [[package]]
 name = "discord.py"
-version = "2.2.0a4663+g1700086f"
+version = "2.2.0a4706+gc19c24f7"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -232,9 +232,9 @@ voice = ["PyNaCl (>=1.3.0,<1.6)"]
 
 [package.source]
 type = "git"
-url = "https://github.com/Rapptz/discord.py.git"
+url = "https://github.com/poketwo/discord.py.git"
 reference = "master"
-resolved_reference = "1700086f1a8e76ea5a12489f4358879f48e86b0d"
+resolved_reference = "c19c24f73be077a0cc8e2277f38a38cfc20eec7d"
 
 [[package]]
 name = "dnspython"
@@ -684,7 +684,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "8862df865ddea4a6124f928c613bb3230e6ba4a7e81c6649973786e7065752f6"
+content-hash = "45cbf97a7e3a944cdc67fe294e73c7110248e9fc30b257bd7f3d7294d9706e25"
 
 [metadata.files]
 aiohttp = []

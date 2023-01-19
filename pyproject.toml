@@ -22,9 +22,9 @@ discord-ext-menus = { git = "https://github.com/Rapptz/discord-ext-menus.git" }
 aioredis-lock = "^0.1.0"
 discord-ext-menus-views = { git = "https://github.com/oliver-ni/discord-ext-menus-views.git" }
 expiringdict = "^1.2.1"
-"discord.py" = { git = "https://github.com/Rapptz/discord.py.git" }
 structlog = "^22.3.0"
 python-json-logger = "^2.0.4"
+"discord.py" = { git = "https://github.com/poketwo/discord.py.git" }
 
 [tool.poetry.dev-dependencies]
 black = "^22.12.0"
