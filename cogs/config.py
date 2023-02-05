@@ -3,6 +3,7 @@ from typing import Union
 import discord
 import geocoder
 from discord.ext import commands
+
 from helpers import checks
 
 
@@ -17,22 +18,15 @@ class Configuration(commands.Cog):
         self.bot = bot
 
     def make_config_embed(self, ctx, guild, commands={}):
-        prefix = guild.prefix if guild.prefix is not None else "p!"
-
         embed = self.bot.Embed(title="Server Configuration")
-        
+
         if ctx.guild.icon is not None:
             embed.set_thumbnail(url=ctx.guild.icon.url)
-            
-        embed.add_field(
-            name=f"Prefix {commands.get('prefix_command', '')}",
-            value=f"`{prefix}`",
-            inline=True,
-        )
+
         embed.add_field(
             name=f"Display level-up messages? {commands.get('silence_command', '')}",
             value=(("Yes", "No")[guild.silence]),
-            inline=True,
+            inline=False,
         )
         embed.add_field(
             name=f"Location {commands.get('location_command', '')}",
@@ -62,45 +56,16 @@ class Configuration(commands.Cog):
     @configuration.command(name="help")
     async def advanced_configuration(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
-        prefix = guild.prefix if guild.prefix is not None else "p!"
 
         commands = {
-            "prefix_command": f"\n`{prefix}prefix <new prefix>`",
-            "silence_command": f"\n`{prefix}serversilence`",
-            "location_command": f"\n`{prefix}location <location>`",
-            "redirect_command": f"\n`{prefix}redirect <channel 1> <channel 2> ...`",
+            "silence_command": f"\n`{ctx.clean_prefix}serversilence`",
+            "location_command": f"\n`{ctx.clean_prefix}location <location>`",
+            "redirect_command": f"\n`{ctx.clean_prefix}redirect <channel 1> <channel 2> ...`",
         }
 
         embed = self.make_config_embed(ctx, guild, commands)
 
         await ctx.send(embed=embed)
-
-    @checks.is_admin()
-    @commands.guild_only()
-    @commands.command(aliases=("setprefix",))
-    async def prefix(self, ctx: commands.Context, *, prefix: str = None):
-        """Change the bot prefix."""
-
-        if prefix is None:
-            guild = await self.bot.mongo.fetch_guild(ctx.guild)
-            current = guild.prefix
-            if type(current) == list:
-                current = current[0]
-            return await ctx.send(f"My prefix is `{current}` in this server.")
-
-        if prefix in ("reset", "p!", "P!"):
-            await self.bot.mongo.update_guild(ctx.guild, {"$set": {"prefix": None}})
-            self.bot.prefixes[ctx.guild.id] = None
-
-            return await ctx.send("Reset prefix to `p!` for this server.")
-
-        if len(prefix) > 100:
-            return await ctx.send("Prefix must not be longer than 100 characters.")
-
-        await self.bot.mongo.update_guild(ctx.guild, {"$set": {"prefix": prefix}})
-        self.bot.prefixes[ctx.guild.id] = prefix
-
-        await ctx.send(f"Changed prefix to `{prefix}` for this server.")
 
     @checks.has_started()
     @commands.command()
