@@ -6,7 +6,7 @@ authors = ["Oliver Ni <oliver.ni@gmail.com>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 umongo = "3.0.0b10"
 motor = "^2.2.0"
 jishaku = { git = "https://github.com/Gorialis/jishaku.git" }
