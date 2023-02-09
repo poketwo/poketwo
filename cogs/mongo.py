@@ -295,6 +295,7 @@ class Member(Document):
     christmas_boxes_nice_opened = fields.IntegerField(default=0)
     christmas_boxes_naughty_opened = fields.IntegerField(default=0)
     valentines_purchased = fields.IntegerField(default=0)
+    valentines_purchased_2023 = fields.IntegerField(default=0)
     anniversary_boxes = fields.IntegerField(default=0)
     bingos_awarded = fields.IntegerField(default=0)
     halloween_tickets_2022 = fields.IntegerField(default=0)

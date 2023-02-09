@@ -1,3 +1,4 @@
+import io
 import discord
 
 from dataclasses import dataclass
@@ -32,3 +33,10 @@ class FakeUser(discord.Object):
 
     async def remove_roles(self, *args, **kwargs):
         pass
+
+
+def write_fp(data):
+    arr = io.BytesIO()
+    arr.write(data)
+    arr.seek(0)
+    return arr

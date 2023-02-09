@@ -1,4 +1,3 @@
-import io
 import random
 import time
 from collections import defaultdict
@@ -11,13 +10,7 @@ from cogs import mongo
 from data import models
 from helpers import checks
 
-
-def write_fp(data):
-    arr = io.BytesIO()
-    arr.write(data)
-    arr.seek(0)
-    return arr
-
+from helpers.utils import write_fp
 
 class Spawning(commands.Cog):
     """For basic bot operation."""
