@@ -10,7 +10,7 @@ class ViewTermsOfServiceView(discord.ui.View):
 
 
 class ConfirmTermsOfServiceView(discord.ui.View):
-    def __init__(self, ctx, *, timeout=120) -> None:
+    def __init__(self, ctx, *, timeout=120, delete_after) -> None:
         super().__init__(timeout=timeout)
         self.result = None
         self.ctx = ctx
