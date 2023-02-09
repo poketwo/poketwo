@@ -182,12 +182,11 @@ class Valentines(commands.Cog):
             title="Your Valentine's Card",
             description=f"Are you sure you would like to send this card to **{user}** for for **{price:,} Pokécoins**?",
             color=0xFF6F77,
-            delete_after=True,
         )
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=str(ctx.author))
         embed.set_image(url="attachment://card.png")
 
-        result = await ctx.confirm(file=image, embed=embed)
+        result = await ctx.confirm(file=image, embed=embed, delete_after=True)
         if result is None:
             return await ctx.send("Time's up. Aborted.")
 
