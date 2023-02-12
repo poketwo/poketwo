@@ -200,6 +200,8 @@ class Valentines(commands.Cog):
         result = await ctx.confirm(file=image, embed=embed, delete_after=True)
         if result is None:
             return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         # Send
 
