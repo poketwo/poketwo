@@ -1,15 +1,15 @@
-from helpers.utils import write_fp
-from helpers.converters import FetchUserConverter
-from urllib.parse import urlencode, urljoin
 import random
 from datetime import datetime
+from urllib.parse import urlencode, urljoin
 
 import discord
 from discord.ext import commands
-from helpers import checks
-from helpers.context import SelectView, ConfirmationYesNoView
 
 from cogs import mongo
+from helpers import checks
+from helpers.context import ConfirmationYesNoView, SelectView
+from helpers.converters import FetchUserConverter
+from helpers.utils import write_fp
 
 JOIN_DATE = datetime(2023, 2, 11)
 
@@ -18,6 +18,7 @@ class SelectImageView(SelectView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.curr = 0
+        self.remove_item(self.select)
 
     def build_embed(self):
         option = self.select.options[self.curr]
@@ -31,6 +32,16 @@ class SelectImageView(SelectView):
         self.curr -= 1
         self.curr %= len(self.select.options)
         await interaction.response.edit_message(embed=self.build_embed())
+
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.success)
+    async def confirm(self, interaction, button):
+        await interaction.response.defer()
+        if self.message:
+            await self.message.edit(view=None)
+        self.result = [self.select.options[self.curr].value]
+        self.stop()
+        if self.delete_after:
+            await self.message.delete()
 
     @discord.ui.button(emoji="\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f")
     async def next(self, interaction, button):
