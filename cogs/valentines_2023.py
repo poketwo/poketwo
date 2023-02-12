@@ -64,7 +64,7 @@ class Valentines(commands.Cog):
         species = self.bot.data.species_by_number(50089)
         embed = discord.Embed(
             title="Valentine's Day 2023 \N{HEART WITH RIBBON}",
-            description="Add text here",
+            description="Cupid time is almost here, but wait...? He forgot his bow and arrow! Decidueye is taking his place in the Pokétwo world, celebrating Valentine's and spreading love!",
             color=0xFF6F77,
         )
         embed.set_thumbnail(url=species.image_url)
