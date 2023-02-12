@@ -224,6 +224,9 @@ class Valentines(commands.Cog):
         try:
             await user.send(file=image, embed=embed)
         except discord.HTTPException:
+            await self.bot.mongo.update_member(
+                ctx.author, {"$inc": {"balance": price, "valentines_purchased_2023": -1}}
+            )
             return await ctx.send("I could not send your card to that user! The user might have their DMs off.")
 
         await self.bot.mongo.db.pokemon.insert_one(pokemon.to_mongo())
