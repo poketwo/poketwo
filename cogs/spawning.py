@@ -9,8 +9,8 @@ from discord.ext import commands, tasks
 from cogs import mongo
 from data import models
 from helpers import checks
-
 from helpers.utils import write_fp
+
 
 class Spawning(commands.Cog):
     """For basic bot operation."""
@@ -412,6 +412,8 @@ class Spawning(commands.Cog):
         await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
         self.bot.dispatch("catch", ctx, species)
+        ctx.log.info("pokemon_caught")
+
         if member.catch_mention:
             await ctx.send(message)
         else:
