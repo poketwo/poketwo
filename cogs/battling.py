@@ -2,6 +2,7 @@ import asyncio
 import math
 import pickle
 import typing
+from datetime import datetime
 from enum import Enum
 from urllib.parse import urlencode, urljoin
 
@@ -475,7 +476,7 @@ class Battling(commands.Cog):
         if member is None:
             return await ctx.send("That user hasn't picked a starter pokémon yet!")
 
-        if member.suspended:
+        if member.suspended or datetime.utcnow() < member.suspended_until:
             return await ctx.send(f"**{user}** is suspended from the bot!")
 
         # Challenge to battle

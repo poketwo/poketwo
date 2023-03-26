@@ -1,6 +1,7 @@
 import random
 import time
 from collections import defaultdict
+from datetime import datetime
 from urllib.parse import urljoin
 
 import discord
@@ -46,7 +47,7 @@ class Spawning(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(message.author)
 
         if member is not None:
-            if member.suspended:
+            if member.suspended or datetime.utcnow() < member.suspended_until:
                 return
 
             silence = member.silence

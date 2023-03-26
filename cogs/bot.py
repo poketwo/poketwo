@@ -11,7 +11,7 @@ import humanfriendly
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
 
-from helpers import checks, constants
+from helpers import checks, constants, converters
 from helpers.views import ConfirmTermsOfServiceView
 
 GENERAL_CHANNEL_NAMES = {"welcome", "general", "lounge", "chat", "talk", "main"}
@@ -111,6 +111,8 @@ class Bot(commands.Cog):
                 title="Account Suspended",
                 description="Your account was found to be in violation of the [Pokétwo Terms of Service](https://poketwo.net/terms) and has been blacklisted from Pokétwo.",
             )
+            if error.until is not None:
+                embed.add_field(name="Expires", value=converters.strfdelta(error.until - datetime.utcnow(), long=True))
             embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
             embed.add_field(
                 name="Appeals",

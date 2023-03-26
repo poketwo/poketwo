@@ -235,6 +235,7 @@ class Member(Document):
     id = fields.IntegerField(attribute="_id")
     joined_at = fields.DateTimeField(default=None)
     suspended = fields.BooleanField(default=False)
+    suspended_until = fields.DateTimeField(default=datetime.min)
     suspension_reason = fields.StringField(default=None)
     private_message_id = fields.IntegerField(default=None)
     tos = fields.DateTimeField(default=None)

@@ -1,10 +1,10 @@
 import random
+import typing
 from datetime import datetime
 
-import discord
 from discord.ext import commands
 
-from helpers.converters import FetchUserConverter
+from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
 
 from . import mongo
 
@@ -34,13 +34,33 @@ class Administration(commands.Cog):
         await ctx.send(f"Suspended {users_msg}.")
 
     @commands.is_owner()
+    @admin.command(aliases=("tsp",))
+    async def tempsuspend(
+        self,
+        ctx,
+        duration: TimeDelta,
+        users: commands.Greedy[FetchUserConverter],
+        *,
+        reason: str = None,
+    ):
+        """Temporarily uspend one or more users."""
+
+        await self.bot.mongo.db.member.update_many(
+            {"_id": {"$in": [x.id for x in users]}},
+            {"$set": {"suspended_until": datetime.utcnow() + duration, "suspension_reason": reason}},
+        )
+        await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
+        users_msg = ", ".join(f"**{x}**" for x in users)
+        await ctx.send(f"Suspended {users_msg} for {strfdelta(duration)}.")
+
+    @commands.is_owner()
     @admin.command(aliases=("usp",))
     async def unsuspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
         """Unuspend one or more users."""
 
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
-            {"$unset": {"suspended": 1, "suspension_reason": 1}},
+            {"$unset": {"suspended": 1, "suspended_until": 1, "suspension_reason": 1}},
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from discord.ext import commands
 
 from helpers.views import ConfirmUpdatedTermsOfServiceView
@@ -12,9 +14,10 @@ class AcceptTermsOfService(commands.CheckFailure):
 
 
 class Suspended(commands.CheckFailure):
-    def __init__(self, reason, *args):
+    def __init__(self, reason, until, *args):
         super().__init__(*args)
         self.reason = reason
+        self.until = until
 
 
 def is_admin():
@@ -23,7 +26,7 @@ def is_admin():
 
 def has_started():
     async def predicate(ctx):
-        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1})
+        member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id})
         if member is None:
             raise NotStarted(
                 f"Please pick a starter pokémon by typing `{ctx.clean_prefix}start` before using this command!"
@@ -45,13 +48,15 @@ def is_not_in_trade():
 def general_check():
     async def predicate(ctx):
         member = await ctx.bot.mongo.Member.find_one(
-            {"id": ctx.author.id}, {"suspended": 1, "suspension_reason": 1, "tos": 1}
+            {"id": ctx.author.id}, {"suspended": 1, "suspended_until": 1, "suspension_reason": 1, "tos": 1}
         )
         if member is None:
             return True
 
         if member.suspended:
-            raise Suspended(member.suspension_reason)
+            raise Suspended(member.suspension_reason, until=None)
+        if datetime.utcnow() < member.suspended_until:
+            raise Suspended(member.suspension_reason, until=member.suspended_until)
 
         if member.tos is None:
             embed = ctx.bot.Embed(
