@@ -313,6 +313,13 @@ class Member(Document):
     christmas_boxes_2022_event_opened = fields.IntegerField(default=0)
     christmas_boxes_2022_santa_opened = fields.IntegerField(default=0)
 
+    spring_2023_flower_venusaur = fields.IntegerField(default=0)
+    spring_2023_flower_shaymin = fields.IntegerField(default=0)
+    spring_2023_flower_lilligant = fields.IntegerField(default=0)
+    spring_2023_flower_gossifleur = fields.IntegerField(default=0)
+    spring_2023_flower_eldegoss = fields.IntegerField(default=0)
+    spring_2023_eggs = fields.ListField(fields.DictField(), default=list)
+
     @property
     def selected_pokemon(self):
         try:

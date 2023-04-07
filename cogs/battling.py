@@ -193,6 +193,7 @@ class Battle:
             if action["type"] == "flee":
                 # battle's over
                 await self.channel.send(f"{trainer.user.mention} has fled the battle! {opponent.user.mention} has won.")
+                self.bot.dispatch("battle_win", self, opponent.user)
                 self.end()
                 return
 
@@ -263,6 +264,7 @@ class Battle:
                     # battle's over
                     self.end()
                     opponent.selected_idx = -1
+                    self.bot.dispatch("battle_win", self, trainer.user)
                     await self.channel.send(f"{trainer.user.mention} won the battle!")
                     return
 

@@ -45,6 +45,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "learn",
     "halloween",
     "valentine",
+    "spring",
 }
 
 

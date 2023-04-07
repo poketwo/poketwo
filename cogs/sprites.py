@@ -1954,6 +1954,26 @@ other = {
     "bingo_blank_white": 980747297409351680,
     "bingo_blank_gray": 980747297304502342,
     "bingo_filled": 980747297119957003,
+    "flower_venusaur": 1092616502659780689,
+    "flower_shaymin": 1092616506086535271,
+    "flower_lilligant": 1092616508313718931,
+    "flower_gossifleur": 1092616510494752801,
+    "flower_eldegoss": 1092616512919060550,
+    "egg_all_1": 1092617389696352326,
+    "egg_all_2": 1092617392368144398,
+    "egg_all_3": 1092617394515624046,
+    "egg_blue_1": 1092617397288063018,
+    "egg_blue_2": 1092617398978367518,
+    "egg_blue_3": 1092617401302003803,
+    "egg_green_1": 1092617403755671682,
+    "egg_green_2": 1092617406356148274,
+    "egg_green_3": 1092617408373596271,
+    "egg_red_1": 1092617411036987442,
+    "egg_red_2": 1092617413121548298,
+    "egg_red_3": 1092617415378092073,
+    "egg_yellow_1": 1092617416896417872,
+    "egg_yellow_2": 1092617418645454890,
+    "egg_yellow_3": 1092617447145746454,
 }
 
 enable_emojis_for = (716390085896962058, 717112814535442432, 848517317469405214)
@@ -1968,6 +1988,9 @@ class Sprites(commands.Cog):
         return self.bot.user.id in enable_emojis_for
 
     def __getattr__(self, key):
+        return self[key]
+
+    def __getitem__(self, key):
         if self.status:
             return f"<:_:{other[key]}>"
         else:
