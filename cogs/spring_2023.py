@@ -347,7 +347,7 @@ class Spring(commands.Cog):
 
         for idx in range(start_idx, start_idx + qty):
             level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-            shiny = member.determine_shiny(species)
+            shiny = member.determine_shiny(species, boost=16)
             ivs = [mongo.random_iv() for i in range(6)]
 
             p = {
@@ -426,7 +426,7 @@ class Spring(commands.Cog):
             if q["progress"] >= q["count"]:
                 species = self.bot.data.species_by_number(q["species_id"])
                 level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-                shiny = member.determine_shiny(species)
+                shiny = member.determine_shiny(species, boost=16)
                 ivs = [mongo.random_iv() for i in range(6)]
 
                 p = {

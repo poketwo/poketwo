@@ -339,8 +339,8 @@ class Member(Document):
     def shiny_hunt_multiplier(self):
         return 1 + math.sqrt(self.shiny_streak) / 7
 
-    def determine_shiny(self, species):
-        chance = 1 / 4096
+    def determine_shiny(self, species, *, boost=1):
+        chance = 1 / 4096 * boost
         if self.shiny_charm_active:
             chance *= 1.2
         if self.shiny_hunt == species.dex_number:
