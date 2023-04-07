@@ -52,7 +52,7 @@ DROP_CHANCES = {
     ("egg", 50093): 0.003,
 }
 
-DROPS = [*DROP_CHANCES.keys(), 1]
+DROPS = [*DROP_CHANCES.keys(), None]
 DROP_WEIGHTS = [*accumulate(DROP_CHANCES.values()), 1]
 
 BOUQUETS = {
