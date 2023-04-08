@@ -372,7 +372,7 @@ class Spring(commands.Cog):
 
         await self.bot.mongo.db.pokemon.insert_many(pokemon)
         await self.bot.mongo.update_member(
-            ctx.author, {"$inc": {f"spring_2023_{k}": -v for k, v in Counter(flowers).items()}}
+            ctx.author, {"$inc": {f"spring_2023_{k}": -v * qty for k, v in Counter(flowers).items()}}
         )
         self.bot.dispatch("make_bouquet", ctx.author, flowers, qty)
 
