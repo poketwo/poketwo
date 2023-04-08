@@ -259,7 +259,7 @@ class Spring(commands.Cog):
                 await ctx.send(msg)
 
     def egg_emoji(self, egg):
-        idx = int(egg["progress"] / egg["count"] * 2) + 1
+        idx = min(int(egg["progress"] / egg["count"] * 2) + 1, 3)
         return self.bot.sprites[f"egg_{egg['color']}_{idx}"]
 
     @commands.group(invoke_without_command=True, case_insensitive=True, aliases=("event",))
