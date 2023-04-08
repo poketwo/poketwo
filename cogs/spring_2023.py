@@ -404,16 +404,15 @@ class Spring(commands.Cog):
         if member is None:
             return
 
-        incs = defaultdict(lambda: 0)
-        for i, q in enumerate(member.spring_2023_eggs):
+        for q in member.spring_2023_eggs:
             if q["event"] != event:
                 continue
 
             if len(to_verify) == 0 or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
-                incs[f"spring_2023_eggs.{i}.progress"] += count
-
-        if len(incs) > 0:
-            await self.bot.mongo.update_member(user, {"$inc": incs})
+                self.bot.mongo.db.member.update_one(
+                    {"_id": user.id, "spring_2023_eggs._id": q["_id"]},
+                    {"$inc": {"spring_2023_eggs.$.progress": count}},
+                )
 
         await self.check_quests(user)
 
