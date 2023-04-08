@@ -405,6 +405,10 @@ class Spring(commands.Cog):
             return
 
         for q in member.spring_2023_eggs:
+            if "_id" not in q:
+                await self.bot.mongo.update_member(user, {"$pull": {"spring_2023_eggs": {"_id": q["_id"]}}})
+                continue
+
             if q["event"] != event:
                 continue
 
@@ -414,6 +418,7 @@ class Spring(commands.Cog):
                     {"$inc": {"spring_2023_eggs.$.progress": count}},
                 )
 
+        await self.bot.redis.hdel("db:member", user.id)
         await self.check_quests(user)
 
     async def check_quests(self, user):
