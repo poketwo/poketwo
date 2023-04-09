@@ -455,7 +455,7 @@ class Spring(commands.Cog):
                 await self.bot.mongo.db.pokemon.insert_one(p)
 
                 with contextlib.suppress(discord.HTTPException):
-                    msg = f"Your egg {self.egg_emoji(q)} has hatched! You haver received a **{self.bot.mongo.Pokemon.build_from_mongo(p):lni} ({sum(ivs) / 186:.2%} IV)**!"
+                    msg = f"Your egg {self.egg_emoji(q)} has hatched! You have received a **{self.bot.mongo.Pokemon.build_from_mongo(p):lni} ({sum(ivs) / 186:.2%} IV)**!"
                     await user.send(msg)
 
     @commands.Cog.listener()
