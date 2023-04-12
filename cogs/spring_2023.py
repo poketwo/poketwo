@@ -301,7 +301,7 @@ class Spring(commands.Cog):
 
     @spring.command(rest_is_raw=True)
     async def bouquet(self, ctx, qty: typing.Optional[int] = 1, *, flowers: str):
-        if qty < 1 <= 15:
+        if not 1 <= qty <= 15:
             return await ctx.send("You can't make less than 1 or more than 15 bouquets.")
 
         if len(flowers) == 0:
