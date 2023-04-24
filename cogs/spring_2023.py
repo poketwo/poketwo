@@ -223,40 +223,40 @@ class Spring(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
-        await self.on_quest_event(ctx.author, "catch", [species])
+    # @commands.Cog.listener()
+    # async def on_catch(self, ctx, species):
+    #     await self.on_quest_event(ctx.author, "catch", [species])
 
-        match random.choices(DROPS, cum_weights=DROP_WEIGHTS, k=1)[0]:
-            case None:
-                return
+    #     match random.choices(DROPS, cum_weights=DROP_WEIGHTS, k=1)[0]:
+    #         case None:
+    #             return
 
-            case "flower", flower:
-                await self.bot.mongo.update_member(ctx.author, {"$inc": {f"spring_2023_{flower}": 1}})
-                emoji = self.bot.sprites[flower]
-                msg = f"The Pokémon dropped a **{emoji} {FLOWER_NAMES[flower]}**! Use `{ctx.clean_prefix}spring` to view more info."
-                await ctx.send(msg)
+    #         case "flower", flower:
+    #             await self.bot.mongo.update_member(ctx.author, {"$inc": {f"spring_2023_{flower}": 1}})
+    #             emoji = self.bot.sprites[flower]
+    #             msg = f"The Pokémon dropped a **{emoji} {FLOWER_NAMES[flower]}**! Use `{ctx.clean_prefix}spring` to view more info."
+    #             await ctx.send(msg)
 
-            case "egg", species_id:
-                possible_quests = [*QUESTS, *SPECIALIZED_QUESTS[species_id]]
-                egg = {
-                    **random.choice(possible_quests)(),
-                    "_id": str(uuid.uuid4()),
-                    "color": random.choice(["all", "blue", "green", "red", "yellow"]),
-                    "species_id": species_id,
-                    "progress": 0,
-                }
+    #         case "egg", species_id:
+    #             possible_quests = [*QUESTS, *SPECIALIZED_QUESTS[species_id]]
+    #             egg = {
+    #                 **random.choice(possible_quests)(),
+    #                 "_id": str(uuid.uuid4()),
+    #                 "color": random.choice(["all", "blue", "green", "red", "yellow"]),
+    #                 "species_id": species_id,
+    #                 "progress": 0,
+    #             }
 
-                m = await self.bot.mongo.db.member.find_one_and_update(
-                    {"_id": ctx.author.id, "spring_2023_eggs.4": {"$exists": False}},
-                    {"$push": {f"spring_2023_eggs": egg}},
-                )
-                await self.bot.redis.hdel("db:member", ctx.author.id)
-                if m is None:
-                    return
+    #             m = await self.bot.mongo.db.member.find_one_and_update(
+    #                 {"_id": ctx.author.id, "spring_2023_eggs.4": {"$exists": False}},
+    #                 {"$push": {f"spring_2023_eggs": egg}},
+    #             )
+    #             await self.bot.redis.hdel("db:member", ctx.author.id)
+    #             if m is None:
+    #                 return
 
-                msg = f"The Pokémon dropped an **{self.egg_emoji(egg)} Easter Egg**! {egg['description']} to hatch it. Use `{ctx.clean_prefix}spring` to view more info."
-                await ctx.send(msg)
+    #             msg = f"The Pokémon dropped an **{self.egg_emoji(egg)} Easter Egg**! {egg['description']} to hatch it. Use `{ctx.clean_prefix}spring` to view more info."
+    #             await ctx.send(msg)
 
     def egg_emoji(self, egg):
         idx = min(int(egg["progress"] / egg["count"] * 2) + 1, 3)
@@ -268,7 +268,7 @@ class Spring(commands.Cog):
 
         embed = self.bot.Embed(
             title="Spring & Easter 2023 🌱",
-            description="It's Spring Time! Flowers are blooming, creating a perfect opportunity to create some beautiful bouquets. Maybe flower-arranging isn't your thing and you prefer finding hidden eggs within the vast landscape for a special gift! No matter what choice you prefer, there is always something for everyone.",
+            description="It's Spring Time! Flowers are blooming, creating a perfect opportunity to create some beautiful bouquets. Maybe flower-arranging isn't your thing and you prefer finding hidden eggs within the vast landscape for a special gift! No matter what choice you prefer, there is always something for everyone.\n\n**The event has now ended.**",
         )
 
         embed.add_field(
@@ -386,112 +386,112 @@ class Spring(commands.Cog):
 
         await ctx.send(msg)
 
-    def verify_condition(self, condition, species, to=None):
-        if condition is not None:
-            for k, v in condition.items():
-                if k == "id" and species.id not in v:
-                    return False
-                elif k == "type" and v not in species.types:
-                    return False
-                elif k == "region" and v != species.region:
-                    return False
-                elif k == "to" and to.id != v:
-                    return False
-        return True
+    # def verify_condition(self, condition, species, to=None):
+    #     if condition is not None:
+    #         for k, v in condition.items():
+    #             if k == "id" and species.id not in v:
+    #                 return False
+    #             elif k == "type" and v not in species.types:
+    #                 return False
+    #             elif k == "region" and v != species.region:
+    #                 return False
+    #             elif k == "to" and to.id != v:
+    #                 return False
+    #     return True
 
-    async def on_quest_event(self, user, event, to_verify, *, count=1):
-        member = await self.bot.mongo.fetch_member_info(user)
-        if member is None:
-            return
+    # async def on_quest_event(self, user, event, to_verify, *, count=1):
+    #     member = await self.bot.mongo.fetch_member_info(user)
+    #     if member is None:
+    #         return
 
-        for q in member.spring_2023_eggs:
-            if "_id" not in q:
-                await self.bot.mongo.update_member(user, {"$pull": {"spring_2023_eggs": {"_id": q["_id"]}}})
-                continue
+    #     for q in member.spring_2023_eggs:
+    #         if "_id" not in q:
+    #             await self.bot.mongo.update_member(user, {"$pull": {"spring_2023_eggs": {"_id": q["_id"]}}})
+    #             continue
 
-            if q["event"] != event:
-                continue
+    #         if q["event"] != event:
+    #             continue
 
-            if len(to_verify) == 0 or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
-                self.bot.mongo.db.member.update_one(
-                    {"_id": user.id, "spring_2023_eggs._id": q["_id"]},
-                    {"$inc": {"spring_2023_eggs.$.progress": count}},
-                )
+    #         if len(to_verify) == 0 or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
+    #             self.bot.mongo.db.member.update_one(
+    #                 {"_id": user.id, "spring_2023_eggs._id": q["_id"]},
+    #                 {"$inc": {"spring_2023_eggs.$.progress": count}},
+    #             )
 
-        await self.bot.redis.hdel("db:member", user.id)
-        await self.check_quests(user)
+    #     await self.bot.redis.hdel("db:member", user.id)
+    #     await self.check_quests(user)
 
-    async def check_quests(self, user):
-        member = await self.bot.mongo.fetch_member_info(user)
-        if member is None:
-            return
+    # async def check_quests(self, user):
+    #     member = await self.bot.mongo.fetch_member_info(user)
+    #     if member is None:
+    #         return
 
-        for q in member.spring_2023_eggs:
-            if q["progress"] >= q["count"]:
-                species = self.bot.data.species_by_number(q["species_id"])
-                level = min(max(int(random.normalvariate(30, 10)), 1), 100)
-                shiny = member.determine_shiny(species, boost=16)
-                ivs = [mongo.random_iv() for i in range(6)]
+    #     for q in member.spring_2023_eggs:
+    #         if q["progress"] >= q["count"]:
+    #             species = self.bot.data.species_by_number(q["species_id"])
+    #             level = min(max(int(random.normalvariate(30, 10)), 1), 100)
+    #             shiny = member.determine_shiny(species, boost=16)
+    #             ivs = [mongo.random_iv() for i in range(6)]
 
-                p = {
-                    "owner_id": user.id,
-                    "owned_by": "user",
-                    "species_id": species.id,
-                    "level": level,
-                    "xp": 0,
-                    "nature": mongo.random_nature(),
-                    "iv_hp": ivs[0],
-                    "iv_atk": ivs[1],
-                    "iv_defn": ivs[2],
-                    "iv_satk": ivs[3],
-                    "iv_sdef": ivs[4],
-                    "iv_spd": ivs[5],
-                    "iv_total": sum(ivs),
-                    "shiny": shiny,
-                    "idx": await self.bot.mongo.fetch_next_idx(user),
-                }
+    #             p = {
+    #                 "owner_id": user.id,
+    #                 "owned_by": "user",
+    #                 "species_id": species.id,
+    #                 "level": level,
+    #                 "xp": 0,
+    #                 "nature": mongo.random_nature(),
+    #                 "iv_hp": ivs[0],
+    #                 "iv_atk": ivs[1],
+    #                 "iv_defn": ivs[2],
+    #                 "iv_satk": ivs[3],
+    #                 "iv_sdef": ivs[4],
+    #                 "iv_spd": ivs[5],
+    #                 "iv_total": sum(ivs),
+    #                 "shiny": shiny,
+    #                 "idx": await self.bot.mongo.fetch_next_idx(user),
+    #             }
 
-                await self.bot.mongo.update_member(user, {"$pull": {"spring_2023_eggs": {"_id": q["_id"]}}})
-                await self.bot.mongo.db.pokemon.insert_one(p)
+    #             await self.bot.mongo.update_member(user, {"$pull": {"spring_2023_eggs": {"_id": q["_id"]}}})
+    #             await self.bot.mongo.db.pokemon.insert_one(p)
 
-                with contextlib.suppress(discord.HTTPException):
-                    msg = f"Your egg {self.egg_emoji(q)} has hatched! You have received a **{self.bot.mongo.Pokemon.build_from_mongo(p):lni} ({sum(ivs) / 186:.2%} IV)**!"
-                    await user.send(msg)
+    #             with contextlib.suppress(discord.HTTPException):
+    #                 msg = f"Your egg {self.egg_emoji(q)} has hatched! You have received a **{self.bot.mongo.Pokemon.build_from_mongo(p):lni} ({sum(ivs) / 186:.2%} IV)**!"
+    #                 await user.send(msg)
 
-    @commands.Cog.listener()
-    async def on_market_buy(self, user, pokemon):
-        await self.on_quest_event(user, "market_buy", [self.bot.data.species_by_number(pokemon["species_id"])])
+    # @commands.Cog.listener()
+    # async def on_market_buy(self, user, pokemon):
+    #     await self.on_quest_event(user, "market_buy", [self.bot.data.species_by_number(pokemon["species_id"])])
 
-    @commands.Cog.listener()
-    async def on_market_add(self, user, pokemon):
-        await self.on_quest_event(user, "market_add", [self.bot.data.species_by_number(pokemon["species_id"])])
+    # @commands.Cog.listener()
+    # async def on_market_add(self, user, pokemon):
+    #     await self.on_quest_event(user, "market_add", [self.bot.data.species_by_number(pokemon["species_id"])])
 
-    @commands.Cog.listener()
-    async def on_trade(self, trade):
-        a, b = trade["users"]
-        await self.on_quest_event(a, "trade", [])
-        await self.on_quest_event(b, "trade", [])
+    # @commands.Cog.listener()
+    # async def on_trade(self, trade):
+    #     a, b = trade["users"]
+    #     await self.on_quest_event(a, "trade", [])
+    #     await self.on_quest_event(b, "trade", [])
 
-    @commands.Cog.listener()
-    async def on_battle_start(self, ba):
-        await self.on_quest_event(ba.trainers[0].user, "battle_start", [x.species for x in ba.trainers[0].pokemon])
-        await self.on_quest_event(ba.trainers[1].user, "battle_start", [x.species for x in ba.trainers[1].pokemon])
+    # @commands.Cog.listener()
+    # async def on_battle_start(self, ba):
+    #     await self.on_quest_event(ba.trainers[0].user, "battle_start", [x.species for x in ba.trainers[0].pokemon])
+    #     await self.on_quest_event(ba.trainers[1].user, "battle_start", [x.species for x in ba.trainers[1].pokemon])
 
-    @commands.Cog.listener()
-    async def on_battle_win(self, _battle, winner):
-        await self.on_quest_event(winner, "battle_win", [])
+    # @commands.Cog.listener()
+    # async def on_battle_win(self, _battle, winner):
+    #     await self.on_quest_event(winner, "battle_win", [])
 
-    @commands.Cog.listener()
-    async def on_evolve(self, user, pokemon, evo):
-        await self.on_quest_event(user, "evolve", [])
+    # @commands.Cog.listener()
+    # async def on_evolve(self, user, pokemon, evo):
+    #     await self.on_quest_event(user, "evolve", [])
 
-    @commands.Cog.listener()
-    async def on_release(self, user, count):
-        await self.on_quest_event(user, "release", [], count=count)
+    # @commands.Cog.listener()
+    # async def on_release(self, user, count):
+    #     await self.on_quest_event(user, "release", [], count=count)
 
-    @commands.Cog.listener()
-    async def on_make_bouquet(self, user, flowers, qty):
-        await self.on_quest_event(user, "make_bouquet", [], count=qty)
+    # @commands.Cog.listener()
+    # async def on_make_bouquet(self, user, flowers, qty):
+    #     await self.on_quest_event(user, "make_bouquet", [], count=qty)
 
 
 async def setup(bot: commands.Bot):
