@@ -1,6 +1,6 @@
 default = (
     "admin",
-    "auctions",
+    # "auctions",
     "battling",
     "bot",
     "config",
