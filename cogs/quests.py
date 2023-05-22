@@ -2,10 +2,11 @@ import math
 from collections import defaultdict
 
 from discord.ext import commands
-from helpers import checks
 from pymongo import ReturnDocument
 
-name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} region."
+from helpers import checks
+
+name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} `region`."
 
 CATCHING_TRACKS = {
     f"catch_region_{region}": {
@@ -16,7 +17,7 @@ CATCHING_TRACKS = {
         "rewards": [2000, 5000, 10000, 20000, 50000],
         "final_reward": region,
     }
-    for region in ("kanto", "johto", "hoenn", "sinnoh", "unova", "kalos", "alola", "galar")
+    for region in ("kanto", "johto", "hoenn", "sinnoh", "unova", "kalos", "alola", "galar", "paldea")
 }
 
 

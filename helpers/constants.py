@@ -123,6 +123,7 @@ STARTER_GENERATION = {
     "Generation VI (Kalos)": ("Chespin", "Fennekin", "Froakie"),
     "Generation VII (Alola)": ("Rowlet", "Litten", "Popplio"),
     "Generation VIII (Galar)": ("Grookey", "Scorbunny", "Sobble"),
+    "Generation IX (Paldea)": ("Sprigatito", "Fuecoco", "Quaxly"),
 }
 
 STARTER_POKEMON = [item.lower() for l in STARTER_GENERATION.values() for item in l]
