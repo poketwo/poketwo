@@ -320,6 +320,20 @@ class Member(Document):
     spring_2023_flower_eldegoss = fields.IntegerField(default=0)
     spring_2023_eggs = fields.ListField(fields.DictField(), default=list)
 
+    pride_2023_flag_pride = fields.IntegerField(default=0)
+    pride_2023_flag_nonbinary = fields.IntegerField(default=0)
+    pride_2023_flag_lesbian = fields.IntegerField(default=0)
+    pride_2023_flag_bisexual = fields.IntegerField(default=0)
+    pride_2023_flag_transgender = fields.IntegerField(default=0)
+    pride_2023_flag_gay = fields.IntegerField(default=0)
+    pride_2023_flag_pansexual = fields.IntegerField(default=0)
+    pride_2023_buddy = fields.ObjectIdField(default=None)
+    pride_2023_buddy_progress = fields.IntegerField(default=0)
+    pride_2023_quests = fields.DictField(
+        fields.StringField(), fields.ListField(fields.DictField(), default=list), default=dict
+    )
+    pride_2023_categories = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
+
     @property
     def selected_pokemon(self):
         try:
@@ -464,7 +478,6 @@ class Mongo(commands.Cog):
         return result["next_idx"]
 
     async def fetch_pokedex(self, member: discord.Member, start: int, end: int):
-
         filter_obj = {}
 
         for i in range(start, end):
@@ -523,7 +536,6 @@ class Mongo(commands.Cog):
         return result[0]["num_matches"]
 
     async def fetch_pokedex_count(self, member: discord.Member, aggregations=[]):
-
         result = await self.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
@@ -542,7 +554,6 @@ class Mongo(commands.Cog):
         return result[0]["result"]
 
     async def fetch_pokedex_sum(self, member: discord.Member, aggregations=[]):
-
         result = await self.db.member.aggregate(
             [
                 {"$match": {"_id": member.id}},
@@ -579,6 +590,8 @@ class Mongo(commands.Cog):
     async def fetch_pokemon(self, member: discord.Member, idx: int):
         if isinstance(idx, ObjectId):
             result = await self.db.pokemon.find_one({"_id": idx, "owned_by": "user"})
+            if result is not None and result["owner_id"] != member.id:
+                result = None
         elif idx == -1:
             result = await self.db.pokemon.aggregate(
                 [

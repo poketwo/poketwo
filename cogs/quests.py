@@ -6,7 +6,7 @@ from pymongo import ReturnDocument
 
 from helpers import checks
 
-name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} `region`."
+name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} region."
 
 CATCHING_TRACKS = {
     f"catch_region_{region}": {
@@ -99,7 +99,7 @@ class Quests(commands.Cog):
         return True
 
     @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
+    async def on_catch(self, ctx, species, _id):
         quests = await self.get_quests(ctx.author)
         incs = defaultdict(lambda: 0)
 

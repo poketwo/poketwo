@@ -57,7 +57,6 @@ class Spawning(commands.Cog):
 
             pokemon = await self.bot.mongo.fetch_pokemon(message.author, member.selected_id)
             if pokemon is not None and pokemon.held_item != 13002:
-
                 # TODO this stuff here needs to be refactored
 
                 if pokemon.level < 100 and pokemon.xp < pokemon.max_xp:
@@ -331,7 +330,7 @@ class Spawning(commands.Cog):
 
         ivs = [mongo.random_iv() for i in range(6)]
 
-        await self.bot.mongo.db.pokemon.insert_one(
+        r = await self.bot.mongo.db.pokemon.insert_one(
             {
                 "owner_id": ctx.author.id,
                 "owned_by": "user",
@@ -412,7 +411,7 @@ class Spawning(commands.Cog):
 
         await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
-        self.bot.dispatch("catch", ctx, species)
+        self.bot.dispatch("catch", ctx, species, r.inserted_id)
         ctx.log.info("pokemon_caught")
 
         if member.catch_mention:
