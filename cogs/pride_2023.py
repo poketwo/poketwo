@@ -48,7 +48,7 @@ POKEMON = {
 FESTIVAL_PERIOD_START = datetime(2023, 6, 1, 0, 0, 0, tzinfo=timezone.utc)
 FESTIVAL_PERIOD_START = datetime.now(timezone.utc)  # FOR DEBUG
 FESTIVAL_PERIOD_OFFSET = timedelta(hours=7)
-FESTIVAL_PERIOD_DURATION = timedelta(hours=0)
+FESTIVAL_PERIOD_DURATION = timedelta(hours=4)
 
 BASE_FLAG_DROP_CHANCE = 1 / 70  # * 7 different types
 FESTIVAL_MULTIPLIER = 5
@@ -278,7 +278,7 @@ class Pride(commands.Cog):
                 "Complete event quests to earn more flags!",
                 "You will receive a new set of quests every festival period.",
             ]
-            text = [
+            text += [
                 f"{x['description']} ({x['progress']}/{x['count']}) for {x['flag_count']}× {self.bot.sprites[flag]}"
                 for x in quests
             ]
