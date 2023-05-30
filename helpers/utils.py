@@ -1,7 +1,8 @@
 import io
-import discord
-
+import math
 from dataclasses import dataclass
+
+import discord
 
 
 @dataclass
@@ -40,3 +41,17 @@ def write_fp(data):
     arr.write(data)
     arr.seek(0)
     return arr
+
+
+def make_slider(bot, progress):
+    func = math.ceil if progress < 0.5 else math.floor
+    bars = min(func(progress * 10), 10)
+    first, last = bars > 0, bars == 10
+    mid = bars - (1 if last else 0) - (1 if first else 0)
+
+    ret = bot.sprites.slider_start_full if first else bot.sprites.slider_start_empty
+    ret += mid * bot.sprites.slider_mid_full
+    ret += (8 - mid) * bot.sprites.slider_mid_empty
+    ret += bot.sprites.slider_end_full if last else bot.sprites.slider_end_empty
+
+    return ret

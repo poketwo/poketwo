@@ -977,25 +977,27 @@ class Pokemon(commands.Cog):
         if search_or_page is None:
             search_or_page = "1"
 
+        total_count = sum(x.catchable and x.id < 10000 for x in self.bot.data.all_pokemon())
+
         if search_or_page.isdigit():
             pgstart = (int(search_or_page) - 1) * 20
 
-            if pgstart >= 905 or pgstart < 0:
+            if pgstart >= total_count or pgstart < 0:
                 return await ctx.send("There are no pokémon on this page.")
 
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
             do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
-            member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, 905 + 1)
+            member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, total_count + 1)
             pokedex = member.pokedex
 
             if not flags["uncaught"] and not flags["caught"]:
-                for i in range(1, 905 + 1):
+                for i in range(1, total_count + 1):
                     if str(i) not in pokedex:
                         pokedex[str(i)] = 0
             elif flags["uncaught"]:
-                for i in range(1, 905 + 1):
+                for i in range(1, total_count + 1):
                     if str(i) not in pokedex:
                         pokedex[str(i)] = 0
                     else:
@@ -1030,7 +1032,7 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(title=f"Your pokédex", description=f"You've caught {num} out of 905 pokémon!")
+                embed = self.bot.Embed(title=f"Your pokédex", description=f"You've caught {num} out of {total_count} pokémon!")
 
                 embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
@@ -1055,12 +1057,12 @@ class Pokemon(commands.Cog):
 
                     embed.add_field(name=f"{emoji}{species.name} #{species.id}", value=text)
 
-                if pgend != 905:
+                if pgend != total_count:
                     embed.add_field(name="‎", value="‎")
 
                 return embed
 
-            pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(905 / 20), get_page))
+            pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(total_count / 20), get_page))
             pages.current_page = int(search_or_page) - 1
             self.bot.menus[ctx.author.id] = pages
             await pages.start(ctx)

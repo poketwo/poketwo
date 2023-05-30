@@ -2,8 +2,9 @@ import math
 from collections import defaultdict
 
 from discord.ext import commands
-from helpers import checks
 from pymongo import ReturnDocument
+
+from helpers import checks
 
 name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} region."
 
@@ -16,7 +17,7 @@ CATCHING_TRACKS = {
         "rewards": [2000, 5000, 10000, 20000, 50000],
         "final_reward": region,
     }
-    for region in ("kanto", "johto", "hoenn", "sinnoh", "unova", "kalos", "alola", "galar")
+    for region in ("kanto", "johto", "hoenn", "sinnoh", "unova", "kalos", "alola", "galar", "paldea")
 }
 
 
@@ -98,7 +99,7 @@ class Quests(commands.Cog):
         return True
 
     @commands.Cog.listener()
-    async def on_catch(self, ctx, species):
+    async def on_catch(self, ctx, species, _id):
         quests = await self.get_quests(ctx.author)
         incs = defaultdict(lambda: 0)
 
