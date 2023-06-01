@@ -1,4 +1,5 @@
 import contextlib
+import math
 import random
 import uuid
 from collections import defaultdict
@@ -46,7 +47,6 @@ POKEMON = {
 
 
 FESTIVAL_PERIOD_START = datetime(2023, 6, 1, 0, 0, 0, tzinfo=timezone.utc)
-FESTIVAL_PERIOD_START = datetime.now(timezone.utc)  # FOR DEBUG
 FESTIVAL_PERIOD_OFFSET = timedelta(hours=7)
 FESTIVAL_PERIOD_DURATION = timedelta(hours=4)
 
@@ -57,7 +57,7 @@ FESTIVAL_MULTIPLIER = 5
 def make_catch_type_quest(type):
     return lambda: {
         "event": "catch",
-        "count": (count := random.randint(5, 10)),
+        "count": (count := random.randint(5, 15)),
         "condition": {"type": type},
         "flag_count": random.randint(15, 25),
         "description": f"Catch {count} {type}-type pokémon",
@@ -115,7 +115,7 @@ QUESTS = [
         "flag_count": random.randint(3, 5),
         "description": f"Evolve {count} pokémon",
     },
-] * 2
+]
 
 QUESTS += [
     make_catch_type_quest("Normal"),
@@ -151,7 +151,9 @@ class Pride(commands.Cog):
 
     @cached_property
     def base_pokemon(self):
-        return {self.bot.data.species_by_number(k).dex_number: k for k in self.event_pokemon}
+        base = {self.bot.data.species_by_number(k).dex_number: k for k in self.event_pokemon}
+        base[655] = 50107
+        return base
 
     def get_festival_status(self, dt=None):
         if dt is None:
@@ -208,7 +210,7 @@ class Pride(commands.Cog):
                 drops[f"flag_{cat}"] += 1
 
         if drops:
-            drop_msg = ", ".join(f"{v}× {self.bot.sprites[k]}" for k, v in drops.items())
+            drop_msg = ", ".join(f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}" for k, v in drops.items())
             await self.bot.mongo.update_member(ctx.author, {"$inc": {f"pride_2023_{k}": v for k, v in drops.items()}})
             await ctx.send(f"The Pokémon dropped {drop_msg}! Use `{ctx.clean_prefix}pride` to view more info.")
 
@@ -227,7 +229,7 @@ class Pride(commands.Cog):
 
         embed = self.bot.Embed(
             title=f"Set {species} as Pride Buddy?",
-            description=f"You can offer flags to your Pride Buddy to increase its pride level. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
+            description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
         )
         embed.set_image(url=pride_species.image_url)
 
@@ -239,13 +241,16 @@ class Pride(commands.Cog):
         else:
             await ctx.send(f"{species} was not set as your Pride Buddy.")
 
+        if species.id == 493:
+            await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
+
     @commands.group(invoke_without_command=True, case_insensitive=True, aliases=("event",))
     async def pride(self, ctx):
         """Pride Month 2023 event commands."""
 
         embed = self.bot.Embed(
             title="Pride Month 2023",
-            description="It's Pride Month, and Pokémon are celebrating too! Certain Pokémon have even been spotted in special pride forms. Participate in this festival for the chance to obtain limited-time Pride Pokémon, all while supporting the LGBTQ+ community!\n\n<insert fundraiser details?>",
+            description="It's Pride Month, and Pokémon are celebrating too! Certain Pokémon have even been spotted in special pride forms. Participate in this festival for the chance to obtain limited-time Pride Pokémon, all while supporting the LGBTQ+ community!\n\nPokétwo is donating 80% of all revenue collected during this Pride Month to [The Trevor Project](https://www.thetrevorproject.org/), a US-based suicide prevention organization for young LGBTQ people.",
         )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -259,13 +264,13 @@ class Pride(commands.Cog):
             pride_species = self.bot.data.species_by_number(self.base_pokemon[buddy.species_id])
             embed.add_field(
                 name=f"Pride Buddy: {buddy:li} — {member.pride_2023_buddy_progress}%",
-                value=f"Offer flags to {buddy.species} to increase its pride level. Once its pride level is high enough, it will transform into {pride_species}!\nUse `@Pokétwo pride buddy` for more details.",
+                value=f"Offer flags to {buddy.species} to increase its pride level and receive Pokécoins. Once its pride level is high enough, it will transform into {pride_species}!\nUse `@Pokétwo pride buddy` for more details.",
             )
             embed.set_thumbnail(url=buddy.species.image_url)
         else:
             embed.add_field(
                 name="Pride Buddy",
-                value="When catching Pokémon, you'll have the chance to set certain Pokémon as your Pride Buddy! Offer flags to your Pride Buddy to increase its pride level. Once its pride level is high enough, it will transform into a special Pride Pokémon!",
+                value="When catching Pokémon, you'll have the chance to set certain Pokémon as your Pride Buddy! Offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once its pride level is high enough, it will transform into a special Pride Pokémon!",
                 inline=False,
             )
 
@@ -279,7 +284,7 @@ class Pride(commands.Cog):
                 "You will receive a new set of quests every festival period.",
             ]
             text += [
-                f"{x['description']} ({x['progress']}/{x['count']}) for {x['flag_count']}× {self.bot.sprites[flag]}"
+                f"{x['flag_count']}× {self.bot.sprites[flag]}: {x['description']} ({x['progress']}/{x['count']})"
                 for x in quests
             ]
             embed.add_field(name="Event Quests", value="\n".join(text), inline=False)
@@ -311,7 +316,7 @@ class Pride(commands.Cog):
 
         embed = self.bot.Embed(
             title=f"Pride Buddy: {buddy:l}",
-            description=f"Use `@Pokétwo pride offer <flag> <qty>` to offer flags to {buddy.species} to increase its pride level. Once its pride level is high enough, it will transform into {pride_species}!\n",
+            description=f"Use `@Pokétwo pride offer <flag> <qty>` to offer flags to {buddy.species} to increase its pride level and receive Pokécoins. Once its pride level is high enough, it will transform into {pride_species}!\n",
         )
         embed.set_image(url=buddy.species.image_url)
         embed.add_field(
@@ -355,19 +360,20 @@ class Pride(commands.Cog):
             )
 
         if flag.removeprefix("flag_") == self.event_pokemon[pride_species.id]:
-            qty = min(qty, 25 - member.pride_2023_buddy_progress // 4)
-            limit = 4 * qty
-        else:
             qty = min(qty, 50 - member.pride_2023_buddy_progress // 2)
             limit = 2 * qty
+        else:
+            qty = min(qty, 100 - member.pride_2023_buddy_progress)
+            limit = qty
 
         success = random.random() < self.calculate_probability(member.pride_2023_buddy_progress, limit)
+        pc = round(random.normalvariate(600 * limit, 200 * math.sqrt(limit)))
 
         if success:
             await self.bot.mongo.update_member(
                 ctx.author,
                 {
-                    "$inc": {f"pride_2023_{flag}": -qty},
+                    "$inc": {f"pride_2023_{flag}": -qty, "balance": pc},
                     "$set": {
                         "pride_2023_buddy": None,
                         "pride_2023_buddy_progress": 0,
@@ -381,14 +387,16 @@ class Pride(commands.Cog):
                 description=f"{buddy.species} (No. {buddy.idx}) transformed into {pride_species}!",
             )
             embed.set_image(url=pride_species.image_url)
-            await ctx.send(f"You offered {qty} {FLAG_NAMES[flag]} to {buddy.species}.", embed=embed)
+            await ctx.send(
+                f"You offered {qty} {FLAG_NAMES[flag]} to {buddy.species}. You received {pc} Pokécoins!", embed=embed
+            )
         else:
             await self.bot.mongo.update_member(
                 ctx.author,
-                {"$inc": {f"pride_2023_{flag}": -qty, "pride_2023_buddy_progress": limit}},
+                {"$inc": {f"pride_2023_{flag}": -qty, "pride_2023_buddy_progress": limit, "balance": pc}},
             )
             await ctx.send(
-                f"You offered {qty} {FLAG_NAMES[flag]} to {buddy.species}! {buddy.species}'s Pride Level is now at {member.pride_2023_buddy_progress + limit}%."
+                f"You offered {qty} {FLAG_NAMES[flag]} to {buddy.species}! {buddy.species}'s Pride Level is now at {member.pride_2023_buddy_progress + limit}%. You received {pc} Pokécoins!"
             )
 
     def verify_condition(self, condition, species, to=None):
