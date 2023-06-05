@@ -446,7 +446,7 @@ class Pride(commands.Cog):
                 continue
 
             if len(to_verify) == 0 or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
-                self.bot.mongo.db.member.update_one(
+                await self.bot.mongo.db.member.update_one(
                     {"_id": user.id, f"pride_2023_quests.{period}._id": q["_id"]},
                     {"$inc": {f"pride_2023_quests.{period}.$.progress": count}},
                 )
