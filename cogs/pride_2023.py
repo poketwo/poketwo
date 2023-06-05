@@ -225,17 +225,17 @@ class Pride(commands.Cog):
         pride_species = self.bot.data.species_by_number(pride_species)
 
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
-        title = f"Set {pokemon:lp} as Pride Buddy?"
-        if current := await self.fetch_pride_buddy(ctx.author):
-            title += f" This will override your current pride buddy {current}."
-
         embed = self.bot.Embed(
-            title=title,
+            title=f"Set {pokemon:lp} as Pride Buddy?",
             description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
         )
         embed.set_image(url=pride_species.image_url)
 
         if await ctx.confirm(embed=embed, cls=ConfirmationYesNoView):
+            if (current := await self.fetch_pride_buddy(ctx.author)):
+                if not await ctx.confirm(f"This will override your current **{current:lp}** pride buddy. Continue?", cls=ConfirmationYesNoView):
+                    return await ctx.send(f"{species} was not set as your Pride Buddy.")
+
             await self.bot.mongo.update_member(
                 ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
             )
