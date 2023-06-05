@@ -224,7 +224,8 @@ class Pride(commands.Cog):
         pride_species = self.base_pokemon[species.id]
         pride_species = self.bot.data.species_by_number(pride_species)
 
-        title = f"Set {species:lp} as Pride Buddy?"
+        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
+        title = f"Set {pokemon:lp} as Pride Buddy?"
         if current := await self.fetch_pride_buddy(ctx.author):
             title += f" This will override your current pride buddy {current}."
 
