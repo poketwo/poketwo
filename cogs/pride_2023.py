@@ -226,9 +226,10 @@ class Pride(commands.Cog):
 
         if await self.fetch_pride_buddy(ctx.author):
             return
-
+        
+        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
         embed = self.bot.Embed(
-            title=f"Set {species:lp} as Pride Buddy?",
+            title=f"Set {pokemon:lp} as Pride Buddy?",
             description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
         )
         embed.set_image(url=pride_species.image_url)
