@@ -344,13 +344,19 @@ class Pride(commands.Cog):
         b = (start + inc) / 100
         return (b**4 - a**4) / (1 - a**4)
 
-    @pride.command()
-    async def offer(self, ctx, flag, qty: int = 1):
+    @pride.command(usage="<flag> [qty=1]")
+    async def offer(self, ctx, *args):
         """Offer flags to your Pride Buddy."""
+        if args[-1].isdigit():
+            qty = int(args.pop(-1))
+        else:
+            qty = 1
 
-        try:
-            flag = FLAG_BY_SHORTCUT[flag.casefold().replace("flag", "").replace("pride", "").strip()]
-        except KeyError:
+        for word in args:
+            if word in FLAG_BY_SHORTCUT:
+                flag = FLAG_BY_SHORTCUT[word]
+                break
+        else:
             return await ctx.send(f"Invalid flag. Valid flags are: {', '.join(FLAG_NAMES.values())}")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
