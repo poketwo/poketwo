@@ -228,7 +228,7 @@ class Pride(commands.Cog):
             return
 
         embed = self.bot.Embed(
-            title=f"Set `{species:lp}` as Pride Buddy?",
+            title=f"Set {species:lp} as Pride Buddy?",
             description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
         )
         embed.set_image(url=pride_species.image_url)
