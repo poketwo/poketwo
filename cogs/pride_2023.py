@@ -224,12 +224,12 @@ class Pride(commands.Cog):
         pride_species = self.base_pokemon[species.id]
         pride_species = self.bot.data.species_by_number(pride_species)
 
-        if await self.fetch_pride_buddy(ctx.author):
-            return
-        
-        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
+        title = f"Set {species:lp} as Pride Buddy?"
+        if current := await self.fetch_pride_buddy(ctx.author):
+            title += f" This will override your current pride buddy {current}."
+
         embed = self.bot.Embed(
-            title=f"Set {pokemon:lp} as Pride Buddy?",
+            title=title,
             description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
         )
         embed.set_image(url=pride_species.image_url)
@@ -400,7 +400,9 @@ class Pride(commands.Cog):
             progress[category] = True
 
             if all(progress.values()):
-                await ctx.author.send("You have collected atleast one Pokémon of each pride flag and now have a one-time eligibility to make an Arceus your pride buddy!")
+                await ctx.author.send(
+                    "You have collected atleast one Pokémon of each pride flag and now have a one-time eligibility to make an Arceus your pride buddy!"
+                )
 
         else:
             await self.bot.mongo.update_member(
