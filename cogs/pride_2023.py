@@ -239,11 +239,11 @@ class Pride(commands.Cog):
                 ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
             )
             await ctx.send(f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info.")
+
+            if species.id == 493:
+                await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
         else:
             await ctx.send(f"{species} was not set as your Pride Buddy.")
-
-        if species.id == 493:
-            await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
 
     @commands.group(invoke_without_command=True, case_insensitive=True, aliases=("event",))
     async def pride(self, ctx):
