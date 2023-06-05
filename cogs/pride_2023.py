@@ -232,8 +232,11 @@ class Pride(commands.Cog):
         embed.set_image(url=pride_species.image_url)
 
         if await ctx.confirm(embed=embed, cls=ConfirmationYesNoView):
-            if (current := await self.fetch_pride_buddy(ctx.author)):
-                if not await ctx.confirm(f"This will override your current **{current:lp}** pride buddy. Continue?", cls=ConfirmationYesNoView):
+            if current := await self.fetch_pride_buddy(ctx.author):
+                if not await ctx.confirm(
+                    f"This will override your current **{current:lp}** pride buddy. Continue?",
+                    cls=ConfirmationYesNoView,
+                ):
                     return await ctx.send(f"{species} was not set as your Pride Buddy.")
 
             await self.bot.mongo.update_member(
@@ -346,21 +349,17 @@ class Pride(commands.Cog):
         return (b**4 - a**4) / (1 - a**4)
 
     @pride.command(usage="<flag> [qty=1]")
-    async def offer(self, ctx, args: str = ""):
+    async def offer(self, ctx, *args):
         """Offer flags to your Pride Buddy."""
-        split = args.split(" ")
 
         qty = 1
-        if len(split) > 1:
-            if split[-1].isdigit():
-                qty = int(split.pop(-1))
+        if len(args) > 1 and args[-1].isdigit():
+            qty = int(args[-1])
+            args = args[:-1]
 
-        for word in split:
-            word = word.casefold()
-            if word in FLAG_BY_SHORTCUT:
-                flag = FLAG_BY_SHORTCUT[word]
-                break
-        else:
+        try:
+            flag = FLAG_BY_SHORTCUT[" ".join(args).casefold().replace("flag", "").replace("pride", "").strip()]
+        except KeyError:
             return await ctx.send(f"Invalid flag. Valid flags are: {', '.join(FLAG_NAMES.values())}")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
