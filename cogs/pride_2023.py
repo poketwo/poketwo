@@ -238,6 +238,9 @@ class Pride(commands.Cog):
             await self.bot.mongo.update_member(
                 ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
             )
+            # Give the pokemon an everstone and favourite it, to prevent bug caused by evolution and prevent accidental release
+            await self.bot.mongo.update_pokemon(pokemon_id, {"$set": {"held_item": 13001, "favorite": True}})
+
             msg = f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info."
             if species.id == 493:
                 await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
