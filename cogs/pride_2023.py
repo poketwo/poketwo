@@ -238,10 +238,12 @@ class Pride(commands.Cog):
             await self.bot.mongo.update_member(
                 ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
             )
-            await ctx.send(f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info.")
-
+            msg = f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info."
             if species.id == 493:
                 await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
+                msg = f"{species} has been set as your Pride Buddy! Reset {species} eligibility. Use `@Pokétwo pride buddy` to view more info."
+
+            await ctx.send(msg)
         else:
             await ctx.send(f"{species} was not set as your Pride Buddy.")
 
@@ -354,13 +356,14 @@ class Pride(commands.Cog):
             await ctx.send("You don't have a Pride Buddy set. Try catching some Pokémon!")
             return
         pride_species = self.bot.data.species_by_number(self.base_pokemon[buddy.species_id])
+        category = self.event_pokemon[pride_species.id]
 
         if member[f"pride_2023_{flag}"] < qty:
             return await ctx.send(
                 f"You don't have enough {FLAG_NAMES[flag]}s to offer. Try catching some more Pokémon, or completing event quests!"
             )
 
-        if flag.removeprefix("flag_") == self.event_pokemon[pride_species.id]:
+        if flag.removeprefix("flag_") == category:
             qty = min(qty, 50 - member.pride_2023_buddy_progress // 2)
             limit = 2 * qty
         else:
@@ -378,7 +381,7 @@ class Pride(commands.Cog):
                     "$set": {
                         "pride_2023_buddy": None,
                         "pride_2023_buddy_progress": 0,
-                        f"pride_2023_categories.{self.event_pokemon[pride_species.id]}": True,
+                        f"pride_2023_categories.{category}": True,
                     },
                 },
             )
@@ -391,6 +394,14 @@ class Pride(commands.Cog):
             await ctx.send(
                 f"You offered {qty} {FLAG_NAMES[flag]} to {buddy.species}. You received {pc} Pokécoins!", embed=embed
             )
+
+            # This is to avoid fetching member again
+            progress = {x: member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES}
+            progress[category] = True
+
+            if all(progress.values()):
+                await ctx.author.send("You have collected atleast one Pokémon of each pride flag and now have a one-time eligibility to make an Arceus your pride buddy!")
+
         else:
             await self.bot.mongo.update_member(
                 ctx.author,
