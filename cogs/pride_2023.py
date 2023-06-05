@@ -346,14 +346,17 @@ class Pride(commands.Cog):
         return (b**4 - a**4) / (1 - a**4)
 
     @pride.command(usage="<flag> [qty=1]")
-    async def offer(self, ctx, *args):
+    async def offer(self, ctx, args: str = ""):
         """Offer flags to your Pride Buddy."""
-        if args[-1].isdigit():
-            qty = int(args.pop(-1))
-        else:
-            qty = 1
+        split = args.split(" ")
 
-        for word in args:
+        qty = 1
+        if len(split) > 1:
+            if split[-1].isdigit():
+                qty = int(split.pop(-1))
+
+        for word in split:
+            word = word.casefold()
             if word in FLAG_BY_SHORTCUT:
                 flag = FLAG_BY_SHORTCUT[word]
                 break
