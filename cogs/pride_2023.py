@@ -269,7 +269,7 @@ class Pride(commands.Cog):
         if buddy := await self.fetch_pride_buddy(ctx.author):
             pride_species = self.bot.data.species_by_number(self.base_pokemon[buddy.species_id])
             embed.add_field(
-                name=f"Pride Buddy: {buddy:li} — {member.pride_2023_buddy_progress}%",
+                name=f"Pride Buddy: {buddy:lpi} — {member.pride_2023_buddy_progress}%",
                 value=f"Offer flags to {buddy.species} to increase its pride level and receive Pokécoins. Once its pride level is high enough, it will transform into {pride_species}!\nUse `@Pokétwo pride buddy` for more details.",
             )
             embed.set_thumbnail(url=buddy.species.image_url)
@@ -321,7 +321,7 @@ class Pride(commands.Cog):
         preferred_flag = f"flag_{self.event_pokemon[pride_species.id]}"
 
         embed = self.bot.Embed(
-            title=f"Pride Buddy: {buddy:l}",
+            title=f"Pride Buddy: {buddy:lp}",
             description=f"Use `@Pokétwo pride offer <flag> <qty>` to offer flags to {buddy.species} to increase its pride level and receive Pokécoins. Once its pride level is high enough, it will transform into {pride_species}!\n",
         )
         embed.set_image(url=buddy.species.image_url)
