@@ -239,6 +239,10 @@ class Pride(commands.Cog):
                 ):
                     return await ctx.send(f"{species} was not set as your Pride Buddy.")
 
+            member = await self.bot.mongo.fetch_member_info(ctx.author)
+            if species.id == 493 and not all(member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES):
+                return await ctx.send(f"You are not eligible to make {species} your pride buddy.")
+
             await self.bot.mongo.update_member(
                 ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
             )
