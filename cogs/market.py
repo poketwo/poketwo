@@ -155,7 +155,7 @@ class Market(commands.Cog):
         if counter is None:
             counter = {"next": 0}
 
-        pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
+        pokemon_dict = await self.bot.mongo.db.pokemon.find_one_and_update(
             {"_id": pokemon.id},
             {
                 "$set": {
@@ -165,7 +165,7 @@ class Market(commands.Cog):
             },
         )
 
-        self.bot.dispatch("market_add", ctx.author, pokemon)
+        self.bot.dispatch("market_add", ctx.author, pokemon_dict)
 
         await ctx.send(
             f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
