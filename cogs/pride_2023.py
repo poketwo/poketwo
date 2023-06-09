@@ -270,9 +270,9 @@ class Pride(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         inventory = {f"flag_{cat}": member[f"pride_2023_flag_{cat}"] for cat in PRIDE_CATEGORIES}
         inventory_text = [
-            "Look out for flag drops from catching Pokémon. During festival hours, flags will drop more frequently! You can also obtain flags from completing event quests.",
+            "Look out for flag drops from catching Pokémon. During festival hours, flags will drop more frequently! You can also obtain flags from completing event quests.\n'✅' indicates progress towards Arceus.",
         ]
-        inventory_text += [f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}" for k, v in inventory.items()]
+        inventory_text += [f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}{' ✅' if member.pride_2023_categories.get(k.removeprefix('flag_')) else ''}" for k, v in inventory.items()]
 
         if buddy := await self.fetch_pride_buddy(ctx.author):
             pride_species = self.bot.data.species_by_number(self.base_pokemon[buddy.species_id])
