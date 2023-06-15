@@ -1153,6 +1153,8 @@ class Pokemon(commands.Cog):
     async def evolve(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
         """Evolve a pokémon if it has reached the target level."""
 
+        args = list({p.id: p for p in args}.values())  # Remove duplicates based on id
+
         if len(args) == 0:
             args.append(await converters.PokemonConverter().convert(ctx, ""))
 
