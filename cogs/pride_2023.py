@@ -272,7 +272,10 @@ class Pride(commands.Cog):
         inventory_text = [
             "Look out for flag drops from catching Pokémon. During festival hours, flags will drop more frequently! You can also obtain flags from completing event quests.\n'✅' indicates progress towards Arceus.",
         ]
-        inventory_text += [f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}{' ✅' if member.pride_2023_categories.get(k.removeprefix('flag_')) else ''}" for k, v in inventory.items()]
+        inventory_text += [
+            f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}{' ✅' if member.pride_2023_categories.get(k.removeprefix('flag_')) else ''}"
+            for k, v in inventory.items()
+        ]
 
         if buddy := await self.fetch_pride_buddy(ctx.author):
             pride_species = self.bot.data.species_by_number(self.base_pokemon[buddy.species_id])
@@ -387,7 +390,7 @@ class Pride(commands.Cog):
             limit = qty
 
         success = random.random() < self.calculate_probability(member.pride_2023_buddy_progress, limit)
-        pc = round(random.normalvariate(600 * limit, 200 * math.sqrt(limit)))
+        pc = max(round(random.normalvariate(600 * limit, 200 * math.sqrt(limit))), 0)
 
         if success:
             await self.bot.mongo.update_member(
