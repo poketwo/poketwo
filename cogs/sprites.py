@@ -2145,6 +2145,7 @@ other = {
     "badge_kalos": 848495108584112129,
     "badge_alola": 848495109016256513,
     "badge_galar": 848495109016256512,
+    "badge_paldea": 1123160023065960478,
     "badge_halloween_2021": 903483536865103912,
     "badge_msf_fundraiser": 913375126802821120,
     "badge_christmas_2021": 924126408693907507,
