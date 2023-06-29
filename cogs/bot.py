@@ -384,8 +384,8 @@ class Bot(commands.Cog):
         """View the starter pokémon."""
 
         embed = self.bot.Embed(
-            title="Welcome to the world of Pokémon!",
-            description=f"To start, choose one of the starter pokémon using the `{ctx.clean_prefix}pick <pokemon>` command. ",
+            title=ctx._("start-embed.title"),
+            description=ctx._("start-embed.description"),
         )
 
         for gen, pokemon in constants.STARTER_GENERATION.items():

@@ -16,4 +16,5 @@ default = (
     "sprites",
     "trading",
     "pride_2023",
+    "lang",
 )

@@ -160,6 +160,10 @@ class ClusterBot(commands.AutoShardedBot):
         return self.get_cog("Data").instance
 
     @property
+    def lang(self):
+        return self.get_cog("Lang").fluent
+
+    @property
     def sprites(self):
         return self.get_cog("Sprites")
 
