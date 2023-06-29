@@ -1,8 +1,16 @@
+__all__ = ("Lang", "setup")
+
 from typing import Any, cast
 
 from discord.ext import commands
 from fluent.runtime import FluentResourceLoader, FluentLocalization
 import structlog
+
+# The listing of all Fluent localization files to load.
+FLUENT_FILES = (
+    "main.ftl",
+    "help.ftl",
+)
 
 
 class Fluent(FluentLocalization):
@@ -55,7 +63,9 @@ class Lang(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self._fluent_loader = FluentResourceLoader(bot.config.LANG_ROOT)
-        self.fluent = Fluent(["en-US"], ["main.ftl"], self._fluent_loader, functions={"COMMAND": self._fluent_command})
+        self.fluent = Fluent(
+            ["en-US"], list(FLUENT_FILES), self._fluent_loader, functions={"COMMAND": self._fluent_command}
+        )
         self._last_known_prefix: str | None = "@Pokétwo "
 
 
