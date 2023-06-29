@@ -3,6 +3,7 @@ import logging
 import aiohttp
 import discord
 import structlog
+import typing
 import uvloop
 from aioredis_lock import LockTimeoutError, RedisLock
 from discord.ext import commands
@@ -168,6 +169,12 @@ class ClusterBot(commands.AutoShardedBot):
         return self.get_cog("Sprites")
 
     # Other stuff
+
+    def _(self, message_id: str, **kwargs: dict[str, typing.Any] | None) -> str:
+        """Formats a localization string from a message ID."""
+        # python-fluent expects a dict, but we accept message variables as
+        # keyword arguments since it's more ergonomic.
+        return self.lang.format_value(message_id, kwargs)
 
     async def send_dm(self, user, *args, **kwargs):
         if not isinstance(user, discord.abc.Snowflake):
