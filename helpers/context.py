@@ -144,8 +144,10 @@ class PoketwoContext(commands.Context):
             command_kwargs=self.kwargs,
         )
 
-    def _(self, message_id: str, args: dict[str, typing.Any] | None = None) -> str:
-        """Formats a localization string from a message ID."""
+    def _(self, message_id: str, **kwargs: dict[str, typing.Any] | None) -> str:
+        """Formats a localization string from a message while setting the last
+        known prefix value.
+        """
         # HACK: Reach into the Lang cog and update its last known prefix value,
         # so Fluent localizations that use the `COMMAND` function format
         # correctly.
@@ -154,7 +156,7 @@ class PoketwoContext(commands.Context):
         # parameterized with solely literals; that prevents us from passing it
         # the usual way.
         self.bot.get_cog("Lang")._last_known_prefix = self.clean_prefix
-        return self.bot.lang.format_value(message_id, args)
+        return self.bot._(message_id, **kwargs)
 
     async def confirm(
         self, message=None, *, file=None, embed=None, timeout=40, delete_after=False, cls=ConfirmationView
