@@ -25,6 +25,7 @@ expiringdict = "^1.2.1"
 structlog = "^22.3.0"
 python-json-logger = "^2.0.4"
 "discord.py" = { git = "https://github.com/poketwo/discord.py.git" }
+fluent-runtime = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.12.0"
