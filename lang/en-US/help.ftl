@@ -1,9 +1,9 @@
 ### Localization for the help command, and commands in general
 
-## Localizations for commands.
+## Localizations for commands and cogs.
 
 # Note: Currently unused because of a current technical limitation.
-command-help =
+command-help-help =
   .help = Show help about the bot, a command, or a category.
 
 ## Localization for help command-specific functionality.

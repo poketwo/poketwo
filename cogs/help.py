@@ -6,12 +6,50 @@ from helpers import flags, pagination
 
 
 class CustomHelpCommand(commands.HelpCommand):
-    def __init__(self):
-        super().__init__(command_attrs={"help": "Show help about the bot, a command, or a category."})
-
     async def on_help_command_error(self, ctx, error):
         if isinstance(error, commands.CommandInvokeError):
             await ctx.send(str(error.original))
+
+    def resolve_command_help(self, command: commands.Command) -> str:
+        """Resolve a command's help message using Fluent, falling back to the
+        command's docstring."""
+        resolved_help = command.help
+
+        kebab_command_name = command.qualified_name.replace(" ", "-")
+        message_id = f"command-{kebab_command_name}-help.help"
+        try:
+            resolved_help = self.context._(message_id)
+        except KeyError:
+            self.context.bot.log.warn(
+                "command is missing a help string in Fluent", command=command.qualified_name, message_id=message_id
+            )
+
+        if resolved_help:
+            if command.description:
+                resolved_help = command.description + "\n\n" + resolved_help
+        else:
+            resolved_help = self.context._("help-not-found")
+
+        return resolved_help
+
+    def resolve_cog_description(self, cog: commands.Cog) -> str:
+        """Resolve a cog's description using Fluent, falling back to the cog's
+        docstring."""
+        description = cog.description
+
+        try:
+            # Replacing spaces with dashes might be useless here since all of
+            # Pokétwo's cogs have single-word names, but we'll do it anyways just
+            # in case.
+            message_id = f'cog-{cog.qualified_name.lower().replace(" ", "-")}-help.description'
+            description = self.context._(message_id)
+        except KeyError:
+            self.context.bot.log.warn("cog is missing a description string in Fluent", cog=cog.qualified_name)
+
+        if not description:
+            description = self.context._("categories-no-description")
+
+        return description
 
     def make_page_embed(self, commands, title, description=None):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
@@ -30,7 +68,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             embed.add_field(
                 name=signature,
-                value=command.help or self.context._("help-not-found"),
+                value=self.resolve_command_help(command),
                 inline=False,
             )
 
@@ -42,10 +80,12 @@ class CustomHelpCommand(commands.HelpCommand):
         counter = 0
         for cog in cogs:
             cog, description, command_list = cog
-            normalized_description = description or self.context._("categories-no-description")
 
             command_list = "".join(f"`{command.qualified_name}` " for command in command_list)
-            embed_description = f"{normalized_description}\n{command_list}"
+            if cog is None:
+                embed_description = command_list
+            else:
+                embed_description = f"{self.resolve_cog_description(cog)}\n{command_list}"
             embed.add_field(name=cog.qualified_name, value=embed_description, inline=False)
             counter += 1
 
@@ -73,7 +113,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             total += len(commands)
             cog = bot.get_cog(cog_name)
-            description = (cog and cog.description) if (cog and cog.description) is not None else None
+            description = cog is not None and self.resolve_cog_description(cog) or None
             embed_pages.append((cog, description, commands))
 
         async def get_page(source, menu, pidx):
@@ -123,9 +163,7 @@ class CustomHelpCommand(commands.HelpCommand):
         embed = self.make_page_embed(
             [group, *filtered],
             title=group.qualified_name,
-            description=f"{group.description}\n\n{group.help}"
-            if group.description
-            else group.help or ctx._("help-not-found"),
+            description=self.resolve_command_help(group),
         )
 
         await ctx.send(embed=embed)
@@ -133,10 +171,8 @@ class CustomHelpCommand(commands.HelpCommand):
     async def send_command_help(self, command):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=f"{self.context.clean_prefix}{command.qualified_name}")
 
-        if command.description:
-            embed.description = f"{command.description}\n\n{command.help}"
-        else:
-            embed.description = command.help or self.context._("help-not-found")
+        help = self.resolve_command_help(command)
+        embed.description = help
 
         embed.add_field(name=self.context._("command-embed-signature"), value=self.get_command_signature(command))
 
