@@ -53,6 +53,20 @@ class CustomHelpCommand(commands.HelpCommand):
 
         return description
 
+    def resolve_cog_name(self, cog: commands.Cog) -> str:
+        """Resolve a cog's name using Fluent, falling back to the cog's
+        qualified name.
+        """
+        name = cog.qualified_name
+
+        try:
+            message_id = f'cog-{cog.qualified_name.lower().replace(" ", "-")}-help.name'
+            name = self.context._(message_id)
+        except KeyError:
+            pass
+
+        return name
+
     def make_page_embed(self, commands, title, description=None):
         embed = self.context.bot.Embed(color=0xFE9AC9, title=title, description=description)
         embed.set_footer(text=self.context._("help-command-command-cta"))
@@ -88,7 +102,7 @@ class CustomHelpCommand(commands.HelpCommand):
                 embed_description = command_list
             else:
                 embed_description = f"{self.resolve_cog_description(cog)}\n{command_list}"
-            embed.add_field(name=cog.qualified_name, value=embed_description, inline=False)
+            embed.add_field(name=self.resolve_cog_name(cog), value=embed_description, inline=False)
             counter += 1
 
         return embed
@@ -142,10 +156,10 @@ class CustomHelpCommand(commands.HelpCommand):
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
 
-        qualified_name = cog and cog.qualified_name or ctx._("cog-fallback-name")
+        cog_name = cog and self.resolve_cog_name(cog) or ctx._("cog-fallback-name")
         embed = self.make_page_embed(
             filtered,
-            title=ctx._("cog-embed.title", cog=qualified_name),
+            title=ctx._("cog-embed.title", cog=cog_name),
             description=None if cog is None else cog.description,
         )
 
