@@ -12,7 +12,8 @@ class CustomHelpCommand(commands.HelpCommand):
 
     def resolve_command_help(self, command: commands.Command) -> str:
         """Resolve a command's help message using Fluent, falling back to the
-        command's docstring."""
+        command's docstring.
+        """
         resolved_help = command.help
 
         kebab_command_name = command.qualified_name.replace(" ", "-")
@@ -34,7 +35,8 @@ class CustomHelpCommand(commands.HelpCommand):
 
     def resolve_cog_description(self, cog: commands.Cog) -> str:
         """Resolve a cog's description using Fluent, falling back to the cog's
-        docstring."""
+        docstring.
+        """
         description = cog.description
 
         try:
