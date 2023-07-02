@@ -156,6 +156,7 @@ class Pride(commands.Cog):
         return base
 
     def get_festival_status(self, dt=None):
+        return ["none", 0, None, None]
         if dt is None:
             dt = datetime.now(timezone.utc)
         if dt < FESTIVAL_PERIOD_START:
@@ -197,66 +198,66 @@ class Pride(commands.Cog):
                     await self.bot.mongo.update_member(member, {"$set": {f"pride_2023_quests.{period}": quests}})
                 return quests
 
-    @commands.Cog.listener(name="on_catch")
-    async def process_flag_drops(self, ctx, species, _id):
-        drops = defaultdict(int)
+    # @commands.Cog.listener(name="on_catch")
+    # async def process_flag_drops(self, ctx, species, _id):
+    #     drops = defaultdict(int)
 
-        for cat in PRIDE_CATEGORIES:
-            chance = BASE_FLAG_DROP_CHANCE
-            if self.get_festival_category() == cat:
-                chance *= FESTIVAL_MULTIPLIER
+    #     for cat in PRIDE_CATEGORIES:
+    #         chance = BASE_FLAG_DROP_CHANCE
+    #         if self.get_festival_category() == cat:
+    #             chance *= FESTIVAL_MULTIPLIER
 
-            if random.random() < chance:
-                drops[f"flag_{cat}"] += 1
+    #         if random.random() < chance:
+    #             drops[f"flag_{cat}"] += 1
 
-        if drops:
-            drop_msg = ", ".join(f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}" for k, v in drops.items())
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {f"pride_2023_{k}": v for k, v in drops.items()}})
-            await ctx.send(f"The Pokémon dropped {drop_msg}! Use `{ctx.clean_prefix}pride` to view more info.")
+    #     if drops:
+    #         drop_msg = ", ".join(f"{v}× {self.bot.sprites[k]} {FLAG_NAMES[k]}" for k, v in drops.items())
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {f"pride_2023_{k}": v for k, v in drops.items()}})
+    #         await ctx.send(f"The Pokémon dropped {drop_msg}! Use `{ctx.clean_prefix}pride` to view more info.")
 
-    @commands.Cog.listener(name="on_catch")
-    async def process_befriend(self, ctx, species, pokemon_id):
-        if species.id not in self.base_pokemon:
-            return
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if species.id == 493 and not all(member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES):
-            return
-        pride_species = self.base_pokemon[species.id]
-        pride_species = self.bot.data.species_by_number(pride_species)
+    # @commands.Cog.listener(name="on_catch")
+    # async def process_befriend(self, ctx, species, pokemon_id):
+    #     if species.id not in self.base_pokemon:
+    #         return
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     if species.id == 493 and not all(member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES):
+    #         return
+    #     pride_species = self.base_pokemon[species.id]
+    #     pride_species = self.bot.data.species_by_number(pride_species)
 
-        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
-        embed = self.bot.Embed(
-            title=f"Set {pokemon:lp} as Pride Buddy?",
-            description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
-        )
-        embed.set_image(url=pride_species.image_url)
+    #     pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, pokemon_id)
+    #     embed = self.bot.Embed(
+    #         title=f"Set {pokemon:lp} as Pride Buddy?",
+    #         description=f"You can offer flags to your Pride Buddy to increase its pride level and receive Pokécoins. Once {species}'s pride level is high enough, it will transform into {pride_species}!\n\nUse `@Pokétwo pride` to view more info.",
+    #     )
+    #     embed.set_image(url=pride_species.image_url)
 
-        if await ctx.confirm(embed=embed, cls=ConfirmationYesNoView):
-            if current := await self.fetch_pride_buddy(ctx.author):
-                if not await ctx.confirm(
-                    f"This will override your current **{current:lp}** pride buddy. Continue?",
-                    cls=ConfirmationYesNoView,
-                ):
-                    return await ctx.send(f"{species} was not set as your Pride Buddy.")
+    #     if await ctx.confirm(embed=embed, cls=ConfirmationYesNoView):
+    #         if current := await self.fetch_pride_buddy(ctx.author):
+    #             if not await ctx.confirm(
+    #                 f"This will override your current **{current:lp}** pride buddy. Continue?",
+    #                 cls=ConfirmationYesNoView,
+    #             ):
+    #                 return await ctx.send(f"{species} was not set as your Pride Buddy.")
 
-            member = await self.bot.mongo.fetch_member_info(ctx.author)
-            if species.id == 493 and not all(member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES):
-                return await ctx.send(f"You are not eligible to make {species} your pride buddy.")
+    #         member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #         if species.id == 493 and not all(member.pride_2023_categories.get(x) for x in PRIDE_CATEGORIES):
+    #             return await ctx.send(f"You are not eligible to make {species} your pride buddy.")
 
-            await self.bot.mongo.update_member(
-                ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
-            )
-            # Give the pokemon an everstone and favourite it, to prevent bug caused by evolution and prevent accidental release
-            await self.bot.mongo.update_pokemon(pokemon_id, {"$set": {"held_item": 13001, "favorite": True}})
+    #         await self.bot.mongo.update_member(
+    #             ctx.author, {"$set": {"pride_2023_buddy": pokemon_id, "pride_2023_buddy_progress": 0}}
+    #         )
+    #         # Give the pokemon an everstone and favourite it, to prevent bug caused by evolution and prevent accidental release
+    #         await self.bot.mongo.update_pokemon(pokemon_id, {"$set": {"held_item": 13001, "favorite": True}})
 
-            msg = f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info."
-            if species.id == 493:
-                await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
-                msg = f"{species} has been set as your Pride Buddy! Reset {species} eligibility. Use `@Pokétwo pride buddy` to view more info."
+    #         msg = f"{species} has been set as your Pride Buddy! Use `@Pokétwo pride buddy` to view more info."
+    #         if species.id == 493:
+    #             await self.bot.mongo.update_member(ctx.author, {"$unset": {f"pride_2023_categories": True}})
+    #             msg = f"{species} has been set as your Pride Buddy! Reset {species} eligibility. Use `@Pokétwo pride buddy` to view more info."
 
-            await ctx.send(msg)
-        else:
-            await ctx.send(f"{species} was not set as your Pride Buddy.")
+    #         await ctx.send(msg)
+    #     else:
+    #         await ctx.send(f"{species} was not set as your Pride Buddy.")
 
     @commands.group(invoke_without_command=True, case_insensitive=True, aliases=("event",))
     async def pride(self, ctx):
@@ -264,7 +265,7 @@ class Pride(commands.Cog):
 
         embed = self.bot.Embed(
             title="Pride Month 2023",
-            description="It's Pride Month, and Pokémon are celebrating too! Certain Pokémon have even been spotted in special pride forms. Participate in this festival for the chance to obtain limited-time Pride Pokémon, all while supporting the LGBTQ+ community!\n\nPokétwo is donating 80% of all revenue collected during this Pride Month to [The Trevor Project](https://www.thetrevorproject.org/), a US-based suicide prevention organization for young LGBTQ people.",
+            description="**The event has now ended. You may still offer flags in your inventory, but you will no longer be able to set a new pride buddy or earn more flags.**\n\nIt's Pride Month, and Pokémon are celebrating too! Certain Pokémon have even been spotted in special pride forms. Participate in this festival for the chance to obtain limited-time Pride Pokémon, all while supporting the LGBTQ+ community!\n\nPokétwo is donating 80% of all revenue collected during this Pride Month to [The Trevor Project](https://www.thetrevorproject.org/), a US-based suicide prevention organization for young LGBTQ people.",
         )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -306,16 +307,16 @@ class Pride(commands.Cog):
             ]
             embed.add_field(name="Event Quests", value="\n".join(text), inline=False)
 
-        status, period, start, end = self.get_festival_status()
-        flag = f"flag_{PRIDE_CATEGORIES[period % len(PRIDE_CATEGORIES)]}"
-        festival_text = [
-            "The festival will run from **June 1st** to **June 30th**.",
-            "Every 7 hours, there will be a 4-hour festival period featuring a specific pride flag.",
-            f"{status.title()} Period: {discord.utils.format_dt(start, 'f')} to {discord.utils.format_dt(end, 'f')}",
-            f"{status.title()} Featured Flag: {self.bot.sprites[flag]} {FLAG_NAMES[flag]}",
-        ]
+        # status, period, start, end = self.get_festival_status()
+        # flag = f"flag_{PRIDE_CATEGORIES[period % len(PRIDE_CATEGORIES)]}"
+        # festival_text = [
+        #     "The festival will run from **June 1st** to **June 30th**.",
+        #     "Every 7 hours, there will be a 4-hour festival period featuring a specific pride flag.",
+        #     f"{status.title()} Period: {discord.utils.format_dt(start, 'f')} to {discord.utils.format_dt(end, 'f')}",
+        #     f"{status.title()} Featured Flag: {self.bot.sprites[flag]} {FLAG_NAMES[flag]}",
+        # ]
 
-        embed.add_field(name="Festival Schedule", value="\n".join(festival_text), inline=False)
+        # embed.add_field(name="Festival Schedule", value="\n".join(festival_text), inline=False)
 
         await ctx.send(embed=embed)
 
