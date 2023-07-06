@@ -77,7 +77,7 @@ command-favorite-help =
   .help = Mark a {-pokemon} as a favorite.
 
 command-unfavorite-help =
-  .help = Unfavorite a selected pokemon.
+  .help = Unfavorite a selected {-pokemon}.
 
 command-balance-help =
   .help = View your current balance.
@@ -98,7 +98,7 @@ command-silence-help =
   .help = Silence level up messages for yourself.
 
 command-unfavoriteall-help =
-  .help = Mass unfavorite selected pokemon.
+  .help = Mass unfavorite selected {-pokemon}.
 
 command-quests-help =
   .help = View quests.
@@ -248,7 +248,7 @@ command-togglemention-help =
   .help = Toggle getting mentioned when catching a {-pokemon}.
 
 command-start-help =
-  .help = View the starter {-pokemon}.
+  .help = View the starter {-pokemon-plural}.
 
 command-pokedex-help =
   .help = View your {-pokedex}, or search for a {-pokemon} species.
