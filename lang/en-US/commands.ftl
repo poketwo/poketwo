@@ -176,7 +176,7 @@ command-admin-addbox-help =
   .help = Give a user boxes.
 
 command-admin-tempsuspend-help =
-  .help = Temporarily uspend one or more users.
+  .help = Temporarily suspend one or more users.
 
 command-admin-addcoins-help =
   .help = Add to a user's balance.
