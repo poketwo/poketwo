@@ -144,7 +144,7 @@ class PoketwoContext(commands.Context):
             command_kwargs=self.kwargs,
         )
 
-    def _(self, message_id: str, **kwargs: dict[str, typing.Any] | None) -> str:
+    def _(self, message_id: str, **kwargs: typing.Any) -> str:
         """Formats a localization string from a message while setting the last
         known prefix value.
         """

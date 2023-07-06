@@ -170,7 +170,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     # Other stuff
 
-    def _(self, message_id: str, **kwargs: dict[str, typing.Any] | None) -> str:
+    def _(self, message_id: str, **kwargs: typing.Any) -> str:
         """Formats a localization string from a message ID."""
         # python-fluent expects a dict, but we accept message variables as
         # keyword arguments since it's more ergonomic.
