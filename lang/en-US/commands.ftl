@@ -251,7 +251,7 @@ command-start-help =
   .help = View the starter {-pokemon}.
 
 command-pokedex-help =
-  .help = View your pokédex, or search for a {-pokemon} species.
+  .help = View your {-pokedex}, or search for a {-pokemon} species.
 
 command-pride-help =
   .help = Pride Month 2023 event commands.
