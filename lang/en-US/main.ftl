@@ -1,4 +1,11 @@
 -pokemon = Pokémon
+-pokemon-plural = Pokémon
+
+-pokecoin = Pokécoin
+-pokecoin-plural = Pokécoins
+
+-pokedex = Pokédex
+
 -brand = Pokétwo
 
 -command-pick = {COMMAND("pick <pokemon>")}

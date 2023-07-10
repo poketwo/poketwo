@@ -10,6 +10,8 @@ import structlog
 FLUENT_FILES = (
     "main.ftl",
     "help.ftl",
+    "cogs.ftl",
+    "commands.ftl",
 )
 
 
