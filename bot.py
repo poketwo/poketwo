@@ -51,8 +51,12 @@ CONCURRENCY_LIMITED_COMMANDS = {
 
 
 async def determine_prefix(bot, message):
-    return [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
+    prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
+    # Allow the bot's assigned role on the guild as a prefix
+    if (guild := message.guild) and (role := guild.self_role):
+        prefixes.append(role.mention)
 
+    return prefixes
 
 class ClusterBot(commands.AutoShardedBot):
     class BlueEmbed(discord.Embed):
