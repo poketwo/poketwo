@@ -56,7 +56,7 @@ async def determine_prefix(bot, message):
     if (guild := message.guild) and (role := guild.self_role):
         prefixes.append(role.mention)
 
-    return prefixes 
+    return prefixes
 
 
 class ClusterBot(commands.AutoShardedBot):
