@@ -13,6 +13,7 @@ FLUENT_FILES = (
     "help.ftl",
     "cogs.ftl",
     "commands.ftl",
+    "errors.ftl",
 )
 
 
