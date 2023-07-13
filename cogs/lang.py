@@ -37,6 +37,14 @@ class Fluent(FluentLocalization):
             return (bundle.get_message(msg_id), bundle)
 
     def format_value(self, msg_id: str, args: dict[str, Any] | None = None) -> str:
+        """Looks up a message by ID from all bundles, supporting dotted access
+        for attributes.
+
+        Passing variables into the message can be achieved via the ``args``
+        parameter.
+
+        If the message wasn't found, then the message ID itself is returned.
+        """
         base_msg_id = msg_id
         attribute_name: str | None = None
         if "." in msg_id:
