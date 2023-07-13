@@ -31,6 +31,9 @@ class Fluent(FluentLocalization):
             base_msg_id, attribute_name = msg_id.split(".")
 
         for bundle in self._bundles():
+            if not bundle.has_message(base_msg_id):
+                continue
+
             msg = bundle.get_message(base_msg_id)
 
             value = msg.value
