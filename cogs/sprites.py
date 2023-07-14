@@ -2150,6 +2150,7 @@ other = {
     "badge_msf_fundraiser": 913375126802821120,
     "badge_christmas_2021": 924126408693907507,
     "badge_afd_contributor": 978220561245274134,
+    "badge_pride": 1129303900944613467,
     "bingo_a": 980747297338052638,
     "bingo_b": 980747297308704809,
     "bingo_c": 980747297400963072,
