@@ -150,7 +150,7 @@ class Christmas(commands.Cog):
         """Donate coins to receive boxes!"""
 
         if qty < 1:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
 
         if type.lower() not in BOXES:
             return await ctx.send("Please type `random`, `pokemon`, `currency`, or `event`!")

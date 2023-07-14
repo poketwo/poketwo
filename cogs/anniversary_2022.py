@@ -262,7 +262,7 @@ class Anniversary(commands.Cog):
         """Open a box"""
 
         if amt <= 0:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
 
         if amt > 15:
             return await ctx.send("You can only open up to 15 anniversary boxes at once!")

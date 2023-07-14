@@ -140,9 +140,9 @@ class Market(commands.Cog):
             f"No. {pokemon.idx}** for **{price:,}** Pokécoins?"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -192,9 +192,9 @@ class Market(commands.Cog):
             f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** " f"from the market?"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.db.pokemon.update_one(
             {"_id": listing["_id"]},
@@ -234,9 +234,9 @@ class Market(commands.Cog):
             f"for **{listing['market_data']['price']:,}** Pokécoins?"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # buy
 

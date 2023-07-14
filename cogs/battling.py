@@ -469,7 +469,7 @@ class Battling(commands.Cog):
         # Base cases
 
         if user == ctx.author:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
         if user in self.bot.battles:
             return await ctx.send(f"**{user}** is already in a battle!")
 
@@ -622,7 +622,7 @@ class Battling(commands.Cog):
                 options=[discord.SelectOption(label=self.bot.data.move_by_number(x).name) for x in set(pokemon.moves)],
             )
             if result is None:
-                return await ctx.send("Time's up. Aborted.")
+                return await ctx.send(ctx._("times-up"))
 
             rep_move = self.bot.data.move_by_name(result[0])
             idx = pokemon.moves.index(rep_move.id)

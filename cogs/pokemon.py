@@ -170,9 +170,9 @@ class Pokemon(commands.Cog):
 
         result = await ctx.confirm(message)
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # confirmed, nickname all
         await ctx.send(f"Renaming {num} pokémon, this might take a while...")
@@ -346,9 +346,9 @@ class Pokemon(commands.Cog):
 
         result = await ctx.confirm(f"Are you sure you want to **favorite** your {unfavnum} pokémon?")
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x.id async for x in pokemon]}},
@@ -431,9 +431,9 @@ class Pokemon(commands.Cog):
 
         result = await ctx.confirm(f"Are you sure you want to **unfavorite** your {favnum} pokémon?")
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.db.pokemon.update_many(
             {"_id": {"$in": [x.id async for x in pokemon]}},
@@ -734,9 +734,9 @@ class Pokemon(commands.Cog):
 
         result = await ctx.confirm(message)
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -830,9 +830,9 @@ class Pokemon(commands.Cog):
             f"Are you sure you want to release **{num} pokémon** for {num*2:,} pc? Favorited and selected pokémon won't be removed."
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
             return await ctx.send("You can't do that in a trade!")
@@ -1032,7 +1032,9 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(title=f"Your pokédex", description=f"You've caught {num} out of {total_count} pokémon!")
+                embed = self.bot.Embed(
+                    title=f"Your pokédex", description=f"You've caught {num} out of {total_count} pokémon!"
+                )
 
                 embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
@@ -1228,9 +1230,9 @@ class Pokemon(commands.Cog):
             f"Are you sure you want to switch **{pokemon:spl}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded!"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.update_pokemon(
             pokemon,

@@ -474,9 +474,9 @@ class Spawning(commands.Cog):
                 f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset."
             )
             if result is None:
-                return await ctx.send("Time's up. Aborted.")
+                return await ctx.send(ctx._("times-up"))
             if result is False:
-                return await ctx.send("Aborted.")
+                return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.update_member(
             ctx.author,

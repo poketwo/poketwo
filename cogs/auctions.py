@@ -221,9 +221,9 @@ class Auctions(commands.Cog):
             "Auctions are server-specific and cannot be canceled. Are you sure?"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # create auction
 
@@ -293,9 +293,9 @@ class Auctions(commands.Cog):
             f"Do you want to lower starting bid to **{new_start} Pokécoins** on the **{pokemon:pl}**?"
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # Go
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
@@ -348,9 +348,9 @@ class Auctions(commands.Cog):
 
         result = await ctx.confirm(f"Do you want to bid **{bid:,} Pokécoins** on the **{pokemon:pl}**?")
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # go!
 

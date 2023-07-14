@@ -48,9 +48,9 @@ class Shop(commands.Cog):
 
         result = await ctx.confirm("Are you sure you want to cancel the incense? You can't undo this!")
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         await self.bot.mongo.update_channel(
             ctx.channel,
@@ -76,7 +76,7 @@ class Shop(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if amt <= 0:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
 
         if amt > 15:
             return await ctx.send("You can only open 15 boxes at once!")
@@ -379,7 +379,7 @@ class Shop(commands.Cog):
             args, qty = args[:-1], int(args[-1])
 
             if qty <= 0:
-                return await ctx.send("Nice try...")
+                return await ctx.send(ctx._("nice-try"))
 
         search = " ".join(args)
         if search.lower() == "shards":
@@ -500,9 +500,9 @@ class Shop(commands.Cog):
                 f"Are you sure you want to exchange **{item.cost * qty:,}** Pokécoins for **{qty:,}** shards? Shards are non-transferable and non-refundable!"
             )
             if result is None:
-                return await ctx.send("Time's up. Aborted.")
+                return await ctx.send(ctx._("times-up"))
             if result is False:
-                return await ctx.send("Aborted.")
+                return await ctx.send(ctx._("aborted"))
 
             await ctx.send(f"You purchased {qty:,} shards!")
 

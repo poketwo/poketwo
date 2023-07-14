@@ -92,6 +92,8 @@ pong-donate =
 pong = Pong! **{$ms} ms**
 
 times-up = Time's up. Aborted.
+aborted = Aborted.
+nice-try = Nice try...
 
 profile-embed =
   .title = Trainer Profile

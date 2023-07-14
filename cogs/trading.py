@@ -324,7 +324,7 @@ class Trading(commands.Cog):
         """Trade pokémon with another trainer."""
 
         if user == ctx.author:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
 
         if await self.is_in_trade(ctx.author):
             return await ctx.send("You are already in a trade!")
@@ -759,9 +759,9 @@ class Trading(commands.Cog):
             f"Are you sure you want to trade **{num} pokémon**? Favorited and selected pokémon won't be added."
         )
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # confirmed, add all
 
