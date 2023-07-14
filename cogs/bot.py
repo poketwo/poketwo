@@ -78,25 +78,29 @@ class Bot(commands.Cog):
             await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
             ctx.log.info("command.error.MaxConcurrencyReached")
-            name = error.per.name
-            suffix = "per %s" % name if error.per.name != "default" else "globally"
-            plural = "%s times %s" if error.number > 1 else "%s time %s"
-            fmt = plural % (error.number, suffix)
+
+            bucket_name = error.per.name
+            if bucket_name == "default":
+                scope = ctx._("concurrency-scope-globally")
+            else:
+                scope = ctx._("concurrency-scope-per", bucket=bucket_name)
+
+            # "n time(s) (per bucket|globally)"
+            fmt = ctx._("concurrency-times", times=error.number, scope=scope)
+
             await ctx.send(f"This command can only be used {fmt} at the same time.")
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("This command cannot be used in private messages.")
+            await ctx.send(ctx._("error-command-no-private-messages"))
         elif isinstance(error, commands.DisabledCommand):
             ctx.log.info("command.error.DisabledCommand")
-            await ctx.send("Sorry. This command is disabled and cannot be used.")
+            await ctx.send(ctx._("error-command-disabled"))
         elif isinstance(error, commands.BotMissingPermissions):
             ctx.log.info("command.error.BotMissingPermissions")
             missing = [
                 f"`{perm.replace('_', ' ').replace('guild', 'server').title()}`" for perm in error.missing_permissions
             ]
             fmt = "\n".join(missing)
-            message = (
-                f"💥 Err, I need the following permissions to run this command:\n{fmt}\nPlease fix this and try again."
-            )
+            message = ctx._("error-bot-missing-permissions", fmt=fmt)
             botmember = self.bot.user if ctx.guild is None else ctx.guild.get_member(self.bot.user.id)
             if ctx.channel.permissions_for(botmember).send_messages:
                 await ctx.send(message)
@@ -106,18 +110,14 @@ class Bot(commands.Cog):
             await ctx.send_help(ctx.command)
         elif isinstance(error, checks.Suspended):
             ctx.log.info("command.error.Suspended", reason=error.reason)
-            embed = discord.Embed(
-                color=discord.Color.red(),
-                title="Account Suspended",
-                description="Your account was found to be in violation of the [Pokétwo Terms of Service](https://poketwo.net/terms) and has been blacklisted from Pokétwo.",
-            )
-            if error.until is not None:
-                embed.add_field(name="Expires", value=converters.strfdelta(error.until - datetime.utcnow(), long=True))
-            embed.add_field(name="Reason", value=error.reason or "No reason provided", inline=False)
-            embed.add_field(
-                name="Appeals",
-                value="If, after reading and understanding the reason provided above, you believe your account was suspended in error, and that you did not violate the Terms of Service, you may submit a [Bot Suspension Appeal](https://forms.poketwo.net/a/suspension-appeal) to request a re-review of your case.",
-                inline=False,
+            embed = ctx.localized_embed(
+                "error-account-suspended-embed",
+                field_values={
+                    "expires": error.until and converters.strfdelta(error.until - datetime.utcnow(), long=True),
+                    "reason": error.reason or ctx._("error-no-reason-provided"),
+                },
+                droppable_fields=["expires"],
+                block_fields=["expires", "reason"],
             )
             await ctx.send(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
@@ -156,47 +156,16 @@ class Bot(commands.Cog):
         except StopIteration:
             return
 
-        prefix = f"@{self.bot.user} "
-
-        embed = self.bot.Embed(
-            title="Thanks for adding me to your server! \N{WAVING HAND SIGN}",
-            description=f"To get started, do `{prefix}start` to pick your starter pokémon. As server members talk, wild pokémon will automatically spawn in the server, and you'll be able to catch them with `{prefix}catch <pokémon>`! For a full command list, do `{prefix}help`.",
-        )
-        embed.add_field(
-            name="Common Configuration Options",
-            value=(
-                f"• `{prefix}redirect <channel>` to redirect pokémon spawns to one channel\n"
-                f"• More can be found in `{prefix}config help`\n"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="Support Server",
-            value="Join our server at [discord.gg/poketwo](https://discord.gg/poketwo) for support.",
-            inline=False,
-        )
+        embed = self.bot.localized_embed("joined-guild-embed", block_fields=["configs", "support"])
         await channel.send(embed=embed)
 
     @commands.command()
     async def invite(self, ctx):
         """View the invite link for the bot."""
 
-        embed = self.bot.Embed(title="Want to add me to your server? Use the link below!")
+        embed = self.bot.localized_embed("invite-embed", block_fields=["invite", "join"])
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        embed.add_field(name="Invite Bot", value="https://invite.poketwo.net/", inline=False)
-        embed.add_field(name="Join Server", value="https://discord.gg/poketwo", inline=False)
-
         await ctx.send(embed=embed)
-
-    @commands.command()
-    async def donate(self, ctx):
-        """Donate to receive shards."""
-
-        await ctx.send(
-            "Pokétwo relies on players like you to stay up and running. "
-            "You can help support the bot by donating to receive shards, which can be used to purchase redeems and other items in the shop.\n\n"
-            "**Donation Link:** https://poketwo.net/store\n\n"
-        )
 
     async def get_stats(self):
         result = await self.bot.mongo.db.stats.aggregate(
@@ -226,9 +195,11 @@ class Bot(commands.Cog):
         await self.bot.wait_until_ready()
 
     async def send_voting_reminder(self, uid, provider):
-        message = f"Your vote timer on **{provider['name']}** has refreshed. You can now vote again!"
+        message = self.bot._("vote-timer-refreshed", name=provider["name"])
         view = discord.ui.View(timeout=0)
-        view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
+        view.add_item(
+            discord.ui.Button(label=self.bot._("vote-timer-visit", name=provider["name"]), url=provider["url"])
+        )
         await self.bot.send_dm(uid, message, view=view)
 
     @tasks.loop(seconds=15)
@@ -282,59 +253,51 @@ class Bot(commands.Cog):
         embed = self.bot.Embed(title=f"Voting Rewards")
         view = discord.ui.View(timeout=0)
 
-        embed.description = (
-            f"Vote for us on "
-            + " and ".join(f"**[{provider['name']}]({provider['url']})**" for provider in VOTING_PROVIDERS.values())
-            + " to receive mystery boxes! "
-            + "You can vote once per 12 hours on each site. Build your streak to get better rewards!"
+        embed = ctx.localized_embed(
+            "vote-embed",
+            providers=ctx._("vote-provider-joiner").join(
+                f"**[{provider['name']}]({provider['url']})**" for provider in VOTING_PROVIDERS.values()
+            ),
+            ignored_fields=["voting"] if ctx.guild and ctx.guild.id == 716390832034414685 else [],
         )
 
         for pid, provider in VOTING_PROVIDERS.items():
             next_vote = member.last_voted_on.get(pid, datetime.min) + timedelta(hours=12)
 
             if next_vote < datetime.utcnow():
-                message = f"[You can vote right now!]({provider['url']})"
+                message = ctx._("vote-can-vote-now", url=provider["url"])
             else:
                 timespan = next_vote - datetime.utcnow()
                 formatted = humanfriendly.format_timespan(timespan.total_seconds())
-                message = f"You can vote again in **{formatted}**."
+                message = ctx._("vote-can-vote-again-in", time=formatted)
 
-            embed.add_field(name=f"{provider['name']} Timer", value=message, inline=True)
-            view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
+            embed.add_field(name=ctx._("vote-field-timer-name", name=provider["name"]), value=message, inline=True)
+            view.add_item(
+                discord.ui.Button(label=ctx._("vote-visit-button", provider=provider["name"]), url=provider["url"])
+            )
 
         embed.add_field(
-            name="Voting Streak",
+            name=ctx._("vote-field-streak-name"),
             value=str(self.bot.sprites.check) * min(member.vote_streak, 14)
             + str(self.bot.sprites.gray) * (14 - min(member.vote_streak, 14))
-            + f"\nCurrent Streak: {member.vote_streak} votes!",
+            + "\n"
+            + ctx._("vote-current-streak", votes=member.vote_streak),
             inline=False,
         )
 
+        GIFT_TYPES = ("normal", "great", "ultra", "master")
+
         embed.add_field(
-            name="Your Rewards",
+            name=ctx._("vote-field-rewards-name"),
             value=(
-                f"{self.bot.sprites.gift_normal} **Normal Mystery Box:** {member.gifts_normal}\n"
-                f"{self.bot.sprites.gift_great} **Great Mystery Box:** {member.gifts_great}\n"
-                f"{self.bot.sprites.gift_ultra} **Ultra Mystery Box:** {member.gifts_ultra}\n"
-                f"{self.bot.sprites.gift_master} **Master Mystery Box:** {member.gifts_master}\n"
+                "\n".join(
+                    f"{getattr(self.bot.sprites, f'gift_{gift_type}')} "
+                    + ctx._(f"vote-{gift_type}-mystery-box", gifts=getattr(member, f"gifts_{gift_type}"))
+                    for gift_type in GIFT_TYPES
+                )
             ),
             inline=False,
         )
-
-        embed.add_field(
-            name="Claiming Rewards",
-            value=f"Use `{ctx.clean_prefix}open <normal|great|ultra|master> [amt]` to open your boxes!",
-            inline=False,
-        )
-
-        embed.set_footer(text="You will automatically receive your rewards when you vote.")
-
-        if ctx.guild and ctx.guild.id == 716390832034414685:
-            embed.add_field(
-                name="Server Voting",
-                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
-                inline=False,
-            )
 
         await ctx.send(embed=embed, view=view)
 
@@ -344,21 +307,17 @@ class Bot(commands.Cog):
 
         result = await self.get_stats()
 
-        embed = self.bot.Embed(title=f"Pokétwo Statistics")
+        embed = ctx.localized_embed(
+            "botinfo-embed",
+            block_fields=["servers", "shards", "trainers", "latency"],
+            servers=result["servers"],
+            shards=result["shards"],
+            trainers=await self.bot.mongo.db.member.estimated_document_count(),
+            average=int(result["latency"] * 1000 / result["shards"]),
+        )
+        embed.color = constants.PINK
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-
-        embed.add_field(name="Servers", value=result["servers"], inline=False)
-        embed.add_field(name="Shards", value=result["shards"], inline=False)
-        embed.add_field(
-            name="Trainers",
-            value=await self.bot.mongo.db.member.estimated_document_count(),
-            inline=False,
-        )
-        embed.add_field(
-            name="Average Latency",
-            value=f"{int(result['latency'] * 1000 / result['shards'])} ms",
-            inline=False,
-        )
+        print(repr(embed.fields))
 
         await ctx.send(embed=embed)
 
@@ -370,23 +329,15 @@ class Bot(commands.Cog):
         ms = int((message.created_at - ctx.message.created_at).total_seconds() * 1000)
 
         if ms > 300 and random.random() < 0.3:
-            await message.edit(
-                content=(
-                    f"Pong! **{ms} ms**\n\n"
-                    "Tired of bot slowdowns? Running a bot is expensive, but you can help! Donate at https://poketwo.net/store."
-                )
-            )
+            await message.edit(content=ctx._("pong-donate", ms=ms))
         else:
-            await message.edit(content=f"Pong! **{ms} ms**")
+            await message.edit(content=ctx._("pong", ms=ms))
 
     @commands.command()
     async def start(self, ctx):
         """View the starter pokémon."""
 
-        embed = self.bot.Embed(
-            title=ctx._("start-embed.title"),
-            description=ctx._("start-embed.description"),
-        )
+        embed = ctx.localized_embed("start-embed")
 
         for gen, pokemon in constants.STARTER_GENERATION.items():
             embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
@@ -400,37 +351,24 @@ class Bot(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member is not None:
-            return await ctx.send(
-                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
-            )
+            return await ctx.send(ctx._("pick-already-chosen"))
 
         species = self.bot.data.species_by_name(name)
 
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
-            return await ctx.send(
-                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix}start`."
-            )
+            return await ctx.send(ctx._("pick-invalid-choice"))
 
         # ToS
 
-        embed = ctx.bot.Embed(
-            title="Pokétwo Terms of Service",
-            description="Please read, understand, and accept our Terms of Service to continue. "
-            "Violations of these Terms may result in the suspension of your account. "
-            "If you choose not to accept the user terms, you will not be able to use Pokétwo.",
-            url="https://poketwo.net/terms",
-        )
+        embed = ctx.localized_embed("tos-embed")
+        embed.color = constants.PINK
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-        embed.set_footer(text="These Terms can also be found on our website at https://poketwo.net/terms.")
 
         result = await ctx.confirm(embed=embed, cls=ConfirmTermsOfServiceView)
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send(
-                "Since you chose not to accept the new user terms, we are unable to grant you access to Pokétwo.\n"
-                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue.",
-            )
+            return await ctx.send(ctx._("tos-disagreed"))
 
         # Go
 
@@ -455,9 +393,7 @@ class Bot(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
-        await ctx.send(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
-        )
+        await ctx.send(ctx._("pick-congrats", species=species))
 
     @checks.has_started()
     @commands.command()
@@ -466,36 +402,43 @@ class Bot(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(title="Trainer Profile")
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-
         pokemon_caught = []
-        pokemon_caught.append("**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author)))
+        pokemon_caught.append(
+            ctx._("profile-caught-category-total", amount=await self.bot.mongo.fetch_pokedex_sum(ctx.author))
+        )
 
         for name, filt in (
-            ("Mythical", self.bot.data.list_mythical),
-            ("Legendary", self.bot.data.list_legendary),
-            ("Ultra Beast", self.bot.data.list_ub),
+            ("mythical", self.bot.data.list_mythical),
+            ("legendary", self.bot.data.list_legendary),
+            ("ultra-beast", self.bot.data.list_ub),
         ):
             pokemon_caught.append(
-                f"**{name}: **"
-                + str(
-                    await self.bot.mongo.fetch_pokedex_sum(
+                ctx._(
+                    f"profile-caught-category-{name}",
+                    amount=await self.bot.mongo.fetch_pokedex_sum(
                         ctx.author,
                         [{"$match": {"k": {"$in": [str(x) for x in filt]}}}],
-                    )
+                    ),
                 )
             )
-        pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
-        embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
+
+        pokemon_caught.append(ctx._("profile-caught-category-shiny", amount=member.shinies_caught))
 
         badges = [k for k, v in member.badges.items() if v]
         if member.halloween_badge:
             badges.append("halloween")
-        embed.add_field(
-            name="Badges",
-            value=" ".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges) or "No badges",
+
+        embed = ctx.localized_embed(
+            "profile-embed",
+            field_values={
+                "caught": "\n".join(pokemon_caught),
+                "badges": " ".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges)
+                or ctx._("profile-no-badges"),
+            },
+            field_ordering=["caught", "badges"],
         )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+        embed.color = constants.PINK
 
         await ctx.send(embed=embed)
 
@@ -518,7 +461,7 @@ class Bot(commands.Cog):
         spammers = Counter(m.author.display_name for m in deleted)
         count = len(deleted)
 
-        messages = [f'{count} message{" was" if count == 1 else "s were"} removed.']
+        messages = [ctx._("cleanup", count=count)]
         if len(deleted) > 0:
             messages.append("")
             spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
