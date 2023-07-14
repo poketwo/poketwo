@@ -15,5 +15,4 @@ default = (
     "spawning",
     "sprites",
     "trading",
-    "pride_2023",
 )
