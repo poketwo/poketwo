@@ -110,3 +110,6 @@ cleanup = {$count ->
   [one] {$count} message was removed.
   *[other] {$count} messages were removed.
 }
+
+unknown-pokemon = Couldn't find that {-pokemon}!
+unknown-pokemon-matching = Could not find a {-pokemon} matching `{$matching}`.

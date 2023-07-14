@@ -14,6 +14,7 @@ FLUENT_FILES = (
     "cogs.ftl",
     "commands.ftl",
     "errors.ftl",
+    "shop.ftl",
 )
 
 

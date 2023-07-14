@@ -44,9 +44,9 @@ class Shop(commands.Cog):
     async def stopincense(self, ctx):
         channel = await self.bot.mongo.fetch_channel(ctx.channel)
         if not channel.incense_active:
-            return await ctx.send("There is no active incense in this channel!")
+            return await ctx.send(ctx._("no-active-incense"))
 
-        result = await ctx.confirm("Are you sure you want to cancel the incense? You can't undo this!")
+        result = await ctx.confirm(ctx._("confirm-incense-cancellation"))
         if result is None:
             return await ctx.send(ctx._("times-up"))
         if result is False:
@@ -58,7 +58,7 @@ class Shop(commands.Cog):
                 "$set": {"spawns_remaining": 0},
             },
         )
-        await ctx.send("Incense has been stopped.")
+        await ctx.send(ctx._("incense-stopped"))
 
     @checks.has_started()
     @commands.command(aliases=("o",))
@@ -71,7 +71,7 @@ class Shop(commands.Cog):
             if type.lower() in ("n", "g", "u", "m"):
                 type = constants.BOXES[type.lower()]
             else:
-                return await ctx.send("Please type `normal`, `great`, `ultra`, or `master`!")
+                return await ctx.send(ctx._("invalid-box-type"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -79,7 +79,7 @@ class Shop(commands.Cog):
             return await ctx.send(ctx._("nice-try"))
 
         if amt > 15:
-            return await ctx.send("You can only open 15 boxes at once!")
+            return await ctx.send(ctx._("too-many-boxes-at-once", limit=15))
 
         try:
             await self.bot.mongo.db.member.find_one_and_update(
@@ -88,7 +88,7 @@ class Shop(commands.Cog):
                 upsert=True,
             )
         except:
-            return await ctx.send("You don't have enough boxes to do that!")
+            return await ctx.send(ctx._("not-enough-boxes"))
 
         rewards = random.choices(constants.REWARDS, constants.REWARD_WEIGHTS[type.lower()], k=amt)
 
@@ -99,24 +99,21 @@ class Shop(commands.Cog):
         added_pokemon = []
 
         embed = self.bot.Embed()
-        if do_emojis:
-            embed.title = (
-                f" Opening {amt} {getattr(self.bot.sprites, f'gift_{type.lower()}')} {type.title()} Mystery Box"
-                + ("" if amt == 1 else "es")
-                + "..."
-            )
-        else:
-            embed.title = f" Opening {amt} {type.title()} Mystery Box" + ("" if amt == 1 else "es") + "..."
+        embed.title = ctx._(
+            "opening-box-with-sprite" if do_emojis else "opening-box-simple",
+            sprite=getattr(self.bot.sprites, f"gift_{type.lower()}"),
+            type=type.title(),
+        )
 
         text = []
 
         for reward in rewards:
             if reward["type"] == "pp":
                 update["$inc"]["balance"] += reward["value"]
-                text.append(f"{reward['value']} Pokécoins")
+                text.append(ctx._("box-reward-pokecoins", coins=reward["value"]))
             elif reward["type"] == "redeem":
                 update["$inc"]["redeems"] += reward["value"]
-                text.append(f"{reward['value']} redeem" + ("" if reward["value"] == 1 else "s"))
+                text.append(ctx._("box-reward-redeems", redeems=reward["value"]))
             elif reward["type"] == "pokemon":
                 species = self.bot.data.random_spawn(rarity=reward["value"])
                 level = min(max(int(random.normalvariate(70, 10)), 1), 100)
@@ -164,11 +161,12 @@ class Shop(commands.Cog):
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
 
-                text.append(f"{self.bot.mongo.Pokemon.build_from_mongo(pokemon):lni} ({sum(ivs) / 186:.2%} IV)")
+                pokemon = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
+                text.append(ctx._("box-reward-pokemon", pokemon=f"{pokemon:lni}", iv=sum(ivs) / 186))
 
                 added_pokemon.append(pokemon)
 
-        embed.add_field(name="Rewards Received", value="\n".join(text))
+        embed.add_field(name=ctx._("box-reward-field-title"), value="\n".join(text))
 
         await self.bot.mongo.update_member(ctx.author, update)
         if len(added_pokemon) > 0:
@@ -183,9 +181,14 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(title=f"{ctx.author.display_name}'s balance")
-        embed.add_field(name="Pokécoins", value=f"{member.balance:,}")
-        embed.add_field(name="Shards", value=f"{member.premium_balance:,}")
+        embed = ctx.localized_embed(
+            "balance-embed",
+            user=ctx.author.display_name,
+            coins=member.balance,
+            shards=member.premium_balance,
+            field_ordering=["coins", "shards"],
+        )
+        embed.color = constants.PINK
         embed.set_thumbnail(url=ctx.author.display_avatar.url)
         await ctx.send(embed=embed)
 
@@ -195,10 +198,10 @@ class Shop(commands.Cog):
         """Drop a pokémon's held item."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         if pokemon.held_item is None:
-            return await ctx.send("That pokémon isn't holding an item!")
+            return await ctx.send(ctx._("pokemon-not-holding-item"))
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
@@ -212,7 +215,7 @@ class Shop(commands.Cog):
         if pokemon.nickname is not None:
             name += f' "{pokemon.nickname}"'
 
-        await ctx.send(f"Dropped held item for your level {pokemon.level} {name}.")
+        await ctx.send(ctx._("pokemon-dropped-item", level=pokemon.level, name=name))
 
     @checks.has_started()
     @commands.command(aliases=("mvi",))
@@ -230,16 +233,16 @@ class Shop(commands.Cog):
             from_pokemon = await converter.convert(ctx, "")
 
         if to_pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         if from_pokemon is None or to_pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         if from_pokemon.held_item is None:
-            return await ctx.send("That pokémon isn't holding an item!")
+            return await ctx.send(ctx._("pokemon-not-holding-item"))
 
         if to_pokemon.held_item is not None:
-            return await ctx.send("That pokémon is already holding an item!")
+            return await ctx.send(ctx._("pokemon-already-holding-item"))
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
 
@@ -257,7 +260,13 @@ class Shop(commands.Cog):
             to_name += f' "{to_pokemon.nickname}"'
 
         await ctx.send(
-            f"Moved held item from your level {from_pokemon.level} {from_name} to your level {to_pokemon.level} {to_name}."
+            ctx._(
+                "moved-items",
+                fromLevel=from_pokemon.level,
+                fromName=from_name,
+                toLevel=to_pokemon.level,
+                toName=to_name,
+            )
         )
 
     @checks.has_started()
@@ -270,9 +279,9 @@ class Shop(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, {"$set": {"show_balance": not member.show_balance}})
 
         if member.show_balance:
-            await ctx.send(f"Your balance is now hidden in shop pages.")
+            await ctx.send(ctx._("balance-now-hidden"))
         else:
-            await ctx.send("Your balance is no longer hidden in shop pages.")
+            await ctx.send(ctx._("balance-no-longer-hidden"))
 
     @checks.has_started()
     @commands.command(aliases=("store",))
@@ -281,37 +290,30 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(title=f"Pokétwo Shop")
+        embed = self.bot.Embed(title=ctx._("shop-title"))
 
         if member.show_balance:
-            embed.title += f" — {member.balance:,} Pokécoins"
             if page == 7:
-                embed.title += f", {member.premium_balance:,} Shards"
+                embed.title = ctx._("shop-title-balance-shards", coins=member.balance, shards=member.premium_balance)
+            else:
+                embed.title = ctx._("shop-title-balance", coins=member.balance)
 
         if page == 0:
-            embed.description = f"Use `{ctx.clean_prefix}shop <page>` to view different pages."
+            embed.description = ctx._("shop-page-cta")
 
-            embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
-            embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
-            embed.add_field(name="Page 3", value="Form Change Items", inline=False)
-            embed.add_field(name="Page 4", value="Held Items", inline=False)
-            embed.add_field(name="Page 5", value="Nature Mints", inline=False)
-            embed.add_field(name="Page 6", value="Mega Evolutions", inline=False)
-            embed.add_field(name="Page 7", value="Shard Shop", inline=False)
+            embed.add_field(name="Page 1", value=ctx._("shop-page-1-title"), inline=False)
+            embed.add_field(name="Page 2", value=ctx._("shop-page-2-title"), inline=False)
+            embed.add_field(name="Page 3", value=ctx._("shop-page-3-title"), inline=False)
+            embed.add_field(name="Page 4", value=ctx._("shop-page-4-title"), inline=False)
+            embed.add_field(name="Page 5", value=ctx._("shop-page-5-title"), inline=False)
+            embed.add_field(name="Page 6", value=ctx._("shop-page-6-title"), inline=False)
+            embed.add_field(name="Page 7", value=ctx._("shop-page-7-title"), inline=False)
 
         else:
-            embed.description = (
-                "We have a variety of items you can buy in the shop. "
-                "Some will evolve your pokémon, some will change the nature of your pokémon, and some will give you other bonuses. "
-                f"Use `{ctx.clean_prefix}buy <item>` to buy an item!"
-            )
+            embed.description = ctx._("shop-description")
 
             if page == 7:
-                embed.description = (
-                    "Welcome to the shard shop! "
-                    "Shards are a type of premium currency that can be used to buy special items. "
-                    "Shards can be obtained by exchanging pokécoins or by purchasing them at https://poketwo.net/store."
-                )
+                embed.description = ctx._("shop-description-shards")
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
 
@@ -350,12 +352,12 @@ class Shop(commands.Cog):
         if member.boost_active:
             timespan = member.boost_expires - datetime.utcnow()
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
-            footer_text.append(f"You have an XP Booster active that expires in {timespan}.")
+            footer_text.append(ctx._("shop-booster-active", expires=timespan))
 
         if member.shiny_charm_active:
             timespan = member.shiny_charm_expires - datetime.utcnow()
             timespan = humanfriendly.format_timespan(timespan.total_seconds())
-            footer_text.append(f"You have a shiny charm active that expires in {timespan}.")
+            footer_text.append(ctx._("shop-shiny-charm-active", expires=timespan))
 
         if len(footer_text) > 0:
             embed.set_footer(text="\n".join(footer_text))
@@ -390,69 +392,54 @@ class Shop(commands.Cog):
             search = "rare candy"
         item = self.bot.data.item_by_name(search)
         if item is None:
-            return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
+            return await ctx.send(ctx._("buy-unknown-item", item=" ".join(args)))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
 
         if pokemon is None:
-            return await ctx.send("You must have a pokémon selected!")
+            return await ctx.send(ctx._("pokemon-must-be-selected"))
 
         if qty > 1 and item.action not in ("level", "shard", "redeem"):
-            return await ctx.send("You can't buy multiple of this item!")
+            return await ctx.send(ctx._("cannot-buy-multiple"))
 
         if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
-            return await ctx.send(f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!")
+            return await ctx.send(ctx._("not-enough-shards") if item.shard else ctx._("not-enough-coins"))
 
         # Check to make sure it's purchasable.
 
         if item.action == "level":
             if pokemon.level + qty > 100:
-                return await ctx.send(
-                    f"Your selected pokémon is already level {pokemon.level}! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("cannot-overlevel-pokemon", level=pokemon.level))
 
         if item.action == "evolve_mega":
             if pokemon.species.mega is None:
-                return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("item-not-applicable"))
 
             evoto = pokemon.species.mega
 
             if pokemon.held_item == 13001:
-                return await ctx.send(
-                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
-                )
+                return await ctx.send(ctx._("pokemon-holding-everstone"))
 
         if item.action == "evolve_megax":
             if pokemon.species.mega_x is None:
-                return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("item-not-applicable"))
 
             evoto = pokemon.species.mega_x
 
             if pokemon.held_item == 13001:
-                return await ctx.send(
-                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
-                )
+                return await ctx.send(ctx._("pokemon-holding-everstone"))
 
         if item.action == "evolve_megay":
             if pokemon.species.mega_y is None:
-                return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("item-not-applicable"))
 
             evoto = pokemon.species.mega_y
 
             if pokemon.held_item == 13001:
-                return await ctx.send(
-                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
-                )
+                return await ctx.send(ctx._("pokemon-holding-everstone"))
 
         if item.action == "evolve_normal":
-
             if pokemon.species.evolution_to is not None:
                 try:
                     evoto = next(
@@ -462,18 +449,12 @@ class Shop(commands.Cog):
                         )
                     ).target
                 except StopIteration:
-                    return await ctx.send(
-                        f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                    )
+                    return await ctx.send(ctx._("item-not-applicable"))
             else:
-                return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("item-not-applicable"))
 
             if pokemon.held_item == 13001:
-                return await ctx.send(
-                    "This pokémon is holding an Everstone! Please drop or move the item and try again."
-                )
+                return await ctx.send(ctx._("pokemon-holding-everstone"))
 
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
@@ -481,43 +462,31 @@ class Shop(commands.Cog):
                 if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
                     break
             else:
-                return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
-                )
+                return await ctx.send(ctx._("item-not-applicable"))
 
         if "xpboost" in item.action:
             if member.boost_active:
-                return await ctx.send(
-                    "You already have an XP booster active! Please wait for it to expire before purchasing another one."
-                )
+                return await ctx.send(ctx._("xp-booster-already-active"))
 
-            await ctx.send(
-                f"You purchased {item.name}! Use `{ctx.clean_prefix}shop` to check how much time you have remaining."
-            )
+            await ctx.send(ctx._("purchased-time-remaining", item=item.name))
 
         elif item.action == "shard":
-            result = await ctx.confirm(
-                f"Are you sure you want to exchange **{item.cost * qty:,}** Pokécoins for **{qty:,}** shards? Shards are non-transferable and non-refundable!"
-            )
+            result = await ctx.confirm()
             if result is None:
                 return await ctx.send(ctx._("times-up"))
             if result is False:
                 return await ctx.send(ctx._("aborted"))
 
-            await ctx.send(f"You purchased {qty:,} shards!")
+            await ctx.send(ctx._("purchased-shards", shards=qty))
 
         elif item.action == "redeem":
-            await ctx.send(f"You purchased {qty} redeems!")
+            await ctx.send(ctx._("purchased-redeems", redeems=qty))
 
         elif item.action == "shiny_charm":
             if member.shiny_charm_active:
-                return await ctx.send(
-                    "You already have a shiny charm active! Please wait for it to expire before purchasing another one."
-                )
+                return await ctx.send(ctx._("shiny-charm-already-active"))
 
-            await ctx.send(
-                f"You purchased a {item.name}! Use `{ctx.clean_prefix}shop` to check how much time you have remaining."
-            )
+            await ctx.send(ctx._("purchased-time-remaining", item=item.name))
 
         elif item.action == "incense":
 
@@ -527,27 +496,19 @@ class Shop(commands.Cog):
                 not permissions.administrator
                 and discord.utils.find(lambda r: r.name.lower() == "incense", ctx.author.roles) is None
             ):
-                return await ctx.send(
-                    "You must have administrator permissions or a role named Incense in order to do this!"
-                )
+                return await ctx.send(ctx._("missing-incense-permissions"))
 
             if await self.bot.redis.get("incense_disabled") is not None:
-                return await ctx.send(
-                    "Incenses are currently unavailable. This could be due to bot instability or upcoming maintenance. "
-                    "Check the #bot-outages channel in the official server for more details."
-                )
+                return await ctx.send(ctx._("incense-unavailable"))
 
             channel = await self.bot.mongo.fetch_channel(ctx.channel)
             if channel.incense_active:
-                return await ctx.send(
-                    "This channel already has an incense active! Please wait for it to end before purchasing another one."
-                )
+                return await ctx.send(ctx._("incense-already-active"))
 
-            await ctx.send(f"You purchased an {item.name}!")
-
+            await ctx.send(ctx._("purchased-generic-vowel", item=item.name))
         elif item.shard:
-            await ctx.send(f"You purchased {'an' if item.name[0] in 'aeiou' else 'a'} {item.name}!")
-
+            begins_with_vowel = item.name[0] in "aeiou"
+            await ctx.send(ctx._("purchased-generic-vowel" if begins_with_vowel else "purchased-generic"))
         else:
             name = str(pokemon.species)
 
@@ -555,16 +516,16 @@ class Shop(commands.Cog):
                 name += f' "{pokemon.nickname}"'
 
             if qty > 1:
-                await ctx.send(f"You purchased {item.name} x {qty} for your {name}!")
+                await ctx.send(ctx._("purchased-for-pokemon-qty", item=item.name, qty=qty, pokemon=name))
             else:
-                await ctx.send(f"You purchased a {item.name} for your {name}!")
+                await ctx.send(ctx._("purchased-for-pokemon", item=item.name, pokemon=name))
 
         # OK to buy, go ahead
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
-            return await ctx.send(f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!")
+            return await ctx.send(ctx._("not-enough-shards" if item.shard else "not-enough-coins"))
 
         await self.bot.mongo.update_member(
             ctx.author,
@@ -606,7 +567,7 @@ class Shop(commands.Cog):
             )
 
         if "evolve" in item.action:
-            embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
+            embed = self.bot.Embed(title=ctx._("congratulations", name=ctx.author.display_name))
 
             name = str(pokemon.species)
 
@@ -614,8 +575,8 @@ class Shop(commands.Cog):
                 name += f' "{pokemon.nickname}"'
 
             embed.add_field(
-                name=f"Your {name} is evolving!",
-                value=f"Your {name} has turned into a {evoto}!",
+                name=ctx._("pokemon-evolving", pokemon=name),
+                value=ctx._("pokemon-turned-into", old=name, new=evoto),
             )
 
             self.bot.dispatch("evolve", ctx.author, pokemon, evoto)
@@ -639,14 +600,14 @@ class Shop(commands.Cog):
 
             # TODO this code is repeated too many times.
 
-            embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
+            embed = self.bot.Embed(title=ctx._("congratulations", name=ctx.author.display_name))
 
             name = str(pokemon.species)
 
             if pokemon.nickname is not None:
                 name += f' "{pokemon.nickname}"'
 
-            embed.description = f"Your {name} is now level {pokemon.level + qty}!"
+            embed.description = ctx._("pokemon-level-is-now", pokemon=name, level=pokemon.level + qty)
 
             if pokemon.shiny:
                 embed.set_thumbnail(url=pokemon.species.shiny_image_url)
@@ -658,8 +619,8 @@ class Shop(commands.Cog):
             if pokemon.get_next_evolution(guild.is_day) is not None:
                 evo = pokemon.get_next_evolution(guild.is_day)
                 embed.add_field(
-                    name=f"Your {name} is evolving!",
-                    value=f"Your {name} has turned into a {evo}!",
+                    name=ctx._("pokemon-evolving", pokemon=name),
+                    value=ctx._("pokemon-turned-into", old=name, new=evo),
                 )
 
                 if pokemon.shiny:
@@ -679,8 +640,8 @@ class Shop(commands.Cog):
                 for move in pokemon.species.moves:
                     if pokemon.level >= move.method.level > pokemon.level - qty:
                         embed.add_field(
-                            name=f"New move!",
-                            value=f"Your {name} can now learn {move.move.name}!",
+                            name=ctx._("new-move"),
+                            value=ctx._("pokemon-can-now-learn", pokemon=name, move=move.move.name),
                         )
                         c += 1
 
@@ -703,7 +664,7 @@ class Shop(commands.Cog):
 
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"nature": constants.NATURES[idx]}})
 
-            await ctx.send(f"You changed your selected pokémon's nature to {constants.NATURES[idx]}!")
+            await ctx.send(ctx._("pokemon-nature-changed", nature=constants.NATURES[idx]))
 
         if item.action == "held_item":
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"held_item": item.id}})
@@ -712,7 +673,7 @@ class Shop(commands.Cog):
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
-                    embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
+                    embed = self.bot.Embed(title=ctx._("congratulations", name=ctx.author.display_name))
 
                     name = str(pokemon.species)
 
@@ -720,8 +681,8 @@ class Shop(commands.Cog):
                         name += f' "{pokemon.nickname}"'
 
                     embed.add_field(
-                        name=f"Your {name} is changing forms!",
-                        value=f"Your {name} has turned into a {form}!",
+                        name=ctx._("pokemon-changing-forms", pokemon=name),
+                        value=ctx._("pokemon-turned-into", old=name, new=form),
                     )
 
                     await self.bot.mongo.update_pokemon(pokemon, {"$set": {f"species_id": form.id}})
@@ -745,22 +706,20 @@ class Shop(commands.Cog):
             pokemon = await converters.PokemonConverter().convert(ctx, "")
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         if not pokemon.has_color:
-            return await ctx.send("That pokémon cannot use custom embed colors!")
+            return await ctx.send(ctx._("pokemon-cannot-use-custom-embed-colors"))
 
         if color is None:
             color = pokemon.color or 0x9CCFFF
-            return await ctx.send(f"That pokémon's embed color is currently **#{color:06x}**.")
+            return await ctx.send(ctx._("pokemon-current-embed-color", color=f"#{color:06x}"))
 
         if color.value == 0xFFFFFF:
-            return await ctx.send(
-                "Due to a Discord limitation, you cannot set the embed color to pure white. Try **#fffffe** instead."
-            )
+            return await ctx.send(ctx._("embed-color-white-limitation"))
 
         await self.bot.mongo.update_pokemon(pokemon, {"$set": {"color": color.value}})
-        await ctx.send(f"Changed embed color to **#{color.value:06x}** for your **{pokemon:ls}**.")
+        await ctx.send(ctx._("pokemon-embed-color-changed", color=f"#{color.value:06x}", pokemon=f"{pokemon:ls}"))
 
     @checks.has_started()
     @commands.command()
@@ -769,15 +728,8 @@ class Shop(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(
-            title=f"Your Redeems: {member.redeems}",
-            description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
-        )
-
-        embed.add_field(
-            name=f"{ctx.clean_prefix}redeemspawn <pokémon>",
-            value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overridden).",
-        )
+        embed = ctx.localized_embed("redeem-embed", redeems=member.redeems)
+        embed.color = constants.PINK
 
         await ctx.send(embed=embed)
 
@@ -794,31 +746,23 @@ class Shop(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = self.bot.Embed(
-                title=f"Your Redeems: {member.redeems}",
-                description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
-            )
-
-            embed.add_field(
-                name=f"{ctx.clean_prefix}redeemspawn <pokémon>",
-                value="Use a redeem to spawn a pokémon of your choice in the current channel *(careful, if something else spawns, it'll be overridden)*.",
-            )
-
+            embed = ctx.localized_embed("redeem-embed", redeems=member.redeems)
+            embed.color = constants.PINK
             return await ctx.send(embed=embed)
 
         if member.redeems <= 0:
-            return await ctx.send("You don't have any redeems!")
+            return await ctx.send(ctx._("no-redeems"))
 
         species = self.bot.data.species_by_name(species)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+            return await ctx.send(ctx._("unknown-pokemon-matching", matching=species))
 
         if not species.catchable:
-            return await ctx.send("You can't redeem this pokémon!")
+            return await ctx.send(ctx._("cannot-redeem"))
 
         if ctx.channel.id == 759559123657293835:
-            return await ctx.send("You can't redeemspawn a pokémon here!")
+            return await ctx.send(ctx._("cannot-redeem-here"))
 
         if await self.bot.get_cog("Spawning").spawn_pokemon(ctx.channel, species, redeem=True):
             await self.bot.mongo.update_member(
