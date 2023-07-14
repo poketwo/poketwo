@@ -78,17 +78,14 @@ class Bot(commands.Cog):
             await ctx.message.add_reaction("\N{HOURGLASS}")
         elif isinstance(error, commands.MaxConcurrencyReached):
             ctx.log.info("command.error.MaxConcurrencyReached")
-
             bucket_name = error.per.name
+
             if bucket_name == "default":
-                scope = ctx._("concurrency-scope-globally")
+                msg = ctx._("error-command-concurrency-global", rate=error.number)
             else:
-                scope = ctx._("concurrency-scope-per", bucket=bucket_name)
+                msg = ctx._("error-command-concurrency-bucketed", bucket=bucket_name, rate=error.number)
 
-            # "n time(s) (per bucket|globally)"
-            fmt = ctx._("concurrency-times", times=error.number, scope=scope)
-
-            await ctx.send(f"This command can only be used {fmt} at the same time.")
+            await ctx.send(msg)
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send(ctx._("error-command-no-private-messages"))
         elif isinstance(error, commands.DisabledCommand):

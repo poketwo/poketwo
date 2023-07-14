@@ -2,15 +2,18 @@ error-command-no-private-message = This command cannot be used in private messag
 
 error-command-disabled = Sorry. This command is disabled and cannot be used.
 
-error-command-max-concurrency =
-  This command can only be used {$rate} at the same time.
-concurrency-scope-globally = globally
-concurrency-scope-per = per {$bucket}
-concurrency-times =
-  {$times ->
-    [one] {$times} time {$scope}
-    *[other] {$times} times {$scope}
+error-command-concurrency-global =
+  {$rate ->
+    [one] This command can only be used once at a time globally.
+    *[other] This command can only be used by {$rate} users at the same time globally.
   }
+error-command-concurrency-bucketed =
+  {$rate ->
+    [one] This command can only be used {$rate} time per {$bucket}.
+    *[other] This command can only be used {$rate} times per {$bucket}.
+  }
+error-command-redis-locked =
+  You are currently running another command. Please wait and try again later.
 
 error-bot-missing-permissions =
   💥 Err, I need the following permissions to run this command:
