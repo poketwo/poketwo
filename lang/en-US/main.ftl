@@ -112,4 +112,17 @@ cleanup = {$count ->
 }
 
 unknown-pokemon = Couldn't find that {-pokemon}!
+no-pokemon-found = No {-pokemon} found.
 unknown-pokemon-matching = Could not find a {-pokemon} matching `{$matching}`.
+pokemon-must-be-mega = This {-pokemon} is not in mega form!
+forbidden-during-trade = You can't do that in a trade!
+page-must-be-positive = Page must be positive!
+
+rarity-mythical = Mythical
+rarity-legendary = Legendary
+rarity-ultra-beast = Ultra Beast
+rarity-event = Event
+rarity = Rarity
+evolution = Evolution
+
+no-previous-menu-to-navigate = Couldn't find a previous menu to paginate.

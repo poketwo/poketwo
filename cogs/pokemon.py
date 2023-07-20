@@ -32,7 +32,7 @@ class Pokemon(commands.Cog):
     async def reindex(self, ctx):
         """Re-number all pokémon in your collection."""
 
-        await ctx.send("Reindexing all your pokémon... please don't do anything else during this time.")
+        await ctx.send(ctx._("reindexing-pokemon"))
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author)
         await self.bot.mongo.reset_idx(ctx.author, value=num + 1)
@@ -50,7 +50,7 @@ class Pokemon(commands.Cog):
                 ops = []
 
         await self.bot.mongo.db.pokemon.bulk_write(ops)
-        await ctx.send("Successfully reindexed all your pokémon!")
+        await ctx.send(ctx._("successfully-reindexed-pokemon"))
 
     @checks.has_started()
     @commands.command(aliases=("nick",))
@@ -66,15 +66,15 @@ class Pokemon(commands.Cog):
             pokemon = await converters.PokemonConverter().convert(ctx, "")
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         nickname = " ".join(nickname)
 
         if len(nickname) > 100:
-            return await ctx.send("That nickname is too long.")
+            return await ctx.send(ctx._("nickname-too-long"))
 
         if constants.URL_REGEX.search(nickname):
-            return await ctx.send("That nickname contains URL(s).")
+            return await ctx.send(ctx._("nickname-contains-urls"))
 
         if nickname == "reset":
             nickname = None
@@ -85,9 +85,9 @@ class Pokemon(commands.Cog):
         )
 
         if nickname is None:
-            await ctx.send(f"Removed nickname for your level {pokemon.level} {pokemon.species}.")
+            await ctx.send(ctx._("removed-nickname", level=pokemon.level, pokemon=pokemon.species))
         else:
-            await ctx.send(f"Changed nickname to `{nickname}` for your level {pokemon.level} {pokemon.species}.")
+            await ctx.send(ctx._("changed-nickname", nickname=nickname, level=pokemon.level, pokemon=pokemon.species))
 
     # Nickname
     @flags.add_flag("newname", nargs="+")
@@ -147,10 +147,10 @@ class Pokemon(commands.Cog):
 
         # check nick length
         if len(nicknameall) > 100:
-            return await ctx.send("That nickname is too long.")
+            return await ctx.send(ctx._("nickname-too-long"))
 
         if constants.URL_REGEX.search(nicknameall):
-            return await ctx.send("That nickname contains URL(s).")
+            return await ctx.send(ctx._("nickname-contains-urls"))
 
         # check nick reset
         if nicknameall == "reset":
@@ -160,13 +160,13 @@ class Pokemon(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
+            return await ctx.send(ctx._("found-no-pokemon-matching"))
 
         # confirm
         if nicknameall is None:
-            message = f"Are you sure you want to **remove** nickname for {num} pokémon?"
+            message = ctx._("confirm-mass-unnick", number=num)
         else:
-            message = f"Are you sure you want to rename {num} pokémon to `{nicknameall}`?"
+            message = ctx._("confirm-mass-nick", number=num, nickname=nicknameall)
 
         result = await ctx.confirm(message)
         if result is None:
@@ -175,7 +175,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(ctx._("aborted"))
 
         # confirmed, nickname all
-        await ctx.send(f"Renaming {num} pokémon, this might take a while...")
+        await ctx.send(ctx._("nickall-in-progress", number=num))
 
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
@@ -185,9 +185,9 @@ class Pokemon(commands.Cog):
         )
 
         if nicknameall is None:
-            await ctx.send(f"Removed nickname for {num} pokémon.")
+            await ctx.send(ctx._("nickall-completed-removed", number=num))
         else:
-            await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
+            await ctx.send(ctx._("nickall-completed", number=num, nickname=nicknameall))
 
     @checks.has_started()
     @commands.command(
@@ -220,15 +220,13 @@ class Pokemon(commands.Cog):
                     name += f' "{pokemon.nickname}"'
 
                 if pokemon.favorite:
-                    messages.append(
-                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `{ctx.clean_prefix}unfavorite`."
-                    )
+                    messages.append(ctx._("already-favorited-pokemon", level=pokemon.level, pokemon=name))
                 else:
                     await self.bot.mongo.update_pokemon(
                         pokemon,
                         {"$set": {f"favorite": True}},
                     )
-                    messages.append(f"Favorited your level {pokemon.level} {name}.")
+                    messages.append(ctx._("favorited-pokemon", level=pokemon.level, name=name))
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
@@ -265,7 +263,7 @@ class Pokemon(commands.Cog):
                 if pokemon.nickname is not None:
                     name += f' "{pokemon.nickname}"'
 
-                messages.append(f"Unfavorited your level {pokemon.level} {name}.")
+                messages.append(ctx._("unfavorited-pokemon", level=pokemon.level, pokemon=name))
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
@@ -333,18 +331,16 @@ class Pokemon(commands.Cog):
         unfavnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
+            return await ctx.send(ctx._("found-no-pokemon-matching"))
         elif unfavnum == 0:
-            return await ctx.send(
-                f"Found no unfavorited pokémon within this selection.\nTo mass unfavorite a pokemon, please use `{ctx.clean_prefix}unfavoriteall`."
-            )
+            return await ctx.send(ctx._("favoriteall-none-found"))
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         # confirm
 
-        result = await ctx.confirm(f"Are you sure you want to **favorite** your {unfavnum} pokémon?")
+        result = await ctx.confirm(ctx._("favoriteall-confirm", number=unfavnum))
         if result is None:
             return await ctx.send(ctx._("times-up"))
         if result is False:
@@ -355,7 +351,7 @@ class Pokemon(commands.Cog):
             {"$set": {"favorite": True}},
         )
 
-        await ctx.send(f"Favorited your {unfavnum} unfavorited pokemon.\nAll {num} selected pokemon are now favorited.")
+        await ctx.send(ctx._("favoriteall-completed", nowFavorited=unfavnum, totalSelected=num))
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
@@ -420,16 +416,16 @@ class Pokemon(commands.Cog):
         favnum = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send("Found no pokémon matching this search.")
+            return await ctx.send(ctx._("found-no-pokemon-matching"))
         elif favnum == 0:
-            return await ctx.send("Found no favorited pokémon within this selection.")
+            return await ctx.send(ctx._("unfavoriteall-non-found"))
 
         # Fetch pokemon list
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
         # confirm
 
-        result = await ctx.confirm(f"Are you sure you want to **unfavorite** your {favnum} pokémon?")
+        result = await ctx.confirm(ctx._("unfavoriteall-confirm", number=favnum))
         if result is None:
             return await ctx.send(ctx._("times-up"))
         if result is False:
@@ -440,7 +436,7 @@ class Pokemon(commands.Cog):
             {"$set": {"favorite": False}},
         )
 
-        await ctx.send(f"Unfavorited your {favnum} favorited pokemon.\nAll {num} selected pokemon are now unfavorited.")
+        await ctx.send(ctx._("unfavoriteall-completed", totalSelected=num, nowUnfavorited=favnum))
 
     @checks.has_started()
     @commands.cooldown(3, 5, commands.BucketType.user)
@@ -449,7 +445,7 @@ class Pokemon(commands.Cog):
         """View a specific pokémon from your collection."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         ## Hacky way using 0=first, 1=prev, 2=curr, 3=next, 4=last page LOL
 
@@ -478,7 +474,41 @@ class Pokemon(commands.Cog):
                     pokemon = x
                     break
 
-            embed = self.bot.Embed(color=pokemon.color or 0x9CCFFF, title=f"{pokemon:lnf}")
+            field_values = {}
+            if pokemon.held_item:
+                item = self.bot.data.item_by_number(pokemon.held_item)
+                emote = ""
+                if item.emote is not None:
+                    emote = getattr(self.bot.sprites, item.emote) + " "
+                field_values["held-item"] = f"{emote}{item.name}"
+
+            embed = ctx.localized_embed(
+                "pokemon-info-embed",
+                droppable_fields=["held-item"],
+                field_ordering=["details", "stats", "held-item"],
+                block_fields=True,
+                xp=pokemon.xp,
+                maxXP=pokemon.max_xp,
+                nature=pokemon.nature,
+                hp=pokemon.hp,
+                ivHp=pokemon.iv_hp,
+                atk=pokemon.atk,
+                ivAtk=pokemon.iv_atk,
+                defn=pokemon.defn,
+                ivDefn=pokemon.iv_defn,
+                satk=pokemon.satk,
+                ivSatk=pokemon.iv_satk,
+                sdef=pokemon.sdef,
+                ivSdef=pokemon.iv_sdef,
+                spd=pokemon.spd,
+                ivSpd=pokemon.iv_spd,
+                ivPercentage=pokemon.iv_percentage * 100,
+                index=pokemon.idx,
+                id=str(pokemon.id),
+            )
+
+            embed.title = f"{pokemon:lnf}"
+            embed.color = pokemon.color or 0x9CCFFF
 
             if pokemon.shiny:
                 embed.set_image(url=pokemon.species.shiny_image_url)
@@ -486,34 +516,6 @@ class Pokemon(commands.Cog):
                 embed.set_image(url=pokemon.species.image_url)
 
             embed.set_thumbnail(url=ctx.author.display_avatar.url)
-
-            info = (
-                f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
-                f"**Nature:** {pokemon.nature}",
-            )
-
-            embed.add_field(name="Details", value="\n".join(info), inline=False)
-
-            stats = (
-                f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
-                f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
-                f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
-                f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
-                f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
-                f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
-                f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
-            )
-
-            embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-
-            if pokemon.held_item:
-                item = self.bot.data.item_by_number(pokemon.held_item)
-                emote = ""
-                if item.emote is not None:
-                    emote = getattr(self.bot.sprites, item.emote) + " "
-                embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
-
-            embed.set_footer(text=f"Displaying pokémon {pokemon.idx}.\nID: {pokemon.id}")
 
             return embed
 
@@ -529,14 +531,14 @@ class Pokemon(commands.Cog):
         """Select a specific pokémon from your collection."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         await self.bot.mongo.update_member(
             ctx.author,
             {"$set": {f"selected_id": pokemon.id}},
         )
 
-        await ctx.send(f"You selected your level {pokemon.level} {pokemon.species}. No. {pokemon.idx}.")
+        await ctx.send(ctx._("selected-pokemon", index=pokemon.idx, level=pokemon.level, species=pokemon.species))
 
     @checks.has_started()
     @commands.command(aliases=("or",))
@@ -546,16 +548,14 @@ class Pokemon(commands.Cog):
         sort = sort.lower()
 
         if sort not in [a + b for a in ("number", "iv", "level", "pokedex") for b in ("+", "-", "")]:
-            return await ctx.send(
-                "Please specify either `iv`, `iv+`, `iv-`, `level`, `level+`, `level-`, `number`, `number+`, `number-`, `pokedex`, `pokedex+` or `pokedex-`"
-            )
+            return await ctx.send(ctx._("invalid-order-specifier"))
 
         await self.bot.mongo.update_member(
             ctx.author,
             {"$set": {f"order_by": sort}},
         )
 
-        await ctx.send(f"Now ordering pokemon by `{sort}`.")
+        await ctx.send(ctx._("now-ordering-pokemon-by", sort=sort))
 
     def parse_numerical_flag(self, text):
         if not (1 <= len(text) <= 2):
@@ -638,7 +638,7 @@ class Pokemon(commands.Cog):
                 ops = self.parse_numerical_flag(text)
 
                 if ops is None:
-                    raise commands.BadArgument(f"Couldn't parse `--{flag} {' '.join(text)}`")
+                    raise commands.BadArgument(ctx._("filter-invalid-numerical", flag=flag, arguments=" ".join(text)))
 
                 ops[1] = float(ops[1])
 
@@ -707,18 +707,18 @@ class Pokemon(commands.Cog):
                     continue
 
                 if member.selected_id == pokemon.id:
-                    await ctx.send(f"{pokemon.idx}: You can't release your selected pokémon!")
+                    await ctx.send(ctx._("cannot-release-selected", index=pokemon.idx))
                     continue
 
                 if pokemon.favorite:
-                    await ctx.send(f"{pokemon.idx}: You can't release favorited pokémon!")
+                    await ctx.send(ctx._("cannot-release-favorited", index=pokemon.idx))
                     continue
 
                 ids.add(pokemon.id)
                 mons.append(pokemon)
 
         if len(args) != len(mons):
-            await ctx.send(f"Couldn't find/release {len(args)-len(mons)} pokémon in this selection!")
+            await ctx.send(ctx._("release-failsafe-mismatch", difference=len(args) - len(mons)))
 
         # Confirmation msg
 
@@ -726,10 +726,10 @@ class Pokemon(commands.Cog):
             return
 
         if len(mons) == 1:
-            message = f"Are you sure you want to **release** your {mons[0]:spl} No. {mons[0].idx} for 2 pc?"
+            message = ctx._("release-confirm-single", pokemon=f"{mons[0]:spl}", index=mons[0].idx)
         else:
-            message = f"Are you sure you want to release the following pokémon for {len(mons)*2:,} pc?\n\n" + "\n".join(
-                f"{x:spl} ({x.idx})" for x in mons
+            message = ctx._(
+                "release-confirm-multiple", amount=len(mons * 2), pokemon="\n".join(f"{x:spl} ({x.idx})" for x in mons)
             )
 
         result = await ctx.confirm(message)
@@ -739,7 +739,7 @@ class Pokemon(commands.Cog):
             return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
+            return await ctx.send(ctx._("forbidden-during-trade"))
 
         # confirmed, release
 
@@ -753,9 +753,7 @@ class Pokemon(commands.Cog):
                 "$inc": {"balance": 2 * result.modified_count},
             },
         )
-        await ctx.send(
-            f"You released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
-        )
+        await ctx.send(ctx._("release-completed", modifiedCount=result.modified_count, coins=2 * result.modified_count))
         self.bot.dispatch("release", ctx.author, result.modified_count)
 
     # Filter
@@ -822,26 +820,24 @@ class Pokemon(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send("Found no pokémon matching this search (excluding favorited and selected pokémon).")
+            return await ctx.send(ctx._("found-no-pokemon-matching-excluding-favorited-and-selected"))
 
         # confirm
 
-        result = await ctx.confirm(
-            f"Are you sure you want to release **{num} pokémon** for {num*2:,} pc? Favorited and selected pokémon won't be removed."
-        )
+        result = await ctx.confirm(ctx._("releaseall-confirm", coins=f"{num*2:,}", number=num))
         if result is None:
             return await ctx.send(ctx._("times-up"))
         if result is False:
             return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
+            return await ctx.send(ctx._("forbidden-during-trade"))
 
         # confirmed, release all
 
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
-        await ctx.send(f"Releasing {num} pokémon, this might take a while...")
+        await ctx.send(ctx._("releaseall-in-progress", number=num))
 
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
@@ -858,7 +854,7 @@ class Pokemon(commands.Cog):
         )
 
         await ctx.send(
-            f"You have released {result.modified_count} pokémon. You received {2*result.modified_count:,} Pokécoins!"
+            ctx._("releaseall-completed", coins=2 * result.modified_count, modifiedCount=result.modified_count)
         )
         self.bot.dispatch("release", ctx.author, result.modified_count)
 
@@ -908,7 +904,7 @@ class Pokemon(commands.Cog):
         """View or filter the pokémon in your collection."""
 
         if flags["page"] < 1:
-            return await ctx.send("Page must be positive!")
+            return await ctx.send(ctx._("page-must-be-positive"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -925,7 +921,10 @@ class Pokemon(commands.Cog):
             menu.maxn = max(x.idx for x in items)
 
         def format_item(menu, p):
-            return f"`{padn(p, menu.maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
+            # return f"`{padn(p, menu.maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
+            return ctx._(
+                "pokemon-page-line", paddedNumeral=padn(p, menu.maxn), pokemon=f"{p:nif}", iv=(p.iv_total / 186)
+            )
 
         count = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations)
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
@@ -933,7 +932,7 @@ class Pokemon(commands.Cog):
         pages = pagination.ContinuablePages(
             pagination.AsyncListPageSource(
                 pokemon,
-                title="Your pokémon",
+                title=ctx._("pokemon-page-title"),
                 prepare_page=prepare_page,
                 format_item=format_item,
                 per_page=20,
@@ -946,7 +945,7 @@ class Pokemon(commands.Cog):
         try:
             await pages.start(ctx)
         except IndexError:
-            await ctx.send("No pokémon found.")
+            await ctx.send(ctx._("no-pokemon-found"))
 
     @flags.add_flag("page", nargs="*", type=str, default="1")
     @flags.add_flag("--caught", action="store_true")
@@ -966,13 +965,13 @@ class Pokemon(commands.Cog):
         search_or_page = " ".join(flags["page"])
 
         if flags["orderd"] and flags["ordera"]:
-            return await ctx.send("You can use either --orderd or --ordera, but not both.")
+            return await ctx.send(ctx._("pokedex-orderd-ordera-mutually-exclusive"))
 
         if flags["caught"] and flags["uncaught"]:
-            return await ctx.send("You can use either --caught or --uncaught, but not both.")
+            return await ctx.send(ctx._("pokedex-caught-uncaught-mutually-exclusive"))
 
         if flags["mythical"] + flags["legendary"] + flags["ub"] > 1:
-            return await ctx.send("You can't use more than one rarity flag!")
+            return await ctx.send(ctx._("pokedex-only-one-rarity-flag"))
 
         if search_or_page is None:
             search_or_page = "1"
@@ -983,7 +982,7 @@ class Pokemon(commands.Cog):
             pgstart = (int(search_or_page) - 1) * 20
 
             if pgstart >= total_count or pgstart < 0:
-                return await ctx.send("There are no pokémon on this page.")
+                return await ctx.send(ctx._("no-pokemon-on-this-page"))
 
             num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
 
@@ -1032,25 +1031,26 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
-                embed = self.bot.Embed(
-                    title=f"Your pokédex", description=f"You've caught {num} out of {total_count} pokémon!"
+                embed = ctx.localized_embed(
+                    "pokedex-embed",
+                    caught=num,
+                    allTotalPokemon=total_count,
+                    beginning=pgstart + 1,
+                    end=pgend,
+                    totalFiltered=len(pokedex),
                 )
-
-                embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
 
                 for k, v in pokedex[pgstart:pgend]:
                     species = self.bot.data.species_by_number(k)
 
+                    text = ctx._("pokedex-not-caught-yet")
                     if do_emojis:
-                        text = f"{self.bot.sprites.cross} Not caught yet!"
-                    else:
-                        text = "Not caught yet!"
+                        text = self.bot.sprites.cross + f" {text}"
 
                     if v > 0:
+                        text = ctx._("pokedex-n-caught", caught=v)
                         if do_emojis:
-                            text = f"{self.bot.sprites.check} {v} caught!"
-                        else:
-                            text = f"{v} caught!"
+                            text = self.bot.sprites.check + f" {text}"
 
                     if do_emojis:
                         emoji = self.bot.sprites.get(k) + " "
@@ -1084,66 +1084,70 @@ class Pokemon(commands.Cog):
 
                 species = self.bot.data.species_by_name(search)
                 if species is None:
-                    return await ctx.send(f"Could not find a pokemon matching `{search_or_page}`.")
+                    return await ctx.send(ctx._("unknown-pokemon-matching", matching=search_or_page))
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
-
-            embed = self.bot.Embed(title=f"#{species.dex_number} — {species}")
-
-            if species.description:
-                embed.description = species.description.replace("\n", " ")
 
             # Pokemon Rarity
             rarity = []
             if species.mythical:
-                rarity.append("Mythical")
+                rarity.append(ctx._("rarity-mythical"))
             if species.legendary:
-                rarity.append("Legendary")
+                rarity.append(ctx._("rarity-legendary"))
             if species.ultra_beast:
-                rarity.append("Ultra Beast")
+                rarity.append(ctx._("rarity-ultra-beast"))
             if species.event:
-                rarity.append("Event")
+                rarity.append(ctx._("rarity-event"))
 
-            if rarity:
-                rarity = ", ".join(rarity)
-                embed.add_field(
-                    name="Rarity",
-                    value=rarity,
-                    inline=False,
-                )
+            embed = ctx.localized_embed(
+                "pokedex-species-embed",
+                field_ordering=[
+                    "rarity",
+                    "evolution",
+                    "types",
+                    "region",
+                    "catchable",
+                    "base-stats",
+                    "names",
+                    "appearance",
+                ],
+                field_values={
+                    "rarity": ", ".join(rarity),
+                    "evolution": species.evolution_text,
+                    "types": "\n".join(species.types),
+                    "region": species.region.title(),
+                    "catchable": "Yes" if species.catchable else "No",
+                    "names": "\n".join(f"{x} {y}" for x, y in species.names),
+                    "appearance": f"Height: {species.height} m\nWeight: {species.weight} kg",
+                },
+                block_fields=["rarity", "evolution"],
+                dexNumber=species.dex_number,
+                hp=species.base_stats.hp,
+                atk=species.base_stats.atk,
+                defn=species.base_stats.defn,
+                satk=species.base_stats.satk,
+                sdef=species.base_stats.sdef,
+                spd=species.base_stats.spd,
+                species=str(species),
+            )
 
-            if species.evolution_text:
-                embed.add_field(name="Evolution", value=species.evolution_text, inline=False)
+            if species.description:
+                embed.description = species.description.replace("\n", " ")
 
             if shiny:
-                embed.title = f"#{species.dex_number} — ✨ {species}"
+                embed.title = ctx._(
+                    "pokedex-species-embed-title-shiny", dexNumber=species.dex_number, species=str(species)
+                )
                 embed.set_image(url=species.shiny_image_url)
             else:
                 embed.set_image(url=species.image_url)
 
-            base_stats = (
-                f"**HP:** {species.base_stats.hp}",
-                f"**Attack:** {species.base_stats.atk}",
-                f"**Defense:** {species.base_stats.defn}",
-                f"**Sp. Atk:** {species.base_stats.satk}",
-                f"**Sp. Def:** {species.base_stats.sdef}",
-                f"**Speed:** {species.base_stats.spd}",
-            )
-
-            embed.add_field(name="Types", value="\n".join(species.types))
-            embed.add_field(name="Region", value=species.region.title())
-            embed.add_field(name="Catchable", value="Yes" if species.catchable else "No")
-
-            embed.add_field(name="Base Stats", value="\n".join(base_stats))
-            embed.add_field(name="Names", value="\n".join(f"{x} {y}" for x, y in species.names))
-            embed.add_field(name="Appearance", value=f"Height: {species.height} m\nWeight: {species.weight} kg")
-
-            text = "You haven't caught this pokémon yet!"
+            text = ctx._("pokedex-you-havent-caught-yet")
             if str(species.dex_number) in member.pokedex:
-                text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
+                text = ctx._("pokedex-caught-n-of-this-pokemon", amount=member.pokedex[str(species.dex_number)])
 
             if species.art_credit:
-                text = f"Artwork by {species.art_credit}.\nMay be derivative of artwork © The Pokémon Company.\n" + text
+                text = ctx._("pokedex-art-credit", artist=species.art_credit) + "\n" + text
 
             embed.set_footer(text=text)
 
@@ -1161,33 +1165,33 @@ class Pokemon(commands.Cog):
             args.append(await converters.PokemonConverter().convert(ctx, ""))
 
         if not all(pokemon is not None for pokemon in args):
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(description="", title=f"Congratulations {ctx.author.display_name}!")
+        embed = self.bot.Embed(description="", title=ctx._("congratulations", name=ctx.author.display_name))
 
         evolved = []
 
         if len(args) > 30:
-            return await ctx.send("You can't evolve more than 30 pokémon at once!")
+            return await ctx.send(ctx._("too-many-evolutions-at-once", limit=30))
 
         for pokemon in args:
             name = format(pokemon, "n")
 
             if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
-                return await ctx.send(f"Your {name} can't be evolved!")
+                return await ctx.send(ctx._("cannot-be-evolved", pokemon=name))
 
             if len(args) < 20:
                 embed.add_field(
-                    name=f"Your {name} is evolving!",
-                    value=f"Your {name} has turned into a {evo}!",
+                    name=ctx._("pokemon-evolving", pokemon=name),
+                    value=ctx._("pokemon-turned-into", old=name, new=evo),
                     inline=True,
                 )
 
             else:
-                embed.description += f"\n**Your {name} is evolving!**\nYour {name} has turned into a {evo}!"
+                embed.description += ctx._("evolved-compact-line", old=name, new=evo)
 
             if len(args) == 1:
                 if pokemon.shiny:
@@ -1213,7 +1217,7 @@ class Pokemon(commands.Cog):
         """Switch a pokémon back to its non-mega form."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         fr = self.bot.data.species_by_number(pokemon.species.dex_number)
 
@@ -1222,13 +1226,11 @@ class Pokemon(commands.Cog):
             fr.mega_x,
             fr.mega_y,
         ):
-            return await ctx.send("This pokémon is not in mega form!")
+            return await ctx.send(ctx._("pokemon-must-be-mega"))
 
         # confirm
 
-        result = await ctx.confirm(
-            f"Are you sure you want to switch **{pokemon:spl}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded!"
-        )
+        result = await ctx.confirm(ctx._("unmega-confirm", pokemon=f"{pokemon:spl}"))
         if result is None:
             return await ctx.send(ctx._("times-up"))
         if result is False:
@@ -1239,13 +1241,13 @@ class Pokemon(commands.Cog):
             {"$set": {f"species_id": fr.id}},
         )
 
-        await ctx.send("Successfully switched back to non-mega form.")
+        await ctx.send(ctx._("unmega-completed"))
 
     @checks.has_started()
     @commands.command(aliases=("f",))
     async def first(self, ctx):
         if ctx.author.id not in self.bot.menus:
-            return await ctx.send("Couldn't find a previous menu to paginate.")
+            return await ctx.send(ctx._("no-previous-menu-to-navigate"))
 
         pages = self.bot.menus[ctx.author.id]
         with contextlib.suppress(TypeError, DiscordException):
@@ -1256,7 +1258,7 @@ class Pokemon(commands.Cog):
     @commands.command(aliases=("n", "forward"))
     async def next(self, ctx):
         if ctx.author.id not in self.bot.menus:
-            return await ctx.send("Couldn't find a previous menu to paginate.")
+            return await ctx.send(ctx._("no-previous-menu-to-navigate"))
 
         pages = self.bot.menus[ctx.author.id]
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
@@ -1267,13 +1269,11 @@ class Pokemon(commands.Cog):
     @commands.command(aliases=("prev", "back", "b"))
     async def previous(self, ctx):
         if ctx.author.id not in self.bot.menus:
-            return await ctx.send("Couldn't find a previous menu to paginate.")
+            return await ctx.send(ctx._("no-previous-menu-to-navigate"))
 
         pages = self.bot.menus[ctx.author.id]
         if pages.current_page == 0 and not pages.allow_last:
-            return await ctx.send(
-                f"Sorry, market does not support going to last page. Try sorting in the reverse direction instead. For example, use `{ctx.clean_prefix}market search --order price` to sort by price."
-            )
+            return await ctx.send(ctx._("pagination-market-cannot-jump-to-last-page"))
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages.current_page - 1)
@@ -1282,13 +1282,11 @@ class Pokemon(commands.Cog):
     @commands.command(aliases=("l",))
     async def last(self, ctx):
         if ctx.author.id not in self.bot.menus:
-            return await ctx.send("Couldn't find a previous menu to paginate.")
+            return await ctx.send(ctx._("no-previous-menu-to-navigate"))
 
         pages = self.bot.menus[ctx.author.id]
         if not pages.allow_last:
-            return await ctx.send(
-                f"Sorry, market does not support this command. Try sorting in the reverse direction instead. For example, use `{ctx.clean_prefix}market search --order price` to sort by price."
-            )
+            return await ctx.send(ctx._("pagination-market-command-unsupported"))
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, pages._source.get_max_pages() - 1)
@@ -1297,13 +1295,11 @@ class Pokemon(commands.Cog):
     @commands.command(aliases=("page", "g"))
     async def go(self, ctx, page: int):
         if ctx.author.id not in self.bot.menus:
-            return await ctx.send("Couldn't find a previous menu to paginate.")
+            return await ctx.send(ctx._("no-previous-menu-to-navigate"))
 
         pages = self.bot.menus[ctx.author.id]
         if not pages.allow_go:
-            return await ctx.send(
-                "Sorry, market and info do not support this command. Try further filtering your results instead."
-            )
+            return await ctx.send(ctx._("pagination-market-info-command-unsupported"))
         with contextlib.suppress(AttributeError, TypeError, DiscordException):
             await pages.message.clear_reactions()
         await pages.continue_at(ctx, page - 1)
