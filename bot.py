@@ -252,6 +252,7 @@ class ClusterBot(commands.AutoShardedBot):
 
         result = self.lang.get_message(message_id)
         if not result:
+            self.log.error("no such message id", message_id=message_id)
             return error_embed
 
         msg, bundle = result
