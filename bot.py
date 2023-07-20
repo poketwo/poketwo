@@ -190,7 +190,7 @@ class ClusterBot(commands.AutoShardedBot):
         droppable_fields: list[str] = [],
         ignored_fields: list[str] = [],
         field_ordering: list[str] = [],
-        block_fields: list[str] = [],
+        block_fields: list[str] | bool = False,
         **kwargs: Any,
     ) -> discord.Embed:
         """Creates an embed from localized message strings.
@@ -238,6 +238,9 @@ class ClusterBot(commands.AutoShardedBot):
             A list of fields that are not inline ("block"). ``inline=False``
             will be passed into ``add_field`` for fields with their name in this
             list.
+
+            You can also pass a boolean to determine the value passed to
+            ``inline`` for all fields.
         **kwargs
             Variables to pass into all formatted messages.
 
@@ -306,7 +309,11 @@ class ClusterBot(commands.AutoShardedBot):
             # back even if the value is present, but `None`.
             value = field_values.get(field_name) or format_field_attribute(field=field_name, key="value")
             if name and value:
-                embed.add_field(name=name, value=value, inline=field_name not in block_fields)
+                if type(block_fields) is bool:
+                    is_inline = not block_fields
+                else:
+                    is_inline = field_name not in block_fields
+                embed.add_field(name=name, value=value, inline=is_inline)
             elif field_name not in droppable_fields:
                 self.log.error(
                     "failed to format field attribute, and it isn't droppable",
