@@ -295,8 +295,13 @@ class ClusterBot(commands.AutoShardedBot):
                 return None
             return val
 
+        def extract_field_name(fluent_attribute: str) -> str:
+            return fluent_attribute[fluent_attribute.find("-") + 1 : fluent_attribute.rfind("-")]
+
         discovered_field_names = {
-            name for key in attributes if key.startswith("field-") and (name := key.split("-")[1]) not in ignored_fields
+            name
+            for key in attributes
+            if key.startswith("field-") and (name := extract_field_name(key)) not in ignored_fields
         }
         if field_ordering:
             discovered_field_names = sorted(
