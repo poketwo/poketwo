@@ -23,7 +23,6 @@ trade-footer =
   Reminder: Trading Pokécoins or {-pokemon} for real-life currencies or items in other bots is prohibited and will result in the suspension of your {-brand} account!
 trade-none = None
 trade-none-on-this-page = None on this page
-trade-sign-positive
 trade-pokecoins =
   {$coins ->
     [one] 1 Pokécoin
