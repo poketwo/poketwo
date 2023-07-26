@@ -117,6 +117,7 @@ unknown-pokemon-matching = Could not find a {-pokemon} matching `{$matching}`.
 pokemon-must-be-mega = This {-pokemon} is not in mega form!
 forbidden-during-trade = You can't do that in a trade!
 page-must-be-positive = Page must be positive!
+user-hasnt-started = That user hasn't picked a starter {-pokemon} yet!
 
 rarity-mythical = Mythical
 rarity-legendary = Legendary

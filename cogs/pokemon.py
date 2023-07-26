@@ -921,7 +921,6 @@ class Pokemon(commands.Cog):
             menu.maxn = max(x.idx for x in items)
 
         def format_item(menu, p):
-            # return f"`{padn(p, menu.maxn)}`　**{p:nif}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
             return ctx._(
                 "pokemon-page-line", paddedNumeral=padn(p, menu.maxn), pokemon=f"{p:nif}", iv=(p.iv_total / 186)
             )

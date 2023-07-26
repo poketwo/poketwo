@@ -16,6 +16,7 @@ FLUENT_FILES = (
     "errors.ftl",
     "shop.ftl",
     "pokemon.ftl",
+    "trading.ftl",
 )
 
 
