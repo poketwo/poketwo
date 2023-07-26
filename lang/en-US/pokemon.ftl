@@ -34,17 +34,17 @@ unfavorited-pokemon = Unfavorited your level {$level} {$name}.
 favoriteall-confirm = Are you sure you want to **favorite** your {$number} {-pokemon}?
 favoriteall-none-found =
   Found no unfavorited {-pokemon} within this selection.
-  To mass unfavorite a pokemon, please use {COMMAND("unfavoriteall")}.
+  To mass unfavorite a {-pokemon}, please use {COMMAND("unfavoriteall")}.
 favoriteall-completed =
-  Favorited your {$nowFavorited} unfavorited pokemon.
-  All {$totalSelected} selected pokemon are now favorited.
+  Favorited your {$nowFavorited} unfavorited {-pokemon}.
+  All {$totalSelected} selected {-pokemon} are now favorited.
 
 ## Command: unfavoriteall
 unfavoriteall-non-found = Found no favorited {-pokemon} within this selection.
 unfavoriteall-confirm = Are you sure you want to **unfavorite** your {$number} {-pokemon}?
 unfavoriteall-completed =
-  Unfavorited your {$nowUnfavorited} favorited pokemon.
-  All {$totalSelected} selected pokemon are now unfavorited.
+  Unfavorited your {$nowUnfavorited} favorited {-pokemon}.
+  All {$totalSelected} selected {-pokemon} are now unfavorited.
 
 ## Command: info
 pokemon-info-embed =
@@ -71,7 +71,7 @@ selected-pokemon = You selected your level {$level} {$species}. No. {$index}.
 
 ## Command: order
 invalid-order-specifier = Please specify either `iv`, `iv+`, `iv-`, `level`, `level+`, `level-`, `number`, `number+`, `number-`, `pokedex`, `pokedex+` or `pokedex-`
-now-ordering-pokemon-by = Now ordering pokemon by `{$sort}`.
+now-ordering-pokemon-by = Now ordering {-pokemon} by `{$sort}`.
 
 ## Command: release
 cannot-release-selected = {$index}: You can't release your selected {-pokemon}!
