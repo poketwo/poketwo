@@ -203,7 +203,7 @@ class ClusterBot(commands.AutoShardedBot):
         are present, they are formatted and added to the embed.
 
         Embed fields may be specified through attributes with names in the format
-        of ``field-[name]-title`` and ``field-[name]-value``. Both attributes
+        of ``field-[name]-name`` and ``field-[name]-value``. Both attributes
         must be present (unless the field value is overridden via ``field_values``,
         in which case the value attribute in Fluent can be omitted, or the field name
         is present in ``droppable_fields``, in which case the field is simply
