@@ -801,6 +801,8 @@ class Trading(commands.Cog):
             field_ordering=["details", "stats", "held-item"],
             block_fields=["details", "stats"],
             field_values=field_values,
+            droppable_fields=["held-item"],
+            pokemon=f"{pokemon:ln}",
             xp=pokemon.xp,
             maxXp=pokemon.max_xp,
             nature=pokemon.nature,
@@ -821,7 +823,6 @@ class Trading(commands.Cog):
             tradingPartner=other.display_name,
         )
         embed.color = constants.PINK
-        embed.title = f"{pokemon:ln}"
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)

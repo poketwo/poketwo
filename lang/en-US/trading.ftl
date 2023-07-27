@@ -76,6 +76,7 @@ trade-add-all-in-progress = Adding {NUMBER($number)} {-pokemon}, this might take
 ## Command: trade info
 couldnt-find-pokemon-in-trade = Couldn't find that {-pokemon} in the trade!
 trade-info-embed =
+  .title = {$pokemon}
   .field-details-name = Details
   .field-details-value =
     {"*"}*XP:** {$xp}/{$maxXp}
