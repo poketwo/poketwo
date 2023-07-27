@@ -118,6 +118,8 @@ pokemon-must-be-mega = This {-pokemon} is not in mega form!
 forbidden-during-trade = You can't do that in a trade!
 page-must-be-positive = Page must be positive!
 user-hasnt-started = That user hasn't picked a starter {-pokemon} yet!
+user-is-suspended = **{$user}** is suspended from the bot!
+pokemon-must-be-selected = You must have a {-pokemon} selected!
 
 rarity-mythical = Mythical
 rarity-legendary = Legendary

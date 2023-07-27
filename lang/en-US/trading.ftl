@@ -4,7 +4,6 @@ scam-identified = **Warning:** A trading embed by a bot pretending to be Pokétw
 ## Initiating a trade
 already-in-a-trade = You are already in a trade!
 user-already-in-a-trade = **{$user}** is already in a trade!
-user-is-suspended = **{$user}** is suspended from the bot!
 requesting-a-trade = Requesting a trade with {$mention}. Click the checkmark to accept!
 trade-request-timed-out = The request to trade has timed out.
 user-who-sent-request-is-already-trading = Sorry, the user who sent the request is already in another trade.

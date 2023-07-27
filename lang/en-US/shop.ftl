@@ -78,7 +78,6 @@ shop-shiny-charm-active = You have a shiny charm active that expires in {$expire
 
 ## Command: `buy`
 buy-unknown-item = Couldn't find an item called `{$item}`.
-pokemon-must-be-selected = You must have a {-pokemon} selected!
 cannot-buy-multiple = You can't buy multiple of this item!
 not-enough-shards = You don't have enough shards for that!
 not-enough-coins = You don't have enough Pokécoins for that!
