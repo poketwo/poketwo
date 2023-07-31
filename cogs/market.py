@@ -358,6 +358,13 @@ class Market(commands.Cog):
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
         embed.add_field(
+            name="Current Moves",
+            value="No Moves"
+            if len(pokemon.moves) == 0
+            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
+        )
+
+        embed.add_field(
             name="Market Listing",
             value=f"**ID:** {id}\n**Price:** {listing['market_data']['price']:,} pc",
             inline=False,

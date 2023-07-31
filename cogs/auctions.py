@@ -577,6 +577,13 @@ class Auctions(commands.Cog):
                 f"**Bid Increment:** {auction['auction_data']['bid_increment']:,} Pokécoins",
             )
 
+        embed.add_field(
+            name="Current Moves",
+            value="No Moves"
+            if len(pokemon.moves) == 0
+            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
+        )
+
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(
             text=f"Bid with `{ctx.clean_prefix}auction bid {auction['auction_data']['_id']} <bid>`\n"
