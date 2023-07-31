@@ -108,6 +108,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -288,6 +289,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -376,6 +378,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -624,6 +627,11 @@ class Pokemon(commands.Cog):
 
             aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
+        if "move" in flags and flags["move"] is not None:
+            move_ids = [m.id for x in flags["move"] if (m := self.bot.data.move_by_name(" ".join(x))) is not None]
+
+            aggregations.append({"$match": {map_field("moves"): {"$all": move_ids}}})
+
         if "nickname" in flags and flags["nickname"] is not None:
             aggregations.append(
                 {
@@ -785,6 +793,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -890,6 +899,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
