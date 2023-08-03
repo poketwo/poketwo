@@ -134,7 +134,6 @@ unmega-confirm =
   Are you sure you want to switch **{$pokemon}** back to its non-mega form?
   The mega evolution (1,000 pc) will not be refunded!
 unmega-completed = Successfully switched back to non-mega form.
-unknown-pokemon = Couldn't find that {-pokemon}!
 
 ## Command: evolve
 too-many-evolutions-at-once = You can't evolve more than {$limit} {-pokemon} at once!
