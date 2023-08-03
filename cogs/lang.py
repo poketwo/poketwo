@@ -18,6 +18,7 @@ FLUENT_FILES = (
     "pokemon.ftl",
     "trading.ftl",
     "battling.ftl",
+    "auctions.ftl",
 )
 
 
