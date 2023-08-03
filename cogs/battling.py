@@ -722,10 +722,7 @@ class Battling(commands.Cog):
             "moveinfo-embed",
             field_ordering=["target", "power", "accuracy", "pp", "priority", "type", "class"],
             block_fields=["target"],
-            field_values={
-                name: value if (value := getattr(move, name)) is not None else "—"
-                for name in ("power", "accuracy", "pp", "priority", "type")
-            },
+            field_values={name: getattr(move, name) or "—" for name in ("power", "accuracy", "pp", "priority", "type")},
             title=move.name,
             description=move.description,
             target=move.target_text,
