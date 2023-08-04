@@ -4,16 +4,14 @@ from collections import defaultdict
 from discord.ext import commands
 from pymongo import ReturnDocument
 
-from helpers import checks
-
-name = lambda r: lambda c: f"Catch {c} pokémon originally found in the {r.title()} region."
+from helpers import checks, constants
 
 CATCHING_TRACKS = {
     f"catch_region_{region}": {
         "event": "catch",
+        "region": region,
         "counts": [20, 50, 100, 200, 500],
         "condition": {"region": region},
-        "description": name(region),
         "rewards": [2000, 5000, 10000, 20000, 50000],
         "final_reward": region,
     }
@@ -40,7 +38,6 @@ class Quests(commands.Cog):
                 {
                     **quest,
                     "_id": id,
-                    "description": quest["description"](c := quest["counts"][idx]),
                     "progress": prog,
                     "slider": prog / c,
                     "next_count": c,
@@ -68,19 +65,22 @@ class Quests(commands.Cog):
     async def quests(self, ctx: commands.Context):
         """View quests."""
 
-        embed = self.bot.Embed(title=f"Quests", description="Complete these quests to earn special rewards!")
+        embed = ctx.localized_embed("quests-embed")
+        embed.color = constants.PINK
 
         quests = await self.get_quests(ctx.author)
 
         for q in quests:
-            text = (
-                f"{self.make_slider(q['slider'])} `{q['progress']}/{q['next_count']}`",
-                f"**Reward:** {q['next_reward']:,} Pokécoins",
-                # "**Duration:** Permanent",
+            text = ctx._(
+                "quest-text",
+                slider=self.make_slider(q["slider"]),
+                progress=q["progress"],
+                nextCount=q["next_count"],
+                nextReward=q["next_reward"],
             )
             embed.add_field(
-                name=q["description"],
-                value="\n".join(text),
+                name=ctx._(f"catch-track-{q['region']}-description"),
+                value=text,
                 inline=False,
             )
 
@@ -123,13 +123,15 @@ class Quests(commands.Cog):
             if m["quest_progress"][q["_id"]] == q["next_count"]:
                 await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": q["next_reward"]}})
                 await ctx.send(
-                    f"You have completed the quest **{q['description']}** and received **{q['next_reward']:,}** Pokécoins!"
+                    ctx._(
+                        "quest-completed",
+                        nextReward=q["next_reward"],
+                        description=ctx._(f"catch-track-{q['region']}-description"),
+                    )
                 )
                 if q["next_is_last"]:
                     await self.bot.mongo.update_member(ctx.author, {"$set": {f"badges.{q['final_reward']}": True}})
-                    await ctx.send(
-                        f"You have completed this quest track and received the **{q['final_reward'].title()}** badge!"
-                    )
+                    await ctx.send(ctx._("quest-track-completed", finalReward=q["final_reward"].title()))
 
 
 async def setup(bot: commands.Bot):
