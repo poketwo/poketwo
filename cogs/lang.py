@@ -21,6 +21,7 @@ FLUENT_FILES = (
     "auctions.ftl",
     "spawning.ftl",
     "market.ftl",
+    "lang.ftl",
 )
 
 

@@ -31,7 +31,7 @@ class Administration(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Suspended {users_msg}.")
+        await ctx.send(ctx._("suspended-users", users=users_msg))
 
     @commands.is_owner()
     @admin.command(aliases=("tsp",))
@@ -51,7 +51,7 @@ class Administration(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Suspended {users_msg} for {strfdelta(duration)}.")
+        await ctx.send(ctx._("temporarily-suspended-users", users=users_msg, duration=strfdelta(duration)))
 
     @commands.is_owner()
     @admin.command(aliases=("usp",))
@@ -64,7 +64,7 @@ class Administration(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Unsuspended {users_msg}.")
+        await ctx.send(ctx._("unsuspended-users", users=users_msg))
 
     @commands.is_owner()
     @admin.command(aliases=("spawn",))
@@ -77,7 +77,7 @@ class Administration(commands.Cog):
         """Give a redeem."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"redeems": num}})
-        await ctx.send(f"Gave **{user}** {num} redeems.")
+        await ctx.send(ctx._("addredeem-completed", redeems=num, user=user))
 
     @commands.is_owner()
     @admin.command(aliases=("givecoins", "ac", "gc"))
@@ -85,7 +85,7 @@ class Administration(commands.Cog):
         """Add to a user's balance."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"balance": amt}})
-        await ctx.send(f"Gave **{user}** {amt} Pokécoins.")
+        await ctx.send(ctx._("addcoins-completed", coins=amt, user=user))
 
     @commands.is_owner()
     @admin.command(aliases=("giveshard", "as", "gs"))
@@ -93,7 +93,7 @@ class Administration(commands.Cog):
         """Add to a user's shard balance."""
 
         await self.bot.mongo.update_member(user, {"$inc": {"premium_balance": amt}})
-        await ctx.send(f"Gave **{user}** {amt} shards.")
+        await ctx.send(ctx._("addshard-completed", shards=amt, user=user))
 
     @commands.is_owner()
     @admin.command(aliases=("givevote", "av", "gv"))
@@ -108,7 +108,7 @@ class Administration(commands.Cog):
             },
         )
 
-        await ctx.send(f"Increased vote streak by {amt} for **{user}**.")
+        await ctx.send(ctx._("addvote-completed", votes=amt, user=user))
 
     @commands.is_owner()
     @admin.command(aliases=("givebox", "ab", "gb"))
@@ -116,7 +116,7 @@ class Administration(commands.Cog):
         """Give a user boxes."""
 
         if box_type not in ("normal", "great", "ultra", "master"):
-            return await ctx.send("That's not a valid box type!")
+            return await ctx.send(ctx._("invalid-box-type"))
 
         await self.bot.mongo.update_member(
             user,
@@ -126,10 +126,7 @@ class Administration(commands.Cog):
             },
         )
 
-        if amt == 1:
-            await ctx.send(f"Gave **{user}** 1 {box_type} box.")
-        else:
-            await ctx.send(f"Gave **{user}** {amt} {box_type} boxes.")
+        await ctx.send(ctx._("addbox-completed", type=box_type, user=user, boxes=amt))
 
     @commands.is_owner()
     @admin.command(aliases=("g",))
@@ -145,7 +142,7 @@ class Administration(commands.Cog):
         species = self.bot.data.species_by_name(arg)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{arg}`.")
+            return await ctx.send(ctx._("unknown-pokemon-matching", matching=arg))
 
         ivs = [mongo.random_iv() for i in range(6)]
 
@@ -169,7 +166,7 @@ class Administration(commands.Cog):
             }
         )
 
-        await ctx.send(f"Gave **{user}** a {species}.")
+        await ctx.send(ctx._("give-completed", pokemon=species, user=user))
 
     @commands.is_owner()
     @admin.command()
@@ -205,7 +202,7 @@ class Administration(commands.Cog):
             )
 
         await self.bot.mongo.db.pokemon.insert_many(pokemon)
-        await ctx.send(f"Gave **{user}** {num} pokémon.")
+        await ctx.send(ctx._("setup-completed", number=num, user=user))
 
 
 async def setup(bot: commands.Bot):
