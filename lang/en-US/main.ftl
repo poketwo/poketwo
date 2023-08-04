@@ -129,3 +129,4 @@ rarity = Rarity
 evolution = Evolution
 
 no-previous-menu-to-navigate = Couldn't find a previous menu to paginate.
+no-event-active = There is no event currently active.
