@@ -56,12 +56,13 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
             for i, x in enumerate(entries, start=menu.current_page * self.per_page)
         ]
         start = menu.current_page * self.per_page
-        footer = f"Showing entries {start + 1}–{start + len(lines)}"
-        if self.count is not None:
-            footer += f" out of {self.count}."
-        else:
-            footer += "."
 
+        footer = menu.ctx._(
+            "pagination-showing-entries-partial" if self.count is not None else "pagination-showing-entries-full",
+            start=start + 1,
+            end=start + len(lines),
+            total=self.count,
+        )
         embed = menu.ctx.bot.Embed(
             title=self.title,
             description=f"\n".join(lines)[:4096],
@@ -89,9 +90,7 @@ class ContinuablePages(ViewMenuPages):
             if max_pages is None:
                 await self.show_page(page_number)
             elif page_number < 0 and not self.allow_last:
-                await self.ctx.send(
-                    "Sorry, this does not support going to last page. Try sorting in the reverse direction instead."
-                )
+                await self.ctx.send(ctx._("pagination-last-jumping-unsupported"))
             else:
                 await self.show_page(page_number % max_pages)
         except IndexError:

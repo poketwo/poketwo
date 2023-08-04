@@ -130,3 +130,7 @@ evolution = Evolution
 
 no-previous-menu-to-navigate = Couldn't find a previous menu to paginate.
 no-event-active = There is no event currently active.
+
+pagination-showing-entries-partial = Showing entries {$start}–{$end} out of {$total}.
+pagination-showing-entries-full = Showing entries {$start}–{$end}.
+pagination-last-jumping-unsupported = Sorry, this does not support going to last page. Try sorting in the reverse direction instead.
