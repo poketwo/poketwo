@@ -9,7 +9,7 @@ from discord.ext import commands, tasks
 
 from cogs import mongo
 from data import models
-from helpers import checks
+from helpers import constants, checks
 from helpers.utils import write_fp
 
 
@@ -70,14 +70,14 @@ class Spawning(commands.Cog):
 
                 if pokemon.xp >= pokemon.max_xp and pokemon.level < 100:
                     update = {"$set": {f"xp": 0, f"level": pokemon.level + 1}}
-                    embed = self.bot.Embed(title=f"Congratulations {message.author.display_name}!")
+                    embed = self.bot.Embed(title=self.bot._("congratulations", name=message.author.display_name))
 
                     name = str(pokemon.species)
 
                     if pokemon.nickname is not None:
                         name += f' "{pokemon.nickname}"'
 
-                    embed.description = f"Your {name} is now level {pokemon.level + 1}!"
+                    embed.description = self.bot._("pokemon-level-is-now", pokemon=name, level=pokemon.level + 1)
 
                     if pokemon.shiny:
                         embed.set_thumbnail(url=pokemon.species.shiny_image_url)
@@ -89,8 +89,8 @@ class Spawning(commands.Cog):
                     if pokemon.get_next_evolution(guild.is_day) is not None:
                         evo = pokemon.get_next_evolution(guild.is_day)
                         embed.add_field(
-                            name=f"Your {name} is evolving!",
-                            value=f"Your {name} has turned into a {evo}!",
+                            name=self.bot._("pokemon-evolving", pokemon=name),
+                            value=self.bot._("pokemon-turned-into", old=name, new=evo),
                         )
 
                         if pokemon.shiny:
@@ -107,8 +107,8 @@ class Spawning(commands.Cog):
                         for move in pokemon.species.moves:
                             if move.method.level == pokemon.level:
                                 embed.add_field(
-                                    name=f"New move!",
-                                    value=f"Your {name} can now learn {move.move.name}!",
+                                    name=self.bot._("new-move"),
+                                    value=self.bot._("pokemon-can-now-learn", pokemon=name, move=move.move.name),
                                 )
                                 c += 1
 
@@ -213,11 +213,11 @@ class Spawning(commands.Cog):
 
         embed = self.bot.Embed()
         if prev_species:
-            embed.title = f"Wild {prev_species} fled. A new wild pokémon has appeared!"
+            embed.title = self.bot._("wild-fled", pokemon=prev_species)
         else:
-            embed.title = "A wild pokémon has appeared!"
+            embed.title = self.bot._("wild-appeared")
 
-        embed.description = f"Guess the pokémon and type `@{self.bot.user} catch <pokémon>` to catch it!"
+        embed.description = self.bot._("guess")
 
         image = None
 
@@ -235,7 +235,7 @@ class Spawning(commands.Cog):
             embed.set_image(url="attachment://pokemon.png")
 
         if incense:
-            embed.set_footer(text=f"Incense: Active.\nSpawns Remaining: {incense-1}.")
+            embed.set_footer(text=self.bot._("incense-footer", remaining=incense - 1))
 
         self.caught_users[channel.id] = set()
         await self.bot.redis.hset("wild", channel.id, species.id)
@@ -262,9 +262,7 @@ class Spawning(commands.Cog):
             return
 
         if await self.bot.redis.hexists("captcha", ctx.author.id):
-            return await ctx.send(
-                f"Whoa there. Please tell us you're human! https://verify.poketwo.net/captcha/{ctx.author.id}"
-            )
+            return await ctx.send(ctx._("captcha", userId=ctx.author.id))
 
         count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
         if count == 1:
@@ -280,7 +278,7 @@ class Spawning(commands.Cog):
         blanks = random.sample(inds, len(inds) // 2)
         hint = "".join("\\_" if i in blanks else x for i, x in enumerate(species.name))
 
-        await ctx.send(f"The pokémon is {hint}.")
+        await ctx.send(ctx._("hint", hint=hint))
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.channel, wait=True)
@@ -294,9 +292,7 @@ class Spawning(commands.Cog):
             return
 
         if await self.bot.redis.hexists("captcha", ctx.author.id):
-            return await ctx.send(
-                f"Whoa there. Please tell us you're human! https://verify.poketwo.net/captcha/{ctx.author.id}"
-            )
+            return await ctx.send(ctx._("captcha", userId=ctx.author.id))
 
         count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
         if count == 1:
@@ -309,13 +305,13 @@ class Spawning(commands.Cog):
         species = self.bot.data.species_by_number(int(species_id))
 
         if models.deaccent(guess.lower().replace("′", "'")) not in species.correct_guesses:
-            return await ctx.send("That is the wrong pokémon!")
+            return await ctx.send(ctx._("wrong-pokemon"))
 
         # Correct guess, add to database
 
         if ctx.channel.id == 759559123657293835:
             if ctx.author.id in self.caught_users[ctx.channel.id]:
-                return await ctx.send("You have already caught this pokémon!")
+                return await ctx.send(ctx._("already-caught"))
 
             self.caught_users[ctx.channel.id].add(ctx.author.id)
         else:
@@ -353,18 +349,19 @@ class Spawning(commands.Cog):
         if shiny:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention}! You caught a level {level} {species}!"
+        message = ctx._("caught", species=species, trainer=ctx.author.mention, level=level)
 
         memberp = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
 
         if str(species.dex_number) not in memberp.pokedex:
-            message += " Added to Pokédex. You received 35 Pokécoins!"
+            coins = 35
+            message += " " + ctx._("added-to-pokedex", coins=coins)
 
             await self.bot.mongo.update_member(
                 ctx.author,
                 {
                     "$set": {f"pokedex.{species.dex_number}": 1},
-                    "$inc": {"balance": 35},
+                    "$inc": {"balance": coins},
                 },
             )
 
@@ -372,24 +369,23 @@ class Spawning(commands.Cog):
             inc_bal = 0
 
             if memberp.pokedex[str(species.dex_number)] + 1 == 10:
-                message += f" This is your 10th {self.bot.data.species_by_number(species.dex_number)}! You received 350 Pokécoins."
                 inc_bal = 350
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 100:
-                message += f" This is your 100th {self.bot.data.species_by_number(species.dex_number)}! You received 3,500 Pokécoins."
                 inc_bal = 3500
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 1000:
-                message += f" This is your 1,000th {self.bot.data.species_by_number(species.dex_number)}! You received 35,000 Pokécoins."
                 inc_bal = 35000
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 10000:
-                message += f" This is your 10,000th {self.bot.data.species_by_number(species.dex_number)}! You received 350,000 Pokécoins."
                 inc_bal = 350000
 
             elif memberp.pokedex[str(species.dex_number)] + 1 == 100000:
-                message += f" This is your 100,000th {self.bot.data.species_by_number(species.dex_number)}! You received 3,500,000 Pokécoins."
                 inc_bal = 3500000
+
+            message += " " + ctx._(
+                "caught-milestone", species=self.bot.data.species_by_number(species.dex_number), coins=inc_bal
+            )
 
             await self.bot.mongo.update_member(
                 ctx.author,
@@ -400,14 +396,14 @@ class Spawning(commands.Cog):
 
         if member.shiny_hunt == species.dex_number:
             if shiny:
-                message += f"\n\nShiny streak reset. (**{member.shiny_streak + 1}**)"
+                message += "\n\n" + ctx._("shiny-streak-reset", streak=member.shiny_streak + 1)
                 await self.bot.mongo.update_member(ctx.author, {"$set": {"shiny_streak": 0}})
             else:
-                message += f"\n\n+1 Shiny chain! (**{member.shiny_streak + 1}**)"
+                message += "\n\n" + ctx._("shiny-chain", streak=member.shiny_streak + 1)
                 await self.bot.mongo.update_member(ctx.author, {"$inc": {"shiny_streak": 1}})
 
         if shiny:
-            message += "\n\nThese colors seem unusual... ✨"
+            message += "\n\n" + ctx._("shiny-flavor-text")
 
         await self.bot.redis.delete(f"redeem:{ctx.channel.id}")
 
@@ -428,9 +424,9 @@ class Spawning(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, {"$set": {"catch_mention": not member.catch_mention}})
 
         if member.catch_mention:
-            await ctx.send(f"You will no longer receive catch pings.")
+            await ctx.send(ctx._("catch-mentions-off"))
         else:
-            await ctx.send("You will now be pinged on catches.")
+            await ctx.send(ctx._("catch-mentions-on"))
 
     @checks.has_started()
     @commands.command(aliases=("sh",))
@@ -440,20 +436,15 @@ class Spawning(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if species is None:
-            embed = self.bot.Embed(
-                title=f"Shiny Hunt ✨",
-                description="You can select a specific pokémon to shiny hunt. Each time you catch that pokémon, your chain will increase. The longer your chain, the higher your chance of catching a shiny one!",
+            embed = ctx.localized_embed(
+                "shinyhunt-embed",
+                field_ordering=["current", "chain"],
+                droppable_fields=["chain"],
+                field_values={
+                    "current": self.bot.data.species_by_number(member.shiny_hunt).name if member.shiny_hunt else None
+                },
             )
-
-            embed.add_field(
-                name=f"Currently Hunting",
-                value=self.bot.data.species_by_number(member.shiny_hunt).name
-                if member.shiny_hunt
-                else f"Type `{ctx.clean_prefix}shinyhunt <pokémon>` to begin!",
-            )
-
-            if member.shiny_hunt:
-                embed.add_field(name=f"Chain", value=str(member.shiny_streak))
+            embed.color = constants.PINK
 
             return await ctx.send(embed=embed)
 
@@ -461,18 +452,16 @@ class Spawning(commands.Cog):
         species = self.bot.data.species_by_number(species.dex_number)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokémon matching `{species}`.")
+            return await ctx.send(ctx._("unknown-pokemon-matching", matching=species))
 
         if not species.catchable:
-            return await ctx.send("This pokémon can't be caught in the wild!")
+            return await ctx.send(ctx._("pokemon-not-catchable-wild"))
 
         if species.id == member.shiny_hunt:
-            return await ctx.send(f"You are already hunting this pokémon with a streak of **{member.shiny_streak}**.")
+            return await ctx.send(ctx._("shinyhunt-already-hunting", streak=member.shiny_streak))
 
         if member.shiny_streak > 0:
-            result = await ctx.confirm(
-                f"Are you sure you want to shiny hunt a different pokémon? Your streak will be reset."
-            )
+            result = await ctx.confirm(ctx._("shinyhunt-change-pokemon"))
             if result is None:
                 return await ctx.send(ctx._("times-up"))
             if result is False:
@@ -485,7 +474,7 @@ class Spawning(commands.Cog):
             },
         )
 
-        await ctx.send(f"You are now shiny hunting **{species}**.")
+        await ctx.send(ctx._("shinyhunt-active", pokemon=species))
 
     def cog_unload(self):
         self.spawn_incense.cancel()

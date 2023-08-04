@@ -19,6 +19,7 @@ FLUENT_FILES = (
     "trading.ftl",
     "battling.ftl",
     "auctions.ftl",
+    "spawning.ftl",
 )
 
 
