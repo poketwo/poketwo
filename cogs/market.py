@@ -94,7 +94,7 @@ class Market(commands.Cog):
         pages = pagination.ContinuablePages(
             pagination.AsyncListPageSource(
                 pokemon,
-                title=f"Pokétwo Marketplace",
+                title=ctx._("marketplace-title"),
                 prepare_page=prepare_page,
                 format_item=format_item,
                 per_page=20,
@@ -107,7 +107,7 @@ class Market(commands.Cog):
         try:
             await pages.start(ctx)
         except IndexError:
-            await ctx.send("No listings found.")
+            await ctx.send(ctx._("no-listings-found"))
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -117,27 +117,32 @@ class Market(commands.Cog):
         """List a pokémon on the marketplace."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
         if price < 1:
-            return await ctx.send("The price must be positive!")
+            return await ctx.send(ctx._("price-must-be-positive"))
 
         if price > 1000000000:
-            return await ctx.send("Price is too high!")
+            return await ctx.send(ctx._("price-too-high"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member.selected_id == pokemon.id:
-            return await ctx.send(f"{pokemon.idx}: You can't list your selected pokémon!")
+            return await ctx.send(ctx._("cannot-list-selected", index=pokemon.idx))
 
         if pokemon.favorite:
-            return await ctx.send(f"{pokemon.idx}: You can't list a favorited pokémon!")
+            return await ctx.send(ctx._("cannot-list-favorited", index=pokemon.idx))
 
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon:s} "
-            f"No. {pokemon.idx}** for **{price:,}** Pokécoins?"
+            ctx._(
+                "add-confirmation",
+                ivPercentage=pokemon.iv_percentage,
+                pokemon=f"{pokemon:s}",
+                index=pokemon.idx,
+                price=price,
+            )
         )
         if result is None:
             return await ctx.send(ctx._("times-up"))
@@ -145,7 +150,7 @@ class Market(commands.Cog):
             return await ctx.send(ctx._("aborted"))
 
         if await self.bot.get_cog("Trading").is_in_trade(ctx.author):
-            return await ctx.send("You can't do that in a trade!")
+            return await ctx.send(ctx._("forbidden-during-trade"))
 
         # create listing
 
@@ -168,8 +173,13 @@ class Market(commands.Cog):
         self.bot.dispatch("market_add", ctx.author, pokemon_dict)
 
         await ctx.send(
-            f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
-            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins."
+            ctx._(
+                "add-completed",
+                ivPercentage=pokemon.iv_percentage,
+                pokemon=pokemon.species,
+                index=pokemon.index,
+                price=price,
+            )
         )
 
     @checks.has_started()
@@ -181,15 +191,15 @@ class Market(commands.Cog):
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
-            return await ctx.send("Couldn't find that listing!")
+            return await ctx.send(ctx._("unknown-listing"))
         if listing["owner_id"] != ctx.author.id:
-            return await ctx.send("That's not your listing!")
+            return await ctx.send(ctx._("not-your-listing"))
 
         # confirm
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         result = await ctx.confirm(
-            f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** " f"from the market?"
+            ctx._("market-remove-confirmation", pokemon=f"{pokemon:s}", ivPercentage=pokemon.iv_percentage)
         )
         if result is None:
             return await ctx.send(ctx._("times-up"))
@@ -204,7 +214,7 @@ class Market(commands.Cog):
             },
         )
 
-        await ctx.send(f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market.")
+        await ctx.send(ctx._("market-remove-completed", ivPercentage=pokemon.iv_percentage, pokemon=pokemon.species))
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -215,23 +225,27 @@ class Market(commands.Cog):
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
-            return await ctx.send("Couldn't find that listing!")
+            return await ctx.send(ctx._("unknown-listing"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if listing["owner_id"] == ctx.author.id:
-            return await ctx.send("You can't purchase your own listing!")
+            return await ctx.send(ctx._("cannot-self-buy-listing"))
 
         if member.balance < listing["market_data"]["price"]:
-            return await ctx.send("You don't have enough Pokécoins for that!")
+            return await ctx.send(ctx._("not-enough-coins"))
 
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon:s}** "
-            f"for **{listing['market_data']['price']:,}** Pokécoins?"
+            ctx._(
+                "buy-confirmation",
+                ivPercentage=pokemon.iv_percentage,
+                pokemon=f"{pokemon:s}",
+                price=listing["market_data"]["price"],
+            )
         )
         if result is None:
             return await ctx.send(ctx._("times-up"))
@@ -242,22 +256,22 @@ class Market(commands.Cog):
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
-            return await ctx.send("That listing no longer exists.")
+            return await ctx.send(ctx._("listing-no-longer-exists"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.balance < listing["market_data"]["price"]:
-            return await ctx.send("You don't have enough Pokécoins for that!")
+            return await ctx.send(ctx._("not-enough-coins"))
 
         # to try to avoid race conditions
         await asyncio.sleep(1)
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
-            return await ctx.send("That listing no longer exists.")
+            return await ctx.send(ctx._("listing-no-longer-exists"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.balance < listing["market_data"]["price"]:
-            return await ctx.send("You don't have enough Pokécoins for that!")
+            return await ctx.send(ctx._("not-enough-coins"))
 
         listing = await self.bot.mongo.db.pokemon.find_one_and_update(
             {"_id": listing["_id"], "owned_by": "market"},
@@ -271,7 +285,7 @@ class Market(commands.Cog):
             },
         )
         if listing is None:
-            return await ctx.send("That listing no longer exists.")
+            return await ctx.send(ctx._("listing-no-longer-exists"))
 
         res = await self.bot.mongo.db.member.find_one_and_update(
             {"_id": ctx.author.id}, {"$inc": {"balance": -listing["market_data"]["price"]}}
@@ -279,17 +293,27 @@ class Market(commands.Cog):
         await self.bot.redis.hdel("db:member", ctx.author.id)
         if res["balance"] < listing["market_data"]["price"]:
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": listing["market_data"]["price"]}})
-            return await ctx.send("You don't have enough Pokécoins for that!")
+            return await ctx.send(ctx._("not-enough-coins"))
 
         await self.bot.mongo.update_member(listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}})
         await ctx.send(
-            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.clean_prefix}info latest` to view it!"
+            ctx._(
+                "buy-completed",
+                ivPercentage=pokemon.iv_percentage,
+                price=listing["market_data"]["price"],
+                pokemon=pokemon.species,
+            )
         )
 
         self.bot.loop.create_task(
             self.bot.send_dm(
                 listing["owner_id"],
-                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['market_data']['price']:,} Pokécoins!",
+                ctx._(
+                    "someone-purchased-your-listing",
+                    price=listing["market_data"]["price"],
+                    pokemon=pokemon.species,
+                    ivPercentage=pokemon.iv_percentage,
+                ),
             )
         )
 
@@ -317,11 +341,45 @@ class Market(commands.Cog):
 
         listing = await self.bot.mongo.db.pokemon.find_one({"owned_by": "market", "market_data._id": id})
         if listing is None:
-            return await ctx.send("Couldn't find that listing!")
+            return await ctx.send(ctx._("unknown-listing"))
 
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
-        embed = self.bot.Embed(title=f"{pokemon:l}", color=pokemon.color or constants.PINK)
+        held_item_value = None
+        if pokemon.held_item:
+            item = self.bot.data.item_by_number(pokemon.held_item)
+            emote = ""
+            if item.emote is not None:
+                emote = getattr(self.bot.sprites, item.emote) + " "
+            held_item_value = f"{emote}{item.name}"
+
+        embed = ctx.localized_embed(
+            "market-info-embed",
+            field_ordering=["details", "stats", "held-item", "market-listing"],
+            block_fields=["details", "stats", "market-listing"],
+            field_values={"held-item": held_item_value},
+            droppable_fields=["held-item"],
+            pokemon=f"{pokemon:l}",
+            xp=pokemon.xp,
+            maxXp=pokemon.max_xp,
+            nature=pokemon.nature,
+            hp=pokemon.hp,
+            ivHp=pokemon.iv_hp,
+            atk=pokemon.atk,
+            ivAtk=pokemon.iv_atk,
+            defn=pokemon.defn,
+            ivDefn=pokemon.iv_defn,
+            satk=pokemon.satk,
+            ivSatk=pokemon.iv_satk,
+            sdef=pokemon.sdef,
+            ivSdef=pokemon.iv_sdef,
+            spd=pokemon.spd,
+            ivSpd=pokemon.iv_spd,
+            ivPercentage=pokemon.iv_percentage * 100,
+            id=id,
+            price=listing["market_data"]["price"],
+        )
+        embed.color = pokemon.color or constants.PINK
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)
@@ -329,40 +387,6 @@ class Market(commands.Cog):
             embed.set_image(url=pokemon.species.image_url)
 
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-
-        info = (
-            f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
-            f"**Nature:** {pokemon.nature}",
-        )
-
-        embed.add_field(name="Details", value="\n".join(info), inline=False)
-
-        stats = (
-            f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
-            f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
-            f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
-            f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
-            f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
-            f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
-            f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
-        )
-
-        embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-
-        if pokemon.held_item:
-            item = self.bot.data.item_by_number(pokemon.held_item)
-            emote = ""
-            if item.emote is not None:
-                emote = getattr(self.bot.sprites, item.emote) + " "
-            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
-
-        embed.add_field(
-            name="Market Listing",
-            value=f"**ID:** {id}\n**Price:** {listing['market_data']['price']:,} pc",
-            inline=False,
-        )
-
-        embed.set_footer(text=f"Displaying listing {id} from market.")
 
         await ctx.send(embed=embed)
 
