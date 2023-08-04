@@ -390,7 +390,7 @@ class Bot(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
-        await ctx.send(ctx._("pick-congrats", species=species))
+        await ctx.send(ctx._("pick-congrats", species=str(species)))
 
     @checks.has_started()
     @commands.command()

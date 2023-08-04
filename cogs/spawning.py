@@ -198,7 +198,7 @@ class Spawning(commands.Cog):
             guild_id=channel.guild.id,
             channel=channel.name,
             channel_id=channel.id,
-            species=species,
+            species=str(species),
             incense=incense,
             redeem=redeem,
         )
@@ -350,7 +350,7 @@ class Spawning(commands.Cog):
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
         message = ctx._(
-            "caught", species=species, trainer=ctx.author.mention, level=level, ivPercentage=sum(ivs) / 186 * 100
+            "caught", species=str(species), trainer=ctx.author.mention, level=level, ivPercentage=sum(ivs) / 186 * 100
         )
 
         memberp = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
