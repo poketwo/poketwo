@@ -176,7 +176,7 @@ class Market(commands.Cog):
             ctx._(
                 "add-completed",
                 ivPercentage=pokemon.iv_percentage * 100,
-                pokemon=pokemon.species,
+                pokemon=str(pokemon.species),
                 index=pokemon.index,
                 price=price,
             )
@@ -215,7 +215,7 @@ class Market(commands.Cog):
         )
 
         await ctx.send(
-            ctx._("market-remove-completed", ivPercentage=pokemon.iv_percentage * 100, pokemon=pokemon.species)
+            ctx._("market-remove-completed", ivPercentage=pokemon.iv_percentage * 100, pokemon=str(pokemon.species))
         )
 
     @checks.has_started()
@@ -303,7 +303,7 @@ class Market(commands.Cog):
                 "buy-completed",
                 ivPercentage=pokemon.iv_percentage * 100,
                 price=listing["market_data"]["price"],
-                pokemon=pokemon.species,
+                pokemon=str(pokemon.species),
             )
         )
 
@@ -313,7 +313,7 @@ class Market(commands.Cog):
                 ctx._(
                     "someone-purchased-your-listing",
                     price=listing["market_data"]["price"],
-                    pokemon=pokemon.species,
+                    pokemon=str(pokemon.species),
                     ivPercentage=pokemon.iv_percentage * 100,
                 ),
             )

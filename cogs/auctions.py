@@ -233,7 +233,7 @@ class Auctions(commands.Cog):
             ctx._(
                 "auction-confirmation",
                 ivPercentage=pokemon.iv_percentage * 100,
-                pokemon=pokemon.species,
+                pokemon=str(pokemon.species),
                 index=pokemon.idx,
                 startingBid=starting_bid,
                 increment=bid_increment,
@@ -297,7 +297,7 @@ class Auctions(commands.Cog):
             ctx._(
                 "auction-confirmed",
                 index=pokemon.idx,
-                pokemon=pokemon.species,
+                pokemon=str(pokemon.species),
                 ivPercentage=pokemon.iv_percentage * 100,
             )
         )

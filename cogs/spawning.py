@@ -213,7 +213,7 @@ class Spawning(commands.Cog):
 
         embed = self.bot.Embed()
         if prev_species:
-            embed.title = self.bot._("wild-fled", pokemon=prev_species)
+            embed.title = self.bot._("wild-fled", pokemon=str(prev_species))
         else:
             embed.title = self.bot._("wild-appeared")
 
@@ -476,7 +476,7 @@ class Spawning(commands.Cog):
             },
         )
 
-        await ctx.send(ctx._("shinyhunt-active", pokemon=species))
+        await ctx.send(ctx._("shinyhunt-active", pokemon=str(species)))
 
     def cog_unload(self):
         self.spawn_incense.cancel()

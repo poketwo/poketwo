@@ -219,7 +219,7 @@ class Battle:
             elif action["type"] == "switch":
                 trainer.selected_idx = action["value"]
                 title = self.ctx._("switched-pokemon-title", trainer=trainer.user.display_name)
-                text = self.ctx._("switched-pokemon-text", pokemon=trainer.selected.species)
+                text = self.ctx._("switched-pokemon-text", pokemon=str(trainer.selected.species))
 
             elif action["type"] == "move":
 
@@ -229,7 +229,7 @@ class Battle:
 
                 result = move.calculate_turn(trainer.selected, opponent.selected)
 
-                title = self.ctx._("trainer-used-move", move=move.name, pokemon=trainer.selected.species)
+                title = self.ctx._("trainer-used-move", move=move.name, pokemon=str(trainer.selected.species))
                 text = "\n".join([self.ctx._("dealt-damage", damage=result.damage, move=move.name)] + result.messages)
 
                 if result.success:
@@ -239,11 +239,11 @@ class Battle:
 
                     if result.healing > 0:
                         text += "\n" + self.ctx._(
-                            "restored-hp", pokemon=trainer.selected.species, healed=result.healing
+                            "restored-hp", pokemon=str(trainer.selected.species), healed=result.healing
                         )
                     elif result.healing < 0:
                         text += "\n" + self.ctx._(
-                            "took-damage", pokemon=trainer.selected.species, damage=-result.healing
+                            "took-damage", pokemon=str(trainer.selected.species), damage=-result.healing
                         )
 
                     if result.ailment:
@@ -289,7 +289,7 @@ class Battle:
             if opponent.selected.hp <= 0:
                 opponent.selected.hp = 0
                 title = title or self.ctx._("fainted")
-                text = (text or "") + self.ctx._("pokemon-has-fainted", pokemon=opponent.selected.species)
+                text = (text or "") + self.ctx._("pokemon-has-fainted", pokemon=str(opponent.selected.species))
 
                 try:
                     opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
@@ -348,7 +348,7 @@ class Battle:
                 value="\n".join(
                     self.ctx._(
                         "trainer-pokemon-line-selected" if trainer.selected == x else "trainer-pokemon-line",
-                        pokemon=x.species,
+                        pokemon=str(x.species),
                         hp=x.hp,
                         maxHp=x.max_hp,
                     )
@@ -457,7 +457,7 @@ class Battling(commands.Cog):
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
         species = self.bot.data.species_by_number(species_id)
 
-        embed = self.bot.Embed(title=self.bot._("move-request-cta", pokemon=species))
+        embed = self.bot.Embed(title=self.bot._("move-request-cta", pokemon=str(species)))
 
         embed.description = "\n".join(
             self.bot._(
@@ -621,7 +621,7 @@ class Battling(commands.Cog):
                 else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
             },
             level=pokemon.level,
-            pokemon=pokemon.species,
+            pokemon=str(pokemon.species),
         )
         embed.color = constants.PINK
 
@@ -700,7 +700,9 @@ class Battling(commands.Cog):
 
             # Send embed
 
-            embed = ctx.localized_embed(pokemon=species, start=pgstart + 1, end=pgend, totalMoves=len(species.moves))
+            embed = ctx.localized_embed(
+                pokemon=str(species), start=pgstart + 1, end=pgend, totalMoves=len(species.moves)
+            )
             embed.color = constants.PINK
 
             for move in species.moves[pgstart:pgend]:

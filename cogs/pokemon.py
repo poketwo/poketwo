@@ -85,9 +85,9 @@ class Pokemon(commands.Cog):
         )
 
         if nickname is None:
-            await ctx.send(ctx._("removed-nickname", level=pokemon.level, pokemon=pokemon.species))
+            await ctx.send(ctx._("removed-nickname", level=pokemon.level, pokemon=str(pokemon.species)))
         else:
-            await ctx.send(ctx._("changed-nickname", nickname=nickname, level=pokemon.level, pokemon=pokemon.species))
+            await ctx.send(ctx._("changed-nickname", nickname=nickname, level=pokemon.level, pokemon=str(pokemon.species)))
 
     # Nickname
     @flags.add_flag("newname", nargs="+")

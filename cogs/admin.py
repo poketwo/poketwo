@@ -166,7 +166,7 @@ class Administration(commands.Cog):
             }
         )
 
-        await ctx.send(ctx._("give-completed", pokemon=species, user=user))
+        await ctx.send(ctx._("give-completed", pokemon=str(species), user=user))
 
     @commands.is_owner()
     @admin.command()
