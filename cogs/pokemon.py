@@ -927,8 +927,8 @@ class Pokemon(commands.Cog):
                 "pokemon-page-line",
                 paddedNumeral=padn(p, menu.maxn),
                 pokemon=f"{p:nif}",
-                iv=(p.iv_total / 186),
-                level=p.level
+                iv=(p.iv_total / 186) * 100,
+                level=p.level,
             )
 
         count = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations)

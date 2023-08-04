@@ -91,7 +91,7 @@ releaseall-in-progress = Releasing {NUMBER($number)} {-pokemon}, this might take
 releaseall-completed = You have released {NUMBER($modifiedCount)} {-pokemon}. You received {$coins} Pokécoins!
 
 ## Command: pokemon
-pokemon-page-line = `{$paddedNumeral}`  **{$pokemon}**  •　Lvl. {$level}　•　{NUMBER($iv, minimumFractionDigits: 2, maximumFractionDigits: 2)}%
+pokemon-page-line = `{$paddedNumeral}`  **{$pokemon}**　•　Lvl. {$level}　•　{NUMBER($iv, minimumFractionDigits: 2, maximumFractionDigits: 2)}%
 pokemon-page-title = Your {-pokemon}
 
 ## Command: pokedex
