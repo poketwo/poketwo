@@ -74,7 +74,7 @@ class Trainer:
                 actions[constants.LETTER_REACTIONS[idx]] = {
                     "type": "switch",
                     "value": idx,
-                    "text": ctx._("action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage),
+                    "text": ctx._("action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage * 100),
                     "command": f"switch {idx + 1}",
                 }
 
@@ -133,7 +133,10 @@ class Battle:
                     name=ctx._("battle-selection-party-field-name", trainer=trainer.user),
                     value="\n".join(
                         ctx._(
-                            "battle-selection-party-line", ivPercentage=x.iv_percentage, species=x.species, index=x.idx
+                            "battle-selection-party-line",
+                            ivPercentage=x.iv_percentage * 100,
+                            species=x.species,
+                            index=x.idx,
                         )
                         for x in trainer.pokemon
                     ),
@@ -151,7 +154,10 @@ class Battle:
                 name=self.ctx._("battle-selection-party-field-name", trainer=trainer.user),
                 value="\n".join(
                     self.ctx._(
-                        "battle-selection-party-line", ivPercentage=x.iv_percentage, species=x.species, index=x.idx
+                        "battle-selection-party-line",
+                        ivPercentage=x.iv_percentage * 100,
+                        species=x.species,
+                        index=x.idx,
                     )
                     for x in trainer.pokemon
                 ),

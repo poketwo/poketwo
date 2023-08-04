@@ -134,7 +134,7 @@ class Trading(commands.Cog):
                         index=padn(p.idx, maxn),
                         species=p.species,
                         level=p.level,
-                        ivPercentage=p.iv_percentage,
+                        ivPercentage=p.iv_percentage * 100,
                     )
 
                 val = "\n".join(

@@ -138,7 +138,7 @@ class Market(commands.Cog):
         result = await ctx.confirm(
             ctx._(
                 "add-confirmation",
-                ivPercentage=pokemon.iv_percentage,
+                ivPercentage=pokemon.iv_percentage * 100,
                 pokemon=f"{pokemon:s}",
                 index=pokemon.idx,
                 price=price,
@@ -175,7 +175,7 @@ class Market(commands.Cog):
         await ctx.send(
             ctx._(
                 "add-completed",
-                ivPercentage=pokemon.iv_percentage,
+                ivPercentage=pokemon.iv_percentage * 100,
                 pokemon=pokemon.species,
                 index=pokemon.index,
                 price=price,
@@ -199,7 +199,7 @@ class Market(commands.Cog):
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         result = await ctx.confirm(
-            ctx._("market-remove-confirmation", pokemon=f"{pokemon:s}", ivPercentage=pokemon.iv_percentage)
+            ctx._("market-remove-confirmation", pokemon=f"{pokemon:s}", ivPercentage=pokemon.iv_percentage * 100)
         )
         if result is None:
             return await ctx.send(ctx._("times-up"))
@@ -214,7 +214,9 @@ class Market(commands.Cog):
             },
         )
 
-        await ctx.send(ctx._("market-remove-completed", ivPercentage=pokemon.iv_percentage, pokemon=pokemon.species))
+        await ctx.send(
+            ctx._("market-remove-completed", ivPercentage=pokemon.iv_percentage * 100, pokemon=pokemon.species)
+        )
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -242,7 +244,7 @@ class Market(commands.Cog):
         result = await ctx.confirm(
             ctx._(
                 "buy-confirmation",
-                ivPercentage=pokemon.iv_percentage,
+                ivPercentage=pokemon.iv_percentage * 100,
                 pokemon=f"{pokemon:s}",
                 price=listing["market_data"]["price"],
             )
@@ -299,7 +301,7 @@ class Market(commands.Cog):
         await ctx.send(
             ctx._(
                 "buy-completed",
-                ivPercentage=pokemon.iv_percentage,
+                ivPercentage=pokemon.iv_percentage * 100,
                 price=listing["market_data"]["price"],
                 pokemon=pokemon.species,
             )
@@ -312,7 +314,7 @@ class Market(commands.Cog):
                     "someone-purchased-your-listing",
                     price=listing["market_data"]["price"],
                     pokemon=pokemon.species,
-                    ivPercentage=pokemon.iv_percentage,
+                    ivPercentage=pokemon.iv_percentage * 100,
                 ),
             )
         )

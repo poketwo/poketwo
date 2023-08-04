@@ -232,7 +232,7 @@ class Auctions(commands.Cog):
         result = await ctx.confirm(
             ctx._(
                 "auction-confirmation",
-                ivPercentage=pokemon.iv_percentage,
+                ivPercentage=pokemon.iv_percentage * 100,
                 pokemon=pokemon.species,
                 index=pokemon.idx,
                 startingBid=starting_bid,
@@ -294,7 +294,12 @@ class Auctions(commands.Cog):
         await auction_channel.send(embed=embed)
 
         await ctx.send(
-            ctx._("auction-confirmed", index=pokemon.idx, pokemon=pokemon.species, ivPercentage=pokemon.iv_percentage)
+            ctx._(
+                "auction-confirmed",
+                index=pokemon.idx,
+                pokemon=pokemon.species,
+                ivPercentage=pokemon.iv_percentage * 100,
+            )
         )
 
     @checks.has_started()
