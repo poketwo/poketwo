@@ -13,7 +13,7 @@ hint = The {-pokemon} is {$hint}.
 ## Command: catch
 wrong-pokemon = That is the wrong {-pokemon}!
 already-caught = You have already caught this {-pokemon}!
-caught = Congratulations {$trainer}! You caught a level {$level} {$species}!
+caught = Congratulations {$trainer}! You caught a level {$level} {$species} (IV: {NUMBER($ivPercentage, minimumFractionDigits: 2, maximumFractionDigits: 2)}%)!
 added-to-pokedex =
   {$coins ->
     [one] Added to Pokédex. You received {$coins} Pokécoin!
