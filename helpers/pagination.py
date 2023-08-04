@@ -58,7 +58,7 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
         start = menu.current_page * self.per_page
 
         footer = menu.ctx._(
-            "pagination-showing-entries-partial" if self.count is not None else "pagination-showing-entries-full",
+            "pagination-showing-entries-count" if self.count is not None else "pagination-showing-entries",
             start=start + 1,
             end=start + len(lines),
             total=self.count,
