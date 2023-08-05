@@ -42,8 +42,7 @@ class Auctions(commands.Cog):
                     async with s.start_transaction():
                         await self.end_auction(auction)
             except Exception as e:
-                raise
-                self.bot.log.error("check_auctions.error", auction=auction)
+                raise self.bot.log.error("check_auctions.error", auction=auction)
 
     @check_auctions.before_loop
     async def before_check_auctions(self):

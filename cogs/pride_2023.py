@@ -340,7 +340,7 @@ class Pride(commands.Cog):
             name="Preferred Flag",
             value=f"{self.bot.sprites[preferred_flag]} {FLAG_NAMES[preferred_flag]}",
             inline=False,
-        ),
+        )
         embed.add_field(
             name="Pride Level",
             value=f"{make_slider(self.bot, member.pride_2023_buddy_progress / 100)} {member.pride_2023_buddy_progress}%",
