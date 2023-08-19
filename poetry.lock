@@ -371,7 +371,7 @@ resolved_reference = "e42a248a3f5d52b768940e417daa3ee19757af5e"
 
 [[package]]
 name = "discord.py"
-version = "2.2.0a4706+gc19c24f7"
+version = "2.3.1"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -392,7 +392,7 @@ voice = ["PyNaCl (>=1.3.0,<1.6)"]
 type = "git"
 url = "https://github.com/poketwo/discord.py.git"
 reference = "HEAD"
-resolved_reference = "84c6691304cd0fb2b3a2fc18875734689019f168"
+resolved_reference = "4dd50e2b0c421a677dddba71c161b975cff12c8c"
 
 [[package]]
 name = "dnspython"
