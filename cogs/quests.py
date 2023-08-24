@@ -34,6 +34,8 @@ class Quests(commands.Cog):
                 idx = next(i for i, x in enumerate(quest["counts"]) if prog < x)
             except StopIteration:
                 continue
+
+            c = quest["counts"]["idx"]
             quests.append(
                 {
                     **quest,

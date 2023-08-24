@@ -28,7 +28,7 @@ already-favorited-pokemon =
 favorited-pokemon = Favorited your level {$level} {$pokemon}.
 
 ## Command: unfavorite
-unfavorited-pokemon = Unfavorited your level {$level} {$name}.
+unfavorited-pokemon = Unfavorited your level {$level} {$pokemon}.
 
 ## Command: favoriteall
 favoriteall-confirm = Are you sure you want to **favorite** your {$number} {-pokemon}?

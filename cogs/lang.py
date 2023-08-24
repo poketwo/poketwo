@@ -22,6 +22,8 @@ FLUENT_FILES = (
     "spawning.ftl",
     "market.ftl",
     "lang.ftl",
+    "config.ftl",
+    "admin.ftl",
 )
 
 

@@ -166,9 +166,9 @@ class Auctions(commands.Cog):
             emote = ""
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
-            info += self.bot._("auction-info-held-item", item=f"{emote}{item.name}")
+            info += "\n" + self.bot._("auction-info-held-item", item=f"{emote}{item.name}")
 
-        embed.add_field(name=self.bot._("auction-pokemon-details-field-name"), value="\n".join(info))
+        embed.add_field(name=self.bot._("auction-pokemon-details-field-name"), value=info)
 
         return embed
 

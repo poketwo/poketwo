@@ -249,7 +249,7 @@ class Trading(commands.Cog):
 
                                 evo_embed.add_field(
                                     name=ctx._("pokemon-evolving", pokemon=name),
-                                    value=ctx._("pokemon-turned-into", old=name, new=evo.target),
+                                    value=ctx._("pokemon-turned-into", old=name, new=str(evo.target)),
                                 )
 
                                 self.bot.dispatch("evolve", mem, pokemon, evo.target)

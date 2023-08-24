@@ -228,7 +228,7 @@ class Pokemon(commands.Cog):
                         pokemon,
                         {"$set": {f"favorite": True}},
                     )
-                    messages.append(ctx._("favorited-pokemon", level=pokemon.level, name=name))
+                    messages.append(ctx._("favorited-pokemon", level=pokemon.level, pokemon=name))
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
@@ -540,7 +540,7 @@ class Pokemon(commands.Cog):
             {"$set": {f"selected_id": pokemon.id}},
         )
 
-        await ctx.send(ctx._("selected-pokemon", index=pokemon.idx, level=pokemon.level, species=pokemon.species))
+        await ctx.send(ctx._("selected-pokemon", index=pokemon.idx, level=pokemon.level, species=str(pokemon.species)))
 
     @checks.has_started()
     @commands.command(aliases=("or",))
@@ -1191,7 +1191,7 @@ class Pokemon(commands.Cog):
             if len(args) < 20:
                 embed.add_field(
                     name=ctx._("pokemon-evolving", pokemon=name),
-                    value=ctx._("pokemon-turned-into", old=name, new=evo),
+                    value=ctx._("pokemon-turned-into", old=name, new=str(evo)),
                     inline=True,
                 )
 

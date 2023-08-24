@@ -59,8 +59,8 @@ balance-no-longer-hidden = Your balance is no longer hidden in shop pages.
 
 ## Command: `shop`
 shop-title = {-brand} Shop
-shop-title-balance = {-brand} Shop - {coins} Pokécoins
-shop-title-balance-shards = {-brand} Shop - {coins} Pokécoins, {shards} Shards
+shop-title-balance = {-brand} Shop - {$coins} Pokécoins
+shop-title-balance-shards = {-brand} Shop - {$coins} Pokécoins, {$shards} Shards
 shop-page-cta = Use {COMMAND("shop <page>") to view different pages.
 shop-page-1-title = XP Boosters & Candies
 shop-page-2-title = Evolution Stones
@@ -88,7 +88,7 @@ xp-booster-already-active = You already have an XP booster active! Please wait f
 shiny-charm-already-active = You already have a shiny charm active! Please wait for it to expire before purchasing another one.
 purchased-time-remaining = You purchased {$item}! Use {COMMAND("shop")} to check how much time you have remaining.
 purchased-shards = You purchased {$shards} shards!
-shard-exchange-prompt = Are you sure you want to exchange **{item.cost * qty:,}** Pokécoins for **{qty:,}** shards? Shards are non-transferable and non-refundable!
+shard-exchange-prompt = Are you sure you want to exchange **{NUMBER($coins)}** Pokécoins for **{NUMBER($qty)}** shards? Shards are non-transferable and non-refundable!
 purchased-redeems = You purchased {$redeems} redeems!
 # XXX: When item names are properly localized, then this should be replaced with
 #      a selector.
@@ -111,9 +111,9 @@ pokemon-nature-changed = You changed your selected {-pokemon}'s nature to {$natu
 
 ## Command: embedcolor
 pokemon-cannot-use-custom-embed-colors = That {-pokemon} cannot use custom embed colors!
-pokemon-current-embed-color = That {-pokemon}'s embed color is currently **{color}**.
+pokemon-current-embed-color = That {-pokemon}'s embed color is currently **{$color}**.
 embed-color-white-limitation = Due to a Discord limitation, you cannot set the embed color to pure white. Try **#fffffe** instead.
-pokemon-embed-color-changed = Changed embed color to **{color}** for your **{pokemon}**.
+pokemon-embed-color-changed = Changed embed color to **{$color}** for your **{$pokemon}**.
 
 ## Command: redeem
 redeem-embed =

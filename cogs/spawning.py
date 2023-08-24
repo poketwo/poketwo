@@ -90,7 +90,7 @@ class Spawning(commands.Cog):
                         evo = pokemon.get_next_evolution(guild.is_day)
                         embed.add_field(
                             name=self.bot._("pokemon-evolving", pokemon=name),
-                            value=self.bot._("pokemon-turned-into", old=name, new=evo),
+                            value=self.bot._("pokemon-turned-into", old=name, new=str(evo)),
                         )
 
                         if pokemon.shiny:

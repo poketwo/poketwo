@@ -363,7 +363,7 @@ class Market(commands.Cog):
             droppable_fields=["held-item"],
             pokemon=f"{pokemon:l}",
             xp=pokemon.xp,
-            maxXp=pokemon.max_xp,
+            maxXP=pokemon.max_xp,
             nature=pokemon.nature,
             hp=pokemon.hp,
             ivHp=pokemon.iv_hp,

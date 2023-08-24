@@ -130,12 +130,12 @@ class Battle:
         for trainer in self.trainers:
             if len(trainer.pokemon) > 0:
                 embed.add_field(
-                    name=ctx._("battle-selection-party-field-name", trainer=trainer.user),
+                    name=ctx._("battle-selection-party-field-name", trainer=str(trainer.user)),
                     value="\n".join(
                         ctx._(
                             "battle-selection-party-line",
                             ivPercentage=x.iv_percentage * 100,
-                            species=x.species,
+                            species=str(x.species),
                             index=x.idx,
                         )
                         for x in trainer.pokemon
@@ -151,12 +151,12 @@ class Battle:
 
         for trainer in self.trainers:
             embed.add_field(
-                name=self.ctx._("battle-selection-party-field-name", trainer=trainer.user),
+                name=self.ctx._("battle-selection-party-field-name", trainer=str(trainer.user)),
                 value="\n".join(
                     self.ctx._(
                         "battle-selection-party-line",
                         ivPercentage=x.iv_percentage * 100,
-                        species=x.species,
+                        species=str(x.species),
                         index=x.idx,
                     )
                     for x in trainer.pokemon
@@ -701,6 +701,7 @@ class Battling(commands.Cog):
             # Send embed
 
             embed = ctx.localized_embed(
+                "moveset-embed",
                 pokemon=str(species), start=pgstart + 1, end=pgend, totalMoves=len(species.moves)
             )
             embed.color = constants.PINK

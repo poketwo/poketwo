@@ -101,6 +101,7 @@ class Shop(commands.Cog):
         embed = self.bot.Embed()
         embed.title = ctx._(
             "opening-box-with-sprite" if do_emojis else "opening-box-simple",
+            amount=amt,
             sprite=getattr(self.bot.sprites, f"gift_{type.lower()}"),
             type=type.title(),
         )
@@ -161,8 +162,8 @@ class Shop(commands.Cog):
                     "idx": await self.bot.mongo.fetch_next_idx(ctx.author),
                 }
 
-                pokemon = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
-                text.append(ctx._("box-reward-pokemon", pokemon=f"{pokemon:lni}", iv=sum(ivs) / 186))
+                pokemon_model = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
+                text.append(ctx._("box-reward-pokemon", pokemon=f"{pokemon_model:lni}", iv=sum(ivs) / 186))
 
                 added_pokemon.append(pokemon)
 
@@ -471,7 +472,7 @@ class Shop(commands.Cog):
             await ctx.send(ctx._("purchased-time-remaining", item=item.name))
 
         elif item.action == "shard":
-            result = await ctx.confirm()
+            result = await ctx.confirm(ctx._("shard-exchange-prompt", coins=item.cost * qty, shards=qty))
             if result is None:
                 return await ctx.send(ctx._("times-up"))
             if result is False:
@@ -576,7 +577,7 @@ class Shop(commands.Cog):
 
             embed.add_field(
                 name=ctx._("pokemon-evolving", pokemon=name),
-                value=ctx._("pokemon-turned-into", old=name, new=evoto),
+                value=ctx._("pokemon-turned-into", old=name, new=str(evoto)),
             )
 
             self.bot.dispatch("evolve", ctx.author, pokemon, evoto)
@@ -620,7 +621,7 @@ class Shop(commands.Cog):
                 evo = pokemon.get_next_evolution(guild.is_day)
                 embed.add_field(
                     name=ctx._("pokemon-evolving", pokemon=name),
-                    value=ctx._("pokemon-turned-into", old=name, new=evo),
+                    value=ctx._("pokemon-turned-into", old=name, new=str(evo)),
                 )
 
                 if pokemon.shiny:
@@ -682,7 +683,7 @@ class Shop(commands.Cog):
 
                     embed.add_field(
                         name=ctx._("pokemon-changing-forms", pokemon=name),
-                        value=ctx._("pokemon-turned-into", old=name, new=form),
+                        value=ctx._("pokemon-turned-into", old=name, new=str(form)),
                     )
 
                     await self.bot.mongo.update_pokemon(pokemon, {"$set": {f"species_id": form.id}})
