@@ -199,14 +199,14 @@ class Summer(commands.Cog):
             self.collect_expeditions.start()
             self.notify_riddles.start()
 
-    async def cog_load(self):
-        self.bot.log.info("creating indexes", cog="summer_2023")
-        await self.bot.mongo.db.pokemon.create_indexes(
-            [
-                IndexModel("expedition_data.ends", partialFilterExpression={"owned_by": "expedition"}),
-                IndexModel("expedition_data.riddles.time", partialFilterExpression={"owned_by": "expedition"}),
-            ]
-        )
+    # async def cog_load(self):
+    #     self.bot.log.info("creating indexes", cog="summer_2023")
+    #     await self.bot.mongo.db.pokemon.create_indexes(
+    #         [
+    #             IndexModel("expedition_data.ends", partialFilterExpression={"owned_by": "expedition"}),
+    #             IndexModel("expedition_data.riddles.time", partialFilterExpression={"owned_by": "expedition"}),
+    #         ]
+    #     )
 
     async def cog_unload(self):
         if self.bot.cluster_idx == 0:
