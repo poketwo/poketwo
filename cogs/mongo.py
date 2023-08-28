@@ -89,6 +89,9 @@ class PokemonBase(MixinDocument):
 
         name += str(self.species)
 
+        if "P" in spec:
+            name += f" ({self.iv_percentage:.2%})"
+
         if self.nickname is not None and "n" in spec:
             name += f' "{self.nickname}"'
 
@@ -333,6 +336,9 @@ class Member(Document):
         fields.StringField(), fields.ListField(fields.DictField(), default=list), default=dict
     )
     pride_2023_categories = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
+
+    summer_2023_fishing_bait = fields.IntegerField(default=0)
+    summer_2023_tokens = fields.IntegerField(default=0)
 
     @property
     def selected_pokemon(self):

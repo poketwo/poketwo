@@ -47,6 +47,8 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "valentine",
     "spring",
     "pride",
+    "summer",
+    "expedition"
 }
 
 
@@ -67,7 +69,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     class Embed(discord.Embed):
         def __init__(self, **kwargs):
-            color = kwargs.pop("color", helpers.constants.PINK)
+            color = kwargs.pop("color", helpers.constants.SUMMER_EVENT_COLOR)
             super().__init__(**kwargs, color=color)
 
     def __init__(self, **kwargs):

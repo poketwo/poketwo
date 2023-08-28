@@ -376,3 +376,4 @@ URL_REGEX = re.compile(r"(([a-z]{3,6}://)|(^|\s))([a-zA-Z0-9\-]+\.)+[a-z]{2,13}[
 
 PINK = 0xFE9AC9
 BLUE = 0x9CCFFF
+SUMMER_EVENT_COLOR = 0x2C958F
