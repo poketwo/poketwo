@@ -163,7 +163,7 @@ class Shop(commands.Cog):
                 }
 
                 pokemon_model = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
-                text.append(ctx._("box-reward-pokemon", pokemon=f"{pokemon_model:lni}", iv=sum(ivs) / 186))
+                text.append(ctx._("box-reward-pokemon", pokemon=f"{pokemon_model:lni}", iv=sum(ivs) / 186 * 100))
 
                 added_pokemon.append(pokemon)
 
