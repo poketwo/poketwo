@@ -40,8 +40,8 @@ MAX_POKEMON = 15
 
 FISHING_BAIT_CHANCE = 0.06
 FISHING_CHANCES = {
-    "pc": 0.5,
-    "summer_tokens": 0.19,
+    "pc": 0.4,
+    "summer_tokens": 0.29,
     "non-event": 0.27,
     "non-event-shiny": 0.005,
     "event-smeargle": 0.02,
@@ -286,7 +286,7 @@ class Summer(commands.Cog):
             "owner_id": member.id,
             "owned_by": "user",
             "species_id": species.id,
-            "level": random.randint(5, 100),
+            "level": min(max(int(random.normalvariate(20, 10)), 1), 50),
             "xp": 0,
             "nature": mongo.random_nature(),
             "iv_hp": ivs[0],
@@ -352,7 +352,7 @@ class Summer(commands.Cog):
                             shiny_boost = 4096  # Guarantee shiny
                     else:
                         species = smeargle = self.pools[reward][0]
-                        shiny_boost = 20  # 20x shiny boost for smeargle
+                        shiny_boost = 10  # 10x shiny boost for smeargle
                         smeargles += 1
 
                     pokemon = await self.make_pokemon(ctx.author, member, species=species, shiny_boost=shiny_boost)
@@ -627,7 +627,7 @@ class Summer(commands.Cog):
         time_left = ends - datetime.utcnow()
 
         url = urljoin(
-            self.bot.config.SERVER_URL, f"summer_2023?progress={1 - time_left.total_seconds()/total_duration}"
+            self.bot.config.EXT_SERVER_URL, f"summer_2023?progress={1 - time_left.total_seconds()/total_duration}"
         )
         embed.set_image(url=url)
 
@@ -748,7 +748,7 @@ class Summer(commands.Cog):
             if riddle["attempts"] > 0:
                 msg += f"`{riddle['attempts']}` more attempt(s) remaining."
             else:
-                msg += f"You've run out of attempts, the correct Pokémon was `{riddle_species.id}`. Better luck next time :("
+                msg += f"You've run out of attempts, the correct Pokémon was `{riddle_species}`. Better luck next time :("
 
         await self.bot.mongo.update_pokemon(
             pokemon,
