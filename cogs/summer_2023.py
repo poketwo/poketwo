@@ -62,7 +62,7 @@ FISHING_WEIGHTS = [*FISHING_CHANCES.values()]
 # IF THIS IS EVER CHANGED< NEED TO UPDATE IMAGE
 # AND THE HELP MESSAGE OF THE BUY COMMAND
 SHOP_ITEMS = {
-    "shards": {"name": "Shards", "amount": 50, "price": 475},
+    "shards": {"name": "Shards", "amount": 50, "price": 230},
     "pokecoins": {"name": "Pokécoins", "amount": 2000, "price": 50},
     "non-event": {"name": "Non-Event Pokémon", "amount": 5, "price": 100},
     "event": {"name": "Event Pokémon", "amount": 1, "price": 250},
@@ -748,7 +748,9 @@ class Summer(commands.Cog):
             if riddle["attempts"] > 0:
                 msg += f"`{riddle['attempts']}` more attempt(s) remaining."
             else:
-                msg += f"You've run out of attempts, the correct Pokémon was `{riddle_species}`. Better luck next time :("
+                msg += (
+                    f"You've run out of attempts, the correct Pokémon was `{riddle_species}`. Better luck next time :("
+                )
 
         await self.bot.mongo.update_pokemon(
             pokemon,
