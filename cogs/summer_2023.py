@@ -309,7 +309,9 @@ class Summer(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.summer_2023_fishing_bait < qty:
-            return await ctx.send(f"You don't have enough {FlavorStrings.bait:!e}! Wild Pokémon sometimes drop them when caught.")
+            return await ctx.send(
+                f"You don't have enough {FlavorStrings.bait:!e}! Wild Pokémon sometimes drop them when caught."
+            )
 
         if qty <= 0:
             return await ctx.send(f"Nice try...")
@@ -533,7 +535,12 @@ class Summer(commands.Cog):
 
     async def collect_expedition(self, pokemon_id: ObjectId, owner: discord.Object):
         pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
-            {"_id": pokemon_id, "owner_id": owner.id, "owned_by": "expedition", "expedition_data.ends": {"$lte": datetime.utcnow()}},
+            {
+                "_id": pokemon_id,
+                "owner_id": owner.id,
+                "owned_by": "expedition",
+                "expedition_data.ends": {"$lte": datetime.utcnow()},
+            },
             {
                 "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(owner)},
                 "$unset": {"expedition_data": 1},
