@@ -531,28 +531,34 @@ class Summer(commands.Cog):
             {"owned_by": "expedition", "expedition_data.ends": {"$lte": datetime.utcnow()}}
         )
         async for pokemon in expeditions:
-            asyncio.create_task(self.collect_expedition(pokemon["_id"], discord.Object(pokemon["owner_id"])))
+            asyncio.create_task(self.collect_expedition(pokemon, discord.Object(pokemon["owner_id"])))
 
-    async def collect_expedition(self, pokemon_id: ObjectId, owner: discord.Object):
-        pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
+    async def collect_expedition(self, pokemon: Pokemon, owner: discord.Object):
+        set_dict = {"owned_by": "user"}
+        if await self.bot.mongo.fetch_pokemon(owner, pokemon["idx"]):
+            set_dict["idx"] = await self.bot.mongo.fetch_next_idx(owner)
+
+        await self.bot.mongo.db.pokemon.find_one_and_update(
             {
-                "_id": pokemon_id,
+                "_id": pokemon["_id"],
                 "owner_id": owner.id,
                 "owned_by": "expedition",
                 "expedition_data.ends": {"$lte": datetime.utcnow()},
             },
             {
-                "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(owner)},
+                "$set": set_dict,
                 "$unset": {"expedition_data": 1},
             },
         )
+
         pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
+        reward = pokemon["expedition_data"]["reward"]
         await self.bot.mongo.update_member(
-            owner, {"$inc": {"summer_2023_tokens": pokemon["expedition_data"]["reward"]}}
+            owner, {"$inc": {"summer_2023_tokens": reward}}
         )
         await self.bot.send_dm(
             owner,
-            f"Your **{pokemon_obj:lip}** has returned from its expedition with **{pokemon['expedition_data']['reward']} {FlavorStrings.tokens}**!",
+            f"Your **{pokemon_obj:lip}** has returned from its expedition with **{reward} {FlavorStrings.tokens}**!",
         )
 
     @collect_expeditions.before_loop
@@ -934,10 +940,14 @@ class Summer(commands.Cog):
         if not result:
             return await ctx.send("Aborted.")
 
+        set_dict = {"owned_by": "user"}
+        if await self.bot.mongo.fetch_pokemon(ctx.author, pokemon.idx):
+            set_dict["idx"] = await self.bot.mongo.fetch_next_idx(ctx.author)
+
         await self.bot.mongo.update_pokemon(
             pokemon,
             {
-                "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(ctx.author)},
+                "$set": set_dict,
                 "$unset": {"expedition_data": 1},
             },
         )
