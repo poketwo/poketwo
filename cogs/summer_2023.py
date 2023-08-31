@@ -16,7 +16,8 @@ from discord.ext import commands, tasks
 from pymongo import IndexModel
 
 from cogs import mongo
-from cogs.mongo import Member
+from cogs.mongo import Member, Pokemon
+from data import models
 from data.models import Species
 from helpers import checks
 from helpers.context import PoketwoContext
@@ -224,7 +225,7 @@ class Summer(commands.Cog):
     @commands.Cog.listener(name="on_catch")
     async def drop_fishing_bait(self, ctx: PoketwoContext, species: Species, _id: int):
         count = await self.bot.redis.hincrby("summer_fishing_pity", ctx.author.id, 1)
-        if random.random() <= FISHING_BAIT_CHANCE or count == round(1 / FISHING_BAIT_CHANCE):
+        if random.random() <= FISHING_BAIT_CHANCE or count >= round(1 / FISHING_BAIT_CHANCE):
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_fishing_bait": 1}})
             await self.bot.redis.hdel("summer_fishing_pity", ctx.author.id)
             await ctx.send(
@@ -308,7 +309,9 @@ class Summer(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.summer_2023_fishing_bait < qty:
-            return await ctx.send(f"You don't have enough {FlavorStrings.bait}!")
+            return await ctx.send(
+                f"You don't have enough {FlavorStrings.bait:!e}! Wild Pokémon sometimes drop them when caught."
+            )
 
         if qty <= 0:
             return await ctx.send(f"Nice try...")
@@ -532,7 +535,12 @@ class Summer(commands.Cog):
 
     async def collect_expedition(self, pokemon_id: ObjectId, owner: discord.Object):
         pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
-            {"_id": pokemon_id, "owned_by": "expedition"},
+            {
+                "_id": pokemon_id,
+                "owner_id": owner.id,
+                "owned_by": "expedition",
+                "expedition_data.ends": {"$lte": datetime.utcnow()},
+            },
             {
                 "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(owner)},
                 "$unset": {"expedition_data": 1},
@@ -567,19 +575,36 @@ class Summer(commands.Cog):
             }
         )
         async for pokemon in riddle_pokemon:
-            t = await self.bot.mongo.db.pokemon.find_one_and_update(
-                {
-                    "_id": pokemon["_id"],
-                    "owned_by": "expedition",
-                    "expedition_data.riddles.time": {"$lte": datetime.utcnow()},
-                },
-                {"$set": {"expedition_data.riddles.$[].notified": True}},
-            )
+            asyncio.create_task(self.notify_riddle(pokemon, pokemon["owner_id"]))
 
-            await self.bot.send_dm(
-                pokemon["owner_id"],
-                f"During its expedition, your Pokémon stumbled upon a shortcut passage. To use it, you must solve a riddle... Use {CMD_EXPEDITION.format('@Pokétwo')} to learn more!",
-            )
+    async def notify_riddle(self, pokemon: Pokemon, owner_id: int):
+        riddles = pokemon["expedition_data"]["riddles"]
+        # Need to only update the riddles that meet the criteria
+        # There is probably a better way to do this using mongo directly
+        for riddle in riddles:
+            if all((riddle["time"] <= datetime.utcnow(), riddle["attempts"] > 0, riddle["notified"] is False)):
+                riddle["notified"] = True
+
+        await self.bot.mongo.db.pokemon.find_one_and_update(
+            {
+                "_id": pokemon["_id"],
+                "owner_id": owner_id,
+                "owned_by": "expedition",
+                "expedition_data.riddles": {
+                    "$elemMatch": {
+                        "time": {"$lte": datetime.utcnow()},
+                        "attempts": {"$gt": 0},
+                        "notified": False,
+                    }
+                },
+            },
+            {"$set": {"expedition_data.riddles": riddles}},
+        )
+
+        await self.bot.send_dm(
+            pokemon["owner_id"],
+            f"During its expedition, your Pokémon stumbled upon a shortcut passage. To use it, you must solve a riddle... Use {CMD_EXPEDITION.format('@Pokétwo')} to learn more!",
+        )
 
     @notify_riddles.before_loop
     async def before_notify_loop(self):
@@ -722,11 +747,7 @@ class Summer(commands.Cog):
         riddle = unsolved_riddles[0]
         riddle_species = self.bot.data.species_by_number(riddle["species_id"])
 
-        species = self.bot.data.species_by_name(answer)
-        if species is None:
-            return await ctx.send(f"Could not find a Pokémon matching `{answer}`.")
-
-        if species.id == riddle_species.id:
+        if models.deaccent(answer.lower().replace("′", "'")) in riddle_species.correct_guesses:
             riddle["attempts"] = 0
             total_skip = self.riddle_time_skip(riddle)
             skip_minutes = timedelta(minutes=total_skip)
@@ -738,10 +759,14 @@ class Summer(commands.Cog):
                 r["time"] -= skip_minutes
 
             msg = (
-                f"Congratulations, `{species}` was the correct Pokémon and the passage was revealed! "
+                f"Congratulations, `{riddle_species}` was the correct Pokémon and the passage was revealed! "
                 f"Taking this route saves your Pokémon `{total_skip} minutes` of expedition time."
             )
         else:
+            species = self.bot.data.species_by_name(answer)
+            if species is None:
+                return await ctx.send(f"Could not find a Pokémon matching `{answer}`.")
+
             riddle["attempts"] -= 1
             msg = f"`{species}` is not the correct Pokémon! "
 
@@ -814,10 +839,13 @@ class Summer(commands.Cog):
         if count >= MAX_EXPEDITION_COUNT:
             return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
         if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send("You need at least 10 summer tokens to send your Pokémon on an expedition!")
+            return await ctx.send(
+                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+            )
 
         duration = await ctx.select(
-            f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for?",
+            f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for? This will cost **{EXPEDITION_COST} {FlavorStrings.tokens}**.",
             options=[
                 *[
                     discord.SelectOption(
@@ -844,7 +872,10 @@ class Summer(commands.Cog):
         if count >= MAX_EXPEDITION_COUNT:
             return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
         if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send("You need at least 10 summer tokens to send your Pokémon on an expedition!")
+            return await ctx.send(
+                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+            )
 
         # ok, go
 
