@@ -17,6 +17,7 @@ from pymongo import IndexModel
 
 from cogs import mongo
 from cogs.mongo import Member
+from data import models
 from data.models import Species
 from helpers import checks
 from helpers.context import PoketwoContext
@@ -722,11 +723,7 @@ class Summer(commands.Cog):
         riddle = unsolved_riddles[0]
         riddle_species = self.bot.data.species_by_number(riddle["species_id"])
 
-        species = self.bot.data.species_by_name(answer)
-        if species is None:
-            return await ctx.send(f"Could not find a Pokémon matching `{answer}`.")
-
-        if species.id == riddle_species.id:
+        if models.deaccent(answer.lower().replace("′", "'")) in riddle_species.correct_guesses:
             riddle["attempts"] = 0
             total_skip = self.riddle_time_skip(riddle)
             skip_minutes = timedelta(minutes=total_skip)
@@ -738,10 +735,14 @@ class Summer(commands.Cog):
                 r["time"] -= skip_minutes
 
             msg = (
-                f"Congratulations, `{species}` was the correct Pokémon and the passage was revealed! "
+                f"Congratulations, `{riddle_species}` was the correct Pokémon and the passage was revealed! "
                 f"Taking this route saves your Pokémon `{total_skip} minutes` of expedition time."
             )
         else:
+            species = self.bot.data.species_by_name(answer)
+            if species is None:
+                return await ctx.send(f"Could not find a Pokémon matching `{answer}`.")
+
             riddle["attempts"] -= 1
             msg = f"`{species}` is not the correct Pokémon! "
 
