@@ -309,7 +309,7 @@ class Summer(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.summer_2023_fishing_bait < qty:
-            return await ctx.send(f"You don't have enough {FlavorStrings.bait}!")
+            return await ctx.send(f"You don't have enough {FlavorStrings.bait:!e}! Wild Pokémon sometimes drop them when caught.")
 
         if qty <= 0:
             return await ctx.send(f"Nice try...")
@@ -815,10 +815,13 @@ class Summer(commands.Cog):
         if count >= MAX_EXPEDITION_COUNT:
             return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
         if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send("You need at least 10 summer tokens to send your Pokémon on an expedition!")
+            return await ctx.send(
+                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+            )
 
         duration = await ctx.select(
-            f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for?",
+            f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for? This will cost **{EXPEDITION_COST} {FlavorStrings.tokens}**.",
             options=[
                 *[
                     discord.SelectOption(
@@ -845,7 +848,10 @@ class Summer(commands.Cog):
         if count >= MAX_EXPEDITION_COUNT:
             return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
         if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send("You need at least 10 summer tokens to send your Pokémon on an expedition!")
+            return await ctx.send(
+                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+            )
 
         # ok, go
 
