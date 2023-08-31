@@ -16,7 +16,7 @@ from discord.ext import commands, tasks
 from pymongo import IndexModel
 
 from cogs import mongo
-from cogs.mongo import Member
+from cogs.mongo import Member, Pokemon
 from data import models
 from data.models import Species
 from helpers import checks
@@ -533,7 +533,7 @@ class Summer(commands.Cog):
 
     async def collect_expedition(self, pokemon_id: ObjectId, owner: discord.Object):
         pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
-            {"_id": pokemon_id, "owned_by": "expedition"},
+            {"_id": pokemon_id, "owner_id": owner.id, "owned_by": "expedition", "expedition_data.ends": {"$lte": datetime.utcnow()}},
             {
                 "$set": {"owned_by": "user", "idx": await self.bot.mongo.fetch_next_idx(owner)},
                 "$unset": {"expedition_data": 1},
@@ -568,19 +568,36 @@ class Summer(commands.Cog):
             }
         )
         async for pokemon in riddle_pokemon:
-            t = await self.bot.mongo.db.pokemon.find_one_and_update(
-                {
-                    "_id": pokemon["_id"],
-                    "owned_by": "expedition",
-                    "expedition_data.riddles.time": {"$lte": datetime.utcnow()},
-                },
-                {"$set": {"expedition_data.riddles.$[].notified": True}},
-            )
+            asyncio.create_task(self.notify_riddle(pokemon, pokemon["owner_id"]))
 
-            await self.bot.send_dm(
-                pokemon["owner_id"],
-                f"During its expedition, your Pokémon stumbled upon a shortcut passage. To use it, you must solve a riddle... Use {CMD_EXPEDITION.format('@Pokétwo')} to learn more!",
-            )
+    async def notify_riddle(self, pokemon: Pokemon, owner_id: int):
+        riddles = pokemon["expedition_data"]["riddles"]
+        # Need to only update the riddles that meet the criteria
+        # There is probably a better way to do this using mongo directly
+        for riddle in riddles:
+            if all((riddle["time"] <= datetime.utcnow(), riddle["attempts"] > 0, riddle["notified"] is False)):
+                riddle["notified"] = True
+
+        await self.bot.mongo.db.pokemon.find_one_and_update(
+            {
+                "_id": pokemon["_id"],
+                "owner_id": owner_id,
+                "owned_by": "expedition",
+                "expedition_data.riddles": {
+                    "$elemMatch": {
+                        "time": {"$lte": datetime.utcnow()},
+                        "attempts": {"$gt": 0},
+                        "notified": False,
+                    }
+                },
+            },
+            {"$set": {"expedition_data.riddles": riddles}},
+        )
+
+        await self.bot.send_dm(
+            pokemon["owner_id"],
+            f"During its expedition, your Pokémon stumbled upon a shortcut passage. To use it, you must solve a riddle... Use {CMD_EXPEDITION.format('@Pokétwo')} to learn more!",
+        )
 
     @notify_riddles.before_loop
     async def before_notify_loop(self):
