@@ -225,7 +225,7 @@ class Summer(commands.Cog):
     @commands.Cog.listener(name="on_catch")
     async def drop_fishing_bait(self, ctx: PoketwoContext, species: Species, _id: int):
         count = await self.bot.redis.hincrby("summer_fishing_pity", ctx.author.id, 1)
-        if random.random() <= FISHING_BAIT_CHANCE or count == round(1 / FISHING_BAIT_CHANCE):
+        if random.random() <= FISHING_BAIT_CHANCE or count >= round(1 / FISHING_BAIT_CHANCE):
             await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_fishing_bait": 1}})
             await self.bot.redis.hdel("summer_fishing_pity", ctx.author.id)
             await ctx.send(
