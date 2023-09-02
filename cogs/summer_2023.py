@@ -533,12 +533,12 @@ class Summer(commands.Cog):
         async for pokemon in expeditions:
             asyncio.create_task(self.collect_expedition(pokemon, discord.Object(pokemon["owner_id"])))
 
-    async def collect_expedition(self, pokemon: Pokemon, owner: discord.Object):
+    async def collect_expedition(self, pokemon, owner: discord.Object):
         set_dict = {"owned_by": "user"}
         if await self.bot.mongo.fetch_pokemon(owner, pokemon["idx"]):
             set_dict["idx"] = await self.bot.mongo.fetch_next_idx(owner)
 
-        await self.bot.mongo.db.pokemon.find_one_and_update(
+        pokemon = await self.bot.mongo.db.pokemon.find_one_and_update(
             {
                 "_id": pokemon["_id"],
                 "owner_id": owner.id,
@@ -550,12 +550,12 @@ class Summer(commands.Cog):
                 "$unset": {"expedition_data": 1},
             },
         )
+        if pokemon is None:
+            return
 
         pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
         reward = pokemon["expedition_data"]["reward"]
-        await self.bot.mongo.update_member(
-            owner, {"$inc": {"summer_2023_tokens": reward}}
-        )
+        await self.bot.mongo.update_member(owner, {"$inc": {"summer_2023_tokens": reward}})
         await self.bot.send_dm(
             owner,
             f"Your **{pokemon_obj:lip}** has returned from its expedition with **{reward} {FlavorStrings.tokens}**!",
