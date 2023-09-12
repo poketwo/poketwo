@@ -222,15 +222,15 @@ class Summer(commands.Cog):
         }
         return {k: [self.bot.data.species_by_number(i) for i in v] for k, v in p.items()}
 
-    @commands.Cog.listener(name="on_catch")
-    async def drop_fishing_bait(self, ctx: PoketwoContext, species: Species, _id: int):
-        count = await self.bot.redis.hincrby("summer_fishing_pity", ctx.author.id, 1)
-        if random.random() <= FISHING_BAIT_CHANCE or count >= round(1 / FISHING_BAIT_CHANCE):
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_fishing_bait": 1}})
-            await self.bot.redis.hdel("summer_fishing_pity", ctx.author.id)
-            await ctx.send(
-                f"You found a {FlavorStrings.bait:b}! Use {CMD_SUMMER.format(ctx.clean_prefix.strip())} for more info."
-            )
+    # @commands.Cog.listener(name="on_catch")
+    # async def drop_fishing_bait(self, ctx: PoketwoContext, species: Species, _id: int):
+    #     count = await self.bot.redis.hincrby("summer_fishing_pity", ctx.author.id, 1)
+    #     if random.random() <= FISHING_BAIT_CHANCE or count >= round(1 / FISHING_BAIT_CHANCE):
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_fishing_bait": 1}})
+    #         await self.bot.redis.hdel("summer_fishing_pity", ctx.author.id)
+    #         await ctx.send(
+    #             f"You found a {FlavorStrings.bait:b}! Use {CMD_SUMMER.format(ctx.clean_prefix.strip())} for more info."
+    #         )
 
     @checks.has_started()
     @commands.group(invoke_without_command=True, case_insensitive=True, aliases=("event", "ev"))
@@ -241,6 +241,8 @@ class Summer(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         description = dedent(
             f"""
+            **The event has now ended. You may continue to use tokens and fishing baits, but will no longer receive new baits.**
+
             Here, you can:
             - Embark on expeditions and explore {FlavorStrings.clarity_lake:!e} 🏞️
                 - {CMD_EXPEDITION.format(prefix)}
@@ -828,97 +830,97 @@ class Summer(commands.Cog):
 
         return {"species_id": species.id, "types": types, "time": time, "attempts": RIDDLE_ATTEMPTS, "notified": False}
 
-    @checks.has_started()
-    @checks.is_not_in_trade()
-    @expedition.command(aliases=("start",))
-    async def send(self, ctx: PoketwoContext, pokemon: PokemonConverter):
-        """Send your Pokémon on an expedition."""
+    # @checks.has_started()
+    # @checks.is_not_in_trade()
+    # @expedition.command(aliases=("start",))
+    # async def send(self, ctx: PoketwoContext, pokemon: PokemonConverter):
+    #     """Send your Pokémon on an expedition."""
 
-        if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+    #     if pokemon is None:
+    #         return await ctx.send("Couldn't find that pokémon!")
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if pokemon.id == member.selected_id:
-            return await ctx.send("Can't send selected pokémon to expedition!")
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     if pokemon.id == member.selected_id:
+    #         return await ctx.send("Can't send selected pokémon to expedition!")
 
-        count = await self.bot.mongo.db.pokemon.count_documents({"owner_id": ctx.author.id, "owned_by": "expedition"})
-        if count >= MAX_EXPEDITION_COUNT:
-            return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
-        if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send(
-                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
-                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
-            )
+    #     count = await self.bot.mongo.db.pokemon.count_documents({"owner_id": ctx.author.id, "owned_by": "expedition"})
+    #     if count >= MAX_EXPEDITION_COUNT:
+    #         return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
+    #     if member.summer_2023_tokens < EXPEDITION_COST:
+    #         return await ctx.send(
+    #             f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+    #             f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+    #         )
 
-        duration = await ctx.select(
-            f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for? This will cost **{EXPEDITION_COST} {FlavorStrings.tokens}**.",
-            options=[
-                *[
-                    discord.SelectOption(
-                        label=strfdelta(timedelta(hours=dur), long=True),
-                        description=f"Reward: {reward} {FlavorStrings.tokens}",
-                        value=str(dur),
-                    )
-                    for dur, reward in EXPEDITION_REWARDS.items()
-                ],
-                discord.SelectOption(label="Cancel", value="cancel"),
-            ],
-        )
-        if duration is None:
-            return await ctx.send("Time's up. Aborted.")
-        if duration[0] == "cancel":
-            return await ctx.send("Aborted.")
+    #     duration = await ctx.select(
+    #         f"How long should your **No. {pokemon.idx} {pokemon:lni}** explore for? This will cost **{EXPEDITION_COST} {FlavorStrings.tokens}**.",
+    #         options=[
+    #             *[
+    #                 discord.SelectOption(
+    #                     label=strfdelta(timedelta(hours=dur), long=True),
+    #                     description=f"Reward: {reward} {FlavorStrings.tokens}",
+    #                     value=str(dur),
+    #                 )
+    #                 for dur, reward in EXPEDITION_REWARDS.items()
+    #             ],
+    #             discord.SelectOption(label="Cancel", value="cancel"),
+    #         ],
+    #     )
+    #     if duration is None:
+    #         return await ctx.send("Time's up. Aborted.")
+    #     if duration[0] == "cancel":
+    #         return await ctx.send("Aborted.")
 
-        # re-check conditions after waiting
-        if await ctx.bot.mongo.fetch_pokemon(ctx.author, pokemon.idx) is None:
-            return await ctx.send("Couldn't find that pokémon!")
+    #     # re-check conditions after waiting
+    #     if await ctx.bot.mongo.fetch_pokemon(ctx.author, pokemon.idx) is None:
+    #         return await ctx.send("Couldn't find that pokémon!")
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        count = await self.bot.mongo.db.pokemon.count_documents({"owner_id": ctx.author.id, "owned_by": "expedition"})
-        if count >= MAX_EXPEDITION_COUNT:
-            return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
-        if member.summer_2023_tokens < EXPEDITION_COST:
-            return await ctx.send(
-                f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
-                f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
-            )
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     count = await self.bot.mongo.db.pokemon.count_documents({"owner_id": ctx.author.id, "owned_by": "expedition"})
+    #     if count >= MAX_EXPEDITION_COUNT:
+    #         return await ctx.send(f"You can only have {MAX_EXPEDITION_COUNT} expedition running at a time!")
+    #     if member.summer_2023_tokens < EXPEDITION_COST:
+    #         return await ctx.send(
+    #             f"You need at least **{EXPEDITION_COST} {FlavorStrings.tokens:!e}** to send your Pokémon on an expedition! "
+    #             f"You can earn them from fishing ({CMD_SUMMER.format(ctx.clean_prefix.strip())} to learn more)."
+    #         )
 
-        # ok, go
+    #     # ok, go
 
-        duration_selection = float(duration[0])
-        duration = timedelta(hours=duration_selection)
-        expedition_starts = datetime.utcnow()
-        expedition_ends = expedition_starts + duration
+    #     duration_selection = float(duration[0])
+    #     duration = timedelta(hours=duration_selection)
+    #     expedition_starts = datetime.utcnow()
+    #     expedition_ends = expedition_starts + duration
 
-        # How many riddles you get is determined by the selected duration
-        riddles = sorted(
-            [
-                self.make_random_riddle(expedition_starts, expedition_ends)
-                for _ in range(sorted(EXPEDITION_REWARDS.keys()).index(duration_selection) + 1)
-            ],
-            key=lambda r: r["time"],
-        )
+    #     # How many riddles you get is determined by the selected duration
+    #     riddles = sorted(
+    #         [
+    #             self.make_random_riddle(expedition_starts, expedition_ends)
+    #             for _ in range(sorted(EXPEDITION_REWARDS.keys()).index(duration_selection) + 1)
+    #         ],
+    #         key=lambda r: r["time"],
+    #     )
 
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_tokens": -EXPEDITION_COST}})
-        await self.bot.mongo.update_pokemon(
-            pokemon,
-            {
-                "$set": {
-                    "owned_by": "expedition",
-                    "expedition_data": {
-                        "reward": EXPEDITION_REWARDS[duration_selection],
-                        "ends": expedition_ends,
-                        "riddles": riddles,
-                    },
-                }
-            },
-        )
+    #     await self.bot.mongo.update_member(ctx.author, {"$inc": {"summer_2023_tokens": -EXPEDITION_COST}})
+    #     await self.bot.mongo.update_pokemon(
+    #         pokemon,
+    #         {
+    #             "$set": {
+    #                 "owned_by": "expedition",
+    #                 "expedition_data": {
+    #                     "reward": EXPEDITION_REWARDS[duration_selection],
+    #                     "ends": expedition_ends,
+    #                     "riddles": riddles,
+    #                 },
+    #             }
+    #         },
+    #     )
 
-        # Decide the flavor text based on pokemon's first type
-        types = pokemon.species.types or (None,)
-        expedition_text = EXPEDITION_FLAVOR[types[0]][0].format(pokemon=f"**No. {pokemon.idx} {pokemon:lni}**")
+    #     # Decide the flavor text based on pokemon's first type
+    #     types = pokemon.species.types or (None,)
+    #     expedition_text = EXPEDITION_FLAVOR[types[0]][0].format(pokemon=f"**No. {pokemon.idx} {pokemon:lni}**")
 
-        await ctx.send(expedition_text + f" It will be back in **{strfdelta(duration, long=True)}**")
+    #     await ctx.send(expedition_text + f" It will be back in **{strfdelta(duration, long=True)}**")
 
     @checks.has_started()
     @checks.is_not_in_trade()
