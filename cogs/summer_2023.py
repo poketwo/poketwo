@@ -830,11 +830,13 @@ class Summer(commands.Cog):
 
         return {"species_id": species.id, "types": types, "time": time, "attempts": RIDDLE_ATTEMPTS, "notified": False}
 
-    # @checks.has_started()
-    # @checks.is_not_in_trade()
-    # @expedition.command(aliases=("start",))
-    # async def send(self, ctx: PoketwoContext, pokemon: PokemonConverter):
-    #     """Send your Pokémon on an expedition."""
+    @checks.has_started()
+    @checks.is_not_in_trade()
+    @expedition.command(aliases=("start",))
+    async def send(self, ctx: PoketwoContext, pokemon: PokemonConverter):
+        """Send your Pokémon on an expedition."""
+
+        await ctx.send("The event has ended. You can no longer send your Pokémon on expeditions.")
 
     #     if pokemon is None:
     #         return await ctx.send("Couldn't find that pokémon!")
