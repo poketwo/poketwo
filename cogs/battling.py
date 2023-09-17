@@ -214,9 +214,8 @@ class Battle:
                 text = "\n".join([f"{move.name} dealt {result.damage} damage!"] + result.messages)
 
                 if result.success:
-                    opponent.selected.hp -= result.damage
-                    trainer.selected.hp += result.healing
-                    trainer.selected.hp = min(trainer.selected.hp, trainer.selected.max_hp)
+                    opponent.selected.hp = round(min(max(opponent.selected.hp - result.damage, 0), opponent.selected.max_hp), 2)
+                    trainer.selected.hp = round(min(max(trainer.selected.hp + result.healing, 0), trainer.selected.max_hp), 2)
 
                     if result.healing > 0:
                         text += f"\n{trainer.selected.species} restored {result.healing} HP."
@@ -251,12 +250,14 @@ class Battle:
                 else:
                     text = "It missed!"
 
+            text = (text or "") + "\n\n"
+
             # check if fainted
 
+            break_loop = False
             if opponent.selected.hp <= 0:
-                opponent.selected.hp = 0
                 title = title or "Fainted!"
-                text = (text or "") + f" {opponent.selected.species} has fainted."
+                text += f"{opponent.selected.species} has fainted.\n"
 
                 try:
                     opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
@@ -268,11 +269,29 @@ class Battle:
                     await self.channel.send(f"{trainer.user.mention} won the battle!")
                     return
 
-                embed.add_field(name=title, value=text, inline=False)
-                break
+                break_loop = True
+
+            if trainer.selected.hp <= 0:
+                title = title or "Fainted!"
+                text += f"{trainer.selected.species} has fainted."
+
+                try:
+                    trainer.selected_idx = next(idx for idx, x in enumerate(trainer.pokemon) if x.hp > 0)
+                except StopIteration:
+                    # battle's over
+                    self.end()
+                    trainer.selected_idx = -1
+                    self.bot.dispatch("battle_win", self, opponent.user)
+                    await self.channel.send(f"{opponent.user.mention} won the battle!")
+                    return
+
+                break_loop = True
 
             if title is not None:
                 embed.add_field(name=title, value=text, inline=False)
+
+            if break_loop:
+                break
 
         await self.channel.send(embed=embed)
 
