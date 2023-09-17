@@ -156,6 +156,9 @@ class Battle:
         self.stage = Stage.END
         del self.manager[self.trainers[0].user]
 
+    def inc_hp(self, pokemon, value: float):
+        pokemon.hp = round(min(max(pokemon.hp + value, 0), pokemon.max_hp), 2)
+
     async def run_step(self, message):
         if self.stage != Stage.PROGRESS:
             return
@@ -175,16 +178,24 @@ class Battle:
         for action, trainer, opponent in iterl:
             action["priority"] = get_priority(action, trainer.selected)
 
+        description = []
+        for trainer in self.trainers:
+            selected = trainer.selected
+            if "Burn" in selected.ailments:
+                ailment_damage = round(1 / 16 * selected.max_hp, 2)
+                self.inc_hp(selected, -ailment_damage)
+                description.append(f"{selected.species} took {ailment_damage} Burn damage.")
+
+            if "Poison" in selected.ailments:
+                ailment_damage = round(1 / 8 * selected.max_hp, 2)
+                self.inc_hp(selected, -ailment_damage)
+                description.append(f"{selected.species} took {ailment_damage} Poison damage.")
+
         embed = self.bot.Embed(
-            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}.",
+            description="\n".join(description)
         )
         embed.set_footer(text="The next round will begin in 5 seconds.")
-
-        for trainer in self.trainers:
-            if "Burn" in trainer.selected.ailments:
-                trainer.selected.hp -= 1 / 16 * trainer.selected.max_hp
-            if "Poison" in trainer.selected.ailments:
-                trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
         for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
             title = None
@@ -214,8 +225,8 @@ class Battle:
                 text = "\n".join([f"{move.name} dealt {result.damage} damage!"] + result.messages)
 
                 if result.success:
-                    opponent.selected.hp = round(min(max(opponent.selected.hp - result.damage, 0), opponent.selected.max_hp), 2)
-                    trainer.selected.hp = round(min(max(trainer.selected.hp + result.healing, 0), trainer.selected.max_hp), 2)
+                    self.inc_hp(opponent.selected, -result.damage)
+                    self.inc_hp(trainer.selected, result.healing)
 
                     if result.healing > 0:
                         text += f"\n{trainer.selected.species} restored {result.healing} HP."
