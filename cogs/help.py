@@ -67,12 +67,15 @@ class CustomHelpCommand(commands.HelpCommand):
             description = (cog and cog.description) if (cog and cog.description) is not None else None
             embed_pages.append((cog, description, commands))
 
+        per_page = 6
+        max_pages = math.ceil(len(embed_pages) / per_page)
+
         async def get_page(source, menu, pidx):
-            cogs = embed_pages[min(len(embed_pages) - 1, pidx * 6) : min(len(embed_pages) - 1, pidx * 6 + 6)]
+            cogs = embed_pages[min(len(embed_pages) - 1, pidx * per_page) : min(len(embed_pages) - 1, pidx * per_page + per_page)]
 
             embed = self.make_default_embed(
                 cogs,
-                title=f"Pokétwo Command Categories (Page {pidx+1}/{len(embed_pages)//6+1})",
+                title=f"Pokétwo Command Categories (Page {pidx+1}/{max_pages})",
                 description=(
                     f"Use `{self.context.clean_prefix}help <command>` for more info on a command.\n"
                     f"Use `{self.context.clean_prefix}help <category>` for more info on a category."
@@ -81,7 +84,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             return embed
 
-        pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(embed_pages) / 6), get_page))
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(max_pages, get_page))
         ctx.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
