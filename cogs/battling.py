@@ -147,7 +147,7 @@ class Battle:
         for trainer in self.trainers:
             embed.add_field(
                 name=f"{trainer.user}'s Party",
-                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})" for x in trainer.pokemon),
+                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})" for x in trainer.pokemon),
             )
 
         await self.channel.send(embed=embed)
