@@ -483,18 +483,11 @@ class Battling(commands.Cog):
 
         # Challenge to battle
 
-        message = await ctx.send(f"Challenging {user.mention} to a battle. Click the checkmark to accept!")
-        await message.add_reaction("✅")
-
-        def check(payload):
-            return payload.message_id == message.id and payload.user_id == user.id and payload.emoji.name == "✅"
-
-        try:
-            await self.bot.wait_for("raw_reaction_add", timeout=30, check=check)
-        except asyncio.TimeoutError:
-            await message.add_reaction("❌")
-            await ctx.send("The challenge has timed out.")
-            return
+        result = await ctx.request(user, f"Challenging {user.mention} to a battle. Click the accept button to accept!", timeout=30)
+        if result is None:
+            return await ctx.send("The request to trade has timed out.")
+        if result is False:
+            return await ctx.send("Rejected.")
 
         # Accepted, continue
 

@@ -9,6 +9,7 @@ from discord.ext import commands, tasks
 
 from data.models import deaccent
 from helpers import checks, flags, pagination
+from helpers.context import PoketwoContext
 
 
 def chunks(lst, n):
@@ -87,7 +88,7 @@ class Trading(commands.Cog):
             await self.bot.redis.rpush(f"cancel_trade:{cluster_id}", user_id)
             return False
 
-    async def send_trade(self, ctx, user: discord.Member):
+    async def send_trade(self, ctx: PoketwoContext, user: discord.Member):
         # TODO this code is pretty shit. although it does work
 
         trade = self.bot.trades[user.id]
@@ -320,7 +321,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @commands.group(aliases=("t",), invoke_without_command=True, case_insensitive=True)
-    async def trade(self, ctx, *, user: discord.Member):
+    async def trade(self, ctx: PoketwoContext, *, user: discord.Member):
         """Trade pokémon with another trainer."""
 
         if user == ctx.author:
@@ -340,17 +341,11 @@ class Trading(commands.Cog):
         if member.suspended or datetime.utcnow() < member.suspended_until:
             return await ctx.send(f"**{user}** is suspended from the bot!")
 
-        message = await ctx.send(f"Requesting a trade with {user.mention}. Click the checkmark to accept!")
-        await message.add_reaction("✅")
-
-        def check(reaction, u):
-            return reaction.message.id == message.id and u == user and str(reaction.emoji) == "✅"
-
-        try:
-            await self.bot.wait_for("reaction_add", timeout=30, check=check)
-        except asyncio.TimeoutError:
-            await message.add_reaction("❌")
+        result = await ctx.request(user, f"Requesting a trade with {user.mention}. Click the accept button to accept!", timeout=30)
+        if result is None:
             return await ctx.send("The request to trade has timed out.")
+        if result is False:
+            return await ctx.send("Rejected.")
 
         if await self.is_in_trade(ctx.author):
             return await ctx.send("Sorry, the user who sent the request is already in another trade.")
@@ -377,7 +372,7 @@ class Trading(commands.Cog):
 
     @commands.guild_only()
     @trade.command(aliases=("x",))
-    async def cancel(self, ctx):
+    async def cancel(self, ctx: PoketwoContext):
         """Cancel a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -397,7 +392,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @trade.command(aliases=("c",))
-    async def confirm(self, ctx):
+    async def confirm(self, ctx: PoketwoContext):
         """Confirm a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -418,7 +413,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @trade.group(aliases=("a",), invoke_without_command=True, case_insensitive=True)
-    async def add(self, ctx, *args):
+    async def add(self, ctx: PoketwoContext, *args):
         """Add pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -498,7 +493,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @add.command(name="pokecoins", aliases=("pc", "pokecoin"))
-    async def add_pokecoins(self, ctx, *, amt: int):
+    async def add_pokecoins(self, ctx: PoketwoContext, *, amt: int):
         """Add Pokécoin(s) to a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -529,7 +524,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @add.command(name="redeems", aliases=("redeem", "r"))
-    async def add_redeems(self, ctx, *, amt: int):
+    async def add_redeems(self, ctx: PoketwoContext, *, amt: int):
         """Add redeem(s) to a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -560,7 +555,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @trade.group(aliases=("r",), invoke_without_command=True, case_insensitive=True)
-    async def remove(self, ctx, *args):
+    async def remove(self, ctx: PoketwoContext, *args):
         """Remove pokémon from a trade."""
 
         # TODO this shares a lot of code with the add command
@@ -611,7 +606,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @remove.command(name="pokecoins", aliases=("pc", "pokecoin"))
-    async def remove_pokecoins(self, ctx, *, amt: int):
+    async def remove_pokecoins(self, ctx: PoketwoContext, *, amt: int):
         """Remove Pokécoin(s) from a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -641,7 +636,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.guild_only()
     @remove.command(name="redeems", aliases=("redeem", "r"))
-    async def remove_redeems(self, ctx, *, amt: int):
+    async def remove_redeems(self, ctx: PoketwoContext, *, amt: int):
         """Remove redeem(s) from a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -710,7 +705,7 @@ class Trading(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.member)
     @commands.cooldown(1, 5, commands.BucketType.user)
     @trade.command(aliases=("aa",), cls=flags.FlagCommand)
-    async def addall(self, ctx, **flags):
+    async def addall(self, ctx: PoketwoContext, **flags):
         """Add multiple pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
@@ -788,7 +783,7 @@ class Trading(commands.Cog):
     @checks.has_started()
     @commands.guild_only()
     @trade.command(aliases=("i",))
-    async def info(self, ctx, *, number: int):
+    async def info(self, ctx: PoketwoContext, *, number: int):
         """View a pokémon from the trade."""
 
         if not await self.is_in_trade(ctx.author):

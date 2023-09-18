@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import typing
+from typing import Optional
 
 import discord
 import structlog
@@ -127,6 +130,57 @@ class ConfirmationYesNoView(discord.ui.View):
             await self.message.delete()
 
 
+class RequestView(discord.ui.View):
+    def __init__(
+        self,
+        ctx: PoketwoContext,
+        requestee: typing.Union[discord.User, discord.Member],
+        *,
+        timeout: int,
+        delete_after: bool
+    ) -> None:
+        super().__init__(timeout=timeout)
+        self.result = None
+        self.ctx = ctx
+        self.requestee = requestee
+        self.message = None
+        self.delete_after = delete_after
+
+    async def interaction_check(self, interaction):
+        if interaction.user.id not in {
+            self.ctx.bot.owner_id,
+            self.requestee.id,
+            *self.ctx.bot.owner_ids,
+        }:
+            await interaction.response.send_message("You can't use this!", ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Accept", style=discord.ButtonStyle.green)
+    async def accept(self, interaction, button):
+        await interaction.response.defer()
+        if self.message:
+            await self.message.edit(view=None)
+        self.result = True
+        self.stop()
+        if self.delete_after:
+            await self.message.delete()
+
+    @discord.ui.button(label="Reject", style=discord.ButtonStyle.red)
+    async def reject(self, interaction, button):
+        await interaction.response.defer()
+        if self.message:
+            await self.message.edit(view=None)
+        self.result = False
+        self.stop()
+        if self.delete_after:
+            await self.message.delete()
+
+    async def on_timeout(self):
+        if self.message:
+            await self.message.edit(view=None)
+
+
 class PoketwoContext(commands.Context):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -154,6 +208,26 @@ class PoketwoContext(commands.Context):
             embed=embed,
             view=view,
             allowed_mentions=discord.AllowedMentions.none(),
+        )
+        await view.wait()
+        return view.result
+
+    async def request(
+        self,
+        requestee: typing.Union[discord.User, discord.Member],
+        message: Optional[str] = None,
+        *,
+        file: Optional[discord.File] = None,
+        embed: Optional[discord.Embed] = None,
+        timeout: Optional[int] = 40,
+        delete_after: Optional[bool] = False
+    ):
+        view = RequestView(self, requestee, timeout=timeout, delete_after=delete_after)
+        view.message = await self.send(
+            message,
+            file=file,
+            embed=embed,
+            view=view,
         )
         await view.wait()
         return view.result
