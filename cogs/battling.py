@@ -726,6 +726,7 @@ class Battling(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
     @checks.has_started()
     @flags.command(aliases=("ls",))
     async def learnset(self, ctx, **flags):
@@ -734,7 +735,6 @@ class Battling(commands.Cog):
         move_name = " ".join(flags["move_name"])
 
         move = self.bot.data.move_by_name(move_name)
-
         if move is None:
             return await ctx.send("Couldn't find a move with that name!")
 

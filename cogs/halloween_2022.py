@@ -167,6 +167,7 @@ class Halloween(commands.Cog):
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
     @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
