@@ -147,7 +147,7 @@ class Battle:
         for trainer in self.trainers:
             embed.add_field(
                 name=f"{trainer.user}'s Party",
-                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})" for x in trainer.pokemon),
+                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})" for x in trainer.pokemon),
             )
 
         await self.channel.send(embed=embed)
@@ -155,6 +155,9 @@ class Battle:
     def end(self):
         self.stage = Stage.END
         del self.manager[self.trainers[0].user]
+
+    def inc_hp(self, pokemon, value: float):
+        pokemon.hp = round(min(max(pokemon.hp + value, 0), pokemon.max_hp), 2)
 
     async def run_step(self, message):
         if self.stage != Stage.PROGRESS:
@@ -175,16 +178,24 @@ class Battle:
         for action, trainer, opponent in iterl:
             action["priority"] = get_priority(action, trainer.selected)
 
+        description = []
+        for trainer in self.trainers:
+            selected = trainer.selected
+            if "Burn" in selected.ailments:
+                ailment_damage = round(1 / 16 * selected.max_hp, 2)
+                self.inc_hp(selected, -ailment_damage)
+                description.append(f"{selected.species} took {ailment_damage} Burn damage.")
+
+            if "Poison" in selected.ailments:
+                ailment_damage = round(1 / 8 * selected.max_hp, 2)
+                self.inc_hp(selected, -ailment_damage)
+                description.append(f"{selected.species} took {ailment_damage} Poison damage.")
+
         embed = self.bot.Embed(
-            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}.",
+            description="\n".join(description)
         )
         embed.set_footer(text="The next round will begin in 5 seconds.")
-
-        for trainer in self.trainers:
-            if "Burn" in trainer.selected.ailments:
-                trainer.selected.hp -= 1 / 16 * trainer.selected.max_hp
-            if "Poison" in trainer.selected.ailments:
-                trainer.selected.hp -= 1 / 8 * trainer.selected.max_hp
 
         for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
             title = None
@@ -214,9 +225,8 @@ class Battle:
                 text = "\n".join([f"{move.name} dealt {result.damage} damage!"] + result.messages)
 
                 if result.success:
-                    opponent.selected.hp -= result.damage
-                    trainer.selected.hp += result.healing
-                    trainer.selected.hp = min(trainer.selected.hp, trainer.selected.max_hp)
+                    self.inc_hp(opponent.selected, -result.damage)
+                    self.inc_hp(trainer.selected, result.healing)
 
                     if result.healing > 0:
                         text += f"\n{trainer.selected.species} restored {result.healing} HP."
@@ -251,12 +261,14 @@ class Battle:
                 else:
                     text = "It missed!"
 
+            text = (text or "") + "\n\n"
+
             # check if fainted
 
+            break_loop = False
             if opponent.selected.hp <= 0:
-                opponent.selected.hp = 0
                 title = title or "Fainted!"
-                text = (text or "") + f" {opponent.selected.species} has fainted."
+                text += f"{opponent.selected.species} has fainted.\n"
 
                 try:
                     opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
@@ -268,11 +280,29 @@ class Battle:
                     await self.channel.send(f"{trainer.user.mention} won the battle!")
                     return
 
-                embed.add_field(name=title, value=text, inline=False)
-                break
+                break_loop = True
+
+            if trainer.selected.hp <= 0:
+                title = title or "Fainted!"
+                text += f"{trainer.selected.species} has fainted."
+
+                try:
+                    trainer.selected_idx = next(idx for idx, x in enumerate(trainer.pokemon) if x.hp > 0)
+                except StopIteration:
+                    # battle's over
+                    self.end()
+                    trainer.selected_idx = -1
+                    self.bot.dispatch("battle_win", self, opponent.user)
+                    await self.channel.send(f"{opponent.user.mention} won the battle!")
+                    return
+
+                break_loop = True
 
             if title is not None:
                 embed.add_field(name=title, value=text, inline=False)
+
+            if break_loop:
+                break
 
         await self.channel.send(embed=embed)
 
