@@ -190,6 +190,7 @@ class Pokemon(commands.Cog):
             await ctx.send(f"Changed nickname to `{nicknameall}` for {num} pokémon.")
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.command(
         aliases=(
             "favourite",
@@ -235,6 +236,7 @@ class Pokemon(commands.Cog):
                 await ctx.send(longmsg[i : i + 2000])
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.command(
         aliases=(
             "unfavourite",
@@ -309,6 +311,7 @@ class Pokemon(commands.Cog):
 
     # Rename all
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(
         aliases=(
@@ -396,6 +399,7 @@ class Pokemon(commands.Cog):
 
     # Rename all
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(
         aliases=(
@@ -1148,6 +1152,7 @@ class Pokemon(commands.Cog):
             await ctx.send(embed=embed)
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.guild_only()
     @commands.command(rest_is_raw=True)
     async def evolve(self, ctx, args: commands.Greedy[converters.PokemonConverter]):
@@ -1206,6 +1211,7 @@ class Pokemon(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.has_started()
+    @checks.is_not_in_trade()
     @commands.command(rest_is_raw=True)
     async def unmega(self, ctx, *, pokemon: converters.PokemonConverter):
         """Switch a pokémon back to its non-mega form."""
