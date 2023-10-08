@@ -594,7 +594,14 @@ class Pokemon(commands.Cog):
         if rarity:
             aggregations.append({"$match": {map_field("species_id"): {"$in": rarity}}})
 
-        for x in ("alolan", "galarian", "hisuian", "mega", "event"):
+        forms = []
+        for x in ("alolan", "galarian", "hisuian"):
+            if x in flags and flags[x]:
+                forms += getattr(self.bot.data, f"list_{x}")
+        if forms:
+            aggregations.append({"$match": {map_field("species_id"): {"$in": forms}}})
+
+        for x in ("mega", "event"):
             if x in flags and flags[x]:
                 aggregations.append({"$match": {map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}}})
 
