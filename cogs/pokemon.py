@@ -236,7 +236,6 @@ class Pokemon(commands.Cog):
                 await ctx.send(longmsg[i : i + 2000])
 
     @checks.has_started()
-    @checks.is_not_in_trade()
     @commands.command(
         aliases=(
             "unfavourite",
@@ -399,7 +398,6 @@ class Pokemon(commands.Cog):
 
     # Rename all
     @checks.has_started()
-    @checks.is_not_in_trade()
     @commands.max_concurrency(1, commands.BucketType.user)
     @flags.command(
         aliases=(
