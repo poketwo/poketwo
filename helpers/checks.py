@@ -24,6 +24,10 @@ def is_admin():
     return commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
 
 
+def is_developer():
+    return commands.check_any(commands.is_owner(), commands.has_role(1120600250474827856))
+
+
 def has_started():
     async def predicate(ctx):
         member = await ctx.bot.mongo.Member.find_one({"id": ctx.author.id})

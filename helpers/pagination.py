@@ -1,4 +1,5 @@
 import math
+import discord
 
 from discord.ext import menus
 from discord.ext.menus.views import ViewMenuPages
@@ -71,12 +72,25 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
 
 class ContinuablePages(ViewMenuPages):
-    def __init__(self, source, allow_last=True, allow_go=True, **kwargs):
+    def __init__(self, source, allow_last=True, allow_go=True, loop_pages=True, **kwargs):
         super().__init__(source, **kwargs, timeout=120)
         self.allow_last = allow_last
         self.allow_go = allow_go
+        self.loop_pages = loop_pages
         for x in REMOVE_BUTTONS:
             self.remove_button(x)
+
+    async def _get_kwargs_from_page(self, page):
+        value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
+        if isinstance(value, dict):
+            return value
+        elif isinstance(value, str):
+            return { 'content': value, 'embed': None }
+        elif isinstance(value, discord.Embed):
+            return { 'embed': value, 'content': None }
+        elif isinstance(value, list):
+            if all([isinstance(i, discord.Embed) for i in value]):
+                return { 'embeds': value, 'content': None }
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(self.current_page)
@@ -92,8 +106,11 @@ class ContinuablePages(ViewMenuPages):
                 await self.ctx.send(
                     "Sorry, this does not support going to last page. Try sorting in the reverse direction instead."
                 )
+            elif (page_number < 0 or page_number >= (max_pages)):
+                if self.loop_pages is True:
+                    await self.show_page(page_number % max_pages)
             else:
-                await self.show_page(page_number % max_pages)
+                await self.show_page(page_number)
         except IndexError:
             pass
 

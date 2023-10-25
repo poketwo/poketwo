@@ -340,6 +340,23 @@ class Member(Document):
     summer_2023_fishing_bait = fields.IntegerField(default=0)
     summer_2023_tokens = fields.IntegerField(default=0)
 
+    halloween_2023_satchel_flames = fields.IntegerField(default=0)
+    halloween_2023_satchel_shadows = fields.IntegerField(default=0)
+    halloween_2023_satchel_foliage = fields.IntegerField(default=0)
+    halloween_2023_satchel_snaring = fields.IntegerField(default=0)
+
+    halloween_2023_sigil_flames = fields.IntegerField(default=0)
+    halloween_2023_sigil_shadows = fields.IntegerField(default=0)
+    halloween_2023_sigil_foliage = fields.IntegerField(default=0)
+    halloween_2023_sigil_snaring = fields.IntegerField(default=0)
+
+    halloween_2023_milestone_contribution_searching_golurk = fields.FloatField(default=0.0)  # TODO: Finalize type
+    halloween_2023_milestone_contribution_helping_flames = fields.FloatField(default=0.0)  # TODO: Finalize type
+    halloween_2023_milestone_contribution_helping_shadows = fields.FloatField(default=0.0)  # TODO: Finalize type
+    halloween_2023_milestone_contribution_helping_foliage = fields.FloatField(default=0.0)  # TODO: Finalize type
+    halloween_2023_milestone_contribution_helping_snaring = fields.FloatField(default=0.0)  # TODO: Finalize type
+    halloween_2023_milestone_contribution_saving_golurk = fields.FloatField(default=0.0)  # TODO: Finalize type
+
     @property
     def selected_pokemon(self):
         try:

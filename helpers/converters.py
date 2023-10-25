@@ -1,9 +1,11 @@
 from datetime import timedelta
+from typing import Dict, Optional
 
 import discord
 from discord.ext import commands
 from durations_nlp import Duration
 
+from .context import PoketwoContext
 from .utils import FakeUser
 
 
@@ -61,6 +63,32 @@ class PokemonConverter(commands.Converter):
             )
 
         return await ctx.bot.mongo.fetch_pokemon(ctx.author, number)
+
+
+class ItemAndQuantityConverter(commands.Converter):  # TODO: Try validation
+    def __init__(self, item_dict: Optional[Dict[str, str]] = None, valid_items_string: Optional[str] = None):
+        self.item_dict = item_dict
+        self.valid_items_string = valid_items_string
+
+    async def convert(self, ctx: PoketwoContext, item_and_qty: str):
+        # Greedily consume the arg until the last one for
+        # item and make the last one quantity if it's a digit
+        if len(split := item_and_qty.split()) > 1 and split[-1].isdigit():
+            item = " ".join(split[:-1])
+            qty = int(split[-1])
+        else:
+            item = item_and_qty
+            qty = 1
+
+        if self.item_dict:
+            try:
+                item = self.item_dict[item.casefold().strip()]
+            except KeyError:
+                return await ctx.send(
+                    f"Invalid item. Valid items are: {self.valid_items_string}"
+                )
+
+        return item, qty
 
 
 def to_timedelta(arg):
