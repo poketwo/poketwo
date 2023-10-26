@@ -91,6 +91,9 @@ SIGIL_IDS = unwind(
     include_values=True,
 )
 
+BADGE_NAME = "halloween_2023"
+BADGE_REQ_PERCENT = 21e-6
+
 
 class FlavorStrings:
     """Holds various flavor strings"""
@@ -124,6 +127,14 @@ CMD_OFFER = "`{0} halloween offer <sigil> <qty>`"
 CMD_OPEN = "`{0} halloween open <satchel> <qty>`"
 CMD_INVENTORY = "`{0} halloween inventory`"
 CMD_MILESTONES = "`{0} halloween milestones`"
+
+
+TIPS = ("You can see your contribution after the completion of each milestone.",)
+SIGIL_TIPS = (
+    "Sigils can be found in satchels, which can drop from wild catches!",
+    "Offering the preferred sigil will contribute more than other sigils!",
+    f"Offer sigils using {CMD_OFFER.format('@Pokétwo')}."
+)
 
 
 MILESTONE_ID_PREFIX = f"{HALLOWEEN_PREFIX}milestone_"
@@ -583,6 +594,7 @@ class Halloween(commands.Cog):
                 title=f"Community Milestone {pidx + 1}/{len(self.MILESTONES)} - {milestone.title}",
                 description=milestone.text if not complete else f"~~{milestone.text}~~",
             )
+            footer = []
 
             # Build Goal field value
             goal_value = [milestone.get_goal_text(goal)]
@@ -597,6 +609,9 @@ class Halloween(commands.Cog):
                 goal_value.append(
                     f"**Your contribution**: `{cont_int if (cont_int - contribution) == 0 else contribution:,}/{goal:,}`"
                 )
+                footer.append("This milestone has been completed.")
+            else:
+                footer.append(f"Tip: {random.choice(TIPS + SIGIL_TIPS if milestone.quest.event.startswith('sigil') else TIPS)}")
 
             milestone_embed.add_field(name="Goal", value="\n".join(goal_value), inline=False)
 
@@ -610,6 +625,11 @@ class Halloween(commands.Cog):
                 milestone_embed.color = COMPLETION_EMBED_COLOR
 
             milestone_embed.set_image(url=self.bot.data.asset(image_endpoint))
+
+            if milestone.quest.event.startswith('sigil'):
+                footer.append("Earn the exclusive Halloween 2023 badge by contributing a certain amount to milestones that require sigils (total)!")
+
+            milestone_embed.set_footer(text="\n".join(footer))
 
             return milestone_embed
 
@@ -656,6 +676,9 @@ class Halloween(commands.Cog):
         await self.bot.mongo.update_member(user, {"$inc": {f"{HALLOWEEN_PREFIX}{satchel}": qty}})
         await ctx.send(f"Gave **{user}** {qty}x {satchel_name:b}.")
 
+    def sigil_milestones(self) -> Tuple[Milestone]:
+        return [m for m in self.MILESTONES if m.quest.event.startswith("sigil")]
+
     @checks.has_started()
     @halloween.command(usage="<satchel> [qty=1]")
     async def open(
@@ -698,6 +721,7 @@ class Halloween(commands.Cog):
         inserts = []
         text = []
 
+        drop_sigil = not all([await m.is_complete() for m in self.sigil_milestones()])
         for reward in random.choices(SATCHEL_REWARDS, weights=SATCHEL_WEIGHTS, k=qty):
             count = random.choice(SATCHEL_REWARD_AMOUNTS[reward])
 
@@ -706,8 +730,13 @@ class Halloween(commands.Cog):
                     text.append(f"- {count} {FlavorStrings.pokecoins:!e}")
                     update["$inc"]["balance"] += count
                 case "sigil":
-                    text.append(f"- {getattr(FlavorStrings, SATCHEL_SIGILS[satchel])}")
-                    update["$inc"][sigil_type] += 1
+                    if drop_sigil:
+                        text.append(f"- {getattr(FlavorStrings, SATCHEL_SIGILS[satchel])}")
+                        update["$inc"][sigil_type] += 1
+                    else:
+                        count = random.choice(SATCHEL_REWARD_AMOUNTS["pc"])
+                        text.append(f"- {getattr(FlavorStrings, SATCHEL_SIGILS[satchel])} -> {count} {FlavorStrings.pokecoins:!e}")
+                        update["$inc"]["balance"] += count
                 case "event-sage" | "non-event" | "non-event-shiny":
                     shiny_boost = 1
                     if reward in ("non-event", "non-event-shiny"):
@@ -750,6 +779,20 @@ class Halloween(commands.Cog):
 
         await self.bot.mongo.update_member(user, {"$inc": {f"{HALLOWEEN_PREFIX}{sigil}": qty}})
         await ctx.send(f"Gave **{user}** {qty}x {sigil_name:b}.")
+
+    async def give_badge(self, ctx: PoketwoContext):
+        user = ctx.author
+        member = await self.bot.mongo.fetch_member_info(user)
+        if member.badges.get(BADGE_NAME):
+            return
+
+        sigil_milestones = self.sigil_milestones()
+        requirement = round(BADGE_REQ_PERCENT * sum([await m.get_goal() for m in sigil_milestones]))
+        total_contribution = sum([member[m.contribution_id] for m in sigil_milestones])
+
+        if total_contribution >= requirement:
+            await self.bot.mongo.update_member(user, {"$set": {f"badges.{BADGE_NAME}": True}})
+            await ctx.reply(f"Congratulations, you have earned the exclusive **Halloween 2023** badge for your sigil contributions to the community milestones!")
 
     @checks.has_started()
     @halloween.command(usage="<sigil> [qty=1]")
@@ -797,6 +840,7 @@ class Halloween(commands.Cog):
             {"$inc": {sigil_inventory_field: -qty}},
         )
         await ctx.send(f"You offered {qty} {sigil_name:b{'s' if qty > 1 else ''}} towards {current_milestone.title}!")
+        await self.give_badge(ctx)
 
     @checks.is_developer()
     @halloween.command(aliases=("setgoal",))
