@@ -33,6 +33,7 @@ RUINED_GOLURK_ID = 50139
 HERO_GOLURK_ID = 50140
 
 
+NOTHING = "Nothing to show yet...\n"
 SATCHEL_DROP_CHANCE = 0.25
 SATCHEL_CHANCES = {
     "pc": 0.25,
@@ -556,7 +557,7 @@ class Halloween(commands.Cog):
 
         embed.add_field(
             name="Unlocked",
-            value="\n".join((f"{i}. {m.unlock_text}" for i, m in enumerate(await self.get_unlocked(), 1))),
+            value="\n".join((f"{i}. {m.unlock_text}" for i, m in enumerate(await self.get_unlocked(), 1))) or NOTHING,
             inline=False,
         )
         embed.set_footer(
@@ -653,7 +654,6 @@ class Halloween(commands.Cog):
             sigil_text += f'{getattr(FlavorStrings, sigil)} - **{member[f"{HALLOWEEN_PREFIX}{sigil}"]:,}**\n'
 
         prefix = ctx.clean_prefix.strip()
-        NOTHING = "Nothing to show yet...\n"
         embed.add_field(name="Satchels", value=f"{satchel_text or NOTHING}{CMD_OPEN.format(prefix)}", inline=False)
         embed.add_field(name="Sigils", value=f"{sigil_text or NOTHING}{CMD_OFFER.format(prefix)}", inline=False)
 
