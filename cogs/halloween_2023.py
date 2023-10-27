@@ -37,11 +37,11 @@ NOTHING = "Nothing to show yet...\n"
 SATCHEL_DROP_CHANCE = 0.25
 SATCHEL_CHANCES = {
     "pc": 0.25,
-    "sigil": 0.2,
+    "sigil": 0.25,
     "non-event": 0.429,
     "non-event-shiny": 0.001,
     "event-sage": 0.02,
-    "nothing": 0.1,
+    "nothing": 0.05,
 }
 SATCHEL_REWARD_AMOUNTS = {
     "pc": range(100, 1000),
@@ -471,15 +471,12 @@ class Halloween(commands.Cog):
     @commands.Cog.listener(name="on_catch")
     async def drop_satchel(self, ctx: PoketwoContext, species: Species, _id: int):
         if random.random() <= SATCHEL_DROP_CHANCE:
-            # Pick a random type if pokémon has more than 1 type
-            if len(species.types) >= 2:
-                pokemon_type = random.choice(species.types)
-            else:
-                pokemon_type = species.types[0]
-
-            satchel = SATCHEL_TYPES[pokemon_type]
-            if not await self.satchel_unlocked(satchel):
+            types = [t for t in species.types if await self.satchel_unlocked(SATCHEL_TYPES[t])]
+            if not types:
                 return
+
+            pokemon_type = random.choice(types)
+            satchel = SATCHEL_TYPES[pokemon_type]
 
             await self.bot.mongo.update_member(ctx.author, {"$inc": {HALLOWEEN_PREFIX + satchel: 1}})
             await ctx.send(
