@@ -663,7 +663,7 @@ class Halloween(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @halloween.command(aliases=("givesatchel",), usage="<satchel> [qty=1]")
     async def addsatchel(
         self,
@@ -769,7 +769,7 @@ class Halloween(commands.Cog):
         embed.description = "\n".join(text)
         await ctx.reply(embed=embed, mention_author=False)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @halloween.command(aliases=("givesigil",), usage="<sigil> [qty=1]")
     async def addsigil(
         self,
