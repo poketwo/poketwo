@@ -857,6 +857,7 @@ class Halloween(commands.Cog):
         effect = 1 if current_milestone.quest.event == sigil else 0.5
         qty = math.ceil(min(qty, (goal - progress) / effect))
         inc = qty * effect
+        pc = round(sum([random.choice(SATCHEL_REWARD_AMOUNTS["pc"]) * effect for _ in range(qty)]))
 
         sigil_inventory_field = f"{HALLOWEEN_PREFIX}{sigil}"
         if member[sigil_inventory_field] < qty:
@@ -865,7 +866,6 @@ class Halloween(commands.Cog):
             )
 
         await current_milestone.increment_progress(inc, user=ctx.author)
-        pc = round(random.choice(SATCHEL_REWARD_AMOUNTS["pc"]) * inc)
         await self.bot.mongo.update_member(
             ctx.author,
             {"$inc": {sigil_inventory_field: -qty, "balance": pc}},
