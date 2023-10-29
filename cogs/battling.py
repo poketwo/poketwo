@@ -56,7 +56,6 @@ class Trainer:
         return self.pokemon[self.selected_idx]
 
     async def get_action(self, message):
-
         actions = {}
 
         # TODO: We should be accessing ctx._ here instead of bot._
@@ -74,7 +73,9 @@ class Trainer:
                 actions[constants.LETTER_REACTIONS[idx]] = {
                     "type": "switch",
                     "value": idx,
-                    "text": ctx._("action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage * 100),
+                    "text": self.bot._(
+                        "action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage * 100
+                    ),
                     "command": f"switch {idx + 1}",
                 }
 
@@ -222,7 +223,6 @@ class Battle:
                 text = self.ctx._("switched-pokemon-text", pokemon=str(trainer.selected.species))
 
             elif action["type"] == "move":
-
                 # calculate damage amount
 
                 move = action["value"]
@@ -701,8 +701,7 @@ class Battling(commands.Cog):
             # Send embed
 
             embed = ctx.localized_embed(
-                "moveset-embed",
-                pokemon=str(species), start=pgstart + 1, end=pgend, totalMoves=len(species.moves)
+                "moveset-embed", pokemon=str(species), start=pgstart + 1, end=pgend, totalMoves=len(species.moves)
             )
             embed.color = constants.PINK
 
