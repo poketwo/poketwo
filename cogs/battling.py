@@ -143,7 +143,9 @@ class Battle:
                     ),
                 )
             else:
-                embed.add_field(name=ctx._("battle-selection-party-field-name"), trainer=str(trainer.user))
+                embed.add_field(
+                    name=ctx._("battle-selection-party-field-name", trainer=str(trainer.user)), value="None"
+                )
 
         await ctx.send(embed=embed)
 
