@@ -74,7 +74,7 @@ class Trainer:
                     "type": "switch",
                     "value": idx,
                     "text": self.bot._(
-                        "action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage * 100
+                        "action-switch", species=str(pokemon.species), ivPercentage=pokemon.iv_percentage * 100
                     ),
                     "command": f"switch {idx + 1}",
                 }
