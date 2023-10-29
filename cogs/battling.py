@@ -198,7 +198,7 @@ class Battle:
                 secondTrainer=self.trainers[1].user.display_name,
             )
         )
-        embed.set_footer(text=ctx._("next-round-begins-in", seconds=5))
+        embed.set_footer(text=self.ctx._("next-round-begins-in", seconds=5))
 
         for trainer in self.trainers:
             if "Burn" in trainer.selected.ailments:
@@ -249,7 +249,7 @@ class Battle:
                         )
 
                     if result.ailment:
-                        text += "\n" + ctx._("ailment-inflicted", ailment=result.ailment)
+                        text += "\n" + self.ctx._("ailment-inflicted", ailment=result.ailment)
                         opponent.selected.ailments.add(result.ailment)
 
                     for change in result.stat_changes:
@@ -300,7 +300,7 @@ class Battle:
                     self.end()
                     opponent.selected_idx = -1
                     self.bot.dispatch("battle_win", self, trainer.user)
-                    await self.channel.send(ctx._("won-battle", victor=trainer.user.mention))
+                    await self.channel.send(self.ctx._("won-battle", victor=trainer.user.mention))
                     return
 
                 embed.add_field(name=title, value=text, inline=False)
