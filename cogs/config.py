@@ -4,7 +4,7 @@ import discord
 import geocoder
 from discord.ext import commands
 
-from helpers import checks
+from helpers import constants, checks
 
 
 def geocode(location):
@@ -18,26 +18,24 @@ class Configuration(commands.Cog):
         self.bot = bot
 
     def make_config_embed(self, ctx, guild, commands={}):
-        embed = self.bot.Embed(title="Server Configuration")
+        embed = ctx.localized_embed(
+            "config-embed",
+            field_ordering=["level-up", "location", "spawning-channels"],
+            block_fields=True,
+            field_values={
+                "level-up": ctx._("config-yes" if guild.silence else "config-no"),
+                "location": guild.loc,
+                "spawning-channels": "\n".join(f"<#{x}>" for x in guild.channels),
+            },
+            silenceCommand=commands.get("silence_command", ""),
+            locationCommand=commands.get("location_command", ""),
+            redirectCommand=commands.get("redirect_command", ""),
+        )
+        embed.color = constants.PINK
 
         if ctx.guild.icon is not None:
             embed.set_thumbnail(url=ctx.guild.icon.url)
 
-        embed.add_field(
-            name=f"Display level-up messages? {commands.get('silence_command', '')}",
-            value=(("Yes", "No")[guild.silence]),
-            inline=False,
-        )
-        embed.add_field(
-            name=f"Location {commands.get('location_command', '')}",
-            value=guild.loc,
-            inline=False,
-        )
-        embed.add_field(
-            name=f"Spawning Channels {commands.get('redirect_command', '')}",
-            value="\n".join(f"<#{x}>" for x in guild.channels) or "All Channels",
-            inline=False,
-        )
         return embed
 
     @commands.guild_only()
@@ -58,9 +56,8 @@ class Configuration(commands.Cog):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
         commands = {
-            "silence_command": f"\n`{ctx.clean_prefix}serversilence`",
-            "location_command": f"\n`{ctx.clean_prefix}location <location>`",
-            "redirect_command": f"\n`{ctx.clean_prefix}redirect <channel 1> <channel 2> ...`",
+            f"{key}_command": f"\n`{ctx.clean_prefix}{ctx._(f'command-example-{key}')}`"
+            for key in ("silence", "location", "redirect")
         }
 
         embed = self.make_config_embed(ctx, guild, commands)
@@ -77,11 +74,9 @@ class Configuration(commands.Cog):
         await self.bot.mongo.update_member(ctx.author, {"$set": {"silence": not member.silence}})
 
         if member.silence:
-            await ctx.send(f"Reverting to normal level up behavior.")
+            await ctx.send(ctx._("silence-off"))
         else:
-            await ctx.send(
-                "I'll no longer send level up messages. You'll receive a DM when your pokémon evolves or reaches level 100."
-            )
+            await ctx.send(ctx._("silence-on"))
 
     @checks.is_admin()
     @commands.command()
@@ -92,11 +87,9 @@ class Configuration(commands.Cog):
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"silence": not guild.silence}})
 
         if guild.silence:
-            await ctx.send(f"Level up messages are no longer disabled in this server.")
+            await ctx.send(ctx._("serversilence-off"))
         else:
-            await ctx.send(
-                f"Disabled level up messages in this server. I'll send a DM when pokémon evolve or reach level 100."
-            )
+            await ctx.send(ctx._("serversilence-on"))
 
     @checks.is_admin()
     @commands.group(invoke_without_command=True, case_insensitive=True)
@@ -108,10 +101,10 @@ class Configuration(commands.Cog):
         """Redirect pokémon catches to one or more channels."""
 
         if len(channels) == 0:
-            return await ctx.send("Please specify channels to redirect to!")
+            return await ctx.send(ctx._("redirect-requires-channels"))
 
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": [x.id for x in channels]}})
-        await ctx.send("Now redirecting spawns to " + ", ".join(x.mention for x in channels))
+        await ctx.send(ctx._("redirect-completed", channels=", ".join(x.mention for x in channels)))
 
     @checks.is_admin()
     @redirect.command()
@@ -119,32 +112,38 @@ class Configuration(commands.Cog):
         """Reset channel redirect."""
 
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": []}})
-        await ctx.send(f"No longer redirecting spawns.")
+        await ctx.send(ctx._("reset-completed"))
 
     @checks.is_admin()
     @commands.command(aliases=("timezone", "tz"))
     async def location(self, ctx: commands.Context, *, location: str = None):
         if location is None:
             guild = await self.bot.mongo.fetch_guild(ctx.guild)
-            return await ctx.send(f"The server's current location is **{guild.loc}** ({guild.lat}, {guild.lng}).")
+            return await ctx.send(
+                ctx._("location-current", latitude=guild.lat, location=guild.loc, longitude=guild.lng)
+            )
 
         async with ctx.typing():
             g = await self.bot.loop.run_in_executor(None, geocode, location)
 
             if g.latlng is None:
-                return await ctx.send("Couldn't find that location!")
+                return await ctx.send(ctx._("unknown-location"))
 
             lat, lng = g.latlng
             await self.bot.mongo.update_guild(ctx.guild, {"$set": {"lat": lat, "lng": lng, "loc": g.address}})
-            await ctx.send(f"Set server location to **{g.address}** ({lat}, {lng}).")
+            await ctx.send(ctx._("set-location", location=g.address, longitude=lng, latitude=lat))
 
     @commands.command()
     async def time(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(title=f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
-        embed.description = f"It is currently {'day' if guild.is_day else 'night'} time in this server."
-        embed.add_field(name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}")
+        embed = self.bot.Embed(title=ctx._("time-day-title") if guild.is_day else ctx._("time-night-title"))
+        embed.description = ctx._("time-day-description" if guild.is_day else "time-night-description")
+
+        embed.add_field(
+            name=ctx._("server-location-field-name"),
+            value=ctx._("server-location-field-name", location=guild.loc, latitude=guild.lat, longitude=guild.lng),
+        )
 
         await ctx.send(embed=embed)
 

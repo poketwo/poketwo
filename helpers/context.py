@@ -1,4 +1,5 @@
 import typing
+from typing import Any
 
 import discord
 import structlog
@@ -148,6 +149,7 @@ class PoketwoContext(commands.Context):
         """Formats a localization string from a message while setting the last
         known prefix value.
         """
+        # TODO: In the future, pass on the user's preferred language.
         # HACK: Reach into the Lang cog and update its last known prefix value,
         # so Fluent localizations that use the `COMMAND` function format
         # correctly.
@@ -157,6 +159,13 @@ class PoketwoContext(commands.Context):
         # the usual way.
         self.bot.get_cog("Lang")._last_known_prefix = self.clean_prefix
         return self.bot._(message_id, **kwargs)
+
+    def localized_embed(self, *args, **kwargs) -> discord.Embed:
+        """A shortcut for ``bot.localized_embed``. See original for more
+        information.
+        """
+        # TODO: In the future, pass on the user's preferred language.
+        return self.bot.localized_embed(*args, **kwargs)
 
     async def confirm(
         self, message=None, *, file=None, embed=None, timeout=40, delete_after=False, cls=ConfirmationView
@@ -180,7 +189,7 @@ class PoketwoContext(commands.Context):
         timeout=40,
         options: typing.List[discord.SelectOption],
         delete_after=False,
-        cls=SelectView
+        cls=SelectView,
     ):
         view = cls(self, options=options, timeout=timeout, delete_after=delete_after)
         view.message = await self.send(

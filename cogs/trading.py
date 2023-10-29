@@ -1,4 +1,5 @@
 import asyncio
+from csv import field_size_limit
 import math
 import random
 from datetime import datetime, timedelta
@@ -8,7 +9,7 @@ import discord
 from discord.ext import commands, tasks
 
 from data.models import deaccent
-from helpers import checks, flags, pagination
+from helpers import checks, constants, flags, pagination
 
 
 def chunks(lst, n):
@@ -47,13 +48,9 @@ class Trading(commands.Cog):
             try:
                 await message.delete()
             except discord.HTTPException:
-                await message.channel.send(
-                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
-                )
+                await message.channel.send(self.bot._("scam-identified"))
             else:
-                await message.channel.send(
-                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
-                )
+                await message.channel.send(self.bot._("scam-identified-and-deleted"))
 
     async def clear_trades(self):
         await self.bot.get_cog("Redis").wait_until_ready()
@@ -102,7 +99,7 @@ class Trading(commands.Cog):
         num_pages = max(math.ceil(len(x) / 20) for x in trade["pokemon"].values())
 
         if done:
-            execmsg = await ctx.send("Executing trade...")
+            execmsg = await ctx.send(ctx._("executing-trade"))
 
         users = {k: [("p", x) for x in v] for k, v in trade["pokemon"].items()}
         for x in users:
@@ -117,10 +114,10 @@ class Trading(commands.Cog):
             embed_pages = [[[], []]]
 
         async def get_page(source, menu, pidx):
-            embed = self.bot.Embed(title=f"Trade between {a.display_name} and {b.display_name}.")
+            embed = self.bot.Embed(title=ctx._("trade-between", a=a.display_name, b=b.display_name))
 
             if done:
-                embed.title = f"✅ Completed trade between {a.display_name} and {b.display_name}."
+                embed.title = ctx._("trade-completed", a=a.display_name, b=b.display_name)
 
             for mem, page in zip((a, b), embed_pages[pidx]):
                 try:
@@ -132,29 +129,30 @@ class Trading(commands.Cog):
                     return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
                 def txt(p):
-                    val = f"`{padn(p.idx, maxn)}`　**{p.species}**"
-                    if p.shiny:
-                        val = f"`{padn(p.idx, maxn)}`　**✨ {p.species}**"
-                    val += f"　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
-                    return val
+                    return ctx._(
+                        "trade-page-line-shiny" if p.shiny else "trade-page-line",
+                        index=padn(p.idx, maxn),
+                        species=p.species,
+                        level=p.level,
+                        ivPercentage=p.iv_percentage * 100,
+                    )
 
                 val = "\n".join(
-                    f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(x) for t, x in page or []
+                    ctx._("trade-pokecoins", coins=x) if t == "c" else f"{x:,} redeems" if t == "r" else txt(x)
+                    for t, x in page or []
                 )
 
                 if val == "":
                     if len(users[mem.id]) == 0:
-                        val = "None"
+                        val = ctx._("trade-none")
                     else:
-                        val = "None on this page"
+                        val = ctx._("trade-none-on-this-page")
 
                 sign = "🟢" if trade[mem.id] else "🔴"
 
                 embed.add_field(name=f"{sign} {mem.display_name}", value=val[:1024])
 
-            embed.set_footer(
-                text=f"Showing page {pidx + 1} out of {num_pages}.\nReminder: Trading Pokécoins or Pokémon for real-life currencies or items in other bots is prohibited and will result in the suspension of your Pokétwo account!"
-            )
+            embed.set_footer(text=ctx._("trade-footer", numPages=num_pages, page=pidx + 1))
 
             return embed
 
@@ -169,11 +167,11 @@ class Trading(commands.Cog):
                 for u in trade["users"]:
                     member = await self.bot.mongo.fetch_member_info(u)
                     if member.balance < trade["pokecoins"][u.id]:
-                        await ctx.send("The trade could not be executed as one user does not have enough Pokécoins.")
+                        await ctx.send(ctx._("trade-needs-pokecoins"))
                         await self.end_trade(a.id)
                         return
                     if member.redeems < trade["redeems"][u.id]:
-                        await ctx.send("The trade could not be executed as one user does not have enough redeems.")
+                        await ctx.send(ctx._("trade-needs-redeems"))
                         await self.end_trade(a.id)
                         return
 
@@ -192,9 +190,7 @@ class Trading(commands.Cog):
                             await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
                         else:
                             await self.bot.mongo.update_member(mem, {"$inc": {"balance": trade["pokecoins"][i]}})
-                            return await ctx.send(
-                                "The trade could not be executed as one user does not have enough pokécoins."
-                            )
+                            return await ctx.send(ctx._("trade-needs-pokecoins"))
 
                     if trade["redeems"][i] > 0:
                         res = await self.bot.mongo.db.member.find_one_and_update(
@@ -205,9 +201,7 @@ class Trading(commands.Cog):
                             await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
                         else:
                             await self.bot.mongo.update_member(mem, {"$inc": {"redeems": trade["redeems"][i]}})
-                            return await ctx.send(
-                                "The trade could not be executed as one user does not have enough redeems."
-                            )
+                            return await ctx.send(ctx._("trade-needs-redeems"))
 
                 for idx, (i, side) in bothsides:
                     _, (oi, _) = bothsides[(idx + 1) % 2]
@@ -246,7 +240,7 @@ class Trading(commands.Cog):
                             if len(evos) > 0:
                                 evo = random.choice(evos)
 
-                                evo_embed = self.bot.Embed(title=f"Congratulations {omem.display_name}!")
+                                evo_embed = self.bot.Embed(title=ctx._("congratulations", name=omem.display_name))
 
                                 name = str(pokemon.species)
 
@@ -254,8 +248,8 @@ class Trading(commands.Cog):
                                     name += f' "{pokemon.nickname}"'
 
                                 evo_embed.add_field(
-                                    name=f"The {name} is evolving!",
-                                    value=f"The {name} has turned into a {evo.target}!",
+                                    name=ctx._("pokemon-evolving", pokemon=name),
+                                    value=ctx._("pokemon-turned-into", old=name, new=str(evo.target)),
                                 )
 
                                 self.bot.dispatch("evolve", mem, pokemon, evo.target)
@@ -324,23 +318,23 @@ class Trading(commands.Cog):
         """Trade pokémon with another trainer."""
 
         if user == ctx.author:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
 
         if await self.is_in_trade(ctx.author):
-            return await ctx.send("You are already in a trade!")
+            return await ctx.send(ctx._("already-in-a-trade"))
 
         if await self.is_in_trade(user):
-            return await ctx.send(f"**{user}** is already in a trade!")
+            return await ctx.send(ctx._("user-already-in-a-trade", user=user))
 
         member = await ctx.bot.mongo.Member.find_one({"id": user.id}, {"suspended": 1, "suspension_reason": 1})
 
         if member is None:
-            return await ctx.send("That user hasn't picked a starter pokémon yet!")
+            return await ctx.send(ctx._("user-hasnt-started"))
 
         if member.suspended or datetime.utcnow() < member.suspended_until:
-            return await ctx.send(f"**{user}** is suspended from the bot!")
+            return await ctx.send(ctx._("user-is-suspended", user=user))
 
-        message = await ctx.send(f"Requesting a trade with {user.mention}. Click the checkmark to accept!")
+        message = await ctx.send(ctx._("requesting-a-trade", mention=user.mention))
         await message.add_reaction("✅")
 
         def check(reaction, u):
@@ -350,13 +344,13 @@ class Trading(commands.Cog):
             await self.bot.wait_for("reaction_add", timeout=30, check=check)
         except asyncio.TimeoutError:
             await message.add_reaction("❌")
-            return await ctx.send("The request to trade has timed out.")
+            return await ctx.send(ctx._("trade-request-timed-out"))
 
         if await self.is_in_trade(ctx.author):
-            return await ctx.send("Sorry, the user who sent the request is already in another trade.")
+            return await ctx.send(ctx._("user-who-sent-request-is-already-trading"))
 
         if await self.is_in_trade(user):
-            return await ctx.send("Sorry, you can't accept a trade while you're already in one!")
+            return await ctx.send(ctx._("cannot-accept-trade-while-trading"))
 
         trade = {
             "pokemon": {ctx.author.id: [], user.id: []},
@@ -381,18 +375,18 @@ class Trading(commands.Cog):
         """Cancel a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         try:
             if self.bot.trades[ctx.author.id]["executing"]:
-                return await ctx.send("The trade is currently loading...")
+                return await ctx.send(ctx._("trade-loading"))
         except KeyError:
             pass
 
         if await self.end_trade(ctx.author.id):
-            await ctx.send("The trade has been canceled.")
+            await ctx.send(ctx._("trade-has-been-canceled"))
         else:
-            await ctx.send("Attempting to cancel trade...")
+            await ctx.send(ctx._("attempting-to-cancel-trade"))
 
     @checks.has_started()
     @commands.guild_only()
@@ -401,14 +395,14 @@ class Trading(commands.Cog):
         """Confirm a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         last_updated = self.bot.trades[ctx.author.id]["last_updated"]
         if datetime.utcnow() - last_updated < timedelta(seconds=3):
-            return await ctx.reply("The trade was recently modified. Please wait a few seconds, and then try again.")
+            return await ctx.reply(ctx._("trade-was-recently-modified"))
 
         self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][ctx.author.id]
 
@@ -422,21 +416,19 @@ class Trading(commands.Cog):
         """Add pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-add"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if len(args) == 0:
             return
 
         if len(args) <= 2 and args[-1].lower().endswith(("pp", "pc")):
-            return await ctx.send(
-                f"`{ctx.clean_prefix}trade add <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix}trade add pc <amount>` instead!"
-            )
+            return await ctx.send(ctx._("add-command-for-pokemon-only"))
 
         else:
             updated = False
@@ -447,12 +439,12 @@ class Trading(commands.Cog):
                     skip = False
 
                     if not 1 <= int(what) <= 2**31 - 1:
-                        lines.append(f"{what}: NO")
+                        lines.append(ctx._("trade-add-firm-refusal", thing=what))
                         continue
 
                     for x in self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id]:
                         if x.idx == int(what):
-                            lines.append(f"{what}: This pokémon is already in the trade!")
+                            lines.append(ctx._("trade-add-pokemon-already-in-trade", thing=what))
                             skip = True
                             break
 
@@ -464,21 +456,21 @@ class Trading(commands.Cog):
                     pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, number)
 
                     if pokemon is None:
-                        lines.append(f"{what}: Couldn't find that pokémon!")
+                        lines.append(ctx._("trade-unknown-pokemon", thing=what))
                         continue
 
                     if member.selected_id == pokemon.id:
-                        lines.append(f"{what}: You can't trade your selected pokémon!")
+                        lines.append(ctx._("trade-add-cannot-trade-selected-pokemon", thing=what))
                         continue
 
                     if pokemon.favorite:
-                        lines.append(f"{what}: You can't trade favorited pokémon!")
+                        lines.append(ctx._("trade-add-cannot-trade-favorited-pokemon", thing=what))
                         continue
 
                     self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id].append(pokemon)
                     updated = True
                 else:
-                    lines.append(f"{what}: That's not a valid item to add to the trade!")
+                    lines.append(ctx._("trade-add-invalid-item-to-add", thing=what))
                     continue
 
             if len(lines) > 0:
@@ -502,20 +494,20 @@ class Trading(commands.Cog):
         """Add Pokécoin(s) to a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-add"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if amt < 0:
-            return await ctx.send("The amount must be positive!")
+            return await ctx.send(ctx._("amount-must-be-positive"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if self.bot.trades[ctx.author.id]["pokecoins"][ctx.author.id] + amt > member.balance:
-            return await ctx.send("You don't have enough pokécoins for that!")
+            return await ctx.send(ctx._("not-enough-coins"))
 
         self.bot.trades[ctx.author.id]["pokecoins"][ctx.author.id] += amt
 
@@ -533,20 +525,20 @@ class Trading(commands.Cog):
         """Add redeem(s) to a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-add"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if amt < 0:
-            return await ctx.send("The amount must be positive!")
+            return await ctx.send(ctx._("amount-must-be-positive"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if self.bot.trades[ctx.author.id]["redeems"][ctx.author.id] + amt > member.redeems:
-            return await ctx.send("You don't have enough redeems for that!")
+            return await ctx.send(ctx._("not-enough-redeems"))
 
         self.bot.trades[ctx.author.id]["redeems"][ctx.author.id] += amt
 
@@ -566,13 +558,13 @@ class Trading(commands.Cog):
         # TODO this shares a lot of code with the add command
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to remove items!")
+            return await ctx.send(ctx._("same-channel-to-remove"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if len(args) == 0:
             return
@@ -580,9 +572,7 @@ class Trading(commands.Cog):
         trade = self.bot.trades[ctx.author.id]
 
         if len(args) <= 2 and args[-1].lower().endswith(("pp", "pc")):
-            return await ctx.send(
-                f"`{ctx.clean_prefix}trade remove <ids>` is now only for adding Pokémon. Please use the new `{ctx.clean_prefix}trade remove pc <amount>` instead!"
-            )
+            return await ctx.send(ctx._("remove-command-for-pokemon-only"))
         else:
             updated = False
             for what in args:
@@ -593,9 +583,9 @@ class Trading(commands.Cog):
                             updated = True
                             break
                     else:
-                        await ctx.send(f"{what}: Couldn't find that item!")
+                        await ctx.send(ctx._("trade-unknown-item", thing=what))
                 else:
-                    await ctx.send(f"{what}: That's not a valid item to remove from the trade!")
+                    await ctx.send(ctx._("trade-remove-invalid-item", thing=what))
                     continue
 
             if not updated:
@@ -615,19 +605,19 @@ class Trading(commands.Cog):
         """Remove Pokécoin(s) from a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-remove"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if amt < 0:
-            return await ctx.send("The amount must be positive!")
+            return await ctx.send(ctx._("amount-must-be-positive"))
 
         if self.bot.trades[ctx.author.id]["pokecoins"][ctx.author.id] - amt < 0:
-            return await ctx.send("There aren't that many pokécoins in the trade!")
+            return await ctx.send(ctx._("not-that-many-pokecoins"))
 
         self.bot.trades[ctx.author.id]["pokecoins"][ctx.author.id] -= amt
 
@@ -645,19 +635,19 @@ class Trading(commands.Cog):
         """Remove redeem(s) from a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-add"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         if amt < 0:
-            return await ctx.send("The amount must be positive!")
+            return await ctx.send(ctx._("amount-must-be-positive"))
 
         if self.bot.trades[ctx.author.id]["redeems"][ctx.author.id] - amt < 0:
-            return await ctx.send("There aren't that many redeems in the trade!")
+            return await ctx.send(ctx._("not-that-many-redeems"))
 
         self.bot.trades[ctx.author.id]["redeems"][ctx.author.id] -= amt
 
@@ -714,13 +704,13 @@ class Trading(commands.Cog):
         """Add multiple pokémon to a trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         if ctx.channel.id != self.bot.trades[ctx.author.id]["channel"].id:
-            return await ctx.send("You must be in the same channel to add items!")
+            return await ctx.send(ctx._("same-channel-to-add"))
 
         if self.bot.trades[ctx.author.id]["executing"]:
-            return await ctx.send("The trade is currently loading...")
+            return await ctx.send(ctx._("trade-loading"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -739,33 +729,27 @@ class Trading(commands.Cog):
         num = await self.bot.mongo.fetch_pokemon_count(ctx.author, aggregations=aggregations)
 
         if num == 0:
-            return await ctx.send("Found no pokémon matching this search (excluding favorited and selected pokémon).")
+            return await ctx.send(ctx._("found-no-pokemon-matching-excluding-favorited-and-selected"))
 
         # confirm
 
         trade_size = len(self.bot.trades[ctx.author.id]["pokemon"][ctx.author.id])
 
         if 3000 - trade_size < 0:
-            return await ctx.send(
-                f"There are too many pokémon in this trade! Try adding them individually or seperating it into different trades."
-            )
+            return await ctx.send(ctx._("too-many-pokemon-in-trade"))
 
         if trade_size + num > 3000:
-            return await ctx.send(
-                f"There are too many pokémon in this trade! Try adding `--limit {3000 - trade_size}` to the end of your trade."
-            )
+            return await ctx.send(ctx._("too-many-pokemon-in-trade-use-limit-flag", limit=3000 - trade_size))
 
-        result = await ctx.confirm(
-            f"Are you sure you want to trade **{num} pokémon**? Favorited and selected pokémon won't be added."
-        )
+        result = await ctx.confirm(ctx._("trade-add-all-confirmation", number=num))
         if result is None:
-            return await ctx.send("Time's up. Aborted.")
+            return await ctx.send(ctx._("times-up"))
         if result is False:
-            return await ctx.send("Aborted.")
+            return await ctx.send(ctx._("aborted"))
 
         # confirmed, add all
 
-        await ctx.send(f"Adding {num} pokémon, this might take a while...")
+        await ctx.send(ctx._("trade-add-all-in-progress", number=num))
 
         pokemon = self.bot.mongo.fetch_pokemon_list(ctx.author, aggregations)
 
@@ -792,7 +776,7 @@ class Trading(commands.Cog):
         """View a pokémon from the trade."""
 
         if not await self.is_in_trade(ctx.author):
-            return await ctx.send("You're not in a trade!")
+            return await ctx.send(ctx._("not-in-trade"))
 
         other_id = next(x for x in self.bot.trades[ctx.author.id] if type(x) == int and x != ctx.author.id)
         other = ctx.guild.get_member(other_id) or await ctx.guild.fetch_member(other_id)
@@ -802,9 +786,43 @@ class Trading(commands.Cog):
                 x for x in self.bot.trades[ctx.author.id]["pokemon"][other_id] if type(x) != int and x.idx == number
             )
         except StopIteration:
-            return await ctx.send("Couldn't find that pokémon in the trade!")
+            return await ctx.send(ctx._("couldnt-find-pokemon-in-trade"))
 
-        embed = self.bot.Embed(title=f"{pokemon:ln}")
+        field_values = {}
+        if pokemon.held_item:
+            item = self.bot.data.item_by_number(pokemon.held_item)
+            emote = ""
+            if item.emote is not None:
+                emote = getattr(self.bot.sprites, item.emote) + " "
+            field_values = {"held-item": f"{emote}{item.name}"}
+
+        embed = ctx.localized_embed(
+            "trade-info-embed",
+            field_ordering=["details", "stats", "held-item"],
+            block_fields=["details", "stats"],
+            field_values=field_values,
+            droppable_fields=["held-item"],
+            pokemon=f"{pokemon:ln}",
+            xp=pokemon.xp,
+            maxXp=pokemon.max_xp,
+            nature=pokemon.nature,
+            hp=pokemon.hp,
+            ivHp=pokemon.iv_hp,
+            atk=pokemon.atk,
+            ivAtk=pokemon.iv_atk,
+            defn=pokemon.defn,
+            ivDefn=pokemon.iv_defn,
+            satk=pokemon.satk,
+            ivSatk=pokemon.iv_satk,
+            sdef=pokemon.sdef,
+            ivSdef=pokemon.iv_sdef,
+            spd=pokemon.spd,
+            ivSpd=pokemon.iv_spd,
+            ivPercentage=pokemon.iv_percentage * 100,
+            number=number,
+            tradingPartner=other.display_name,
+        )
+        embed.color = constants.PINK
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)
@@ -812,34 +830,6 @@ class Trading(commands.Cog):
             embed.set_image(url=pokemon.species.image_url)
 
         embed.set_thumbnail(url=other.display_avatar.url)
-
-        info = (
-            f"**XP:** {pokemon.xp}/{pokemon.max_xp}",
-            f"**Nature:** {pokemon.nature}",
-        )
-
-        embed.add_field(name="Details", value="\n".join(info), inline=False)
-
-        stats = (
-            f"**HP:** {pokemon.hp} – IV: {pokemon.iv_hp}/31",
-            f"**Attack:** {pokemon.atk} – IV: {pokemon.iv_atk}/31",
-            f"**Defense:** {pokemon.defn} – IV: {pokemon.iv_defn}/31",
-            f"**Sp. Atk:** {pokemon.satk} – IV: {pokemon.iv_satk}/31",
-            f"**Sp. Def:** {pokemon.sdef} – IV: {pokemon.iv_sdef}/31",
-            f"**Speed:** {pokemon.spd} – IV: {pokemon.iv_spd}/31",
-            f"**Total IV:** {pokemon.iv_percentage * 100:.2f}%",
-        )
-
-        embed.add_field(name="Stats", value="\n".join(stats), inline=False)
-
-        if pokemon.held_item:
-            item = self.bot.data.item_by_number(pokemon.held_item)
-            emote = ""
-            if item.emote is not None:
-                emote = getattr(self.bot.sprites, item.emote) + " "
-            embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
-
-        embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}.")
 
         await ctx.send(embed=embed)
 

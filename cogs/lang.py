@@ -1,9 +1,10 @@
 __all__ = ("Lang", "setup")
 
-from typing import Any, cast
+from typing import Any, Tuple, cast
 
 from discord.ext import commands
-from fluent.runtime import FluentResourceLoader, FluentLocalization
+from fluent.runtime import FluentResourceLoader, FluentLocalization, FluentBundle
+from fluent.runtime.resolver import Message
 import structlog
 
 # The listing of all Fluent localization files to load.
@@ -12,6 +13,17 @@ FLUENT_FILES = (
     "help.ftl",
     "cogs.ftl",
     "commands.ftl",
+    "errors.ftl",
+    "shop.ftl",
+    "pokemon.ftl",
+    "trading.ftl",
+    "battling.ftl",
+    "auctions.ftl",
+    "spawning.ftl",
+    "market.ftl",
+    "lang.ftl",
+    "config.ftl",
+    "admin.ftl",
 )
 
 
@@ -24,13 +36,35 @@ class Fluent(FluentLocalization):
 
     _log: structlog.BoundLogger = structlog.get_logger()
 
+    def get_message(self, msg_id: str) -> Tuple[Message, FluentBundle] | None:
+        """Looks up a message by ID from all bundles.
+
+        Returns ``None`` if the message wasn't found.
+        """
+        for bundle in self._bundles():
+            if not bundle.has_message(msg_id):
+                continue
+
+            return (bundle.get_message(msg_id), bundle)
+
     def format_value(self, msg_id: str, args: dict[str, Any] | None = None) -> str:
+        """Looks up a message by ID from all bundles, supporting dotted access
+        for attributes.
+
+        Passing variables into the message can be achieved via the ``args``
+        parameter.
+
+        If the message wasn't found, then the message ID itself is returned.
+        """
         base_msg_id = msg_id
         attribute_name: str | None = None
         if "." in msg_id:
             base_msg_id, attribute_name = msg_id.split(".")
 
         for bundle in self._bundles():
+            if not bundle.has_message(base_msg_id):
+                continue
+
             msg = bundle.get_message(base_msg_id)
 
             value = msg.value

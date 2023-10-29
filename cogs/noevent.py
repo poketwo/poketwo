@@ -13,7 +13,7 @@ class NoEvent(commands.Cog):
     async def event(self, ctx):
         """No event."""
 
-        await ctx.send("There is no event currently active.")
+        await ctx.send(ctx._("no-event-active"))
 
 
 async def setup(bot: commands.Bot):

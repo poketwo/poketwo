@@ -18,7 +18,7 @@ def in_battle(bool=True):
     async def predicate(ctx):
         if bool is (ctx.author in ctx.bot.battles):
             return True
-        raise commands.CheckFailure(f"You're {'not' if bool else 'already'} in a battle!")
+        raise commands.CheckFailure(ctx._("not-in-battle" if bool else "already-in-battle"))
 
     return commands.check(predicate)
 
@@ -59,11 +59,13 @@ class Trainer:
 
         actions = {}
 
+        # TODO: We should be accessing ctx._ here instead of bot._
+
         for idx, x in enumerate(self.selected.moves):
             actions[constants.NUMBER_REACTIONS[idx + 1]] = {
                 "type": "move",
                 "value": x,
-                "text": f"Use {self.bot.data.move_by_number(x).name}",
+                "text": self.bot._("action-move", move=self.bot.data.move_by_number(x).name),
                 "command": self.bot.data.move_by_number(x).name,
             }
 
@@ -72,18 +74,18 @@ class Trainer:
                 actions[constants.LETTER_REACTIONS[idx]] = {
                     "type": "switch",
                     "value": idx,
-                    "text": f"Switch to {pokemon.iv_percentage:.2%} {pokemon.species}",
+                    "text": ctx._("action-switch", species=pokemon.species, ivPercentage=pokemon.iv_percentage * 100),
                     "command": f"switch {idx + 1}",
                 }
 
         actions["⏹️"] = {
             "type": "flee",
-            "text": "Flee from the battle",
+            "text": self.bot._("action-flee"),
             "command": "flee",
         }
         actions["⏭️"] = {
             "type": "pass",
-            "text": "Pass this turn and do nothing.",
+            "text": self.bot._("action-pass"),
             "command": "Pass",
         }
 
@@ -103,7 +105,7 @@ class Trainer:
 
         uid, action = await self.bot.wait_for("move_decide", check=lambda u, a: u == self.user.id)
 
-        await self.user.send(f"You selected **{action['text']}**.\n\n**Back to battle:** {message.jump_url}")
+        await self.user.send(self.bot._("selected-action", jumpUrl=message.jump_url, action=action["text"]))
 
         if action["type"] == "move":
             action["value"] = self.bot.data.move_by_number(action["value"])
@@ -122,32 +124,43 @@ class Battle:
         self.manager = manager
 
     async def send_selection(self, ctx):
-        embed = self.bot.Embed(title="Choose your party")
-        embed.description = (
-            "Choose **3** pokémon to fight in the battle. The battle will begin once both trainers "
-            "have chosen their party. "
-        )
+        embed = ctx.localized_embed("battle-selection-embed")
+        embed.color = constants.PINK
 
         for trainer in self.trainers:
             if len(trainer.pokemon) > 0:
                 embed.add_field(
-                    name=f"{trainer.user}'s Party",
-                    value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx})" for x in trainer.pokemon),
+                    name=ctx._("battle-selection-party-field-name", trainer=str(trainer.user)),
+                    value="\n".join(
+                        ctx._(
+                            "battle-selection-party-line",
+                            ivPercentage=x.iv_percentage * 100,
+                            species=str(x.species),
+                            index=x.idx,
+                        )
+                        for x in trainer.pokemon
+                    ),
                 )
             else:
-                embed.add_field(name=f"{trainer.user}'s Party", value="None")
-
-        embed.set_footer(text=f"Use `{ctx.clean_prefix}battle add <pokemon>` to add a pokémon to the party!")
+                embed.add_field(name=ctx._("battle-selection-party-field-name"), value="None")
 
         await ctx.send(embed=embed)
 
     async def send_ready(self):
-        embed = self.bot.Embed(title="💥 Ready to battle!", description="The battle will begin in 5 seconds.")
+        embed = self.ctx.localized_embed("battle-ready-embed")
 
         for trainer in self.trainers:
             embed.add_field(
-                name=f"{trainer.user}'s Party",
-                value="\n".join(f"{x.iv_percentage:.2%} IV {x.species} ({x.idx + 1})" for x in trainer.pokemon),
+                name=self.ctx._("battle-selection-party-field-name", trainer=str(trainer.user)),
+                value="\n".join(
+                    self.ctx._(
+                        "battle-selection-party-line",
+                        ivPercentage=x.iv_percentage * 100,
+                        species=str(x.species),
+                        index=x.idx,
+                    )
+                    for x in trainer.pokemon
+                ),
             )
 
         await self.channel.send(embed=embed)
@@ -166,7 +179,7 @@ class Battle:
             self.passed_turns += 1
 
         if self.passed_turns >= 3:
-            await self.channel.send("Both trainers passed three times in a row. I'll end the battle here.")
+            await self.channel.send(self.ctx._("trainers-repeatedly-passing"))
             self.end()
             return
 
@@ -176,9 +189,13 @@ class Battle:
             action["priority"] = get_priority(action, trainer.selected)
 
         embed = self.bot.Embed(
-            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+            title=self.ctx._(
+                "battle-between",
+                firstTrainer=self.trainers[0].user.display_name,
+                secondTrainer=self.trainers[1].user.display_name,
+            )
         )
-        embed.set_footer(text="The next round will begin in 5 seconds.")
+        embed.set_footer(text=ctx._("next-round-begins-in", seconds=5))
 
         for trainer in self.trainers:
             if "Burn" in trainer.selected.ailments:
@@ -192,15 +209,17 @@ class Battle:
 
             if action["type"] == "flee":
                 # battle's over
-                await self.channel.send(f"{trainer.user.mention} has fled the battle! {opponent.user.mention} has won.")
+                await self.channel.send(
+                    self.ctx._("opponent-has-fled", opponent=opponent.user.mention, fleeingTrainer=trainer.user.mention)
+                )
                 self.bot.dispatch("battle_win", self, opponent.user)
                 self.end()
                 return
 
             elif action["type"] == "switch":
                 trainer.selected_idx = action["value"]
-                title = f"{trainer.user.display_name} switched pokémon!"
-                text = f"{trainer.selected.species} is now on the field!"
+                title = self.ctx._("switched-pokemon-title", trainer=trainer.user.display_name)
+                text = self.ctx._("switched-pokemon-text", pokemon=str(trainer.selected.species))
 
             elif action["type"] == "move":
 
@@ -210,8 +229,8 @@ class Battle:
 
                 result = move.calculate_turn(trainer.selected, opponent.selected)
 
-                title = f"{trainer.selected.species} used {move.name}!"
-                text = "\n".join([f"{move.name} dealt {result.damage} damage!"] + result.messages)
+                title = self.ctx._("trainer-used-move", move=move.name, pokemon=str(trainer.selected.species))
+                text = "\n".join([self.ctx._("dealt-damage", damage=result.damage, move=move.name)] + result.messages)
 
                 if result.success:
                     opponent.selected.hp -= result.damage
@@ -219,28 +238,42 @@ class Battle:
                     trainer.selected.hp = min(trainer.selected.hp, trainer.selected.max_hp)
 
                     if result.healing > 0:
-                        text += f"\n{trainer.selected.species} restored {result.healing} HP."
+                        text += "\n" + self.ctx._(
+                            "restored-hp", pokemon=str(trainer.selected.species), healed=result.healing
+                        )
                     elif result.healing < 0:
-                        text += f"\n{trainer.selected.species} took {-result.healing} damage."
+                        text += "\n" + self.ctx._(
+                            "took-damage", pokemon=str(trainer.selected.species), damage=-result.healing
+                        )
 
                     if result.ailment:
-                        text += f"\nIt inflicted {result.ailment}!"
+                        text += "\n" + ctx._("ailment-inflicted", ailment=result.ailment)
                         opponent.selected.ailments.add(result.ailment)
 
                     for change in result.stat_changes:
                         if move.target_id == 7:
                             target = trainer.selected
                             if change.change < 0:
-                                text += f"\nLowered the user's **{constants.STAT_NAMES[change.stat]}** by {-change.change} stages."
+                                text += "\n" + self.ctx._(
+                                    "lowered-user-stat", stat=constants.STAT_NAMES[change.stat], change=-change.change
+                                )
                             else:
-                                text += f"\nRaised the user's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
+                                text += "\n" + self.ctx._(
+                                    "raised-user-stat", change=change.change, stat=constants.STAT_NAMES[change.stat]
+                                )
 
                         else:
                             target = opponent.selected
                             if change.change < 0:
-                                text += f"\nLowered the opponent's **{constants.STAT_NAMES[change.stat]}** by {-change.change} stages."
+                                text += "\n" + self.ctx._(
+                                    "lowered-opponent-stat",
+                                    change=-change.change,
+                                    stat=constants.STAT_NAMES[change.stat],
+                                )
                             else:
-                                text += f"\nRaised the opponent's **{constants.STAT_NAMES[change.stat]}** by {change.change} stages."
+                                text += "\n" + self.ctx._(
+                                    "raised-opponent-stat", change=change.change, stat=constants.STAT_NAMES[change.stat]
+                                )
 
                         setattr(
                             target.stages,
@@ -255,8 +288,8 @@ class Battle:
 
             if opponent.selected.hp <= 0:
                 opponent.selected.hp = 0
-                title = title or "Fainted!"
-                text = (text or "") + f" {opponent.selected.species} has fainted."
+                title = title or self.ctx._("fainted")
+                text = (text or "") + self.ctx._("pokemon-has-fainted", pokemon=str(opponent.selected.species))
 
                 try:
                     opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
@@ -265,7 +298,7 @@ class Battle:
                     self.end()
                     opponent.selected_idx = -1
                     self.bot.dispatch("battle_win", self, trainer.user)
-                    await self.channel.send(f"{trainer.user.mention} won the battle!")
+                    await self.channel.send(ctx._("won-battle", victor=trainer.user.mention))
                     return
 
                 embed.add_field(name=title, value=text, inline=False)
@@ -278,11 +311,15 @@ class Battle:
 
     async def send_battle(self):
         embed = self.bot.Embed(
-            title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
+            title=self.bot._(
+                "battle-between",
+                firstTrainer=self.trainers[0].user.display_name,
+                secondTrainer=self.trainers[1].user.display_name,
+            ),
         )
 
         if self.stage == Stage.PROGRESS:
-            embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
+            embed.description = self.ctx._("battle-dm-cta")
             t0 = self.trainers[1]  # switched on purpose because API is like that
             t1 = self.trainers[0]
             image_query = {
@@ -303,15 +340,18 @@ class Battle:
                 )
                 embed.set_image(url=url)
         else:
-            embed.description = "The battle has ended."
+            embed.description = self.ctx._("battle-ended")
 
         for trainer in self.trainers:
             embed.add_field(
                 name=trainer.user.display_name,
                 value="\n".join(
-                    f"**{x.species}** • {x.hp}/{x.max_hp} HP"
-                    if trainer.selected == x
-                    else f"{x.species} • {x.hp}/{x.max_hp} HP"
+                    self.ctx._(
+                        "trainer-pokemon-line-selected" if trainer.selected == x else "trainer-pokemon-line",
+                        pokemon=str(x.species),
+                        hp=x.hp,
+                        maxHp=x.max_hp,
+                    )
                     for x in trainer.pokemon
                 ),
             )
@@ -417,10 +457,13 @@ class Battling(commands.Cog):
     async def on_move_request(self, cluster_idx, user_id, species_id, actions):
         species = self.bot.data.species_by_number(species_id)
 
-        embed = self.bot.Embed(title=f"What should {species} do?")
+        embed = self.bot.Embed(title=self.bot._("move-request-cta", pokemon=str(species)))
 
         embed.description = "\n".join(
-            f"{k} **{v['text']}** • `@Pokétwo battle move {v['command']}`" for k, v in actions.items()
+            self.bot._(
+                "move-action-request-line", action=k, description=v["text"], command=f"battle move {v['command']}"
+            )
+            for k, v in actions.items()
         )
         msg = await self.bot.send_dm(user_id, embed=embed)
 
@@ -449,11 +492,11 @@ class Battling(commands.Cog):
                 try:
                     action = next(x for x in actions.values() if x["command"].lower() == move_name.lower())
                 except StopIteration:
-                    await self.bot.send_dm(user_id, "That's not a valid move here!")
+                    await self.bot.send_dm(user_id, self.bot._("move-request-invalid-move"))
                 else:
                     break
         except asyncio.TimeoutError:
-            action = {"type": "pass", "text": "nothing. Passing turn..."}
+            action = {"type": "pass", "text": self.bot._("action-pass-text")}
 
         await self.bot.redis.rpush(
             f"move_decide:{cluster_idx}",
@@ -469,21 +512,21 @@ class Battling(commands.Cog):
         # Base cases
 
         if user == ctx.author:
-            return await ctx.send("Nice try...")
+            return await ctx.send(ctx._("nice-try"))
         if user in self.bot.battles:
-            return await ctx.send(f"**{user}** is already in a battle!")
+            return await ctx.send(ctx._("user-already-in-battle", user=user))
 
         member = await ctx.bot.mongo.Member.find_one({"id": user.id}, {"suspended": 1, "suspension_reason": 1})
 
         if member is None:
-            return await ctx.send("That user hasn't picked a starter pokémon yet!")
+            return await ctx.send(ctx._("user-hasnt-started"))
 
         if member.suspended or datetime.utcnow() < member.suspended_until:
-            return await ctx.send(f"**{user}** is suspended from the bot!")
+            return await ctx.send(ctx._("user-is-suspended", user=user))
 
         # Challenge to battle
 
-        message = await ctx.send(f"Challenging {user.mention} to a battle. Click the checkmark to accept!")
+        message = await ctx.send(ctx._("challenging", user=user.mention))
         await message.add_reaction("✅")
 
         def check(payload):
@@ -493,16 +536,16 @@ class Battling(commands.Cog):
             await self.bot.wait_for("raw_reaction_add", timeout=30, check=check)
         except asyncio.TimeoutError:
             await message.add_reaction("❌")
-            await ctx.send("The challenge has timed out.")
+            await ctx.send(ctx._("challenge-timed-out"))
             return
 
         # Accepted, continue
 
         if ctx.author in self.bot.battles:
-            return await ctx.send("Sorry, the user who sent the challenge is already in another battle.")
+            return await ctx.send(ctx._("challenging-already-battling"))
 
         if user in self.bot.battles:
-            return await ctx.send("Sorry, you can't accept a challenge while you're already in a battle!")
+            return await ctx.send(ctx._("cannot-challenge-while-battling"))
 
         battle = self.bot.battles.new(ctx.author, user, ctx)
         await battle.send_selection(ctx)
@@ -525,12 +568,12 @@ class Battling(commands.Cog):
                 continue
 
             if len(trainer.pokemon) >= 3:
-                await ctx.send(f"{pokemon.idx}: There are already enough pokémon in the party!")
+                await ctx.send(ctx._("already-enough-pokemon", index=pokemon.idx))
                 return
 
             for x in trainer.pokemon:
                 if x.id == pokemon.id:
-                    await ctx.send(f"{pokemon.idx}: This pokémon is already in the party!")
+                    await ctx.send(ctx._("pokemon-already-in-party", index=pokemon.idx))
                     return
 
             pokemon.hp = pokemon.hp
@@ -566,25 +609,21 @@ class Battling(commands.Cog):
         """View current and available moves for your pokémon."""
 
         if pokemon is None:
-            return await ctx.send("Couldn't find that pokémon!")
+            return await ctx.send(ctx._("unknown-pokemon"))
 
-        embed = self.bot.Embed(title=f"Level {pokemon.level} {pokemon.species} — Moves")
-        embed.description = (
-            f"Here are the moves your pokémon can learn right now. View all moves and how to get "
-            f"them using `{ctx.clean_prefix}moveset`!"
+        embed = ctx.localized_embed(
+            "moves-embed",
+            field_ordering=["available", "current"],
+            field_values={
+                "available": "\n".join(x.move.name for x in pokemon.species.moves if pokemon.level >= x.method.level),
+                "current": None
+                if len(pokemon.moves) == 0
+                else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
+            },
+            level=pokemon.level,
+            pokemon=str(pokemon.species),
         )
-
-        embed.add_field(
-            name="Available Moves",
-            value="\n".join(x.move.name for x in pokemon.species.moves if pokemon.level >= x.method.level),
-        )
-
-        embed.add_field(
-            name="Current Moves",
-            value="No Moves"
-            if len(pokemon.moves) == 0
-            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
-        )
+        embed.color = constants.PINK
 
         await ctx.send(embed=embed)
 
@@ -596,15 +635,15 @@ class Battling(commands.Cog):
         move = self.bot.data.move_by_name(search)
 
         if move is None:
-            return await ctx.send("Couldn't find that move!")
+            return await ctx.send(ctx._("unknown-move"))
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
         if pokemon is None:
-            return await ctx.send("You must have a pokémon selected!")
+            return await ctx.send(ctx._("pokemon-must-be-selected"))
 
         if move.id in pokemon.moves:
-            return await ctx.send("Your pokémon has already learned that move!")
+            return await ctx.send(ctx._("already-learned-move"))
 
         try:
             pokemon_move = next(x for x in pokemon.species.moves if x.move_id == move.id)
@@ -612,17 +651,17 @@ class Battling(commands.Cog):
             pokemon_move = None
 
         if pokemon_move is None or pokemon_move.method.level > pokemon.level:
-            return await ctx.send("Your pokémon can't learn that move!")
+            return await ctx.send(ctx._("cannot-learn-move"))
 
         update = {}
 
         if len(pokemon.moves) >= 4:
             result = await ctx.select(
-                "Your pokémon already knows the max number of moves! Please select a move to replace.",
+                ctx._("knows-too-many-moves"),
                 options=[discord.SelectOption(label=self.bot.data.move_by_number(x).name) for x in set(pokemon.moves)],
             )
             if result is None:
-                return await ctx.send("Time's up. Aborted.")
+                return await ctx.send(ctx._("times-up"))
 
             rep_move = self.bot.data.move_by_name(result[0])
             idx = pokemon.moves.index(rep_move.id)
@@ -632,7 +671,7 @@ class Battling(commands.Cog):
             update["$push"] = {f"moves": move.id}
 
         await self.bot.mongo.update_pokemon(pokemon, update)
-        await ctx.send("Your pokémon has learned " + move.name + "!")
+        await ctx.send(ctx._("learned-move", move=move.name))
 
     @checks.has_started()
     @commands.command(aliases=("ms",), rest_is_raw=True)
@@ -653,10 +692,7 @@ class Battling(commands.Cog):
                     species = pokemon.species
 
         if species is None:
-            raise commands.BadArgument(
-                "Please either enter the name of a pokémon species, nothing for your selected pokémon, a number for "
-                "a specific pokémon, `latest` for your latest pokémon. ",
-            )
+            raise commands.BadArgument(ctx._("invalid-pokemon-search-moveset"))
 
         async def get_page(source, menu, pidx):
             pgstart = pidx * 20
@@ -664,9 +700,11 @@ class Battling(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(title=f"{species} — Moveset")
-
-            embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(species.moves)}.")
+            embed = ctx.localized_embed(
+                "moveset-embed",
+                pokemon=str(species), start=pgstart + 1, end=pgend, totalMoves=len(species.moves)
+            )
+            embed.color = constants.PINK
 
             for move in species.moves[pgstart:pgend]:
                 embed.add_field(name=move.move.name, value=move.text)
@@ -687,25 +725,19 @@ class Battling(commands.Cog):
         move = self.bot.data.move_by_name(search)
 
         if move is None:
-            return await ctx.send("Couldn't find a move with that name!")
+            return await ctx.send(ctx._("unknown-move"))
 
-        embed = self.bot.Embed(title=move.name, description=move.description)
-        embed.add_field(name="Target", value=move.target_text, inline=False)
-
-        for name, x in (
-            ("Power", "power"),
-            ("Accuracy", "accuracy"),
-            ("PP", "pp"),
-            ("Priority", "priority"),
-            ("Type", "type"),
-        ):
-            if getattr(move, x) is not None:
-                v = getattr(move, x)  # yeah, i had to remove walrus op cuz its just too bad lol
-                embed.add_field(name=name, value=v)
-            else:
-                embed.add_field(name=name, value="—")
-
-        embed.add_field(name="Class", value=move.damage_class)
+        embed = ctx.localized_embed(
+            "moveinfo-embed",
+            field_ordering=["target", "power", "accuracy", "pp", "priority", "type", "class"],
+            block_fields=["target"],
+            field_values={name: getattr(move, name) or "—" for name in ("power", "accuracy", "pp", "priority", "type")},
+            title=move.name,
+            description=move.description,
+            target=move.target_text,
+            damageClass=move.damage_class,
+        )
+        embed.color = constants.PINK
 
         await ctx.send(embed=embed)
 
@@ -715,7 +747,7 @@ class Battling(commands.Cog):
         """Cancel a battle."""
 
         self.bot.battles[ctx.author].end()
-        await ctx.send("The battle has been canceled.")
+        await ctx.send(ctx._("battle-canceled"))
 
     def cog_unload(self):
         if self.bot.cluster_idx == 0:
