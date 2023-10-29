@@ -143,7 +143,7 @@ class Battle:
                     ),
                 )
             else:
-                embed.add_field(name=ctx._("battle-selection-party-field-name"), value="None")
+                embed.add_field(name=ctx._("battle-selection-party-field-name"), trainer=str(trainer.user))
 
         await ctx.send(embed=embed)
 
@@ -461,7 +461,7 @@ class Battling(commands.Cog):
 
         embed.description = "\n".join(
             self.bot._(
-                "move-action-request-line", action=k, description=v["text"], command=f"battle move {v['command']}"
+                "move-request-action-line", action=k, description=v["text"], command=f"battle move {v['command']}"
             )
             for k, v in actions.items()
         )
