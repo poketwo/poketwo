@@ -43,7 +43,7 @@ class Administration(commands.Cog):
         *,
         reason: str = None,
     ):
-        """Temporarily uspend one or more users."""
+        """Temporarily suspend one or more users."""
 
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
