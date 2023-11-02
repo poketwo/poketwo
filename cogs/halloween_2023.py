@@ -37,11 +37,11 @@ NOTHING = "Nothing to show yet...\n"
 SATCHEL_DROP_CHANCE = 0.25
 SATCHEL_CHANCES = {
     "pc": 0.25,
-    "sigil": 0.2,
-    "non-event": 0.429,
+    "sigil": 0.25,
+    "non-event": 0.409,
     "non-event-shiny": 0.001,
-    "event-sage": 0.02,
-    "nothing": 0.1,
+    "event-sage": 0.04,
+    "nothing": 0.05,
 }
 SATCHEL_REWARD_AMOUNTS = {
     "pc": range(100, 1000),
@@ -471,15 +471,12 @@ class Halloween(commands.Cog):
     @commands.Cog.listener(name="on_catch")
     async def drop_satchel(self, ctx: PoketwoContext, species: Species, _id: int):
         if random.random() <= SATCHEL_DROP_CHANCE:
-            # Pick a random type if pokémon has more than 1 type
-            if len(species.types) >= 2:
-                pokemon_type = random.choice(species.types)
-            else:
-                pokemon_type = species.types[0]
-
-            satchel = SATCHEL_TYPES[pokemon_type]
-            if not await self.satchel_unlocked(satchel):
+            types = [t for t in species.types if await self.satchel_unlocked(SATCHEL_TYPES[t])]
+            if not types:
                 return
+
+            pokemon_type = random.choice(types)
+            satchel = SATCHEL_TYPES[pokemon_type]
 
             await self.bot.mongo.update_member(ctx.author, {"$inc": {HALLOWEEN_PREFIX + satchel: 1}})
             await ctx.send(
@@ -553,6 +550,15 @@ class Halloween(commands.Cog):
             title=f"Halloween 2023 - The Tale of the Ruined Golurk",
             description=description,
             color=COMPLETION_EMBED_COLOR if all_complete else HALLOWEEN_EVENT_COLOR,
+        )
+
+        embed.add_field(
+            name="How it works",
+            value=(
+                f"This event brings with it {len(self.MILESTONES)} milestones that the entire Pokétwo community will collectively participate in!"
+                " Each milestone progresses the story and unlocks new features and new special pokémon to unlock!"
+            ),
+            inline=False,
         )
 
         embed.add_field(
@@ -654,12 +660,28 @@ class Halloween(commands.Cog):
         for satchel, sigil in SATCHEL_SIGILS.items():
             if not await self.satchel_unlocked(satchel):
                 continue
-            satchel_text += f'{getattr(FlavorStrings, satchel)} - **{member[f"{HALLOWEEN_PREFIX}{satchel}"]:,}**\n'
-            sigil_text += f'{getattr(FlavorStrings, sigil)} - **{member[f"{HALLOWEEN_PREFIX}{sigil}"]:,}**\n'
+            satchel_text += f'- {getattr(FlavorStrings, satchel)} - **{member[f"{HALLOWEEN_PREFIX}{satchel}"]:,}**\n'
+            sigil_text += f'- {getattr(FlavorStrings, sigil)} - **{member[f"{HALLOWEEN_PREFIX}{sigil}"]:,}**\n'
 
         prefix = ctx.clean_prefix.strip()
-        embed.add_field(name="Satchels", value=f"{satchel_text or NOTHING}{CMD_OPEN.format(prefix)}", inline=False)
-        embed.add_field(name="Sigils", value=f"{sigil_text or NOTHING}{CMD_OFFER.format(prefix)}", inline=False)
+        embed.add_field(
+            name="Satchels",
+            value=(
+                "> Various types of satchels will show up as you catch specific types of pokémon once they're unlocked from milestones."
+                f" These satchels hold various rewards to aid you in your journey to save the Golurk!\n> {CMD_OPEN.format(prefix)}"
+                f"\n{satchel_text or NOTHING}"
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Sigils",
+            value=textwrap.dedent(
+                "> Sigils, obtained from satchels, can be offered to advance specific milestones to help the Sinister Sages in their mission."
+                f" You can earn rewards and an exclusive badge when offering them to commemorate your contributions!\n> {CMD_OFFER.format(prefix)}"
+                f"\n{sigil_text or NOTHING}"
+            ),
+            inline=False,
+        )
 
         await ctx.send(embed=embed)
 
@@ -738,7 +760,7 @@ class Halloween(commands.Cog):
                         text.append(f"- {getattr(FlavorStrings, SATCHEL_SIGILS[satchel])}")
                         update["$inc"][sigil_type] += 1
                     else:
-                        count = random.choice(SATCHEL_REWARD_AMOUNTS["pc"])
+                        count = round(random.choice(SATCHEL_REWARD_AMOUNTS["pc"]) / 2)
                         text.append(
                             f"- {getattr(FlavorStrings, SATCHEL_SIGILS[satchel])} -> {count} {FlavorStrings.pokecoins:!e}"
                         )
@@ -799,7 +821,7 @@ class Halloween(commands.Cog):
         if total_contribution >= requirement:
             await self.bot.mongo.update_member(user, {"$set": {f"badges.{BADGE_NAME}": True}})
             await ctx.reply(
-                f"Congratulations, you have earned the exclusive **Halloween 2023** badge for your sigil contributions to the community milestones!"
+                f"Congratulations! You have earned the exclusive **Halloween 2023** badge for your sigil contributions to the community milestones!"
             )
 
     @checks.has_started()
@@ -835,6 +857,7 @@ class Halloween(commands.Cog):
         effect = 1 if current_milestone.quest.event == sigil else 0.5
         qty = math.ceil(min(qty, (goal - progress) / effect))
         inc = qty * effect
+        pc = round(sum([random.choice(SATCHEL_REWARD_AMOUNTS["pc"]) * effect for _ in range(qty)]))
 
         sigil_inventory_field = f"{HALLOWEEN_PREFIX}{sigil}"
         if member[sigil_inventory_field] < qty:
@@ -845,9 +868,11 @@ class Halloween(commands.Cog):
         await current_milestone.increment_progress(inc, user=ctx.author)
         await self.bot.mongo.update_member(
             ctx.author,
-            {"$inc": {sigil_inventory_field: -qty}},
+            {"$inc": {sigil_inventory_field: -qty, "balance": pc}},
         )
-        await ctx.send(f"You offered {qty} {sigil_name:b{'s' if qty > 1 else ''}} towards {current_milestone.title}!")
+        await ctx.send(
+            f"You offered {qty} {sigil_name:b{'s' if qty > 1 else ''}} towards *{current_milestone.title}*! You've earned **{pc:,}** {FlavorStrings.pokecoins}."
+        )
         await self.give_badge(ctx)
 
     @checks.is_developer()
