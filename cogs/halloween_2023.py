@@ -306,11 +306,11 @@ class Halloween(commands.Cog):
     def __init__(self, bot):
         self.bot: ClusterBot = bot
 
-    async def cog_load(self):
-        self.enable_spawns.start()
+    # async def cog_load(self):
+    #     self.enable_spawns.start()
 
-    async def cog_unload(self):
-        self.enable_spawns.stop()
+    # async def cog_unload(self):
+    #     self.enable_spawns.stop()
 
     @cached_property
     def MILESTONES(self) -> Tuple[Milestone]:
@@ -427,20 +427,20 @@ class Halloween(commands.Cog):
 
         return [m for m in self.MILESTONES if await m.is_complete()]
 
-    @tasks.loop(seconds=5)
-    async def enable_spawns(self):
-        """Loop to enable the spawns that were unlocked from milestones."""
+    # @tasks.loop(seconds=5)
+    # async def enable_spawns(self):
+    #     """Loop to enable the spawns that were unlocked from milestones."""
 
-        for unlock, unlocked in [
-            (m.unlocks, await m.is_complete()) for m in self.MILESTONES if m.unlocks.startswith("spawn")
-        ]:
-            key, _id = unlock.split("_")
-            species = self.bot.data.species_by_number(int(_id))
-            species.catchable = unlocked
+    #     for unlock, unlocked in [
+    #         (m.unlocks, await m.is_complete()) for m in self.MILESTONES if m.unlocks.startswith("spawn")
+    #     ]:
+    #         key, _id = unlock.split("_")
+    #         species = self.bot.data.species_by_number(int(_id))
+    #         species.catchable = unlocked
 
-    @enable_spawns.before_loop
-    async def before_enable_spawns(self):
-        await self.bot.wait_until_ready()
+    # @enable_spawns.before_loop
+    # async def before_enable_spawns(self):
+    #     await self.bot.wait_until_ready()
 
     async def satchel_unlocked(self, satchel: str) -> bool:
         """Returns if a satchel has been unlocked yet"""
@@ -454,34 +454,34 @@ class Halloween(commands.Cog):
                     return False
         return True
 
-    @commands.Cog.listener("on_catch")
-    async def progress_catching_milestone(self, ctx: PoketwoContext, species: Species, idx: int):
-        """on_catch event listener for progressing catching milestones"""
+    # @commands.Cog.listener("on_catch")
+    # async def progress_catching_milestone(self, ctx: PoketwoContext, species: Species, idx: int):
+    #     """on_catch event listener for progressing catching milestones"""
 
-        milestone = await self.get_current_milestone()
-        if await milestone.is_complete():
-            return
+    #     milestone = await self.get_current_milestone()
+    #     if await milestone.is_complete():
+    #         return
 
-        quest = milestone.quest
-        if quest.event == "catch":
-            condition = quest.condition
-            if self.verify_condition(condition, species):
-                await milestone.increment_progress(1, user=ctx.author)
+    #     quest = milestone.quest
+    #     if quest.event == "catch":
+    #         condition = quest.condition
+    #         if self.verify_condition(condition, species):
+    #             await milestone.increment_progress(1, user=ctx.author)
 
-    @commands.Cog.listener(name="on_catch")
-    async def drop_satchel(self, ctx: PoketwoContext, species: Species, _id: int):
-        if random.random() <= SATCHEL_DROP_CHANCE:
-            types = [t for t in species.types if await self.satchel_unlocked(SATCHEL_TYPES[t])]
-            if not types:
-                return
+    # @commands.Cog.listener(name="on_catch")
+    # async def drop_satchel(self, ctx: PoketwoContext, species: Species, _id: int):
+    #     if random.random() <= SATCHEL_DROP_CHANCE:
+    #         types = [t for t in species.types if await self.satchel_unlocked(SATCHEL_TYPES[t])]
+    #         if not types:
+    #             return
 
-            pokemon_type = random.choice(types)
-            satchel = SATCHEL_TYPES[pokemon_type]
+    #         pokemon_type = random.choice(types)
+    #         satchel = SATCHEL_TYPES[pokemon_type]
 
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {HALLOWEEN_PREFIX + satchel: 1}})
-            await ctx.send(
-                f"You found a {getattr(FlavorStrings, satchel)}! Use {CMD_HALLOWEEN.format(ctx.clean_prefix.strip())} for more info."
-            )
+    #         await self.bot.mongo.update_member(ctx.author, {"$inc": {HALLOWEEN_PREFIX + satchel: 1}})
+    #         await ctx.send(
+    #             f"You found a {getattr(FlavorStrings, satchel)}! Use {CMD_HALLOWEEN.format(ctx.clean_prefix.strip())} for more info."
+    #         )
 
     @cached_property
     def pools(self) -> Dict[str, List[Species]]:
