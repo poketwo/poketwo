@@ -136,7 +136,7 @@ class Market(commands.Cog):
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to list your **{pokemon.iv_percentage:.2%} {pokemon:s} "
+            f"Are you sure you want to list your **{pokemon:pl} "
             f"No. {pokemon.idx}** for **{price:,}** Pokécoins?"
         )
         if result is None:
@@ -168,7 +168,7 @@ class Market(commands.Cog):
         self.bot.dispatch("market_add", ctx.author, pokemon_dict)
 
         await ctx.send(
-            f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
+            f"Listed your **{pokemon:pl} "
             f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins."
         )
 
@@ -189,7 +189,7 @@ class Market(commands.Cog):
         pokemon = self.bot.mongo.Pokemon.build_from_mongo(listing)
 
         result = await ctx.confirm(
-            f"Are you sure you want to remove your **{pokemon.iv_percentage:.2%} {pokemon:s}** " f"from the market?"
+            f"Are you sure you want to remove your **{pokemon:pl}** " f"from the market?"
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
@@ -204,7 +204,7 @@ class Market(commands.Cog):
             },
         )
 
-        await ctx.send(f"Removed your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market.")
+        await ctx.send(f"Removed your **{pokemon:pl}** from the market.")
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -230,7 +230,7 @@ class Market(commands.Cog):
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to buy this **{pokemon.iv_percentage:.2%} {pokemon:s}** "
+            f"Are you sure you want to buy this **{pokemon:pl}** "
             f"for **{listing['market_data']['price']:,}** Pokécoins?"
         )
         if result is None:
@@ -283,13 +283,13 @@ class Market(commands.Cog):
 
         await self.bot.mongo.update_member(listing["owner_id"], {"$inc": {"balance": listing["market_data"]["price"]}})
         await ctx.send(
-            f"You purchased a **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.clean_prefix}info latest` to view it!"
+            f"You purchased a **{pokemon:pl}** from the market for {listing['market_data']['price']} Pokécoins. Do `{ctx.clean_prefix}info latest` to view it!"
         )
 
         self.bot.loop.create_task(
             self.bot.send_dm(
                 listing["owner_id"],
-                f"Someone purchased your **{pokemon.iv_percentage:.2%} {pokemon.species}** from the market. You received {listing['market_data']['price']:,} Pokécoins!",
+                f"Someone purchased your **{pokemon:pl}** from the market. You received {listing['market_data']['price']:,} Pokécoins!",
             )
         )
 
