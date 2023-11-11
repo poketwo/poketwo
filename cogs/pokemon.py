@@ -215,21 +215,16 @@ class Pokemon(commands.Cog):
                     continue
                 ids.add(pokemon.id)
 
-                name = str(pokemon.species)
-
-                if pokemon.nickname is not None:
-                    name += f' "{pokemon.nickname}"'
-
                 if pokemon.favorite:
                     messages.append(
-                        f"Your level {pokemon.level} {name} is already favorited.\nTo unfavorite a pokemon, please use `{ctx.clean_prefix}unfavorite`."
+                        f"Your **{pokemon:pl}** is already favorited.\nTo unfavorite a pokemon, please use `{ctx.clean_prefix}unfavorite`."
                     )
                 else:
                     await self.bot.mongo.update_pokemon(
                         pokemon,
                         {"$set": {f"favorite": True}},
                     )
-                    messages.append(f"Favorited your level {pokemon.level} {name}.")
+                    messages.append(f"Favorited your **{pokemon:pl}**.")
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
@@ -262,12 +257,7 @@ class Pokemon(commands.Cog):
                     {"$set": {f"favorite": False}},
                 )
 
-                name = str(pokemon.species)
-
-                if pokemon.nickname is not None:
-                    name += f' "{pokemon.nickname}"'
-
-                messages.append(f"Unfavorited your level {pokemon.level} {name}.")
+                messages.append(f"Unfavorited your **{pokemon:pl}**.")
 
             longmsg = "\n".join(messages)
             for i in range(0, len(longmsg), 2000):
