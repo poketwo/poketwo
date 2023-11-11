@@ -710,7 +710,7 @@ class Battling(commands.Cog):
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
-    # Nickname
+    # Move name
     @flags.add_flag("move_name", nargs="+")
 
     # Filter
