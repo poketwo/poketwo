@@ -805,6 +805,7 @@ class Trading(commands.Cog):
             return await ctx.send("Couldn't find that pokémon in the trade!")
 
         embed = self.bot.Embed(title=f"{pokemon:ln}")
+        embed.color = pokemon.color or embed.color
 
         if pokemon.shiny:
             embed.set_image(url=pokemon.species.shiny_image_url)
