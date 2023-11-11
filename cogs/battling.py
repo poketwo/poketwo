@@ -711,7 +711,7 @@ class Battling(commands.Cog):
         await pages.start(ctx)
 
     # Move name
-    @flags.add_flag("move_name", nargs="+")
+    @flags.add_flag("move_name", nargs="*")
 
     # Filter
     @flags.add_flag("--alolan", action="store_true")
@@ -730,13 +730,16 @@ class Battling(commands.Cog):
     @checks.has_started()
     @flags.command(aliases=("ls",))
     async def learnset(self, ctx, **flags):
-        """View all pokemon that learn a certain move."""
+        """View all pokémon (including forms) that learn a particular move, or any move if move_name is empty."""
 
         move_name = " ".join(flags["move_name"])
 
-        move = self.bot.data.move_by_name(move_name)
-        if move is None:
-            return await ctx.send("Couldn't find a move with that name!")
+        if move_name:
+            move = self.bot.data.move_by_name(move_name)
+            if move is None:
+                return await ctx.send("Couldn't find a move with that name!")
+        else:
+            move = None
 
         forms = [
             s
@@ -780,10 +783,10 @@ class Battling(commands.Cog):
             return True
 
         # Get list of (Species, [PokemonMove objects]) tuples of each
-        # species that can learn this move and matches the flags.
+        # species that can learn this move (if provided, otherwise any move) and matches the flags.
         pokemon = [
-            (p := self.bot.data.species_by_number(sid), [pm for pm in p.moves if pm.move.name == move.name])
-            for sid in self.bot.data.list_move(move.name)
+            (p := self.bot.data.species_by_number(sid), [pm for pm in p.moves if pm.move.name == move.name] if move else None)
+            for sid in self.bot.data.list_move(move.name if move else None)
             if include(sid)
         ]
 
@@ -798,7 +801,7 @@ class Battling(commands.Cog):
 
             # Send embed
 
-            embed = self.bot.Embed(title=f"{move.name} — Learnset")
+            embed = self.bot.Embed(title=f"{move.name if move else 'Any move'} — Learnset")
 
             embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {total_count}.")
 
@@ -808,7 +811,7 @@ class Battling(commands.Cog):
                 except KeyError:
                     emoji = ""
 
-                embed.add_field(name=f"{emoji}{species.name} #{species.id}", value=" / ".join(pm.method.text for pm in pokemon_moves))
+                embed.add_field(name=f"{emoji}{species.name} #{species.id}", value=" / ".join(pm.method.text for pm in pokemon_moves) if move else "—")
 
             for i in range(-pgend % 3):
                 embed.add_field(name="‎", value="‎")
