@@ -251,11 +251,15 @@ class Pokemon(commands.Cog):
             args.append(await converters.PokemonConverter().convert(ctx, ""))
 
         messages = []
+        ids = set()
 
         async with ctx.typing():
             for pokemon in args:
                 if pokemon is None:
                     continue
+                if pokemon.id in ids:
+                    continue
+                ids.add(pokemon.id)
 
                 await self.bot.mongo.update_pokemon(
                     pokemon,
