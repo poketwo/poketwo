@@ -214,7 +214,7 @@ class Auctions(commands.Cog):
         # confirm
 
         result = await ctx.confirm(
-            f"You are auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**:\n"
+            f"You are auctioning your **{pokemon:pl} No. {pokemon.idx}**:\n"
             f"**Starting Bid:** {starting_bid:,} Pokécoins\n"
             f"**Bid Increment:** {bid_increment:,} Pokécoins\n"
             f"**Duration:** {humanfriendly.format_timespan(duration.total_seconds())}\n"
@@ -270,7 +270,7 @@ class Auctions(commands.Cog):
         embed.timestamp = ends
 
         await auction_channel.send(embed=embed)
-        await ctx.send(f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**.")
+        await ctx.send(f"Auctioning your **{pokemon:pl} No. {pokemon.idx}**.")
 
     @checks.has_started()
     @auction.command()
