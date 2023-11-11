@@ -270,7 +270,7 @@ class Auctions(commands.Cog):
         embed.timestamp = ends
 
         await auction_channel.send(embed=embed)
-        await ctx.send(f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}**.")
+        await ctx.send(f"Auctioning your **{pokemon.iv_percentage:.2%} {pokemon.species} No. {pokemon.idx}** (Auction #{counter['next']}).")
 
     @checks.has_started()
     @auction.command()

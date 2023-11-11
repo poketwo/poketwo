@@ -169,7 +169,7 @@ class Market(commands.Cog):
 
         await ctx.send(
             f"Listed your **{pokemon.iv_percentage:.2%} {pokemon.species} "
-            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins."
+            f"No. {pokemon.idx}** on the market for **{price:,}** Pokécoins (Listing #{counter['next']})."
         )
 
     @checks.has_started()
