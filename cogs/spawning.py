@@ -86,8 +86,8 @@ class Spawning(commands.Cog):
 
                     pokemon.level += 1
                     guild = await self.bot.mongo.fetch_guild(message.channel.guild)
-                    if pokemon.get_next_evolution(guild.is_day) is not None:
-                        evo = pokemon.get_next_evolution(guild.is_day)
+                    evo = pokemon.get_next_evolution(guild.is_day)
+                    if evo is not None:
                         embed.add_field(
                             name=f"Your {name} is evolving!",
                             value=f"Your {name} has turned into a {evo}!",
@@ -120,13 +120,13 @@ class Spawning(commands.Cog):
 
                     await self.bot.mongo.update_pokemon(pokemon, update)
 
+                    if silence and (evo is not None or pokemon.level == 100):
+                        await message.author.send(embed=embed)
+
                     if not silence:
                         permissions = message.channel.permissions_for(message.guild.me)
                         if permissions.send_messages and permissions.attach_files and permissions.embed_links:
                             await message.channel.send(embed=embed)
-
-                    if silence and pokemon.level == 100:
-                        await message.author.send(embed=embed)
 
                 elif pokemon.level == 100 and pokemon.xp < pokemon.max_xp:
                     await self.bot.mongo.update_pokemon(pokemon, {"$set": {"xp": pokemon.max_xp}})

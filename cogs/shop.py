@@ -655,8 +655,8 @@ class Shop(commands.Cog):
 
             pokemon.level += qty
             guild = await self.bot.mongo.fetch_guild(ctx.guild)
-            if pokemon.get_next_evolution(guild.is_day) is not None:
-                evo = pokemon.get_next_evolution(guild.is_day)
+            evo = pokemon.get_next_evolution(guild.is_day)
+            if evo is not None:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",
@@ -668,9 +668,6 @@ class Shop(commands.Cog):
                     embed.set_thumbnail(url=evo.image_url)
 
                 update["$set"]["species_id"] = evo.id
-
-                if member.silence and pokemon.level < 99:
-                    await ctx.author.send(embed=embed)
 
                 self.bot.dispatch("evolve", ctx.author, pokemon, evo)
 
@@ -692,7 +689,7 @@ class Shop(commands.Cog):
 
             await self.bot.mongo.db.pokemon.update_one({"_id": pokemon.id, "level": pokemon.level - qty}, update)
 
-            if member.silence and pokemon.level == 100:
+            if member.silence and (evo is not None or pokemon.level == 100):
                 await ctx.author.send(embed=embed)
 
             if not member.silence:
