@@ -11,7 +11,8 @@ from discord.ext import commands, tasks
 
 import data.constants
 from data import models
-from helpers import checks, constants, converters, pagination
+from helpers import checks, constants, converters, pagination, flags
+from helpers.utils import add_moves_field
 
 
 def in_battle(bool=True):
@@ -609,12 +610,7 @@ class Battling(commands.Cog):
             value="\n".join(x.move.name for x in pokemon.species.moves if pokemon.level >= x.method.level),
         )
 
-        embed.add_field(
-            name="Current Moves",
-            value="No Moves"
-            if len(pokemon.moves) == 0
-            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
-        )
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         await ctx.send(embed=embed)
 
@@ -707,6 +703,117 @@ class Battling(commands.Cog):
             return embed
 
         pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(species.moves) / 20), get_page))
+        self.bot.menus[ctx.author.id] = pages
+        await pages.start(ctx)
+
+    # Move name
+    @flags.add_flag("move_name", nargs="*")
+
+    # Filter
+    @flags.add_flag("--alolan", action="store_true")
+    @flags.add_flag("--galarian", action="store_true")
+    @flags.add_flag("--hisuian", action="store_true")
+    @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--legendary", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--event", action="store_true")
+    @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--type", "--t", type=str, action="append")
+    @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
+    @checks.has_started()
+    @flags.command(aliases=("ls",))
+    async def learnset(self, ctx, **flags):
+        """View all pokémon (including forms) that learn a particular move, or any move if move_name is empty."""
+
+        move_name = " ".join(flags["move_name"])
+
+        if move_name:
+            move = self.bot.data.move_by_name(move_name)
+            if move is None:
+                return await ctx.send("Couldn't find a move with that name!")
+        else:
+            move = None
+
+        forms = [
+            s
+            for form in ("alolan", "galarian", "hisuian", "mega", "event")
+            for s in getattr(self.bot.data, f"list_{form}")
+            if flags[form]
+        ]
+
+        rarities = [
+            s
+            for rarity in ("mythical", "legendary", "ub")
+            for s in getattr(self.bot.data, f"list_{rarity}")
+            if flags[rarity]
+        ]
+
+        def include(key):
+            if forms and key not in forms:
+                return False
+
+            if rarities and key not in rarities:
+                return False
+
+            if flags["event"] and key not in self.bot.data.list_event:
+                return False
+
+            if flags["mega"] and key not in self.bot.data.list_mega:
+                return False
+
+            if flags["name"] and key not in [i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))]:
+                return False
+
+            if flags["type"] and key not in [i for x in flags["type"] for i in self.bot.data.list_type(x)]:
+                return False
+
+            if flags["region"] and key not in [i for x in flags["region"] for i in self.bot.data.list_region(x)]:
+                return False
+
+            if flags["learns"] and key not in [i for x in flags["learns"] for i in self.bot.data.list_move(" ".join(x))]:
+                return False
+
+            return True
+
+        # Get list of (Species, [PokemonMove objects]) tuples of each
+        # species that can learn this move (if provided, otherwise any move) and matches the flags.
+        pokemon = [
+            (p := self.bot.data.species_by_number(sid), [pm for pm in p.moves if pm.move.name == move.name] if move else None)
+            for sid in self.bot.data.list_move(move.name if move else None)
+            if include(sid)
+        ]
+
+        if not pokemon:
+            return await ctx.send("No pokémon found.")
+
+        total_count = len(pokemon)
+
+        async def get_page(source, menu, pidx):
+            pgstart = pidx * 20
+            pgend = min(pgstart + 20, len(pokemon))
+
+            # Send embed
+
+            embed = self.bot.Embed(title=f"{move.name if move else 'Any move'} — Learnset")
+
+            embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {total_count}.")
+
+            for species, pokemon_moves in pokemon[pgstart:pgend]:
+                try:
+                    emoji = self.bot.sprites.get(species.dex_number) + " "
+                except KeyError:
+                    emoji = ""
+
+                embed.add_field(name=f"{emoji}{species.name} #{species.id}", value=" / ".join(pm.method.text for pm in pokemon_moves) if move else "—")
+
+            for i in range(-pgend % 3):
+                embed.add_field(name="‎", value="‎")
+
+            return embed
+
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(total_count / 20), get_page))
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 

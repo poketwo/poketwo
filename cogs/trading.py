@@ -9,6 +9,7 @@ from discord.ext import commands, tasks
 
 from data.models import deaccent
 from helpers import checks, flags, pagination
+from helpers.utils import add_moves_field
 
 
 def chunks(lst, n):
@@ -683,6 +684,8 @@ class Trading(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -838,6 +841,8 @@ class Trading(commands.Cog):
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
+
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         embed.set_footer(text=f"Displaying pokémon {number} of {other.display_name}.")
 

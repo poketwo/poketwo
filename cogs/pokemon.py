@@ -108,6 +108,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -278,6 +280,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -366,6 +370,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -614,6 +620,16 @@ class Pokemon(commands.Cog):
 
             aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
+        if "move" in flags and flags["move"] is not None:
+            move_ids = [m.id for x in flags["move"] if (m := self.bot.data.move_by_name(" ".join(x))) is not None]
+
+            aggregations.append({"$match": {map_field("moves"): {"$all": move_ids}}})
+
+        if "learns" in flags and flags["learns"] is not None:
+            all_species = [sid for x in flags["learns"] for sid in self.bot.data.list_move(" ".join(x))]
+
+            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
+
         if "nickname" in flags and flags["nickname"] is not None:
             aggregations.append(
                 {
@@ -775,6 +791,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -880,6 +898,8 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -959,6 +979,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--type", "--t", type=str)
     @flags.add_flag("--region", "--r", type=str)
+    @flags.add_flag("--learns", nargs="*", action="append")
     @checks.has_started()
     @flags.command(aliases=("d", "dex"))
     async def pokedex(self, ctx, **flags):
@@ -1014,6 +1035,8 @@ class Pokemon(commands.Cog):
                 if flags["type"] and key not in self.bot.data.list_type(flags["type"]):
                     return False
                 if flags["region"] and key not in self.bot.data.list_region(flags["region"]):
+                    return False
+                if flags["learns"] and key not in [i for x in flags["learns"] for i in self.bot.data.list_move(" ".join(x))]:
                     return False
 
                 return True

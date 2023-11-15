@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 
 from helpers import checks, constants, converters, flags, pagination
+from helpers.utils import add_moves_field
 
 
 class Market(commands.Cog):
@@ -31,6 +32,8 @@ class Market(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -356,6 +359,8 @@ class Market(commands.Cog):
             if item.emote is not None:
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
+
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         embed.add_field(
             name="Market Listing",
