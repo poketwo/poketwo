@@ -713,6 +713,7 @@ class Battling(commands.Cog):
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
+    @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -755,6 +756,9 @@ class Battling(commands.Cog):
                 return False
 
             if rarities and key not in rarities:
+                return False
+
+            if flags["paradox"] and key not in self.bot.data.list_paradox:
                 return False
 
             if flags["event"] and key not in self.bot.data.list_event:
