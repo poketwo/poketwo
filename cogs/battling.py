@@ -749,7 +749,7 @@ class Battling(commands.Cog):
 
         rarities = [
             s
-            for rarity in ("mythical", "legendary", "ub", "paradox")
+            for rarity in ("mythical", "legendary", "ub")
             for s in getattr(self.bot.data, f"list_{rarity}")
             if flags[rarity]
         ]
