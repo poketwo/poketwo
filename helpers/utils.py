@@ -112,7 +112,5 @@ class FlavorString:
 def add_moves_field(moves: list, embed: ClusterBot.Embed, bot: ClusterBot):
     embed.add_field(
         name="Current Moves",
-        value="No Moves"
-        if len(moves) == 0
-        else "\n".join(bot.data.move_by_number(x).name for x in moves),
+        value="No Moves" if len(moves) == 0 else "\n".join(bot.data.move_by_number(x).name for x in moves),
     )
