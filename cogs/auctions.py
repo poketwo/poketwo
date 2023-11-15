@@ -152,6 +152,8 @@ class Auctions(commands.Cog):
 
         embed.add_field(name="Pokémon Details", value="\n".join(info))
 
+        add_moves_field(pokemon.moves, embed, self.bot)
+
         return embed
 
     @commands.group(aliases=("auctions", "a"), invoke_without_command=True, case_insensitive=True)
