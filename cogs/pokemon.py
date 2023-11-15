@@ -587,7 +587,7 @@ class Pokemon(commands.Cog):
             aggregations.append({"$match": {"auction_data.bidder_id": ctx.author.id}})
 
         rarity = []
-        for x in ("mythical", "legendary", "ub", "paradox"):
+        for x in ("mythical", "legendary", "ub"):
             if x in flags and flags[x]:
                 rarity += getattr(self.bot.data, f"list_{x}")
         if rarity:
@@ -599,6 +599,9 @@ class Pokemon(commands.Cog):
                 forms += getattr(self.bot.data, f"list_{x}")
         if forms:
             aggregations.append({"$match": {map_field("species_id"): {"$in": forms}}})
+
+        if "paradox" in flags and flags["paradox"]:
+            aggregations.append({"$match": {map_field("species_id"): {"$in": self.bot.data.list_paradox}}})
 
         for x in ("mega", "event"):
             if x in flags and flags[x]:
