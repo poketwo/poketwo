@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import os
 import random
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cached_property
 from textwrap import dedent
@@ -22,7 +21,7 @@ from data.models import Species
 from helpers import checks
 from helpers.context import PoketwoContext
 from helpers.converters import PokemonConverter, strfdelta
-from helpers.utils import unwind
+from helpers.utils import FlavorString, unwind
 
 if TYPE_CHECKING:
     from bot import ClusterBot
@@ -131,40 +130,6 @@ SILHOUETTES_PATH = f"data/silhouettes/%s.png"
 RIDDLE_IMG_NAME = "silhouette.png"
 
 RARITIES = {"legendary": "Legendary", "mythical": "Mythical", "ultra_beast": "Ultra Beast", "event": "Event"}
-
-
-@dataclass
-class FlavorString:
-    string: str
-    emoji: Optional[str] = None
-    plural: Optional[str] = None
-
-    def __post_init__(self):
-        self.plural = self.plural or f"{self.string}s"
-
-    def __format__(self, format_spec) -> str:
-        val = self.string
-        emoji = self.emoji
-
-        # Whether to use plural
-        if "s" in format_spec:
-            val = self.plural
-
-        # Whether to not show emoji
-        if "!e" not in format_spec and emoji is not None:
-            val = f"{emoji} {val}"
-
-        # Whether to bold
-        if "b" in format_spec:
-            val = f"**{val}**"
-
-        return val
-
-    def __str__(self) -> str:
-        return f"{self}"
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 class FlavorStrings:

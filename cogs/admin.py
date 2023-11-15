@@ -27,7 +27,7 @@ class Administration(commands.Cog):
 
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
-            {"$set": {"suspended": True, "suspension_reason": reason}},
+            {"$set": {"suspended": True, "suspension_reason": reason}, "$unset": {"suspended_until": 1}},
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)
@@ -43,11 +43,14 @@ class Administration(commands.Cog):
         *,
         reason: str = None,
     ):
-        """Temporarily uspend one or more users."""
+        """Temporarily suspend one or more users."""
 
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
-            {"$set": {"suspended_until": datetime.utcnow() + duration, "suspension_reason": reason}},
+            {
+                "$set": {"suspended_until": datetime.utcnow() + duration, "suspension_reason": reason},
+                "$unset": {"suspended": 1},
+            },
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
         users_msg = ", ".join(f"**{x}**" for x in users)

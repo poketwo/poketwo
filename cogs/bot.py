@@ -511,8 +511,10 @@ class Bot(commands.Cog):
     async def cleanup(self, ctx, search=100):
         """Cleans up the bot's messages from the channel."""
 
+        await ctx.message.delete()
+        prefixes = await ctx.bot.command_prefix(ctx.bot, ctx.message)
         def check(m):
-            return m.author == ctx.me or m.content.startswith(ctx.clean_prefix)
+            return m.author == ctx.me or any((m.content.startswith(prefix) for prefix in prefixes))
 
         deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
         spammers = Counter(m.author.display_name for m in deleted)

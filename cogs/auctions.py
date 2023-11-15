@@ -6,7 +6,7 @@ import humanfriendly
 from discord.ext import commands, tasks
 
 from helpers import checks, constants, converters, flags, pagination
-from helpers.utils import FakeUser
+from helpers.utils import FakeUser, add_moves_field
 
 
 class AuctionConverter(commands.Converter):
@@ -151,6 +151,8 @@ class Auctions(commands.Cog):
             info += (f"**Held Item:** {emote}{item.name}",)
 
         embed.add_field(name="Pokémon Details", value="\n".join(info))
+
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         return embed
 
@@ -456,6 +458,8 @@ class Auctions(commands.Cog):
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
+    @flags.add_flag("--move", nargs="+", action="append")
+    @flags.add_flag("--learns", nargs="*", action="append")
 
     # IV
     @flags.add_flag("--level", nargs="+", action="append")
@@ -577,6 +581,8 @@ class Auctions(commands.Cog):
                 f"**Bidder:** {bidder.mention}",
                 f"**Bid Increment:** {auction['auction_data']['bid_increment']:,} Pokécoins",
             )
+
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         embed.add_field(name="Auction Details", value="\n".join(auction_info))
         embed.set_footer(

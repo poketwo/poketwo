@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import io
 import math
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import discord
+
+if TYPE_CHECKING:
+    from bot import ClusterBot
 
 
 @dataclass
@@ -68,3 +73,44 @@ def unwind(dictionary: Dict[tuple, Any], *, include_values: Optional[bool] = Fal
         result.update({v: v for k, v in dictionary.items()})
 
     return result
+
+
+@dataclass
+class FlavorString:
+    string: str
+    emoji: Optional[str] = None
+    plural: Optional[str] = None
+
+    def __post_init__(self):
+        self.plural = self.plural or f"{self.string}s"
+
+    def __format__(self, format_spec) -> str:
+        val = self.string
+        emoji = self.emoji
+
+        # Whether to use plural
+        if "s" in format_spec:
+            val = self.plural
+
+        # Whether to not show emoji
+        if "!e" not in format_spec and emoji is not None:
+            val = f"{emoji} {val}"
+
+        # Whether to bold
+        if "b" in format_spec:
+            val = f"**{val}**"
+
+        return val
+
+    def __str__(self) -> str:
+        return f"{self}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+def add_moves_field(moves: list, embed: ClusterBot.Embed, bot: ClusterBot):
+    embed.add_field(
+        name="Current Moves",
+        value="No Moves" if len(moves) == 0 else "\n".join(bot.data.move_by_number(x).name for x in moves),
+    )
