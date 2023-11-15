@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 
 from helpers import checks, constants, converters, flags, pagination
+from helpers.utils import add_moves_field
 
 
 class Market(commands.Cog):
@@ -359,12 +360,7 @@ class Market(commands.Cog):
                 emote = getattr(self.bot.sprites, item.emote) + " "
             embed.add_field(name="Held Item", value=f"{emote}{item.name}", inline=False)
 
-        embed.add_field(
-            name="Current Moves",
-            value="No Moves"
-            if len(pokemon.moves) == 0
-            else "\n".join(self.bot.data.move_by_number(x).name for x in pokemon.moves),
-        )
+        add_moves_field(pokemon.moves, embed, self.bot)
 
         embed.add_field(
             name="Market Listing",

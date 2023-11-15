@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import io
 import math
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import discord
+
+if TYPE_CHECKING:
+    from bot import ClusterBot
 
 
 @dataclass
@@ -102,3 +107,12 @@ class FlavorString:
 
     def __repr__(self) -> str:
         return self.__str__()
+
+
+def add_moves_field(moves: list, embed: ClusterBot.Embed, bot: ClusterBot):
+    embed.add_field(
+        name="Current Moves",
+        value="No Moves"
+        if len(moves) == 0
+        else "\n".join(bot.data.move_by_number(x).name for x in moves),
+    )
