@@ -982,6 +982,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--orderd", action="store_true")
     @flags.add_flag("--ordera", action="store_true")
     @flags.add_flag("--ub", action="store_true")
@@ -1039,6 +1040,8 @@ class Pokemon(commands.Cog):
                 if flags["mythical"] and key not in self.bot.data.list_mythical:
                     return False
                 if flags["ub"] and key not in self.bot.data.list_ub:
+                    return False
+                if flags["paradox"] and key not in self.bot.data.list_paradox:
                     return False
                 if flags["type"] and key not in self.bot.data.list_type(flags["type"]):
                     return False
