@@ -1,5 +1,5 @@
 {
-  description = "A small Pokécord clone";
+  description = "A (not so) small Pokécord clone";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

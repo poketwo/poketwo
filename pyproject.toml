@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "poketwo"
 version = "0.1.0"
-description = "A small Pokécord clone"
+description = "A (not so) small Pokécord clone"
 authors = ["Oliver Ni <oliver.ni@gmail.com>"]
 license = "GPLv3"
 
