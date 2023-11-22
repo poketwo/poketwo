@@ -674,11 +674,7 @@ test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "jishaku"
-<<<<<<< Updated upstream
-version = "2.5.1a478+g4590932.master"
-=======
 version = "2.5.2a486+g247537e.master"
->>>>>>> Stashed changes
 description = "A discord.py extension including useful tools for bot development and debugging."
 optional = false
 python-versions = ">=3.10.0"
@@ -704,11 +700,7 @@ voice = ["yt-dlp (>=2023.6.22)"]
 type = "git"
 url = "https://github.com/Gorialis/jishaku.git"
 reference = "HEAD"
-<<<<<<< Updated upstream
-resolved_reference = "4590932f56a0e5a33b15d1c536955d4898d6b04e"
-=======
 resolved_reference = "247537e14ecff373fe2c3ac7beb1f7dddf5d49d2"
->>>>>>> Stashed changes
 
 [[package]]
 name = "marshmallow"
@@ -1225,16 +1217,6 @@ test = ["Cython (>=0.29.32,<0.30.0)", "aiohttp", "flake8 (>=3.9.2,<3.10.0)", "my
 
 [[package]]
 name = "wheel"
-<<<<<<< Updated upstream
-version = "0.41.1"
-description = "A built-package format for Python"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "wheel-0.41.1-py3-none-any.whl", hash = "sha256:473219bd4cbedc62cea0cb309089b593e47c15c4a2531015f94e4e3b9a0f6981"},
-    {file = "wheel-0.41.1.tar.gz", hash = "sha256:12b911f083e876e10c595779709f8a88a59f45aacc646492a67fe9ef796c1b47"},
-=======
 version = "0.41.3"
 description = "A built-package format for Python"
 optional = false
@@ -1242,7 +1224,6 @@ python-versions = ">=3.7"
 files = [
     {file = "wheel-0.41.3-py3-none-any.whl", hash = "sha256:488609bc63a29322326e05560731bf7bfea8e48ad646e1f5e40d366607de0942"},
     {file = "wheel-0.41.3.tar.gz", hash = "sha256:4d4987ce51a49370ea65c0bfd2234e8ce80a12780820d9dc462597a6e60d0841"},
->>>>>>> Stashed changes
 ]
 
 [package.extras]
