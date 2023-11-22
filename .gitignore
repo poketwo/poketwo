@@ -1,5 +1,6 @@
 config.py
 .env
+.direnv
 **/.DS_Store
 logs/
 utils/
