@@ -1,6 +1,7 @@
 import pickle
 import random
 import sys
+import textwrap
 import traceback
 from datetime import datetime, timedelta
 from typing import Counter
@@ -60,6 +61,32 @@ class Bot(commands.Cog):
                 req = await r.blpop("send_dm")
                 uid, content = pickle.loads(req[1])
                 self.bot.loop.create_task(self.bot.send_dm(uid, content))
+
+    @commands.Cog.listener("on_message")
+    async def role_mention_alert_listener(self, message: discord.Message):
+        if not message.guild:
+            return
+
+        author = message.author
+        self_role = message.guild.self_role
+        self_mention = self.bot.user.mention
+        if not author.bot and self_role in message.role_mentions:
+            embed = self.bot.Embed(
+                title="Role Mention Detected",
+                description=textwrap.dedent(
+                    f"""
+                    It seems like you may have accidentally pinged Pokétwo's *role* ({self_role.mention}) instead of Pokétwo itself ({self_mention}) for the prefix, which does not work due to Discord limitations.
+
+                    This is a common mistake due to the role being the same name as the bot. If you are a server administrator, you can remedy this by renaming the role to something else.
+                    """
+                )
+            )
+            embed.add_field(
+                name="Please re-run the command by mentioning Pokétwo as the prefix. You can also use the following, which directly mentions the bot:",
+                value=f"\\{self_mention}"
+            )
+            embed.set_author(name=str(author), icon_url=author.display_avatar.url)
+            await message.reply(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
