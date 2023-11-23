@@ -54,9 +54,6 @@ CONCURRENCY_LIMITED_COMMANDS = {
 
 async def determine_prefix(bot, message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
-    # Allow the bot's assigned role as prefix if possible
-    if (guild := message.guild) and (role := guild.self_role):
-        prefixes.append(role.mention)
 
     return prefixes
 
