@@ -236,6 +236,7 @@ class Member(Document):
 
     # General
     id = fields.IntegerField(attribute="_id")
+    username = fields.StringField(attribute="username")
     joined_at = fields.DateTimeField(default=None)
     suspended = fields.BooleanField(default=False)
     suspended_until = fields.DateTimeField(default=datetime.min)
@@ -480,6 +481,16 @@ class Mongo(commands.Cog):
             return None
         else:
             val = self.Member.build_from_mongo(pickle.loads(val))
+
+        # If username in the database doesn't match with current username, update
+        if val and val.username != member.name:
+            result = await self.update_member(member, {"$set": {"username": member.name}})
+            # Set it for the Member object to be returned as well, if modified successfully.
+            # This check is not really necessary since it wouldn't get this far anyway if it doesn't
+            # find any records, but doesn't hurt to have it still as a measure against any edge cases.
+            if result.modified_count > 0:
+                val.username = member.name
+
         return val
 
     async def fetch_next_idx(self, member: discord.Member, reserve=1):
