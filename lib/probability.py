@@ -47,11 +47,11 @@ def random_composition(n: int, k: int, *, lower_bound: int = 0, upper_bound: int
 
     >>> random.seed(0)
     >>> random_composition(3, 2)
-    (3, 0)
+    [3, 0]
     >>> random_composition(120, 6)
-    (12, 7, 21, 18, 49, 13)
+    [12, 7, 21, 18, 49, 13]
     >>> random_composition(120, 6, upper_bound=31)
-    (21, 23, 29, 16, 9, 22)
+    [21, 23, 29, 16, 9, 22]
     """
     if n == k == 0:
         return []
