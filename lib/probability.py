@@ -38,7 +38,7 @@ def num_compositions(n: int, k: int, *, lower_bound: int = 0, upper_bound: int =
     )
 
 
-def random_composition(n: int, k: int, *, lower_bound: int = 0, upper_bound: int = float("inf")) -> tuple[int]:
+def random_composition(n: int, k: int, *, lower_bound: int = 0, upper_bound: int = float("inf")) -> list[int]:
     """Returns a random k-composition of n, where each element of the
     composition is in the range [lower_bound, upper_bound].
 
@@ -54,7 +54,7 @@ def random_composition(n: int, k: int, *, lower_bound: int = 0, upper_bound: int
     (21, 23, 29, 16, 9, 22)
     """
     if n == k == 0:
-        return ()
+        return []
 
     # First, randomly choose the first element of the composition.
     # To maintain uniformity, we weight each choice by the number of
@@ -66,7 +66,7 @@ def random_composition(n: int, k: int, *, lower_bound: int = 0, upper_bound: int
     head = random.choices(population=head_choices, weights=head_weights)[0]
 
     # Now, recursively choose the remaining elements.
-    return (head, *random_composition(n - head, k - 1, **kwargs))
+    return [head, *random_composition(n - head, k - 1, **kwargs)]
 
 
 def random_iv_sum(*, lower_bound: int = 0, upper_bound: int = 186) -> int:
@@ -81,7 +81,7 @@ def random_iv_sum(*, lower_bound: int = 0, upper_bound: int = 186) -> int:
     return random.choices(population=choices, weights=weights)[0]
 
 
-def random_iv_composition(*, sum_lower_bound: int = 0, sum_upper_bound: int = 186) -> tuple[int]:
+def random_iv_composition(*, sum_lower_bound: int = 0, sum_upper_bound: int = 186) -> list[int]:
     """Returns a random IV composition, where each element of the composition is
     in the range [0, 31], and the sum of the composition is in the range
     [sum_lower_bound, sum_upper_bound].
@@ -91,6 +91,6 @@ def random_iv_composition(*, sum_lower_bound: int = 0, sum_upper_bound: int = 18
     """
     if sum_lower_bound == 0 and sum_upper_bound == 186:
         # If no bounds are specified, we can just choose each IV randomly.
-        return tuple(random.choices(range(32), k=6))
+        return random.choices(range(32), k=6)
     total = random_iv_sum(lower_bound=sum_lower_bound, upper_bound=sum_upper_bound)
     return random_composition(total, 6, upper_bound=31)
