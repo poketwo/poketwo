@@ -341,7 +341,7 @@ class Shop(commands.Cog):
 
                 embed.add_field(name=name, value=value, inline=item.inline)
 
-            if items[-1].inline:
+            if items[-1].inline and len(items) < 25:
                 for i in range(-len(items) % 3):
                     embed.add_field(name="‎", value="‎")
 
