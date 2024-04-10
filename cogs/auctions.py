@@ -438,7 +438,7 @@ class Auctions(commands.Cog):
         if auction_data.bidder_id is not None:
             await self.bot.mongo.update_member(auction_data.bidder_id, {"$inc": {"balance": auction_data.current_bid}})
             with contextlib.suppress(discord.HTTPException):
-                self.bot.send_dm(
+                await self.bot.send_dm(
                     auction_data.bidder_id,
                     f"You have been outbid on the **{pokemon}** (Auction #{auction_data._id}). New bid: {bid:,} Pokécoins.",
                 )
