@@ -4,7 +4,7 @@ import sys
 import textwrap
 import traceback
 from datetime import datetime, timedelta
-from typing import Counter
+from typing import Counter, List
 
 import aiohttp
 import discord
@@ -12,6 +12,7 @@ import humanfriendly
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
 
+from cogs.quests import DEFAULT_BADGES
 from helpers import checks, constants, converters
 from helpers.views import ConfirmTermsOfServiceView
 
@@ -25,6 +26,13 @@ VOTING_PROVIDERS = {
 
 class Blacklisted(commands.CheckFailure):
     pass
+
+
+def get_badges_text(badges: List[str], *, per_line: int = 10) -> str:
+    """Formats a list of badges into lines of `per_line` badges"""
+
+    lines = [" ".join(chunk) for chunk in discord.utils.as_chunks(badges, per_line)]
+    return "\n".join(lines) or "No badges"
 
 
 class Bot(commands.Cog):
@@ -524,13 +532,33 @@ class Bot(commands.Cog):
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
 
-        badges = [k for k, v in member.badges.items() if v]
+        all_badges = [k for k, v in member.badges.items() if v]
         if member.halloween_badge:
-            badges.append("halloween")
+            all_badges.append("halloween")
+
+        default_badges = []
+        exclusive_badges = []
+        for badge in all_badges:
+            badge_emoji = getattr(self.bot.sprites, f"badge_{badge}")
+            if badge in DEFAULT_BADGES:
+                default_badges.append(badge_emoji)
+            else:
+                exclusive_badges.append(badge_emoji)
+
         embed.add_field(
             name="Badges",
-            value=" ".join(getattr(self.bot.sprites, f"badge_{x}") for x in badges) or "No badges",
+            value=get_badges_text(default_badges),
+            inline=False,
         )
+
+        #! This will cause character limit errors if the user has ~43+
+        #! badges, because each badge is around 24 characters long!
+        if exclusive_badges:
+            embed.add_field(
+                name="Exclusive Badges",
+                value=get_badges_text(exclusive_badges),
+                inline=False,
+            )
 
         await ctx.send(embed=embed)
 

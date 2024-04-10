@@ -20,6 +20,8 @@ CATCHING_TRACKS = {
     for region in ("kanto", "johto", "hoenn", "sinnoh", "unova", "kalos", "alola", "galar", "paldea")
 }
 
+# These are the badges that will be separated in profile!
+DEFAULT_BADGES = [q["final_reward"] for q in CATCHING_TRACKS.values()]
 
 class Quests(commands.Cog):
     """Quest commands."""
