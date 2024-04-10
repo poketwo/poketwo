@@ -661,7 +661,7 @@ class Battling(commands.Cog):
             user, f"Challenging {user.mention} to a battle. Click the accept button to accept!", timeout=30
         )
         if result is None:
-            return await ctx.send("The request to trade has timed out.")
+            return await ctx.send("The request to battle has timed out.")
         if result is False:
             return await ctx.send("Rejected.")
 
