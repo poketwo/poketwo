@@ -241,7 +241,7 @@ class Easter(commands.Cog):
         # TODO: ADD EVENT DESCRIPTION
         embed = self.bot.Embed(
             title="Easter Bingo",
-            description=f"Happy Easter everyone {self.bot.sprites.egg_red_1}! Complete the following quests to collect eggs on the bingo card and crack them open to get rewards. Get bingo's to get more rewards 👀\n\n{quests_text}",
+            description=f"**The event has now ended. You may finish your existing Bingo card and open your Easter Eggs, but you can no longer get new ones!**\n\nHappy Easter everyone {self.bot.sprites.egg_red_1}! Complete the following quests to collect eggs on the bingo card and crack them open to get rewards. Get bingo's to get more rewards 👀\n\n{quests_text}",
         )
         embed.add_field(
             name=f"Easter Eggs — {member.get(f'{EASTER_PREFIX}boxes', 0):,}",
@@ -279,6 +279,8 @@ class Easter(commands.Cog):
     @easter.command()
     async def reset(self, ctx):
         """Reset your bingo card"""
+
+        return await ctx.send("The event has now ended, and you can no longer get new Bingo cards!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
