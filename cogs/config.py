@@ -1,16 +1,10 @@
-from __future__ import annotations
-
-from typing import Optional, Union, List
+from typing import Union
 
 import discord
 import geocoder
 from discord.ext import commands
 
-from helpers import checks, pagination
-from helpers.constants import CharacterLimits
-from helpers.context import PoketwoContext
-from helpers.utils import unique
-from lib.multi_field_paginator import MultiFieldPageSource, PaginatedField
+from helpers import checks
 
 
 def geocode(location):
@@ -23,64 +17,28 @@ class Configuration(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def start_configuration_menu(self, ctx: PoketwoContext, *, show_help: Optional[bool] = False):
-        bot = self.bot
-        guild = await bot.mongo.fetch_guild(ctx.guild)
+    def make_config_embed(self, ctx, guild, commands={}):
+        embed = self.bot.Embed(title="Server Configuration")
 
-        # Define the commands' help messages if show_help is True
-        commands = (
-            {
-                "silence_command": f"\n`{ctx.clean_prefix}serversilence`",
-                "location_command": f"\n`{ctx.clean_prefix}location <location>`",
-                "Spawning Channels": f"\n`{ctx.clean_prefix}redirect <channel 1> <channel 2> ...`",
-            }
-            if show_help
-            else {}
+        if ctx.guild.icon is not None:
+            embed.set_thumbnail(url=ctx.guild.icon.url)
+
+        embed.add_field(
+            name=f"Display level-up messages? {commands.get('silence_command', '')}",
+            value=(("Yes", "No")[guild.silence]),
+            inline=False,
         )
-
-        paginated_fields = [
-            PaginatedField(
-                "Spawning Channels", [f"{i}. <#{x}>" for i, x in enumerate(guild.channels, 1)] or ["All Channels"]
-            ),
-        ]
-
-        def make_config_embed(source: MultiFieldPageSource, page_fields: List[PaginatedField]):
-            embed = bot.Embed(title="Server Configuration")
-
-            if ctx.guild.icon is not None:
-                embed.set_thumbnail(url=ctx.guild.icon.url)
-
-            embed.add_field(
-                name=f"Display level-up messages? {commands.get('silence_command', '')}",
-                value=(("Yes", "No")[guild.silence]),
-                inline=False,
-            )
-            embed.add_field(
-                name=f"Location {commands.get('location_command', '')}",
-                value=guild.loc,
-                inline=False,
-            )
-
-            # Add the paginated fields
-            per_page = source.per_page
-            current_page = source.current_page
-            for field in page_fields:
-                entries = field.get_entries(current_page, per_page=per_page)
-                total_pages = field.get_num_pages(per_page)
-
-                embed.add_field(
-                    name=f"{field} {commands.get(field.name, '')}",
-                    value="\n".join(entries) + f"\n**Showing page {min(total_pages, current_page + 1)}/{total_pages}**",
-                    inline=False,
-                )
-
-            return embed
-
-        pages = pagination.ContinuablePages(
-            MultiFieldPageSource(paginated_fields, make_config_embed, per_page=5), loop_pages=False
+        embed.add_field(
+            name=f"Location {commands.get('location_command', '')}",
+            value=guild.loc,
+            inline=False,
         )
-        self.bot.menus[ctx.author.id] = pages
-        await pages.start(ctx)
+        embed.add_field(
+            name=f"Spawning Channels {commands.get('redirect_command', '')}",
+            value="\n".join(f"<#{x}>" for x in guild.channels) or "All Channels",
+            inline=False,
+        )
+        return embed
 
     @commands.guild_only()
     @commands.group(
@@ -89,12 +47,25 @@ class Configuration(commands.Cog):
         case_insensitive=True,
     )
     async def configuration(self, ctx: commands.Context):
-        await self.start_configuration_menu(ctx)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
+
+        embed = self.make_config_embed(ctx, guild)
+        await ctx.send(embed=embed)
 
     @commands.guild_only()
     @configuration.command(name="help")
     async def advanced_configuration(self, ctx: commands.Context):
-        await self.start_configuration_menu(ctx, show_help=True)
+        guild = await self.bot.mongo.fetch_guild(ctx.guild)
+
+        commands = {
+            "silence_command": f"\n`{ctx.clean_prefix}serversilence`",
+            "location_command": f"\n`{ctx.clean_prefix}location <location>`",
+            "redirect_command": f"\n`{ctx.clean_prefix}redirect <channel 1> <channel 2> ...`",
+        }
+
+        embed = self.make_config_embed(ctx, guild, commands)
+
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.group(invoke_without_command=True)
@@ -158,25 +129,7 @@ class Configuration(commands.Cog):
                 f"Disabled level up messages in this server. I'll send a DM when pokémon evolve or reach level 100."
             )
 
-    def build_redirect_message(
-        self, base_text: str, channels: List[Union[discord.TextChannel, discord.Thread]], *, prefix
-    ) -> str:
-        """
-        Forms redirect message. If it exceeds character limit, it shows the number of channels instead.
-        `base_text` must have a formatting key `channels` where the channels text will be interpolated.
-        """
-
-        message = base_text.format_map(dict(channels=", ".join(x.mention for x in channels)))
-        if len(message) > CharacterLimits.MESSAGE_CONTENT.value or len(channels) == 0:
-            message = (
-                base_text.format_map(dict(channels=f"**{len(channels)}** channels"))
-                + f" Use `{prefix}config` to see them all."
-            )
-
-        return message
-
     @checks.is_admin()
-    @commands.guild_only()
     @commands.group(invoke_without_command=True, case_insensitive=True)
     async def redirect(
         self,
@@ -189,59 +142,7 @@ class Configuration(commands.Cog):
             return await ctx.send("Please specify channels to redirect to!")
 
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": [x.id for x in channels]}})
-
-        content = self.build_redirect_message(
-            "Now redirecting spawns to {channels}.", channels, prefix=ctx.clean_prefix
-        )
-        await ctx.send(content)
-
-    @checks.is_admin()
-    @commands.guild_only()
-    @redirect.command(aliases=("append",))
-    async def add(
-        self,
-        ctx: commands.Context,
-        channels: commands.Greedy[Union[discord.TextChannel, discord.Thread]] = commands.CurrentChannel,
-    ):
-        """Add channels to redirected channels."""
-
-        if not isinstance(channels, list):
-            channels = [channels]
-
-        guild = await self.bot.mongo.fetch_guild(ctx.guild)
-        channels = unique(channels, key=lambda ch: ch.id)
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$push": {"channels": {"$each": [x.id for x in channels if x.id not in guild.channels]}}}
-        )
-
-        content = self.build_redirect_message(
-            "Added {channels} to redirected channels.", channels, prefix=ctx.clean_prefix
-        )
-        await ctx.send(content)
-
-    @checks.is_admin()
-    @commands.guild_only()
-    @redirect.command()
-    async def remove(
-        self,
-        ctx: commands.Context,
-        channels: commands.Greedy[Union[discord.TextChannel, discord.Thread]] = commands.CurrentChannel,
-    ):
-        """Remove channels from redirected channels."""
-
-        if not isinstance(channels, list):
-            channels = [channels]
-
-        guild = await self.bot.mongo.fetch_guild(ctx.guild)
-        channels = unique([x for x in channels if x.id in guild.channels], key=lambda ch: ch.id)
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$pull": {"channels": {"$in": [x.id for x in channels]}}}
-        )
-
-        content = self.build_redirect_message(
-            "Removed {channels} from redirected channels.", channels, prefix=ctx.clean_prefix
-        )
-        await ctx.send(content)
+        await ctx.send("Now redirecting spawns to " + ", ".join(x.mention for x in channels))
 
     @checks.is_admin()
     @redirect.command()
