@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
 
 import discord
 
@@ -114,3 +114,16 @@ def add_moves_field(moves: list, embed: ClusterBot.Embed, bot: ClusterBot):
         name="Current Moves",
         value="No Moves" if len(moves) == 0 else "\n".join(bot.data.move_by_number(x).name for x in moves),
     )
+
+
+def unique(iterable: Iterable, key: Optional[Callable] = lambda x: x) -> list:
+    """Get a list of unique elements, based on provided key if given"""
+
+    _dict = {}
+    for item in iterable:
+        k = key(item)
+        if k in _dict:
+            continue
+        _dict[k] = item
+
+    return list(_dict.values())
