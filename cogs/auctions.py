@@ -407,8 +407,7 @@ class Auctions(commands.Cog):
         now = datetime.utcnow()
         ends = auction_data.ends
         if (extension := now + timedelta(minutes=5)) > ends:
-            ends = extension
-            update["$set"]["auction_data.ends"] = ends
+            update["$set"]["auction_data.ends"] = extension
 
         auction = await self.bot.mongo.db.pokemon.find_one_and_update(
             {
