@@ -154,10 +154,10 @@ class PoketwoContext(commands.Context):
         cls: Optional[ConfirmationView] = ConfirmationView,
     ) -> bool | None:
         member = await self.bot.mongo.fetch_member_info(self.author)
-        mention_author = getattr(member, "confirm_mention", True)
+        mention_author = member.confirm_mention
 
         view = cls(self, timeout=timeout, delete_after=delete_after, delete_after_timeout=delete_after_timeout)
-        view.message = await self.send(
+        view.message = await self.reply(
             message,
             file=file,
             embed=embed,
@@ -207,7 +207,7 @@ class PoketwoContext(commands.Context):
         cls: Optional[SelectView] = SelectView,
     ) -> List[str] | None:
         member = await self.bot.mongo.fetch_member_info(self.author)
-        mention_author = getattr(member, "confirm_mention", True)
+        mention_author = member.confirm_mention
 
         view = cls(self, options=options, timeout=timeout, delete_after=delete_after)
         view.message = await self.reply(
