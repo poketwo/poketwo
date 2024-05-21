@@ -14,7 +14,7 @@ from lib.multi_field_paginator import MultiFieldPageSource, PaginatedField
 
 
 def geocode(location):
-    return geocoder.osm(location)
+    return geocoder.arcgis(location)
 
 
 class Configuration(commands.Cog):
