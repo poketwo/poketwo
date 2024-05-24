@@ -14,7 +14,7 @@ import discord
 from discord.ext import commands
 from discord.utils import get, find, format_dt
 
-from cogs.mongo import Counter, Member
+from cogs.mongo import Member
 from data.models import Species
 from data.utils import comma_formatted
 from helpers import checks
@@ -46,6 +46,7 @@ class BaseDifficulty:
 class BaseIngredient:
     name: str
     emoji: str
+    amount: int
 
 
 @dataclass
@@ -239,25 +240,26 @@ class Difficulty(Enum):
 class Ingredient(Enum):
     """Enum for all ingredients. A specific one should be used and accessed using Ingredient[name]"""
 
-    FISH = BaseIngredient(name="Fish", emoji="🐟")
-    VEGETABLES = BaseIngredient(name="Vegetables", emoji="🥕")
-    CHOCOLATE = BaseIngredient(name="Chocolate", emoji="🍫")
-    CHEESE = BaseIngredient(name="Cheese", emoji="🧀")
-    MILK = BaseIngredient(name="Milk", emoji="🥛")
-    SALT = BaseIngredient(name="Salt", emoji="🧂")
-    FRUIT = BaseIngredient(name="Fruit", emoji="🍎")
-    WATER = BaseIngredient(name="Water", emoji="💧")
-    CREAM = BaseIngredient(name="Cream", emoji="<:cream:1242180486768496764>")
-    SUGAR = BaseIngredient(name="Sugar", emoji="<:sugar:1242180512324390942>")
-    EGG = BaseIngredient(name="Egg", emoji="🥚")
-    HERBS = BaseIngredient(name="Herbs", emoji="🌿")
-    RICE = BaseIngredient(name="Rice", emoji="🍚")
-    FLOUR = BaseIngredient(name="Flour", emoji="🌾")
-    BUTTER = BaseIngredient(name="Butter", emoji="🧈")
+    FISH = BaseIngredient(name="Fish", emoji="🐟", amount=2)
+    VEGETABLES = BaseIngredient(name="Vegetables", emoji="🥕", amount=1)
+    CHOCOLATE = BaseIngredient(name="Chocolate", emoji="🍫", amount=2)
+    CHEESE = BaseIngredient(name="Cheese", emoji="🧀", amount=3)
+    MILK = BaseIngredient(name="Milk", emoji="🥛", amount=1)
+    SALT = BaseIngredient(name="Salt", emoji="🧂", amount=3)
+    FRUIT = BaseIngredient(name="Fruit", emoji="🍎", amount=1)
+    WATER = BaseIngredient(name="Water", emoji="💧", amount=1)
+    CREAM = BaseIngredient(name="Cream", emoji="<:cream:1242180486768496764>", amount=2)
+    SUGAR = BaseIngredient(name="Sugar", emoji="<:sugar:1242180512324390942>", amount=1)
+    EGG = BaseIngredient(name="Egg", emoji="🥚", amount=1)
+    HERBS = BaseIngredient(name="Herbs", emoji="🌿", amount=1)
+    RICE = BaseIngredient(name="Rice", emoji="🍚", amount=2)
+    FLOUR = BaseIngredient(name="Flour", emoji="🌾", amount=1)
+    BUTTER = BaseIngredient(name="Butter", emoji="🧈", amount=3)
 
     def __init__(self, base_ingredient: BaseIngredient) -> None:
         self.qualified_name = base_ingredient.name
         self.emoji = base_ingredient.emoji
+        self.amount = base_ingredient.amount
 
     def __format__(self, format_spec: str) -> str:
         val = self.qualified_name
@@ -676,26 +678,6 @@ class Anniversary(commands.Cog):
 
         return dict(ingredients)
 
-    @cached_property
-    def ingredient_amounts(self) -> Dict[Ingredient, int]:
-        ingredient_weights = self.ingredient_weights
-        weights = ingredient_weights.values()
-
-        offset = min(weights)
-        max_weight = max(weights) - offset
-
-        MAX_AMOUNT = 2
-
-        amounts = {}
-        for ingredient, weight in ingredient_weights.items():
-            weight -= offset
-
-            inverted_proportion = 1 - (weight / max_weight)
-            amount = round(inverted_proportion * (MAX_AMOUNT - 1)) + 1
-            amounts[ingredient] = amount
-
-        return amounts
-
     def weighted_random_ingredient(self) -> Ingredient:
         population, weights = list(self.ingredient_weights.keys()), list(self.ingredient_weights.values())
         ingredient = random.choices(population, weights, k=1)[0]
@@ -706,7 +688,7 @@ class Anniversary(commands.Cog):
     async def drop_ingredient(self, ctx: PoketwoContext, species: Species, _id: int):
         if random.random() < INGREDIENT_DROP_CHANCE:
             random_ingredient = self.weighted_random_ingredient()
-            amount = self.ingredient_amounts[random_ingredient]
+            amount = random_ingredient.amount
             await self.bot.mongo.update_member(
                 ctx.author, {"$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{random_ingredient.name}": amount}}
             )
