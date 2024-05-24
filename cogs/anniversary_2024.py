@@ -553,7 +553,7 @@ ORDER_MILESTONES = {
 }
 DONATION_MILESTONES = {5: AnniversaryPokemon.DOUBLADE, 10: AnniversaryPokemon.VULPIX}
 
-ORDERS_START = datetime(2024, 5, 23, 22, 0, 0)
+ORDERS_START = datetime(2024, 5, 24, 0, 0, 0)
 
 
 # region Anniversary View
