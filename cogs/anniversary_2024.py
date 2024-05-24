@@ -894,7 +894,8 @@ class Anniversary(commands.Cog):
                 Happy Anni4sary, Pokétwo 🎂! It's {FlavorStrings.poke2cafe}'s grand opening, and customers are pouring in! Cook up and serve dishes to hungry customers and earn various rewards and exclusive Pokémon! 🧑‍🍳
 
                 Ingredients can be obtained through catching wild Pokémon, and are used to fulfil orders. New orders will arrive regularly, and you'll be rewarded as you complete them with special rewards at certain milestones. Good luck!
-                > Use the inventory button below and `{ctx.clean_prefix}help anniversary` to learn more!
+                - Use `{ctx.clean_prefix}{self.use_ingredient.qualified_name} <ingredient names>...` to progress orders!
+                - You can donate excess ingredients for rewards using `{ctx.clean_prefix}{self.donate_ingredients.qualified_name}`, while you wait for new orders!
                 """
             ),
         )
@@ -925,7 +926,6 @@ class Anniversary(commands.Cog):
 
         embed.set_footer(
             text="   —   ".join(footer)
-            + f"\nUse `{ctx.clean_prefix}{self.use_ingredient.qualified_name} <ingredient names>...` to progress orders!"
         )
         embed.set_image(url="attachment://cafe.png")
 
@@ -1037,6 +1037,7 @@ class Anniversary(commands.Cog):
         """Use ingredients to progress an order. No need to mention the order or the amount, it will automatically use as many as possible on whichever order applicable.
         E.g. `@Pokétwo anniversary use rice vegetables water`"""
 
+        ingredients = list(set(ingredients))
         if not ingredients:
             return await ctx.send(f"Invalid or no ingredients were entered! Valid ingredients are {valid_ingredients}.")
 
