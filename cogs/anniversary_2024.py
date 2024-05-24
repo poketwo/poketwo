@@ -242,19 +242,19 @@ class Ingredient(Enum):
 
     FISH = BaseIngredient(name="Fish", emoji="🐟", amount=2)
     VEGETABLES = BaseIngredient(name="Vegetables", emoji="🥕", amount=1)
-    CHOCOLATE = BaseIngredient(name="Chocolate", emoji="🍫", amount=2)
+    CHOCOLATE = BaseIngredient(name="Chocolate", emoji="🍫", amount=1)
     CHEESE = BaseIngredient(name="Cheese", emoji="🧀", amount=3)
     MILK = BaseIngredient(name="Milk", emoji="🥛", amount=1)
     SALT = BaseIngredient(name="Salt", emoji="🧂", amount=3)
     FRUIT = BaseIngredient(name="Fruit", emoji="🍎", amount=1)
     WATER = BaseIngredient(name="Water", emoji="💧", amount=1)
-    CREAM = BaseIngredient(name="Cream", emoji="<:cream:1242180486768496764>", amount=2)
+    CREAM = BaseIngredient(name="Cream", emoji="<:cream:1242180486768496764>", amount=1)
     SUGAR = BaseIngredient(name="Sugar", emoji="<:sugar:1242180512324390942>", amount=1)
     EGG = BaseIngredient(name="Egg", emoji="🥚", amount=1)
     HERBS = BaseIngredient(name="Herbs", emoji="🌿", amount=1)
     RICE = BaseIngredient(name="Rice", emoji="🍚", amount=2)
     FLOUR = BaseIngredient(name="Flour", emoji="🌾", amount=1)
-    BUTTER = BaseIngredient(name="Butter", emoji="🧈", amount=3)
+    BUTTER = BaseIngredient(name="Butter", emoji="🧈", amount=4)
 
     def __init__(self, base_ingredient: BaseIngredient) -> None:
         self.qualified_name = base_ingredient.name
