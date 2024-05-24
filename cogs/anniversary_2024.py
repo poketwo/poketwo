@@ -912,7 +912,7 @@ class Anniversary(commands.Cog):
                 value = order.text(inventory=member.anniversary_2024_ingredients)
             else:
                 if stacked:
-                    value = f"*New orders available! Orders with 🌟 have a specific event pokémon as a possible reward!*"
+                    value = f"*New orders available, accept one using the select menu!\n\nOrders with 🌟 can reward a specific event pokémon as opposed to a random one!*"
                 else:
                     value = f"*No pending orders, good work! Next one {format_dt(period.next_at, 'R')} {clock}*"
 
