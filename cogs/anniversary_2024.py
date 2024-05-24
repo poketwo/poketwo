@@ -1162,7 +1162,7 @@ class Anniversary(commands.Cog):
             )
 
         result = await ctx.confirm(
-            f"Are you sure you want to donate **{qty}** of all ingredients in your inventory in exchange for some rewards? These ingredients can still be used in future orders! They will be deducted from your inventory and can't be undone."
+            f"Are you sure you want to donate **{qty}** of all ingredients in your inventory in exchange for some rewards? These ingredients could still be used in future orders! They will be deducted from your inventory and can't be undone."
         )
         if not result:
             return await ctx.send("Aborted.")
