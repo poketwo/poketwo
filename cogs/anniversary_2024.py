@@ -674,30 +674,10 @@ class Anniversary(commands.Cog):
             for i in r.ingredients:
                 ingredients[i] += r.ingredients[i]
 
-        return dict(ingredients)
-
-    @cached_property
-    def ingredient_amounts(self) -> Dict[Ingredient, int]:
-        ingredient_weights = self.ingredient_weights
-        weights = ingredient_weights.values()
-
-        offset = min(weights)
-        max_weight = max(weights) - offset
-
-        MAX_AMOUNT = 3
-
-        amounts = {}
-        for ingredient, weight in ingredient_weights.items():
-            weight -= offset
-
-            inverted_proportion = 1 - (weight / max_weight)
-            amount = round(inverted_proportion * (MAX_AMOUNT - 1)) + 1
-            amounts[ingredient] = amount
-
-        return amounts
+        return list(ingredients.keys()), list(ingredients.values())
 
     def weighted_random_ingredient(self) -> Ingredient:
-        population, weights = list(self.ingredient_weights.keys()), list(self.ingredient_weights.values())
+        population, weights = self.ingredient_weights
         ingredient = random.choices(population, weights, k=1)[0]
         return ingredient
 
@@ -706,11 +686,10 @@ class Anniversary(commands.Cog):
     async def drop_ingredient(self, ctx: PoketwoContext, species: Species, _id: int):
         if random.random() < INGREDIENT_DROP_CHANCE:
             random_ingredient = self.weighted_random_ingredient()
-            amount = self.ingredient_amounts[random_ingredient]
             await self.bot.mongo.update_member(
-                ctx.author, {"$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{random_ingredient.name}": amount}}
+                ctx.author, {"$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{random_ingredient.name}": 1}}
             )
-            await ctx.send(f"You've received a new ingredient: {amount}x {random_ingredient}!")
+            await ctx.send(f"You've received a new ingredient: 1x {random_ingredient}!")
 
     @commands.Cog.listener("on_command")
     async def new_orders_notification(self, ctx: PoketwoContext):
@@ -945,7 +924,9 @@ class Anniversary(commands.Cog):
             if stacked < difficulty.max_stack:
                 footer.append(f"Next {difficulty.id} order in: {clock} {converters.strfdelta(period.next_in)}")
 
-        embed.set_footer(text="   —   ".join(footer))
+        embed.set_footer(
+            text="   —   ".join(footer)
+        )
         embed.set_image(url="attachment://cafe.png")
 
         return embed
