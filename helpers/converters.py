@@ -6,6 +6,8 @@ import discord
 from discord.ext import commands
 from durations_nlp import Duration
 
+from data.utils import isnumber
+
 from .context import PoketwoContext
 from .utils import FakeUser
 
@@ -100,7 +102,7 @@ class ItemAndQuantityConverter(commands.Converter):  # TODO: Try validation
     async def convert(self, ctx: PoketwoContext, item_and_qty: str):
         # Greedily consume the arg until the last one for
         # item and make the last one quantity if it's a digit
-        if len(split := item_and_qty.split()) > 1 and split[-1].isdigit():
+        if len(split := item_and_qty.split()) > 1 and isnumber(split[-1]):
             item = " ".join(split[:-1])
             qty = int(split[-1])
         else:
@@ -111,7 +113,7 @@ class ItemAndQuantityConverter(commands.Converter):  # TODO: Try validation
             try:
                 item = self.item_dict[item.casefold().strip()]
             except KeyError:
-                return await ctx.send(
+                raise ValueError(
                     f"Invalid item. Valid items are: {self.valid_items_string}"
                 )
 

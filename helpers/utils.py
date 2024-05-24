@@ -80,6 +80,7 @@ class FlavorString:
     string: str
     emoji: Optional[str] = None
     plural: Optional[str] = None
+    default_plural: Optional[bool] = False
 
     def __post_init__(self):
         self.plural = self.plural or f"{self.string}s"
@@ -89,7 +90,7 @@ class FlavorString:
         emoji = self.emoji
 
         # Whether to use plural
-        if "s" in format_spec:
+        if "s" in format_spec or (self.default_plural and "!s" not in format_spec):
             val = self.plural
 
         # Whether to not show emoji

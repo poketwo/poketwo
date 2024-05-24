@@ -1252,7 +1252,10 @@ class Pokemon(commands.Cog):
             searched_gender = None
 
             if search_or_page[0] in "Nn#" and search_or_page[1:].isdigit():
-                species = self.bot.data.species_by_number(int(search_or_page[1:]))
+                species_id = int(search_or_page[1:])
+                species = self.bot.data.species_by_number(species_id)
+                if species is None:
+                    return await ctx.send(f"Could not find a pokémon with id `{species_id}`.")
 
             else:
                 # Parse search string

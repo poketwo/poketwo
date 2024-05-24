@@ -415,6 +415,15 @@ class Member(Document):
     easter_2024_bingos_awarded = fields.IntegerField(default=0)
     easter_2024_boards_completed = fields.IntegerField(default=0)
 
+    anniversary_2024_orders = fields.DictField(fields.StringField(), fields.DictField(), default=dict)
+    anniversary_2024_order_periods = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    anniversary_2024_order_lists = fields.DictField(fields.StringField(), fields.ListField(fields.DictField()), default=dict)
+    anniversary_2024_available_orders = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    anniversary_2024_completed_orders = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    anniversary_2024_donated = fields.IntegerField(default=0)
+    anniversary_2024_ingredients = fields.DictField(default=dict)
+    anniversary_2024_notify = fields.BooleanField(default=True)
+
     @property
     def selected_pokemon(self):
         try:
@@ -692,6 +701,10 @@ class Mongo(commands.Cog):
         **kwargs
             Any other attribute of the pokémon can be passed in.
             E.g. shiny=True to guarantee shiny.
+
+            You can pass in `member` and `idx` to make it faster as that
+            removes the need to fetch them. Especially important for mass
+            calls.
 
         Returns
         -------
