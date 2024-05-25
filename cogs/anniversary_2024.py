@@ -930,7 +930,7 @@ class Anniversary(commands.Cog):
         embed.set_footer(
             text="   —   ".join(footer) + "\nTip: Orders with 🌟 can reward a specific event pokémon as opposed to a random one!"
         )
-        embed.set_image(url="attachment://cafe.png")
+        embed.set_image(url=self.bot.data.asset("assets/anniversary_2024/cafe.png"))
 
         return embed
 
@@ -963,8 +963,7 @@ class Anniversary(commands.Cog):
                 )
 
         embed = self.make_embed(ctx, member)
-        cafe_file = discord.File("data/assets/anniversary_2024/cafe.png", "cafe.png")
-        view.message = await ctx.reply(embed=embed, view=view, file=cafe_file, mention_author=False)
+        view.message = await ctx.reply(embed=embed, view=view, mention_author=False)
 
     @checks.has_started()
     @anniversary.command(name="togglenotification", aliases=("notify",))
