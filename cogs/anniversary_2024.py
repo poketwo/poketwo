@@ -915,7 +915,7 @@ class Anniversary(commands.Cog):
                 value = order.text(inventory=member.anniversary_2024_ingredients)
             else:
                 if stacked:
-                    value = f"*New orders available, accept one using the select menu!\n\nOrders with 🌟 can reward a specific event pokémon as opposed to a random one!*"
+                    value = f"*New orders available, accept one using the select menu!*"
                 else:
                     value = f"*No pending orders, good work! Next one {format_dt(period.next_at, 'R')} {clock}*"
 
@@ -927,7 +927,9 @@ class Anniversary(commands.Cog):
             if stacked < difficulty.max_stack:
                 footer.append(f"Next {difficulty.id} order in: {clock} {converters.strfdelta(period.next_in)}")
 
-        embed.set_footer(text="   —   ".join(footer))
+        embed.set_footer(
+            text="   —   ".join(footer) + "\nTip: Orders with 🌟 can reward a specific event pokémon as opposed to a random one!"
+        )
         embed.set_image(url="attachment://cafe.png")
 
         return embed
