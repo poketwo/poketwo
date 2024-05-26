@@ -1086,9 +1086,9 @@ class Anniversary(commands.Cog):
 
                 order = ingredient_orders[int(order_idx[0])]
 
-        member: Member = await self.bot.mongo.fetch_member_info(ctx.author)
-        member, active_orders = await self.get_active_orders(member)
-        inventory = member.anniversary_2024_ingredients
+                member: Member = await self.bot.mongo.fetch_member_info(ctx.author)
+                member, active_orders = await self.get_active_orders(member)
+                inventory = member.anniversary_2024_ingredients
 
         ingredient_orders = [
             order
