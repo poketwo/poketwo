@@ -1119,8 +1119,7 @@ class Anniversary(commands.Cog):
             inc[f"{ANNIVERSARY_PREFIX}_ingredients.{ing.name}"] = -qty
             inc[f"{ANNIVERSARY_PREFIX}_orders.{order.difficulty.name}.progress.{ing.name}"] = qty
 
-            remaining = progress.remaining - qty
-            ingredients_text.append(f"- {qty}x {ing} ({remaining} more needed)")
+            ingredients_text.append(f"- {qty}x {ing} ({progress.count + qty}/{progress.goal}, {in_stock - qty} in stock)")
 
         if not_enough:
             return await ctx.send(
