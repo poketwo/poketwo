@@ -745,11 +745,11 @@ class Anniversary(commands.Cog):
                 order = Order(**order)
 
             is_initial_order = all((not order, completed_orders <= 0, available_orders == 0))
-            period_difference = max(0, current_period - order_period)
+            period_difference = current_period - order_period
             if is_initial_order or period_difference:
                 update["$inc"][f"{ANNIVERSARY_PREFIX}_order_periods.{difficulty.name}"] = period_difference
 
-                inc = period_difference
+                inc = max(0, period_difference)
                 if is_initial_order:  # Free order if first time
                     inc += difficulty.max_stack // 2
 
