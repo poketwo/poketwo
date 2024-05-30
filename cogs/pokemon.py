@@ -38,7 +38,7 @@ def isfloat(x):
         return True
 
 
-POKEDEX_REWARD_SHINY_BOOST = 20
+POKEDEX_REWARD_SHINY_BOOST = 40  # Reduce this to 15 after 24h from release
 
 
 class PokedexRewardItem(Enum):
