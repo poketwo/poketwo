@@ -38,7 +38,7 @@ def isfloat(x):
         return True
 
 
-POKEDEX_REWARD_SHINY_BOOST = 40
+POKEDEX_REWARD_SHINY_BOOST = 20
 
 
 class PokedexRewardItem(Enum):
