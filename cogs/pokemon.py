@@ -1515,7 +1515,7 @@ class Pokemon(commands.Cog):
             else:
                 gender = None
 
-            member = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
+            member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, total_count + 1)
 
             # Adds the correct button settings to the embed
             view = pagination.DexView(ctx, species=species, member=member, is_shiny=shiny, gender=gender)
