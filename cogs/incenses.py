@@ -102,8 +102,8 @@ class IntervalConverter(commands.Converter):
 @dataclass
 class Incense:
     channel_id: int
-    spawns_remaining: int
-    interval: int
+    spawns_remaining: Optional[int] = 0
+    interval: Optional[int] = DEFAULT_INTERVAL
     paused: Optional[bool] = False
     old_system: Optional[bool] = False
     _id: Optional[ObjectId] = None
