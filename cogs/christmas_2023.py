@@ -647,7 +647,7 @@ class Christmas(commands.Cog):
 
         elif reward["reward"] == "event_pokemon":
             species = self.bot.data.species_by_number(reward["id"])
-            reward_text = f"{self.bot.sprites.get(species.dex_number)} {amount:,} {species}"
+            reward_text = f"{self.bot.sprites.get(species)} {amount:,} {species}"
         elif reward["reward"] == "badge":
             reward_text = f"{FlavorStrings.badge}"
         else:

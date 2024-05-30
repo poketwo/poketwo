@@ -1,3 +1,4 @@
+import math
 import random
 import typing
 from datetime import datetime, timedelta
@@ -8,7 +9,8 @@ from discord.ext import commands, tasks
 
 from cogs import mongo
 from data import models
-from helpers import checks, constants, converters
+from helpers import checks, constants, converters, pagination
+from helpers.views import CommandInvocation, CommandInvokeView
 
 
 async def add_reactions(message, *emojis):
@@ -38,27 +40,6 @@ class Shop(commands.Cog):
     def month_number(self):
         now = datetime.utcnow()
         return str(now.year * 12 + now.month)
-
-    @commands.command()
-    @checks.is_admin()
-    async def stopincense(self, ctx):
-        channel = await self.bot.mongo.fetch_channel(ctx.channel)
-        if not channel.incense_active:
-            return await ctx.send("There is no active incense in this channel!")
-
-        result = await ctx.confirm("Are you sure you want to cancel the incense? You can't undo this!")
-        if result is None:
-            return await ctx.send("Time's up. Aborted.")
-        if result is False:
-            return await ctx.send("Aborted.")
-
-        await self.bot.mongo.update_channel(
-            ctx.channel,
-            {
-                "$set": {"spawns_remaining": 0},
-            },
-        )
-        await ctx.send("Incense has been stopped.")
 
     @checks.has_started()
     @commands.command(aliases=("o",))
@@ -231,9 +212,7 @@ class Shop(commands.Cog):
         await self.bot.mongo.update_pokemon(from_pokemon, {"$set": {f"held_item": None}})
         await self.bot.mongo.update_pokemon(to_pokemon, {"$set": {f"held_item": from_pokemon.held_item}})
 
-        await ctx.send(
-            f"Moved held item from your **{from_pokemon:lnx}** to your **{to_pokemon:lnx}**."
-        )
+        await ctx.send(f"Moved held item from your **{from_pokemon:lnx}** to your **{to_pokemon:lnx}**.")
 
     @checks.has_started()
     @commands.command(aliases=("togglebal",))
@@ -254,8 +233,17 @@ class Shop(commands.Cog):
     async def shop(self, ctx, *, page: int = 0):
         """View the Pokétwo item shop."""
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        PAGES = [
+            "XP Boosters & Candies",
+            "Evolution Stones",
+            "Form Change Items",
+            "Held Items",
+            "Nature Mints",
+            "Mega Evolutions & Transformation",
+            "Shard Shop",
+        ]
 
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
         embed = self.bot.Embed(title=f"Pokétwo Shop")
 
         if member.show_balance:
@@ -266,13 +254,8 @@ class Shop(commands.Cog):
         if page == 0:
             embed.description = f"Use `{ctx.clean_prefix}shop <page>` to view different pages."
 
-            embed.add_field(name="Page 1", value="XP Boosters & Candies", inline=False)
-            embed.add_field(name="Page 2", value="Evolution Stones", inline=False)
-            embed.add_field(name="Page 3", value="Form Change Items", inline=False)
-            embed.add_field(name="Page 4", value="Held Items", inline=False)
-            embed.add_field(name="Page 5", value="Nature Mints", inline=False)
-            embed.add_field(name="Page 6", value="Mega Evolutions", inline=False)
-            embed.add_field(name="Page 7", value="Shard Shop", inline=False)
+            for page_no, description in enumerate(PAGES, 1):
+                embed.add_field(name=f"Page {page_no}", value=description, inline=False)
 
         else:
             embed.description = (
@@ -289,36 +272,52 @@ class Shop(commands.Cog):
                 )
 
             items = [i for i in self.bot.data.all_items() if i.page == page]
+            sticky_items = [item for item in items if not item.inline]
+            items = [item for item in items if item.inline]
 
             do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
-            for item in items:
-                emote = ""
-                if do_emojis and item.emote is not None:
-                    emote = getattr(self.bot.sprites, item.emote) + " "
+            PER_PAGE = 15
 
-                name = f"{emote}{item.name}"
-                if item.action == "level":
-                    name = name[:-1] + "ies"
-                if item.action in ("shard", "redeem"):
-                    name += "s"
+            async def get_page(source, menu, pidx):
+                embed.clear_fields()
 
-                if item.description:
-                    name += f" – {item.cost} {'shards' if item.shard else 'pc'}"
-                    if item.action in ("level", "shard", "redeem"):
-                        name += " each"
-                    value = item.description
+                pgstart = pidx * PER_PAGE
+                pgend = min(pgstart + PER_PAGE, len(items))
 
-                else:
-                    value = f"{item.cost} {'shards' if item.shard else 'pc'}"
-                    if item.action in ("level", "shard", "redeem"):
-                        value += " each"
+                page_items = sticky_items + items[pgstart:pgend]
+                for item in page_items:
+                    emote = ""
+                    if do_emojis and item.emote is not None:
+                        emote = getattr(self.bot.sprites, item.emote) + " "
 
-                embed.add_field(name=name, value=value, inline=item.inline)
+                    name = f"{emote}{item.name}"
+                    if item.action == "level":
+                        name = name[:-1] + "ies"
+                    if item.action in ("shard", "redeem"):
+                        name += "s"
 
-            if items[-1].inline and len(items) < 25:
-                for i in range(-len(items) % 3):
-                    embed.add_field(name="‎", value="‎")
+                    if item.description:
+                        name += f" – {item.cost} {'shards' if item.shard else 'pc'}"
+                        if item.action in ("level", "shard", "redeem"):
+                            name += " each"
+                        elif item.action == "incense":
+                            name += " (default, customizable)"
+
+                        value = item.description
+
+                    else:
+                        value = f"{item.cost} {'shards' if item.shard else 'pc'}"
+                        if item.action in ("level", "shard", "redeem"):
+                            value += " each"
+
+                    embed.add_field(name=name, value=value, inline=item.inline)
+
+                if page_items[-1].inline and len(page_items) < 25:
+                    for i in range(-len(page_items) % 3):
+                        embed.add_field(name="‎", value="‎")
+
+                return embed
 
         footer_text = []
 
@@ -335,7 +334,27 @@ class Shop(commands.Cog):
         if len(footer_text) > 0:
             embed.set_footer(text="\n".join(footer_text))
 
-        await ctx.send(embed=embed)
+        if page == 0:
+            view = CommandInvokeView(
+                ctx,
+                [
+                    CommandInvocation(
+                        label=f"Page {page_no}",
+                        command=self.shop,
+                        kwargs={"page": page_no},
+                        description=description,
+                    )
+                    for page_no, description in enumerate(PAGES, 1)
+                ],
+                placeholder="Open a page",
+            )
+            view.message = await ctx.send(embed=embed, view=view)
+        else:
+            pages = pagination.ContinuablePages(
+                pagination.FunctionPageSource(math.ceil(len(items) / PER_PAGE), get_page)
+            )
+            self.bot.menus[ctx.author.id] = pages
+            await pages.start(ctx)
 
     @checks.has_started()
     @commands.max_concurrency(1, commands.BucketType.user, wait=True)
@@ -366,6 +385,9 @@ class Shop(commands.Cog):
         item = self.bot.data.item_by_name(search)
         if item is None:
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
+
+        if item.action == "incense":
+            return await ctx.send(f"This command has migrated to `{ctx.clean_prefix}incense buy`, please use that instead!")
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
@@ -453,7 +475,14 @@ class Shop(commands.Cog):
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
-                if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
+                if (
+                    not (
+                        item.id == 20000 and pokemon.species.event
+                    )  # Transformation item should not work for event pokemon
+                    and form.id != pokemon.species.id
+                    and form.form_item is not None
+                    and form.form_item == item.id
+                ):
                     break
             else:
                 return await ctx.send(
@@ -494,32 +523,6 @@ class Shop(commands.Cog):
                 f"You purchased a {item.name}! Use `{ctx.clean_prefix}shop` to check how much time you have remaining."
             )
 
-        elif item.action == "incense":
-
-            permissions = ctx.channel.permissions_for(ctx.author)
-
-            if (
-                not permissions.administrator
-                and discord.utils.find(lambda r: r.name.lower() == "incense", ctx.author.roles) is None
-            ):
-                return await ctx.send(
-                    "You must have administrator permissions or a role named Incense in order to do this!"
-                )
-
-            if await self.bot.redis.get("incense_disabled") is not None:
-                return await ctx.send(
-                    "Incenses are currently unavailable. This could be due to bot instability or upcoming maintenance. "
-                    "Check the #bot-outages channel in the official server for more details."
-                )
-
-            channel = await self.bot.mongo.fetch_channel(ctx.channel)
-            if channel.incense_active:
-                return await ctx.send(
-                    "This channel already has an incense active! Please wait for it to end before purchasing another one."
-                )
-
-            await ctx.send(f"You purchased an {item.name}!")
-
         elif item.shard:
             await ctx.send(f"You purchased {'an' if item.name[0] in 'aeiou' else 'a'} {item.name}!")
 
@@ -529,10 +532,11 @@ class Shop(commands.Cog):
             if pokemon.nickname is not None:
                 name += f' "{pokemon.nickname}"'
 
+            price = item.cost * qty
             if qty > 1:
-                await ctx.send(f"You purchased {item.name} x {qty} for your {name}!")
+                await ctx.send(f"You purchased {item.name} x {qty} for your {name} for **{price:,}** Pokécoins!")
             else:
-                await ctx.send(f"You purchased a {item.name} for your {name}!")
+                await ctx.send(f"You purchased a {item.name} for your {name} for **{price:,}** Pokécoins!")
 
         # OK to buy, go ahead
 
@@ -571,15 +575,6 @@ class Shop(commands.Cog):
                 },
             )
 
-        if item.action == "incense":
-            await self.bot.mongo.update_channel(
-                ctx.channel,
-                {
-                    "$set": {"guild_id": ctx.guild.id},
-                    "$inc": {"spawns_remaining": 180},
-                },
-            )
-
         if "evolve" in item.action:
             embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
@@ -592,6 +587,7 @@ class Shop(commands.Cog):
                 name=f"Your {name} is evolving!",
                 value=f"Your {name} has turned into a {evoto}!",
             )
+            embed.set_thumbnail(url=evoto.get_image_url(pokemon.shiny, pokemon.gender))
 
             self.bot.dispatch("evolve", ctx.author, pokemon, evoto)
 
@@ -627,13 +623,12 @@ class Shop(commands.Cog):
 
             pokemon.level += qty
             guild = await self.bot.mongo.fetch_guild(ctx.guild)
-            evo = pokemon.get_next_evolution(guild.is_day)
+            evo = pokemon.get_next_evolution(guild.time)
             if evo is not None:
                 embed.add_field(
                     name=f"Your {name} is evolving!",
                     value=f"Your {name} has turned into a {evo}!",
                 )
-
                 embed.set_thumbnail(url=evo.get_image_url(pokemon.shiny, pokemon.gender))
 
                 update["$set"]["species_id"] = evo.id
@@ -689,6 +684,7 @@ class Shop(commands.Cog):
                         name=f"Your {name} is changing forms!",
                         value=f"Your {name} has turned into a {form}!",
                     )
+                    embed.set_thumbnail(url=form.get_image_url(pokemon.shiny, pokemon.gender))
 
                     await self.bot.mongo.update_pokemon(pokemon, {"$set": {f"species_id": form.id}})
 

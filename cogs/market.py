@@ -22,14 +22,17 @@ class Market(commands.Cog):
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")

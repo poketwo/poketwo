@@ -116,7 +116,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         embed = self.make_page_embed(
             [group, *filtered],
-            title=f"{group.qualified_name} [`{'/'.join(group.aliases)}`]",
+            title=f"{group.qualified_name}" + (f" [`{'/'.join(group.aliases)}`]" if group.aliases else ""),
             description=f"{group.description}\n\n{group.help}"
             if group.description
             else group.help or "No help found...",

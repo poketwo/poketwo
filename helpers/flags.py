@@ -42,6 +42,10 @@ class FlagCommand(flags.FlagCommand):
         return " ".join(result)
 
 
+class FlagGroup(FlagCommand, commands.Group):
+    pass
+
+
 def command(**kwargs):
     def inner(func):
         cls = kwargs.get("cls", FlagCommand)

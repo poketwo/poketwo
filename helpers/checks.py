@@ -1,9 +1,18 @@
 from datetime import datetime
 
+import discord
 from discord.ext import commands
 
 from helpers import constants
 from helpers.views import ConfirmUpdatedTermsOfServiceView
+
+
+class MissingIncensePermission(commands.CheckFailure):
+    pass
+
+
+class IncensesDisabled(commands.CheckFailure):
+    pass
 
 
 class NotStarted(commands.CheckFailure):
@@ -31,6 +40,38 @@ def is_admin():
 
 def is_developer():
     return commands.check_any(commands.is_owner(), commands.has_role(1120600250474827856))
+
+
+def has_incense_role():
+    async def predicate(ctx):
+        permissions = ctx.channel.permissions_for(ctx.author)
+
+        if (
+            not permissions.administrator
+            and discord.utils.find(lambda r: r.name.lower() == "incense", ctx.author.roles) is None
+        ):
+            raise MissingIncensePermission(
+                "You must have administrator permissions or a role named Incense in order to do this!"
+            )
+        return True
+
+    return commands.check(predicate)
+
+
+def incenses_not_disabled():
+    async def predicate(ctx):
+        disabled_msg = await ctx.bot.redis.get("incense_disabled")
+        if disabled_msg is not None:
+            disabled_msg = disabled_msg.decode("utf-8")
+            raise IncensesDisabled(
+                "Incenses are currently unavailable. This could be due to bot instability or upcoming maintenance. "
+                "They will be made available again as soon as the issue is resolved, check the #bot-outages channel "
+                "in the official server for more details.\n### Note from Developers:\n"
+                f">>> {disabled_msg}"
+            )
+        return True
+
+    return commands.check(predicate)
 
 
 def in_guilds(*guild_ids):

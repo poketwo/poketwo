@@ -58,7 +58,7 @@ class Bot(commands.Cog):
 
         bucket = self.cd.get_bucket(ctx.message)
         if retry_after := bucket.update_rate_limit():
-            raise commands.CommandOnCooldown(bucket, retry_after)
+            raise commands.CommandOnCooldown(bucket, retry_after, commands.BucketType.user)
 
         return True
 
@@ -98,7 +98,7 @@ class Bot(commands.Cog):
             )
             embed.add_field(
                 name=f"Please re-run the command by mentioning @{self.bot.user} as the prefix. You can also copy the following, which directly mentions the bot:",
-                value=f"```\n{self_mention}\n```"
+                value=f"```\n{self_mention}\n```",
             )
             embed.set_author(name=str(author), icon_url=author.display_avatar.url)
             await message.reply(embed=embed)
@@ -432,7 +432,13 @@ class Bot(commands.Cog):
         )
 
         for gen, pokemon in constants.STARTER_GENERATION.items():
-            embed.add_field(name=gen, value=" · ".join(pokemon), inline=False)
+            pokemon_texts = []
+            for pokemon_name in pokemon:
+                species = self.bot.data.species_by_name(pokemon_name)
+                sprite = self.bot.sprites.get(species.id)
+                pokemon_texts.append(f"{sprite} {species.name}")
+
+            embed.add_field(name=gen, value=" \u200b · \u200b ".join(pokemon_texts), inline=False)
 
         await ctx.send(embed=embed)
 
@@ -516,11 +522,16 @@ class Bot(commands.Cog):
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
+        pokedex_completed = await self.bot.mongo.fetch_pokedex_count(ctx.author)
+        pokedex_total = self.bot.data.total_pokedex_count
+        pokedex_percent = round(pokedex_completed / pokedex_total * 100)
+
         embed = self.bot.Embed(title="Trainer Profile")
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
         pokemon_caught = []
-        pokemon_caught.append("**Total: **" + str(await self.bot.mongo.fetch_pokedex_sum(ctx.author)))
+        total = await self.bot.mongo.fetch_pokedex_sum(ctx.author)
+        pokemon_caught.append(f"**Total:** {total}")
 
         for name, filt in (
             ("Mythical", self.bot.data.list_mythical),
@@ -528,7 +539,7 @@ class Bot(commands.Cog):
             ("Ultra Beast", self.bot.data.list_ub),
         ):
             pokemon_caught.append(
-                f"**{name}: **"
+                f"> **{name}:** "
                 + str(
                     await self.bot.mongo.fetch_pokedex_sum(
                         ctx.author,
@@ -536,6 +547,8 @@ class Bot(commands.Cog):
                     )
                 )
             )
+        pokemon_caught.append(f"**Pokédex:** {pokedex_completed}/{pokedex_total} ({pokedex_percent}%)")
+        pokemon_caught.append("**Gigantamax: **" + str(member.gmax_caught))
         pokemon_caught.append("**Shiny: **" + str(member.shinies_caught))
         embed.add_field(name="Pokémon Caught", value="\n".join(pokemon_caught))
 
@@ -583,6 +596,7 @@ class Bot(commands.Cog):
 
         await ctx.message.delete()
         prefixes = await ctx.bot.command_prefix(ctx.bot, ctx.message)
+
         def check(m):
             return m.author == ctx.me or any((m.content.startswith(prefix) for prefix in prefixes))
 

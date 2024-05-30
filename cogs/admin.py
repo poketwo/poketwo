@@ -1,13 +1,32 @@
 import random
 import typing
 from datetime import datetime
+from typing import Optional
 
 from discord.ext import commands
 
+from helpers import flags
+from helpers.constants import FILTER_BY_NUMERICAL
 from helpers.context import PoketwoContext
 from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
 
-from . import mongo
+
+class PokemonFlagConverter(commands.FlagConverter, case_insensitive=True):
+    species: str = commands.flag(max_args=1)
+    nature: Optional[str] = None
+    gender: Optional[str] = None
+    level: Optional[int] = None
+    xp: Optional[int] = None
+    shiny: Optional[bool] = None
+    has_color: Optional[bool] = commands.flag(aliases=("embedcolor",))
+
+    iv_total: Optional[int] = commands.flag(aliases=("iv",))
+    iv_hp: Optional[int] = commands.flag(aliases=("hpiv", "hp"))
+    iv_atk: Optional[int] = commands.flag(aliases=("atkiv", "atk"))
+    iv_defn: Optional[int] = commands.flag(aliases=("iv_def", "defiv", "def"))
+    iv_satk: Optional[int] = commands.flag(aliases=("satkiv", "satk"))
+    iv_sdef: Optional[int] = commands.flag(aliases=("sdefiv", "sdef"))
+    iv_spd: Optional[int] = commands.flag(aliases=("spdiv", "spd"))
 
 
 class Administration(commands.Cog):
@@ -142,24 +161,25 @@ class Administration(commands.Cog):
             await ctx.send(f"Gave **{user}** {amt:,} {box_type} boxes.")
 
     @commands.is_owner()
-    @admin.command(aliases=("g",))
-    async def give(self, ctx, user: FetchUserConverter, *, arg: str):
+    @admin.command(aliases=("g",), usage="[user=<you>] species: <species> [flags]")
+    async def give(self, ctx, user: Optional[FetchUserConverter] = commands.Author, *, flags: PokemonFlagConverter):
         """Give a pokémon."""
 
-        shiny = False
-
-        if arg.lower().startswith("shiny"):
-            shiny = True
-            arg = arg.lower().replace("shiny", "").strip()
-
-        species = self.bot.data.species_by_name(arg)
-
+        species = self.bot.data.species_by_name(flags.species)
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{arg}`.")
+            return await ctx.send(f"Could not find a pokemon matching `{flags.species}`.")
 
-        await self.bot.mongo.db.pokemon.insert_one(await self.bot.mongo.make_pokemon(user, species, shiny=shiny))
+        details = {flag: value for flag, value in flags if flag != "species" and value}
 
-        await ctx.send(f"Gave **{user}** a {species}.")
+        pokemon = await self.bot.mongo.make_pokemon(
+            user,
+            species,
+            **details,
+        )
+        pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
+        await self.bot.mongo.db.pokemon.insert_one(pokemon)
+
+        await ctx.send(f"Gave **{user}** a **{pokemon_obj:Di}**.")
 
     @commands.is_owner()
     @admin.command()

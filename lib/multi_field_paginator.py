@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from bot import ClusterBot
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PaginatedField:
     """Dataclass to easily define fields for MultiFieldPageSource
     along with useful methods and properties.

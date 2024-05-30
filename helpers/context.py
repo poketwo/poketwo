@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import List, Optional
+from typing import List, Optional, Sequence, Union, overload
 
 import discord
 from discord.ext import commands
@@ -142,6 +142,33 @@ class PoketwoContext(commands.Context):
             command_kwargs=self.kwargs,
         )
 
+    @overload
+    async def reply(
+        self,
+        content: Optional[str] = ...,
+        *,
+        tts: bool = ...,
+        embed: discord.Embed = ...,
+        file: discord.File = ...,
+        stickers: Sequence[Union[discord.GuildSticker, discord.StickerItem]] = ...,
+        delete_after: float = ...,
+        nonce: Union[str, int] = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: Union[discord.Message, discord.MessageReference, discord.PartialMessage] = ...,
+        mention_author: bool = ...,
+        view: discord.ui.View = ...,
+        suppress_embeds: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+    ) -> discord.Message | None:
+        ...
+
+    async def reply(self, *args, **kwargs):
+        try:
+            return await super().reply(*args, **kwargs)
+        except discord.HTTPException:
+            return await self.send(*args, **kwargs)
+
     async def confirm(
         self,
         message: Optional[discord.Message] = None,
@@ -154,7 +181,7 @@ class PoketwoContext(commands.Context):
         cls: Optional[ConfirmationView] = ConfirmationView,
     ) -> bool | None:
         member = await self.bot.mongo.fetch_member_info(self.author)
-        mention_author =  getattr(member, "confirm_mention", True)  # using getattr in case member is None
+        mention_author = getattr(member, "confirm_mention", True)  # using getattr in case member is None
 
         view = cls(self, timeout=timeout, delete_after=delete_after, delete_after_timeout=delete_after_timeout)
         view.message = await self.reply(
@@ -207,7 +234,7 @@ class PoketwoContext(commands.Context):
         cls: Optional[SelectView] = SelectView,
     ) -> List[str] | None:
         member = await self.bot.mongo.fetch_member_info(self.author)
-        mention_author =  getattr(member, "confirm_mention", True)  # using getattr in case member is None
+        mention_author = getattr(member, "confirm_mention", True)  # using getattr in case member is None
 
         view = cls(self, options=options, timeout=timeout, delete_after=delete_after)
         view.message = await self.reply(

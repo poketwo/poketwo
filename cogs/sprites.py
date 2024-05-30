@@ -2,6 +2,8 @@ from collections import namedtuple
 
 from discord.ext import commands
 
+from data.models import Species
+
 PokemonEmojis = namedtuple("PokemonEmojis", ("normal", "shiny"))
 
 servers = PokemonEmojis(
@@ -27,7 +29,7 @@ servers = PokemonEmojis(
         848523377646895144,
         980938986916814928,
         1110081870231781418,
-        1110081805933088803
+        1110081805933088803,
     ),
     shiny=(
         None,
@@ -52,7 +54,7 @@ servers = PokemonEmojis(
         848523377646895144,
         1110081870231781418,
         1110081805933088803,
-        980938986916814928
+        980938986916814928,
     ),
 )
 
@@ -1075,6 +1077,15 @@ pokemon = PokemonEmojis(
         1015: 1203454153276264458,
         1016: 1203454157256786032,
         1017: 1203454162294145135,
+        10147: 1242491442174361721,
+        1018: 1244618242430079046,
+        1019: 1244618238269063190,
+        1020: 1244618234812960778,
+        1021: 1244618231042277407,
+        1022: 1244618227233984564,
+        1023: 1244618219533242409,
+        1024: 1244618215334875189,
+        1025: 1244618207311167582,
     },
     shiny={
         1: 722655282538348585,
@@ -2094,11 +2105,12 @@ pokemon = PokemonEmojis(
         1015: 1203454153276264458,
         1016: 1203454157256786032,
         1017: 1203454162294145135,
+        10147: 1242491499279683646,
     },
 )
 
 other = {
-    "gray": 1243289159993524385,
+    "invisible": 1243289159993524385,
     "blue": 1243289166121275402,
     "yellow": 1243289168445051091,
     "red": 1243289170777210921,
@@ -2110,7 +2122,9 @@ other = {
     "gift_great": 725819512821121109,
     "gift_ultra": 725819512896749629,
     "gift_master": 750179717323161740,
+    # Shop 1
     "candy_rare": 725820017484103732,
+    # Shop 2 - Evolution Stones
     "stone_sun": 725820040326152293,
     "stone_moon": 725820040460501023,
     "stone_fire": 725820040393261197,
@@ -2121,7 +2135,10 @@ other = {
     "stone_dusk": 725820040510963854,
     "stone_dawn": 725820040451981383,
     "stone_ice": 725820040213168179,
+    # Shop 3 - Form Change Items
     "item_griseous_orb": 725820017853071552,
+    "item_adamant_crystal": 1244907479683432502,
+    "item_lustrous_globe": 1244907482619314206,
     "item_gracidea": 725820017828167690,
     "item_reveal_glass": 725820017735893098,
     "item_prison_bottle": 725820017509269537,
@@ -2129,6 +2146,20 @@ other = {
     "item_yellow_nectar": 725820017471651952,
     "item_pink_nectar": 725820017953865778,
     "item_purple_nectar": 725820018004066324,
+    "item_rusted_sword": 1244926772915601428,
+    "item_rusted_shield": 1244926769501569024,
+    "item_ice_reins_of_unity": 1245061286971310092,
+    "item_shadow_reins_of_unity": 1245061284878225439,
+    "item_black_dna_splicer": 1245068753444667402,
+    "item_white_dna_splicer": 1245068756795916298,
+    "item_n_solarizer": 1245078478567506021,
+    "item_n_lunarizer": 1245078480731771013,
+    "item_ultranecrozium_z": 1245078475342352444,
+    "item_teal_mask": 1245087835116146688,
+    "item_wellspring_mask": 1245087832481988669,
+    "item_hearthflame_mask": 1245087829252636816,
+    "item_cornerstone_mask": 1245087826073358552,
+    # Shop 4 - Held Items
     "item_everstone": 725820017882693713,
     "item_oval_stone": 741054749289218108,
     "item_kings_rock": 725820017756864514,
@@ -2147,13 +2178,27 @@ other = {
     "item_prism_scale": 741054749259989083,
     "item_whipped_dream": 725820017635098665,
     "item_sachet": 725820017698144336,
+    "item_sweet_apple": 1245209195574202419,
+    "item_tart_apple": 1245209198338248705,
+    "item_syrupy_apple": 1245209192944635964,
+    "item_unremarkable_cup": 1245216278780837990,
+    "item_strawberry_sweet" :1245218291086262373,
+    "item_scroll_of_darkness": 1245229004630265956,
+    "item_scroll_of_waters": 1245229001736196176,
+    "item_cracked_pot": 1245251367799492690,
+    "item_metal_alloy": 1244621770753970279,
+    # Shop 5 - Nature Mints
     "mint_atk": 725820000715276359,
     "mint_serious": 725820000690110534,
     "mint_def": 725820000648036412,
     "mint_spdef": 725820000790642768,
     "mint_spd": 725820000664813689,
     "mint_spatk": 725820000769933442,
-    "quest_trophy": 762791754751410207,
+    # Shop 6 - Mega Evolutions & Transformations
+    "item_mega_evolution": 1245294508128862308,
+    "item_transformation": 1245294504747995240,
+    # Misc
+    "quest_trophy": 1242534241833848842,
     "candy_halloween": 762788711590920203,
     "slider_start_empty": 848346324217757706,
     "slider_start_full": 848346324143570965,
@@ -2161,6 +2206,7 @@ other = {
     "slider_mid_full": 848346324108836906,
     "slider_end_empty": 848346323965968395,
     "slider_end_full": 848346324126007297,
+    # Badges
     "badge_halloween": 772359122783305728,
     "badge_kanto": 848495108802347028,
     "badge_johto": 848495108667867139,
@@ -2254,6 +2300,8 @@ other = {
     "type_rock": 1158743180552982579,
     "type_steel": 1158743189050638366,
     "type_shadow": 1227549249550684211,
+    "gmax": 1242455099213877248,
+    "locked": 1242996764823257172,
 }
 
 enable_emojis_for = (716390085896962058, 717112814535442432, 848517317469405214, 787517063647854593)
@@ -2268,7 +2316,10 @@ class Sprites(commands.Cog):
         return self.bot.user.id in enable_emojis_for
 
     def __getattr__(self, key):
-        return self[key]
+        try:
+            return self[key]
+        except KeyError:
+            return getattr(super(), key)
 
     def __getitem__(self, key):
         if self.status:
@@ -2276,9 +2327,11 @@ class Sprites(commands.Cog):
         else:
             return ""
 
-    def get(self, idx, shiny=False):
+    def get(self, species: Species, shiny=False):
+        idx = species.id if species.id in pokemon.normal else species.dex_number
+
         if self.status:
-            if shiny and pokemon.shiny[idx]:
+            if shiny and pokemon.shiny.get(idx):
                 return f"<:_:{pokemon.shiny[idx]}>"
             return f"<:_:{pokemon.normal[idx]}>"
         return ""

@@ -9,7 +9,7 @@ from discord.ext import commands
 from helpers import checks, pagination
 from helpers.constants import CharacterLimits
 from helpers.context import PoketwoContext
-from helpers.utils import unique
+from helpers.utils import build_channels_message, unique
 from lib.multi_field_paginator import MultiFieldPageSource, PaginatedField
 
 
@@ -40,7 +40,7 @@ class Configuration(commands.Cog):
 
         paginated_fields = [
             PaginatedField(
-                "Spawning Channels", [f"{i}. <#{x}>" for i, x in enumerate(guild.channels, 1)] or ["All Channels"]
+                name="Spawning Channels", entries=[f"{i}. <#{x}>" for i, x in enumerate(guild.channels, 1)] or ["All Channels"]
             ),
         ]
 
@@ -70,14 +70,14 @@ class Configuration(commands.Cog):
 
                 embed.add_field(
                     name=f"{field} {commands.get(field.name, '')}",
-                    value="\n".join(entries) + f"\n**Showing page {min(total_pages, current_page + 1)}/{total_pages}**",
+                    value="\n".join(entries) + (f"\n**Showing page {min(total_pages, current_page + 1)}/{total_pages}**" if total_pages > 1 else ""),
                     inline=False,
                 )
 
             return embed
 
         pages = pagination.ContinuablePages(
-            MultiFieldPageSource(paginated_fields, make_config_embed, per_page=5), loop_pages=False
+            MultiFieldPageSource(paginated_fields, make_config_embed, per_page=5)
         )
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
@@ -97,14 +97,43 @@ class Configuration(commands.Cog):
         await self.start_configuration_menu(ctx, show_help=True)
 
     @checks.has_started()
-    @commands.group(invoke_without_command=True)
+    @commands.command(invoke_without_command=True)
     async def togglemention(self, ctx):
+        """Toggle settings."""
+
+        return await ctx.send(
+            f"This command has migrated to `{ctx.clean_prefix}{self.toggle_mention.qualified_name}`, please use that instead."
+        )
+
+    @checks.has_started()
+    @commands.group(invoke_without_command=True)
+    async def toggle(self, ctx):
+        """Toggle settings."""
+
+        return await ctx.send_help(ctx.command)
+
+    @checks.has_started()
+    @toggle.group(name="catch-ivs", aliases=("catch-iv", "catchivs"), invoke_without_command=True)
+    async def toggle_catch_ivs(self, ctx):
+        """Toggle seeing pokémon IVs in catch messages."""
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"catch_ivs": not member.catch_ivs}})
+
+        if member.catch_ivs:
+            await ctx.send(f"You will no longer see the pokémon IV in catch messages.")
+        else:
+            await ctx.send("You will now see the pokémon IV in catch messages.")
+
+    @checks.has_started()
+    @toggle.group(name="mention", invoke_without_command=True)
+    async def toggle_mention(self, ctx):
         """Toggle getting mentioned in various cases."""
 
         return await ctx.send_help(ctx.command)
 
-    @togglemention.command(name="catch", aliases=("catching",))
-    async def catching(self, ctx):
+    @toggle_mention.command(name="catch", aliases=("catching",))
+    async def catching_mentions(self, ctx):
         """Toggle getting mentioned when catching a pokémon."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -115,8 +144,8 @@ class Configuration(commands.Cog):
         else:
             await ctx.send("You will now be pinged on catches.")
 
-    @togglemention.command(name="confirm", aliases=("confirmations", "confirmation"))
-    async def confirmations(self, ctx):
+    @toggle_mention.command(name="confirm", aliases=("confirmations", "confirmation"))
+    async def confirmation_mentions(self, ctx):
         """Toggle getting mentioned for confirmation messages."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
@@ -158,23 +187,6 @@ class Configuration(commands.Cog):
                 f"Disabled level up messages in this server. I'll send a DM when pokémon evolve or reach level 100."
             )
 
-    def build_redirect_message(
-        self, base_text: str, channels: List[Union[discord.TextChannel, discord.Thread]], *, prefix
-    ) -> str:
-        """
-        Forms redirect message. If it exceeds character limit, it shows the number of channels instead.
-        `base_text` must have a formatting key `channels` where the channels text will be interpolated.
-        """
-
-        message = base_text.format_map(dict(channels=", ".join(x.mention for x in channels)))
-        if len(message) > CharacterLimits.MESSAGE_CONTENT.value or len(channels) == 0:
-            message = (
-                base_text.format_map(dict(channels=f"**{len(channels)}** channels"))
-                + f" Use `{prefix}config` to see them all."
-            )
-
-        return message
-
     @checks.is_admin()
     @commands.guild_only()
     @commands.group(invoke_without_command=True, case_insensitive=True)
@@ -190,8 +202,8 @@ class Configuration(commands.Cog):
 
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": [x.id for x in channels]}})
 
-        content = self.build_redirect_message(
-            "Now redirecting spawns to {channels}.", channels, prefix=ctx.clean_prefix
+        content = build_channels_message(
+            "Now redirecting spawns to {channels}.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
         )
         await ctx.send(content)
 
@@ -214,8 +226,8 @@ class Configuration(commands.Cog):
             ctx.guild, {"$push": {"channels": {"$each": [x.id for x in channels if x.id not in guild.channels]}}}
         )
 
-        content = self.build_redirect_message(
-            "Added {channels} to redirected channels.", channels, prefix=ctx.clean_prefix
+        content = build_channels_message(
+            "Added {channels} to redirected channels.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
         )
         await ctx.send(content)
 
@@ -234,12 +246,10 @@ class Configuration(commands.Cog):
 
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
         channels = unique([x for x in channels if x.id in guild.channels], key=lambda ch: ch.id)
-        await self.bot.mongo.update_guild(
-            ctx.guild, {"$pull": {"channels": {"$in": [x.id for x in channels]}}}
-        )
+        await self.bot.mongo.update_guild(ctx.guild, {"$pull": {"channels": {"$in": [x.id for x in channels]}}})
 
-        content = self.build_redirect_message(
-            "Removed {channels} from redirected channels.", channels, prefix=ctx.clean_prefix
+        content = build_channels_message(
+            "Removed {channels} from redirected channels.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
         )
         await ctx.send(content)
 
@@ -272,8 +282,9 @@ class Configuration(commands.Cog):
     async def time(self, ctx: commands.Context):
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
 
-        embed = self.bot.Embed(title=f"Time: Day ☀️" if guild.is_day else "Time: Night 🌛")
-        embed.description = f"It is currently {'day' if guild.is_day else 'night'} time in this server."
+        current_time = guild.time
+        embed = self.bot.Embed(title=f"Time: {current_time}")
+        embed.description = f"It is currently {current_time.text} in this server."
         embed.add_field(name="Server Location", value=f"{guild.loc}\n{guild.lat}, {guild.lng}")
 
         await ctx.send(embed=embed)

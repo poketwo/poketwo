@@ -468,7 +468,7 @@ class ActionView(discord.ui.View):
                     pokemon = self.bot.mongo.Pokemon.build_from_mongo(pokemon_data)
                     switch_options.append(
                         discord.SelectOption(
-                            emoji=self.bot.sprites.get(pokemon.species.dex_number, shiny=pokemon.shiny) or None,
+                            emoji=self.bot.sprites.get(pokemon.species, shiny=pokemon.shiny) or None,
                             label=f"{pokemon:LpX}",
                             description="/".join(pokemon.species.types),
                             value=emoji,
@@ -798,12 +798,18 @@ class Battling(commands.Cog):
         await self.bot.mongo.update_pokemon(pokemon, update)
         await ctx.send("Your pokémon has learned " + move.name + "!")
 
+    # Pokemon name
+    @flags.add_flag("pokemon_name", nargs="*")
+
+    # Filter
+    @flags.add_flag("--type", "--t", type=str)
+    @flags.add_flag("--damage-class", "--class", type=str)
     @checks.has_started()
-    @commands.command(aliases=("ms",), rest_is_raw=True)
-    async def moveset(self, ctx, *, search: str):
+    @flags.command(aliases=("ms",))
+    async def moveset(self, ctx, **flags):
         """View all moves for your pokémon and how to get them."""
 
-        search = search.strip()
+        search = " ".join(flags["pokemon_name"]).strip()
 
         if len(search) > 0 and search[0] in "Nn#" and search[1:].isdigit():
             species = self.bot.data.species_by_number(int(search[1:]))
@@ -822,25 +828,37 @@ class Battling(commands.Cog):
                 "a specific pokémon, `latest` for your latest pokémon. ",
             )
 
+        def include(move):
+            if flags["type"] and move.type.lower() != flags["type"].lower():
+                return False
+
+            if flags["damage_class"] and move.damage_class.lower() != flags["damage_class"].lower():
+                return False
+
+            return True
+
+        moves = [move for move in species.moves if include(move.move)]
         async def get_page(source, menu, pidx):
             pgstart = pidx * 20
-            pgend = min(pgstart + 20, len(species.moves))
+            pgend = min(pgstart + 20, len(moves))
 
             # Send embed
 
             embed = self.bot.Embed(title=f"{species} — Moveset")
 
-            embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(species.moves)}.")
+            embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(moves)}.")
 
-            for move in species.moves[pgstart:pgend]:
-                embed.add_field(name=move.move.name, value=move.text)
+            for move in moves[pgstart:pgend]:
+                type_emoji = self.bot.sprites.get_type_sprite(move.move.type)
+                class_emoji = self.bot.sprites[f"class_{move.move.damage_class.lower()}"]
+                embed.add_field(name=f"[{type_emoji}/{class_emoji}] {move.move.name}", value=move.text)
 
             for i in range(-pgend % 3):
                 embed.add_field(name="‎", value="‎")
 
             return embed
 
-        pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(species.moves) / 20), get_page))
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(moves) / 20), get_page))
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
@@ -852,10 +870,12 @@ class Battling(commands.Cog):
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
@@ -876,6 +896,10 @@ class Battling(commands.Cog):
         else:
             move = None
 
+        if flags.get("regional"):
+            for regional in ("alolan", "galarian", "hisuian", "paldean"):
+                flags[regional] = True
+
         forms = [
             s
             for form in ("alolan", "galarian", "hisuian", "paldean", "mega", "event")
@@ -887,7 +911,7 @@ class Battling(commands.Cog):
             s
             for rarity in ("mythical", "legendary", "ub")
             for s in getattr(self.bot.data, f"list_{rarity}")
-            if flags[rarity]
+            if flags[rarity] or flags.get("rare")
         ]
 
         def include(key):
@@ -952,7 +976,7 @@ class Battling(commands.Cog):
 
             for species, pokemon_moves in pokemon[pgstart:pgend]:
                 try:
-                    emoji = self.bot.sprites.get(species.dex_number) + " "
+                    emoji = self.bot.sprites.get(species) + " "
                 except KeyError:
                     emoji = ""
 

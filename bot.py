@@ -1,4 +1,8 @@
+from __future__ import annotations
+
+import contextlib
 import logging
+from typing import TYPE_CHECKING
 
 import aiohttp
 import discord
@@ -13,6 +17,12 @@ import cogs
 import helpers
 from helpers import checks
 
+if TYPE_CHECKING:
+    from cogs.data import Data
+    from cogs.mongo import Mongo
+    from cogs.redis import Redis
+    from cogs.sprites import Sprites
+
 uvloop.install()
 
 DEFAULT_DISABLED_MESSAGE = (
@@ -24,6 +34,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "pick",
     "auction",
     "market",
+    "incense",
     "evolve",
     "favorite",
     "favoriteall",
@@ -158,19 +169,19 @@ class ClusterBot(commands.AutoShardedBot):
     # Easy access to things
 
     @property
-    def mongo(self):
+    def mongo(self) -> Mongo:
         return self.get_cog("Mongo")
 
     @property
-    def redis(self):
+    def redis(self) -> Redis:
         return self.get_cog("Redis").pool
 
     @property
-    def data(self):
+    def data(self) -> Data:
         return self.get_cog("Data").instance
 
     @property
-    def sprites(self):
+    def sprites(self) -> Sprites:
         return self.get_cog("Sprites")
 
     # Other stuff
@@ -179,8 +190,9 @@ class ClusterBot(commands.AutoShardedBot):
         if not isinstance(user, discord.abc.Snowflake):
             user = discord.Object(user)
 
-        dm = await self.create_dm(user)
-        return await dm.send(*args, **kwargs)
+        with contextlib.suppress(discord.HTTPException):
+            dm = await self.create_dm(user)
+            return await dm.send(*args, **kwargs)
 
     async def setup_hook(self):
         self.http_session = aiohttp.ClientSession()

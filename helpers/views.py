@@ -1,6 +1,11 @@
+from dataclasses import dataclass
 from datetime import datetime
+from typing import List, Optional
 
 import discord
+from discord.ext import commands
+
+from helpers.context import PoketwoContext
 
 
 class ViewTermsOfServiceView(discord.ui.View):
@@ -80,3 +85,57 @@ class ConfirmUpdatedTermsOfServiceView(discord.ui.View):
     async def on_timeout(self):
         if self.message:
             await self.message.edit(view=ViewTermsOfServiceView())
+
+
+@dataclass
+class CommandInvocation:
+    label: str
+    command: commands.Command
+    args: Optional[list] = None
+    kwargs: Optional[dict] = None
+    description: Optional[str] = None
+
+
+class CommandInvokeSelectMenu(discord.ui.Select):
+    def __init__(self, command_invocations: List[CommandInvocation], *args, **kwargs):
+        self.command_invocations = command_invocations
+
+        options = [
+            discord.SelectOption(
+                label=invocation.label,
+                value=str(i),
+                description=invocation.description,
+            )
+            for i, invocation in enumerate(command_invocations)
+        ]
+        super().__init__(options=options, *args, **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        invocation = self.command_invocations[int(self.values[0])]
+        args = invocation.args or []
+        kwargs = invocation.kwargs or {}
+        return await self.view.ctx.invoke(invocation.command, *args, **kwargs)
+
+
+class CommandInvokeView(discord.ui.View):
+    def __init__(
+        self, ctx: PoketwoContext, command_invocations: List[CommandInvocation], *, placeholder: Optional[str] = None
+    ):
+        self.ctx = ctx
+        self.command_invocations = command_invocations
+
+        self.message = None
+
+        super().__init__(timeout=120)
+        self.add_item(CommandInvokeSelectMenu(command_invocations, placeholder=placeholder))
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("You can't use this!", ephemeral=True)
+            return False
+        return True
+
+    async def on_timeout(self):
+        if self.message:
+            await self.message.edit(view=None)

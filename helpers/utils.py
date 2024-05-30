@@ -3,9 +3,11 @@ from __future__ import annotations
 import io
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 
 import discord
+
+from helpers.constants import CharacterLimits
 
 if TYPE_CHECKING:
     from bot import ClusterBot
@@ -49,18 +51,18 @@ def write_fp(data):
     return arr
 
 
-def make_slider(bot, progress):
+def make_slider(bot, progress: float, length: Optional[int] = 10, return_list: Optional[bool] = False) -> str | List[str]:
     func = math.ceil if progress < 0.5 else math.floor
-    bars = min(func(progress * 10), 10)
-    first, last = bars > 0, bars == 10
+    bars = min(func(progress * length), length)
+    first, last = bars > 0, bars == length
     mid = bars - (1 if last else 0) - (1 if first else 0)
 
-    ret = bot.sprites.slider_start_full if first else bot.sprites.slider_start_empty
-    ret += mid * bot.sprites.slider_mid_full
-    ret += (8 - mid) * bot.sprites.slider_mid_empty
-    ret += bot.sprites.slider_end_full if last else bot.sprites.slider_end_empty
+    ret = [bot.sprites.slider_start_full if first else bot.sprites.slider_start_empty]
+    ret.extend(mid * [bot.sprites.slider_mid_full])
+    ret.extend((length - 2 - mid) * [bot.sprites.slider_mid_empty])
+    ret.append(bot.sprites.slider_end_full if last else bot.sprites.slider_end_empty)
 
-    return ret
+    return ret if return_list else "".join(ret)
 
 
 def unwind(dictionary: Dict[tuple, Any], *, include_values: Optional[bool] = False):
@@ -128,3 +130,27 @@ def unique(iterable: Iterable, key: Optional[Callable] = lambda x: x) -> list:
         _dict[k] = item
 
     return list(_dict.values())
+
+
+def ordinal_indicator(number: int) -> str:
+    return {"1": "st", "2": "nd", "3": "rd"}.get(str(number)[-1], "th")
+
+
+def build_channels_message(
+    base_text: str,
+    channels: List[discord.TextChannel | discord.Thread],
+    *,
+    see_all_tip: Optional[str] = "",
+) -> str:
+    """
+    Forms message with a list of channels. If it exceeds character limit, it shows the number of channels instead.
+    `base_text` must have a formatting key `channels` where the channels text will be interpolated.
+    """
+
+    message = base_text.format_map(dict(channels=", ".join(f"<#{x.id}>" for x in channels)))
+    if len(message) > CharacterLimits.MESSAGE_CONTENT.value or len(channels) == 0:
+        message = base_text.format_map(dict(channels=f"{len(channels)} channel{'' if len(channels) == 1 else 's'}"))
+        if see_all_tip:
+            message += f" {see_all_tip}"
+
+    return message

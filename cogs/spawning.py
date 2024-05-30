@@ -1,18 +1,23 @@
 import random
+import textwrap
 import time
 from collections import defaultdict
 from datetime import datetime
+from typing import Optional
 from urllib.parse import urljoin
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
-from cogs import mongo
+from cogs.mongo import Incense
 from data import models
 from data.constants import GENDER_IMAGE_SUFFIXES
-from helpers import checks
+from helpers import checks, converters
 from helpers import genders
 from helpers.utils import write_fp
+
+
+GMAX_CHANCE = 1/100
 
 
 class Spawning(commands.Cog):
@@ -25,25 +30,8 @@ class Spawning(commands.Cog):
         self.bot.cooldown_users = {}
         self.bot.cooldown_guilds = {}
 
-        self.spawn_incense.start()
-
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
-
-    @tasks.loop(seconds=20)
-    async def spawn_incense(self):
-        channels = self.bot.mongo.db.channel.find({"spawns_remaining": {"$gt": 0}})
-        async for result in channels:
-            guild = self.bot.get_guild(result["guild_id"])
-            channel = None if guild is None else guild.get_channel_or_thread(result["_id"])
-
-            if channel is not None:
-                self.bot.loop.create_task(self.spawn_pokemon(channel, incense=result["spawns_remaining"]))
-                await self.bot.mongo.update_channel(channel, {"$inc": {"spawns_remaining": -1}})
-
-    @spawn_incense.before_loop
-    async def before_spawn_incense(self):
-        await self.bot.wait_until_ready()
 
     async def increase_xp(self, message):
         member = await self.bot.mongo.fetch_member_info(message.author)
@@ -85,7 +73,7 @@ class Spawning(commands.Cog):
 
                     pokemon.level += 1
                     guild = await self.bot.mongo.fetch_guild(message.channel.guild)
-                    evo = pokemon.get_next_evolution(guild.is_day)
+                    evo = pokemon.get_next_evolution(guild.time)
                     if evo is not None:
                         embed.add_field(
                             name=f"Your {name} is evolving!",
@@ -176,7 +164,13 @@ class Spawning(commands.Cog):
 
             self.bot.loop.create_task(self.spawn_pokemon(channel))
 
-    async def spawn_pokemon(self, channel, species=None, incense=None, redeem=False):
+    async def spawn_pokemon(
+        self,
+        channel: discord.TextChannel | discord.Thread,
+        species: Optional[models.Species] = None,
+        incense: Optional[Incense] = None,
+        redeem: Optional[bool] = False,
+    ):
         prev_species = None
         if await self.bot.redis.hexists("wild", channel.id):
             prev_species_id = await self.bot.redis.hget("wild", channel.id)
@@ -240,7 +234,20 @@ class Spawning(commands.Cog):
             embed.set_image(url="attachment://pokemon.png")
 
         if incense:
-            embed.set_footer(text=f"Incense: Active.\nSpawns Remaining: {incense-1}.")
+            incense.spawns_remaining -= 1
+            footer = textwrap.dedent(
+                f"""
+                Incense: Active.
+                Spawns Remaining: {incense.spawns_remaining}.
+                Spawn Interval: {incense.interval}s."""
+            )
+            if incense.ends_at:
+                footer += f"\nEnds in {converters.strfdelta(incense.ends_in)} at"
+                embed.timestamp = incense.ends_at
+
+            embed.set_footer(
+                text=footer
+            )
 
         self.caught_users[channel.id] = set()
         await self.bot.redis.hset("wild", channel.id, species.id)
@@ -339,11 +346,24 @@ class Spawning(commands.Cog):
 
         pokemon = await self.bot.mongo.make_pokemon(member, species, gender=gender)
         pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
-        r = await self.bot.mongo.db.pokemon.insert_one(pokemon)
-        if pokemon_obj.shiny:
-            await self.bot.mongo.update_member(ctx.author, {"$inc": {"shinies_caught": 1}})
 
-        message = f"Congratulations {ctx.author.mention}! You caught a {pokemon_obj:lnPg!s}!"
+        gmax = species.id == species.dex_number and species.gmax and random.random() < GMAX_CHANCE
+        if gmax:
+            pokemon["species_id"] = species.gmax.id
+
+        r = await self.bot.mongo.db.pokemon.insert_one(pokemon)
+
+        inc = {}
+        if pokemon_obj.shiny:
+            inc["shinies_caught"] = 1
+        if gmax:
+            inc["gmax_caught"] = 1
+
+        if inc:
+            await self.bot.mongo.update_member(ctx.author, {"$inc": inc})
+
+        spec = "lng!s" + ("P" if member.catch_ivs else "")
+        message = f"Congratulations {ctx.author.mention}! You caught a {pokemon_obj:{spec}}!"
 
         memberp = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
 
@@ -387,6 +407,9 @@ class Spawning(commands.Cog):
                     "$inc": {"balance": inc_bal, f"pokedex.{species.dex_number}": 1},
                 },
             )
+
+        if gmax:
+            message += f"\nWoah! It seems that this pokémon has the Gigantamax Factor... {self.bot.sprites['gmax']}"
 
         if member.shiny_hunt == species.dex_number:
             if pokemon_obj.shiny:
@@ -468,10 +491,6 @@ class Spawning(commands.Cog):
         )
 
         await ctx.send(f"You are now shiny hunting **{species}**.")
-
-    def cog_unload(self):
-        self.spawn_incense.cancel()
-        self.send_spawns.cancel()
 
 
 async def setup(bot: commands.Bot):

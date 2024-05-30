@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from enum import Enum
 import math
 import pickle
 import random
@@ -12,6 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from suntime import Sun
 from umongo import Document, EmbeddedDocument, Instance, MixinDocument, fields
 
+from cogs.incenses import DEFAULT_INTERVAL, Incense
 from data import models
 from helpers import constants
 from helpers.genders import generate_gender
@@ -101,8 +105,11 @@ class PokemonBase(MixinDocument):
             name += f"{self.iv_percentage:.2%} "
 
         if "i" in spec and self.bot.sprites.status:
-            sprite = self.bot.sprites.get(self.species.dex_number, shiny=self.shiny)
+            sprite = self.bot.sprites.get(self.species, shiny=self.shiny)
             name = sprite + " " + name
+
+        if "!G" not in spec and self.species.is_gmax:
+            name += f"{self.bot.sprites['gmax']} "
 
         name += str(self.species)
 
@@ -214,7 +221,7 @@ class PokemonBase(MixinDocument):
             + self.iv_spd / 31
         ) / 6
 
-    def get_next_evolution(self, is_day):
+    def get_next_evolution(self, time: Time):
         if self.species.evolution_to is None or self.held_item == 13001:
             return None
 
@@ -236,7 +243,7 @@ class PokemonBase(MixinDocument):
                 [self.bot.data.move_by_number(x).type_id == evo.trigger.move_type_id for x in self.moves]
             ):
                 can = False
-            if evo.trigger.time == "day" and not is_day or evo.trigger.time == "night" and is_day:
+            if evo.trigger.time and evo.trigger.time != time:
                 can = False
 
             if evo.trigger.relative_stats == 1 and self.atk <= self.defn:
@@ -246,6 +253,8 @@ class PokemonBase(MixinDocument):
             if evo.trigger.relative_stats == 0 and self.atk != self.defn:
                 can = False
             if evo.trigger.gender and evo.trigger.gender != self.gender:
+                can = False
+            if evo.trigger.natures and self.nature not in evo.trigger.natures:
                 can = False
 
             if can:
@@ -293,7 +302,10 @@ class Member(Document):
 
     # Pokédex
     pokedex = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    claimed_pokedex_rewards = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
+    notified_milestones = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
     shinies_caught = fields.IntegerField(default=0)
+    gmax_caught = fields.IntegerField(default=0)
 
     # Shop
     balance = fields.IntegerField(default=0)
@@ -325,6 +337,7 @@ class Member(Document):
     silence = fields.BooleanField(default=False)
     catch_mention = fields.BooleanField(default=True)
     confirm_mention = fields.BooleanField(default=True)
+    catch_ivs = fields.BooleanField(default=True)
 
     # Quests
     badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
@@ -452,6 +465,49 @@ class Member(Document):
         return random.random() < chance
 
 
+class Time(Enum):
+    DAWN = "🌅", "dawn"
+    DAY = "☀️", "day time"
+    DUSK = "🌆", "dusk"
+    NIGHT = "🌛", "night time"
+
+    def __init__(self, emoji: str, text: str):
+        self.emoji = emoji
+        self.text = text
+
+    def __format__(self, format_spec: str) -> str:
+        name = self.qname
+
+        if "!e" not in format_spec:
+            name += f" {self.emoji}"
+
+        return name
+
+    def __eq__(self, other) -> bool:
+        return self.name.casefold() == str(other).casefold()
+
+    @property
+    def qname(self) -> str:
+        return self.name.capitalize()
+
+    @classmethod
+    def from_time(cls, dt: datetime, *, sunrise: datetime, sunset: datetime) -> Time:
+        if sunset < sunrise:
+            sunset += timedelta(days=1)
+
+        offset = timedelta(hours=1.5)
+        for add_days in range(-1, 2):  # This is necessary because sunrise/set can be previous/current/next day
+            new_dt = dt + timedelta(days=add_days)
+            if (sunrise - offset) < new_dt < (sunrise + offset):  # 1.5 hours around sunrise
+                return cls.DAWN
+            elif (sunset - offset) < new_dt < (sunset + offset):  # 1.5 hours around sunset
+                return cls.DUSK
+            elif sunrise < new_dt < sunset:  # After sunrise and before sunset
+                return cls.DAY
+        else:
+            return cls.NIGHT
+
+
 class Guild(Document):
     class Meta:
         strict = False
@@ -470,18 +526,16 @@ class Guild(Document):
     )
 
     @property
-    def is_day(self):
+    def time(self) -> Time:
         sun = Sun(self.lat, self.lng)
         sunrise, sunset = sun.get_sunrise_time(), sun.get_sunset_time()
-        if sunset < sunrise:
-            sunset += timedelta(days=1)
 
         now = datetime.now(timezone.utc)
-        return (
-            sunrise < now < sunset
-            or sunrise < now + timedelta(days=1) < sunset
-            or sunrise < now + timedelta(days=-1) < sunset
-        )
+        return Time.from_time(now, sunrise=sunrise, sunset=sunset)
+
+    @property
+    def is_day(self):
+        return self.time == Time.DAY
 
 
 class Channel(Document):
@@ -489,11 +543,19 @@ class Channel(Document):
         strict = False
 
     id = fields.IntegerField(attribute="_id")
+    guild_id = fields.IntegerField()
     spawns_remaining = fields.IntegerField(default=0)
+    _incense = fields.DictField(attribute="incense", default=dict)
+
+    @property
+    def incense(self):
+        if self.spawns_remaining > 0:
+            return Incense(channel_id=int(self.id), spawns_remaining=self.spawns_remaining, interval=DEFAULT_INTERVAL, old_system=True)
+        return Incense(channel_id=int(self.id), **self._incense)
 
     @property
     def incense_active(self):
-        return self.spawns_remaining > 0
+        return (self.spawns_remaining or self.incense.spawns_remaining) > 0
 
 
 class Counter(Document):
@@ -578,7 +640,7 @@ class Mongo(commands.Cog):
         return result["next_idx"]
 
     async def fetch_pokedex(self, member: discord.Member | Member, start: int, end: int):
-        filter_obj = {}
+        filter_obj = {"claimed_pokedex_rewards": 1, "notified_milestones": 1}
 
         for i in range(start, end):
             filter_obj[f"pokedex.{i}"] = 1

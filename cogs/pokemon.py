@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import contextlib
+from dataclasses import dataclass
+from enum import Enum
 import itertools
 import math
 from collections import defaultdict
 from datetime import datetime
-from functools import cache
+from functools import cache, cached_property
 from operator import itemgetter
-from typing import Optional
+import textwrap
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import discord
 import pymongo
@@ -13,9 +18,15 @@ from discord.errors import DiscordException
 from discord.ext import commands
 from pymongo import UpdateOne
 
+from cogs.mongo import Member
 from data.constants import GENDER_TYPES
+from data.models import Species
+from data.utils import comma_formatted
 from helpers import checks, constants, converters, flags, genders, pagination
 from helpers.context import PoketwoContext
+
+if TYPE_CHECKING:
+    from bot import ClusterBot
 
 
 def isfloat(x):
@@ -27,11 +38,172 @@ def isfloat(x):
         return True
 
 
+POKEDEX_REWARD_SHINY_BOOST = 40
+
+
+class PokedexRewardItem(Enum):
+    ORIGINAL_MAGEARNA = 10147, Species
+
+    def __init__(self, _id: int, reward_type: Species) -> None:
+        self.id = _id
+        self.type = reward_type
+
+    def emoji(self, bot: ClusterBot) -> str:
+        match self.type:
+            case Species:
+                species = bot.data.species_by_number(self.id)
+                return bot.sprites.get(species)
+
+    def name(self, bot: ClusterBot) -> str:
+        match self.type:
+            case Species:
+                species = bot.data.species_by_number(self.id)
+                return species.name
+
+
+@dataclass
+class PokedexReward:
+    item: PokedexRewardItem
+    amount: int
+
+    def text(self, bot: ClusterBot) -> str:
+        emoji = self.item.emoji(bot)
+        text = self.item.name(bot)
+
+        return f"{self.amount}x {emoji} {text}"
+
+
+class PokedexMilestone(Enum):
+    #! DO NOT RENAME THESE ENUMS (the title strings are fine to change), THEY ARE USED TO KEEP TRACK OF CLAIMED MILESTONES!
+    GEN_1_TO_7 = "Gen I-VII", (1, 809), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+    GEN_8 = "Gen VIII Expansion", (810, 898), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+    HISUI = "Hisui Expansion", (899, 905), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+    GEN_9 = "Gen IX Expansion", (906, 1010), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+    DLC_1 = "Teal Mask Expansion", (1011, 1017), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+    DLC_2 = "Indigo Disk Expansion", (1018, 1025), PokedexReward(PokedexRewardItem.ORIGINAL_MAGEARNA, 1)
+
+    def __init__(self, title: str, from_to: Tuple[int, int], reward: PokedexReward):
+        self.title = title
+        self.from_id, self.to_id = from_to
+        self.reward = reward
+
+        self.entries = list(range(self.from_id, self.to_id + 1))
+
+    @property
+    def total_entries(self) -> int:
+        return len(self.entries)
+
+    @classmethod
+    def all(cls) -> List[PokedexMilestone]:
+        return list(sorted(list(cls), key=lambda m: m.from_id))
+
+    @classmethod
+    def get_user_milestones(cls, bot: ClusterBot, member: Member) -> List[Milestone]:
+        """Get all of a user's milestones"""
+
+        milestones = []
+        unlocked = True  # First one will always be unlocked
+        for milestone in cls.all():
+            m = Milestone(milestone, bot, member, unlocked)
+            unlocked = m.completed  # And then if this milestone isn't complete yet, next ones should not be unlocked
+            milestones.append(m)
+
+        return milestones
+
+    @classmethod
+    async def fetch_user_milestones(cls, bot: ClusterBot, user: discord.Member) -> List[Milestone]:
+        """Fetch all of a user's milestones"""
+
+        total_count = bot.data.total_pokedex_count
+        pokedex_member = await bot.mongo.fetch_pokedex(user, 0, total_count + 1)
+
+        milestones = [milestone for milestone in cls.get_user_milestones(bot, pokedex_member)]
+        return milestones
+
+    @classmethod
+    async def fetch_unclaimed(cls, bot: ClusterBot, user: discord.Member) -> List[Milestone]:
+        """Fetch all of a user's unclaimed milestones"""
+
+        milestones = await cls.fetch_user_milestones(bot, user)
+
+        unclaimed = [milestone for milestone in milestones if milestone.unclaimed]
+        return unclaimed
+
+
+@dataclass
+class Milestone:
+    meta: PokedexMilestone
+    bot: ClusterBot
+    member: Member
+    unlocked: bool
+
+    def __hash__(self) -> int:
+        return hash(self.meta)
+
+    def total_completed(self) -> int:
+        pokedex = self.member.pokedex
+        return sum([bool(pokedex.get(str(species_id), 0)) for species_id in self.meta.entries])
+
+    @property
+    def completed(self) -> bool:
+        completed = self.total_completed() == self.meta.total_entries
+        return self.unlocked and completed
+
+    @property
+    def claimed(self) -> bool:
+        claimed = bool(self.member.claimed_pokedex_rewards.get(self.meta.name))
+        return self.completed and claimed
+
+    @property
+    def unclaimed(self) -> bool:
+        return self.completed and not self.claimed
+
+    @property
+    def unnotified(self) -> bool:
+        notified = bool(self.member.notified_milestones.get(self.meta.name))
+        return self.unclaimed and not notified
+
+    def reward(self) -> Species:
+        reward = self.meta.reward
+        match reward.item.type:
+            case Species:
+                return self.bot.data.species_by_number(reward.item.id)
+
+    def status_emoji(self, *, return_gray: Optional[bool] = True) -> str:
+        if not self.unlocked:
+            return self.bot.sprites.locked
+
+        if self.completed:
+            if self.claimed:
+                return self.bot.sprites.check
+            else:
+                return self.bot.sprites.quest_trophy
+        else:
+            return self.bot.sprites.gray if return_gray else ""
+
+    def reward_text(self) -> str:
+        return self.meta.reward.text(self.bot)
+
+    def text(self) -> str:
+        completed = self.total_completed()
+        status_emoji = self.status_emoji()
+
+        meta = self.meta
+        progress = f"`{completed}/{meta.total_entries}`" if self.unlocked else "Locked"
+        reward_text = f"> **Reward**: {self.reward_text()}" if not self.claimed else f""
+        return textwrap.dedent(
+            f"""
+            **• {status_emoji} {meta.title}** (#{meta.from_id}-#{meta.to_id}) ― {progress}
+            {reward_text}
+            """
+        ).strip("\n")
+
+
 class Pokemon(commands.Cog):
     """Pokémon-related commands."""
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: ClusterBot = bot
 
     @checks.has_started()
     @commands.command(aliases=("renumber",))
@@ -100,14 +272,17 @@ class Pokemon(commands.Cog):
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
@@ -260,14 +435,17 @@ class Pokemon(commands.Cog):
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
@@ -364,14 +542,17 @@ class Pokemon(commands.Cog):
 
     # Filter
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
@@ -654,22 +835,22 @@ class Pokemon(commands.Cog):
 
         rarity = []
         for x in ("mythical", "legendary", "ub"):
-            if x in flags and flags[x]:
+            if x in flags and flags[x] or flags.get("rare"):
                 rarity += getattr(self.bot.data, f"list_{x}")
         if rarity:
             aggregations.append({"$match": {map_field("species_id"): {"$in": rarity}}})
 
-        forms = []
+        regionals = []
         for x in ("alolan", "galarian", "hisuian", "paldean"):
-            if x in flags and flags[x]:
-                forms += getattr(self.bot.data, f"list_{x}")
-        if forms:
-            aggregations.append({"$match": {map_field("species_id"): {"$in": forms}}})
+            if x in flags and flags[x] or flags.get("regional"):
+                regionals += getattr(self.bot.data, f"list_{x}")
+        if regionals:
+            aggregations.append({"$match": {map_field("species_id"): {"$in": regionals}}})
 
         if "paradox" in flags and flags["paradox"]:
             aggregations.append({"$match": {map_field("species_id"): {"$in": self.bot.data.list_paradox}}})
 
-        for x in ("mega", "event"):
+        for x in ("mega", "event", "gmax"):
             if x in flags and flags[x]:
                 aggregations.append({"$match": {map_field("species_id"): {"$in": getattr(self.bot.data, f"list_{x}")}}})
 
@@ -900,14 +1081,17 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
@@ -1019,14 +1203,17 @@ class Pokemon(commands.Cog):
     # Filter
     @flags.add_flag("page", nargs="?", type=int, default=1)
     @flags.add_flag("--shiny", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--alolan", action="store_true")
     @flags.add_flag("--galarian", action="store_true")
     @flags.add_flag("--hisuian", action="store_true")
     @flags.add_flag("--paldean", action="store_true")
+    @flags.add_flag("--regional", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--favorite", action="store_true")
@@ -1118,20 +1305,37 @@ class Pokemon(commands.Cog):
         except IndexError:
             await ctx.reply("No pokémon found.", mention_author=mention_author)
 
+    @commands.Cog.listener("on_catch")
+    async def notify_milestone(self, ctx: PoketwoContext, species: Species, _id):
+        milestones = await PokedexMilestone.fetch_user_milestones(self.bot, ctx.author)
+        unnotified = [milestone for milestone in milestones if milestone.unnotified]
+        if not unnotified:
+            return
+
+        num = len(unnotified)
+        s = "" if num == 1 else "s"
+        message = f"Congratulations, you have completed {'a' if num == 1 else num} pokédex milestone{s}! Use `{ctx.clean_prefix}{self.pokedex.qualified_name}` to view them and claim your rewards!"
+
+        await self.bot.mongo.update_member(
+            ctx.author, {"$set": {f"notified_milestones.{milestone.meta.name}": True for milestone in unnotified}}
+        )
+        return await ctx.reply(message)
+
     @flags.add_flag("page", nargs="*", type=str, default="1")
     @flags.add_flag("--caught", action="store_true")
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--mythical", action="store_true")
+    @flags.add_flag("--ub", action="store_true")
+    @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--paradox", action="store_true")
     @flags.add_flag("--orderd", action="store_true")
     @flags.add_flag("--ordera", action="store_true")
-    @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--type", "--t", type=str)
     @flags.add_flag("--region", "--r", type=str)
     @flags.add_flag("--learns", nargs="*", action="append")
     @checks.has_started()
-    @flags.command(aliases=("d", "dex"))
+    @commands.group(aliases=("d", "dex"), invoke_without_command=True, cls=flags.FlagGroup)
     async def pokedex(self, ctx, **flags):
         """View your pokédex, or search for a pokémon species."""
 
@@ -1143,26 +1347,22 @@ class Pokemon(commands.Cog):
         if flags["caught"] and flags["uncaught"]:
             return await ctx.send("You can use either --caught or --uncaught, but not both.")
 
-        if flags["mythical"] + flags["legendary"] + flags["ub"] > 1:
-            return await ctx.send("You can't use more than one rarity flag!")
-
         if search_or_page is None:
             search_or_page = "1"
 
-        total_count = sum(x.catchable and x.id < 10000 for x in self.bot.data.all_pokemon())
-
+        total_count = self.bot.data.total_pokedex_count
         if search_or_page.isdigit():
             pgstart = (int(search_or_page) - 1) * 20
 
             if pgstart >= total_count or pgstart < 0:
                 return await ctx.send("There are no pokémon on this page.")
 
-            num = await self.bot.mongo.fetch_pokedex_count(ctx.author)
-
             do_emojis = ctx.guild is None or ctx.channel.permissions_for(ctx.guild.me).external_emojis
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, 0, total_count + 1)
-            pokedex = member.pokedex
+            milestones = PokedexMilestone.get_user_milestones(self.bot, member)
+            pokedex = member.pokedex.copy()
+            completed = len(pokedex)
 
             if not flags["uncaught"] and not flags["caught"]:
                 for i in range(1, total_count + 1):
@@ -1175,12 +1375,15 @@ class Pokemon(commands.Cog):
                     else:
                         del pokedex[str(i)]
 
+            rarities = [
+                s
+                for rarity in ("mythical", "legendary", "ub")
+                for s in getattr(self.bot.data, f"list_{rarity}")
+                if flags[rarity] or flags.get("rare")
+            ]
+
             def include(key):
-                if flags["legendary"] and key not in self.bot.data.list_legendary:
-                    return False
-                if flags["mythical"] and key not in self.bot.data.list_mythical:
-                    return False
-                if flags["ub"] and key not in self.bot.data.list_ub:
+                if rarities and key not in rarities:
                     return False
                 if flags["paradox"] and key not in self.bot.data.list_paradox:
                     return False
@@ -1210,8 +1413,28 @@ class Pokemon(commands.Cog):
 
                 # Send embed
 
+                any_unclaimed = False
+                milestones_text = []
+                for milestone in milestones:
+                    if milestone.unclaimed:
+                        any_unclaimed = True
+
+                    milestones_text.append(milestone.text())
+
                 embed = self.bot.Embed(
-                    title=f"Your pokédex", description=f"You've caught {num:,} out of {total_count:,} pokémon!"
+                    title=f"Your pokédex",
+                    description=textwrap.dedent(
+                        f"""
+                        You've caught {completed:,} out of {total_count:,} pokémon!
+                        ### Pokédex Entry Milestones
+                        """
+                    )
+                    + "\n".join(milestones_text)
+                    + (
+                        f"\n\u200c\n> You have unclaimed rewards. Use `{ctx.clean_prefix}{self.claim.qualified_name}` to claim them!"
+                        if any_unclaimed
+                        else ""
+                    ),
                 )
 
                 embed.set_footer(text=f"Showing {pgstart + 1}–{pgend} out of {len(pokedex)}.")
@@ -1231,7 +1454,7 @@ class Pokemon(commands.Cog):
                             text = f"{v} caught!"
 
                     if do_emojis:
-                        emoji = self.bot.sprites.get(k) + " "
+                        emoji = self.bot.sprites.get(species) + " "
                     else:
                         emoji = ""
 
@@ -1294,68 +1517,69 @@ class Pokemon(commands.Cog):
 
             member = await self.bot.mongo.fetch_pokedex(ctx.author, species.dex_number, species.dex_number + 1)
 
-            embed = self.bot.Embed(title=f"#{species.dex_number} — {species}")
+            # Adds the correct button settings to the embed
+            view = pagination.DexView(ctx, species=species, member=member, is_shiny=shiny, gender=gender)
+            await ctx.send(embed=view.get_embed(), view=view)
 
-            if species.description:
-                embed.description = species.description.replace("\n", " ")
+    @checks.has_started()
+    @pokedex.command(name="claim")
+    async def claim(self, ctx: PoketwoContext):
+        """Claim completed pokédex milestone rewards."""
 
-            # Pokemon Rarity
-            rarity = []
-            if species.mythical:
-                rarity.append("Mythical")
-            if species.legendary:
-                rarity.append("Legendary")
-            if species.ultra_beast:
-                rarity.append("Ultra Beast")
-            if species.event:
-                rarity.append("Event")
-
-            if rarity:
-                rarity = ", ".join(rarity)
-                embed.add_field(
-                    name="Rarity",
-                    value=rarity,
-                    inline=False,
-                )
-
-            if species.evolution_text:
-                embed.add_field(name="Evolution", value=species.evolution_text, inline=False)
-
-            base_stats = (
-                f"**HP:** {species.base_stats.hp}",
-                f"**Attack:** {species.base_stats.atk}",
-                f"**Defense:** {species.base_stats.defn}",
-                f"**Sp. Atk:** {species.base_stats.satk}",
-                f"**Sp. Def:** {species.base_stats.sdef}",
-                f"**Speed:** {species.base_stats.spd}",
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        unclaimed_milestones = await PokedexMilestone.fetch_unclaimed(self.bot, ctx.author)
+        if not unclaimed_milestones:
+            return await ctx.reply(
+                f"You have no unclaimed pokédex milestone rewards that are unlocked at the moment!",
+                mention_author=False,
             )
 
-            if species.gender_rate == -1:
-                gender_rate = "Gender unknown"
-            else:
-                gender_rate = f"{constants.GENDER_EMOTES['male']} {species.gender_ratios[0]}% - {constants.GENDER_EMOTES['female']} {species.gender_ratios[1]}%"
+        rewards = {}
+        inserts = []
+        for milestone in unclaimed_milestones:
+            reward = milestone.reward()
+            amount = milestone.meta.reward.amount
+            match reward:
+                case Species:
+                    pokemon_texts = []
+                    for i in range(amount):
+                        pokemon = await self.bot.mongo.make_pokemon(
+                            member, reward, shiny_boost=POKEDEX_REWARD_SHINY_BOOST
+                        )
+                        pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
+                        inserts.append(pokemon)
+                        pokemon_texts.append(f"**{pokemon_obj:i}**")
 
-            embed.add_field(name="Types", value="\n".join(f"{self.bot.sprites.get_type_sprite(t)} {t}" for t in species.types))
-            embed.add_field(name="Region", value=species.region.title())
-            embed.add_field(name="Catchable", value="Yes" if species.catchable else "No")
+                    rewards[milestone] = comma_formatted(pokemon_texts)
 
-            embed.add_field(name="Base Stats", value="\n".join(base_stats))
-            embed.add_field(name="Names", value="\n".join(f"{x} {y}" for x, y in species.names))
-            embed.add_field(name="Appearance", value=f"Height: {species.height} m\nWeight: {species.weight} kg")
-            embed.add_field(name="Gender Ratio", value=f"{gender_rate}")
+        if inserts:
+            await self.bot.mongo.db.pokemon.insert_many(inserts)
 
-            text = "You haven't caught this pokémon yet!"
-            if str(species.dex_number) in member.pokedex:
-                text = f"You've caught {member.pokedex[str(species.dex_number)]} of this pokémon!"
+        await self.bot.mongo.update_member(
+            member, {"$set": {f"claimed_pokedex_rewards.{m.meta.name}": True for m in rewards}}
+        )
 
-            if species.art_credit:
-                text = f"Artwork by {species.art_credit}.\nMay be derivative of artwork © The Pokémon Company.\n" + text
+        num = len(unclaimed_milestones)
+        s = "" if num == 1 else "s"
+        embed = self.bot.Embed(
+            title=f"Congratulations, you have completed {'a' if num == 1 else num} pokédex milestone{s}! 🎉"
+        )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
-            embed.set_footer(text=text)
+        for milestone, reward_text in rewards.items():
+            embed.add_field(
+                name=f"{milestone.meta.title}",
+                value=f"You've earned a {reward_text}!",
+                inline=False,
+            )
 
-            # Adds the correct button settings to the embed
-            view = pagination.DexButtons(ctx, embed=embed, species=species, is_shiny=shiny, gender=gender)
-            await ctx.send(embed=view.get_embed(), view=view)
+        embed.set_footer(
+            text=(
+                "Thank you for the countless hours you've spent with us 💛\n"
+                "Stay tuned for more rewards on your journey to catch em' all!"
+            )
+        )
+        return await ctx.reply(embed=embed)
 
     @checks.has_started()
     @checks.is_not_in_trade()
@@ -1380,7 +1604,7 @@ class Pokemon(commands.Cog):
         for pokemon in args:
             name = format(pokemon, "Pgnx")
 
-            if (evo := pokemon.get_next_evolution(guild.is_day)) is None:
+            if (evo := pokemon.get_next_evolution(guild.time)) is None:
                 failed_msgs.append(f"- Your **{name}** can't be evolved!")
                 continue
 
