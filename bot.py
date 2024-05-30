@@ -21,6 +21,7 @@ DEFAULT_DISABLED_MESSAGE = (
 )
 
 CONCURRENCY_LIMITED_COMMANDS = {
+    "pick",
     "auction",
     "market",
     "evolve",

@@ -475,6 +475,13 @@ class Bot(commands.Cog):
                 "If you wish to continue, please re-run the command and agree to our Terms of Service to continue.",
             )
 
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        if member is not None:
+            return await ctx.send(
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
+            )
+
         # Go
 
         starter = self.bot.mongo.Pokemon.random(
