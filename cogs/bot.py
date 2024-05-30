@@ -435,7 +435,7 @@ class Bot(commands.Cog):
             pokemon_texts = []
             for pokemon_name in pokemon:
                 species = self.bot.data.species_by_name(pokemon_name)
-                sprite = self.bot.sprites.get(species.id)
+                sprite = self.bot.sprites.get(species)
                 pokemon_texts.append(f"{sprite} {species.name}")
 
             embed.add_field(name=gen, value=" \u200b · \u200b ".join(pokemon_texts), inline=False)
