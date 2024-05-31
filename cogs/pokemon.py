@@ -1638,26 +1638,28 @@ class Pokemon(commands.Cog):
 
     @checks.has_started()
     @checks.is_not_in_trade()
-    @commands.command(rest_is_raw=True)
-    async def unmega(self, ctx, *, pokemon: converters.PokemonConverter):
-        """Switch a pokémon back to its non-mega form."""
+    @commands.command(aliases=("unmega",), rest_is_raw=True)
+    async def untransform(self, ctx, *, pokemon: converters.PokemonConverter):
+        """Switch a alternative form (e.g. mega) pokémon back to its base / non-mega form."""
 
         if pokemon is None:
             return await ctx.send("Couldn't find that pokémon!")
 
-        fr = self.bot.data.species_by_number(pokemon.species.dex_number)
+        base = self.bot.data.species_by_number(pokemon.species.dex_number)
 
-        if pokemon.species not in (
-            fr.mega,
-            fr.mega_x,
-            fr.mega_y,
-        ):
-            return await ctx.send("This pokémon is not in mega form!")
+        is_mega = pokemon.species in (
+            base.mega,
+            base.mega_x,
+            base.mega_y,
+        )
+        is_item_form = all((pokemon.species.is_form, pokemon.species.form_item is not None, base.form_item is None))
+        if not (is_mega or is_item_form):
+            return await ctx.send("This pokémon is not an alternative / mega form that can be transformed back!")
 
         # confirm
 
         result = await ctx.confirm(
-            f"Are you sure you want to switch **{pokemon}** back to its non-mega form?\nThe mega evolution (1,000 pc) will not be refunded!"
+            f"Are you sure you want to switch **{pokemon}** back to a **{base}**?\nThe original price used to transform will not be refunded!"
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
@@ -1666,10 +1668,10 @@ class Pokemon(commands.Cog):
 
         await self.bot.mongo.update_pokemon(
             pokemon,
-            {"$set": {f"species_id": fr.id}},
+            {"$set": {f"species_id": base.id}},
         )
 
-        await ctx.send("Successfully switched back to non-mega form.")
+        await ctx.send("Successfully switched back to the base form.")
 
     @checks.has_started()
     @commands.command(aliases=("f",))

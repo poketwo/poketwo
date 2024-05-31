@@ -484,7 +484,8 @@ class Shop(commands.Cog):
                     break
             else:
                 return await ctx.send(
-                    f"This item can't be used on your selected pokémon! Please select a different pokémon using `{ctx.clean_prefix}select` and try again."
+                    f"This item can't be used on your selected pokémon! Please select a different pokémon using "
+                    f"`{ctx.clean_prefix}select` and try again. If you want to reverse transformation, try `{ctx.clean_prefix}untransform`."
                 )
 
         if "xpboost" in item.action:
