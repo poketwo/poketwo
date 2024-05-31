@@ -387,7 +387,9 @@ class Shop(commands.Cog):
             return await ctx.send(f"Couldn't find an item called `{' '.join(args)}`.")
 
         if item.action == "incense":
-            return await ctx.send(f"This command has migrated to `{ctx.clean_prefix}incense buy`, please use that instead!")
+            return await ctx.send(
+                f"This command has migrated to `{ctx.clean_prefix}incense buy`, please use that instead!"
+            )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
@@ -475,12 +477,15 @@ class Shop(commands.Cog):
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
-                if (
-                    item.id == 20000 and item.id == pokemon.species.form_item  # Transformation item should only work if both base and form have it as a form_item
-                    and form.id != pokemon.species.id
-                    and form.form_item is not None
-                    and form.form_item == item.id
+                if pokemon.species.id == form.id:
+                    continue
+
+                if item.id == 20000 and (
+                    pokemon.species.is_form or pokemon.species.event or pokemon.species.form_item == item.id
                 ):
+                    continue
+
+                if form.form_item is not None and form.form_item == item.id:
                     break
             else:
                 return await ctx.send(
