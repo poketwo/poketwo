@@ -1671,7 +1671,13 @@ class Pokemon(commands.Cog):
             {"$set": {f"species_id": base.id}},
         )
 
-        await ctx.send("Successfully switched back to the base form.")
+        embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
+        embed.add_field(
+            name=f"Your {pokemon:n} is changing forms!",
+            value=f"Your {pokemon:n} has turned into a {base.name}!",
+        )
+        embed.set_thumbnail(url=base.get_image_url(pokemon.shiny, pokemon.gender))
+        await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=("f",))
