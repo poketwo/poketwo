@@ -458,7 +458,7 @@ class Incenses(commands.Cog):
         except:
             pass
 
-    @incense.command(usage="[duration=1hour] [interval=20seconds]")
+    @incense.command(usage="[duration=1hour] [interval=20seconds] [skip_confirm=No]")
     @commands.guild_only()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
