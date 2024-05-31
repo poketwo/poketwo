@@ -378,7 +378,7 @@ class Incenses(commands.Cog):
         for interval, loop in self.interval_loops.items():
             loop.cancel()
 
-    @commands.group(aliases=("incenses",), invoke_without_command=True)
+    @commands.group(aliases=("incenses", "inc"), invoke_without_command=True)
     @commands.guild_only()
     async def incense(self, ctx: PoketwoContext):
         """See the list of all active incenses in the server"""
