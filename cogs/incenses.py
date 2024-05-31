@@ -14,6 +14,7 @@ from pymongo import IndexModel, ASCENDING
 from bson.objectid import ObjectId
 
 from helpers import checks, converters, pagination
+from helpers import flags
 from helpers.context import PoketwoContext
 from lib.multi_field_paginator import MultiFieldPageSource, PaginatedField
 from .sprites import other as other_sprites
@@ -202,7 +203,7 @@ class IncenseConfirmationView(discord.ui.View):
         return Incense(channel_id=self.ctx.channel.id, spawns_remaining=self.total_spawns, interval=self.interval)
 
     def confirmation_message(self) -> str:
-        discount_msg = f"({self.incense.discount_percent}% Discount)" if self.incense.discount else ''
+        discount_msg = f"({self.incense.discount_percent}% Discount)" if self.incense.discount else ""
         return textwrap.dedent(
             f"""
             ### Please choose the Duration and Interval of your Incense
@@ -461,8 +462,9 @@ class Incenses(commands.Cog):
     async def buy(
         self,
         ctx: PoketwoContext,
-        duration: DurationConverter = DEFAULT_DURATION,
-        interval: IntervalConverter = DEFAULT_INTERVAL,
+        duration: Optional[DurationConverter] = DEFAULT_DURATION,
+        interval: Optional[IntervalConverter] = DEFAULT_INTERVAL,
+        skip_confirm: Optional[bool] = False,
     ):
         """Buy an Incense that spawns Pokémon at given intervals for a given duration."""
 
@@ -473,14 +475,19 @@ class Incenses(commands.Cog):
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        view = IncenseConfirmationView(ctx, member, initial_duration=duration, initial_interval=interval)
-        await view.start()
-        if view.result is None:
-            return await ctx.send("Time's up. Aborted.")
-        if view.result is False:
-            return await ctx.send("Aborted.")
+        if not skip_confirm:
+            view = IncenseConfirmationView(ctx, member, initial_duration=duration, initial_interval=interval)
+            await view.start()
+            if view.result is None:
+                return await ctx.send("Time's up. Aborted.")
+            if view.result is False:
+                return await ctx.send("Aborted.")
+            incense = view.incense.new()
+        else:
+            incense = Incense(
+                channel_id=ctx.channel.id, spawns_remaining=int(duration / interval), interval=interval
+            ).new()
 
-        incense = view.incense.new()
         price = incense.calculate_price()
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.premium_balance < price:
@@ -504,7 +511,7 @@ class Incenses(commands.Cog):
             },
         )
 
-        await ctx.send(f"You purchased an Incense!")
+        await ctx.send(f"You purchased an Incense for {price:,} shards!")
 
     async def update_incense_status(
         self, to_status: IncenseStatus, channels: List[discord.TextChannel | discord.Thread | Channel]
