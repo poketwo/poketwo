@@ -476,9 +476,7 @@ class Shop(commands.Cog):
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             for form in forms:
                 if (
-                    not (
-                        item.id == 20000 and pokemon.species.event
-                    )  # Transformation item should not work for event pokemon
+                    item.id == 20000 and item.id == pokemon.species.form_item  # Transformation item should only work if both base and form have it as a form_item
                     and form.id != pokemon.species.id
                     and form.form_item is not None
                     and form.form_item == item.id
