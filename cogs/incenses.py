@@ -397,7 +397,11 @@ class Incenses(commands.Cog):
         paginated_fields = [
             PaginatedField(
                 name=f"Active Incenses ({len(incense_channels)})",
-                entries=[channel.incense.item_text() for channel in incense_channels],
+                entries=[
+                    channel.incense.item_text()
+                    for channel in incense_channels
+                    if ctx.guild.get_channel_or_thread(channel.id)
+                ],
             ),
         ]
 
