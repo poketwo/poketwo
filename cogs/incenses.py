@@ -364,6 +364,9 @@ class Incenses(commands.Cog):
             if not isinstance(interval, int):
                 continue
 
+            if interval < 1:
+                continue
+
             loop = self.make_loop(interval)
 
             self.interval_loops[interval] = loop
