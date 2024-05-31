@@ -524,7 +524,7 @@ class Bot(commands.Cog):
 
         pokedex_completed = await self.bot.mongo.fetch_pokedex_count(ctx.author)
         pokedex_total = self.bot.data.total_pokedex_count
-        pokedex_percent = round(pokedex_completed / pokedex_total * 100)
+        pokedex_percent = int(pokedex_completed / pokedex_total * 100)
 
         embed = self.bot.Embed(title="Trainer Profile")
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
