@@ -694,7 +694,7 @@ class Anniversary(commands.Cog):
             )
             await ctx.send(f"You've received a new ingredient: {amount}x {random_ingredient}!")
 
-    @commands.Cog.listener("on_command")
+    @commands.Cog.listener("on_command_completion")
     async def new_orders_notification(self, ctx: PoketwoContext):
         if ctx.command.cog == self:
             return
