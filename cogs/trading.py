@@ -36,6 +36,7 @@ class Trading(commands.Cog):
 
     @process_cancel_trades.before_loop
     async def before_process_cancel_trades(self):
+        await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
