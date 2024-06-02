@@ -358,7 +358,8 @@ class Incenses(commands.Cog):
     @tasks.loop(seconds=10)
     async def register_intervals(self):
         new_intervals = await self.bot.mongo.db.channel.distinct(
-            "incense.interval", {"incense.interval": {"$nin": list(self.interval_loops.keys())}}
+            "incense.interval",
+            {"incense.interval": {"$nin": list(self.interval_loops.keys())}, "incense.spawns_remaining": {"$gt": 0}},
         )
         for interval in new_intervals:
             if not isinstance(interval, int):
