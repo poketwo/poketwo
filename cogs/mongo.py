@@ -484,7 +484,7 @@ class Time(Enum):
         return name
 
     def __eq__(self, other) -> bool:
-        return self.name.casefold() == str(other).casefold()
+        return self.name.casefold() == getattr(other, "name", str(other)).casefold()
 
     @property
     def qname(self) -> str:
@@ -535,7 +535,7 @@ class Guild(Document):
 
     @property
     def is_day(self):
-        return self.time == Time.DAY
+        return self.time in (Time.DAY, Time.DAWN)
 
 
 class Channel(Document):
