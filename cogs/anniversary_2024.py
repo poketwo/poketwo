@@ -1126,10 +1126,11 @@ class Anniversary(commands.Cog):
                 f"You don't have enough {comma_formatted([f'{ing:b!e}' for ing in not_enough])}. Catch wild pokémon to find more!"
             )
 
-        await self.bot.mongo.update_member(
-            ctx.author,
-            {"$inc": inc},
-        )
+        if inc:
+            await self.bot.mongo.update_member(
+                ctx.author,
+                {"$inc": inc},
+            )
 
         ingredients_text = "\n".join(ingredients_text)
         await ctx.send(f"You used the following ingredients on your {order.recipe:b} order!\n{ingredients_text}")
