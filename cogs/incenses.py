@@ -393,15 +393,12 @@ class Incenses(commands.Cog):
                 "$or": [{"incense.spawns_remaining": {"$gt": 0}}, {"spawns_remaining": {"$gt": 0}}],
             }
         ).to_list(None)
+        incense_channels = [channel for channel in incense_channels if ctx.guild.get_channel_or_thread(channel.id)]
 
         paginated_fields = [
             PaginatedField(
                 name=f"Active Incenses ({len(incense_channels)})",
-                entries=[
-                    channel.incense.item_text()
-                    for channel in incense_channels
-                    if ctx.guild.get_channel_or_thread(channel.id)
-                ],
+                entries=[channel.incense.item_text() for channel in incense_channels],
             ),
         ]
 
