@@ -172,8 +172,8 @@ class Spawning(commands.Cog):
         redeem: Optional[bool] = False,
     ):
         prev_species = None
-        if await self.bot.redis.hexists("wild", channel.id):
-            prev_species_id = await self.bot.redis.hget("wild", channel.id)
+        prev_species_id = await self.bot.redis.hget("wild", channel.id)
+        if prev_species_id is not None:
             prev_species = self.bot.data.species_by_number(int(prev_species_id))
 
         if species is None:
