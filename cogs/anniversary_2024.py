@@ -700,6 +700,9 @@ class Anniversary(commands.Cog):
             return
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if not member:
+            return
+
         new, first_time = await self.check_new_orders(member)
 
         if new:
