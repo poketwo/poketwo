@@ -985,7 +985,7 @@ class Pokemon(commands.Cog):
         highest_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGHEST_IV_THRESHOLD}"]]}, ctx)
 
         HIGH_IV_THRESHOLD = 80
-        high_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGH_IV_THRESHOLD}"]]}, ctx)
+        high_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGH_IV_THRESHOLD}"], [f"<{HIGHEST_IV_THRESHOLD}"]]}, ctx)
 
         LOW_IV_THRESHOLD = 10
         low_iv_filter = aggregations + await self.create_filter({"iv": [[f"<{LOW_IV_THRESHOLD}"]]}, ctx)
@@ -997,7 +997,7 @@ class Pokemon(commands.Cog):
             "Rare Pokémon (Legendaries, Mythicals and Ultra Beasts)": rares_filter,
             "Regional Form Pokémon (Alolans, Galarians, Hisuians and Paldeans)": regionals_filter,
             f"Pokémon with **IV > {HIGHEST_IV_THRESHOLD}%**": highest_iv_filter,
-            f"Pokémon with **IV > {HIGH_IV_THRESHOLD}%**": high_iv_filter,
+            f"Pokémon with **IV > {HIGH_IV_THRESHOLD}%**, **< {HIGHEST_IV_THRESHOLD}%**": high_iv_filter,
             f"Pokémon with **IV < {LOW_IV_THRESHOLD}%**": low_iv_filter,
         }
 
