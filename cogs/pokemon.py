@@ -979,6 +979,7 @@ class Pokemon(commands.Cog):
         )
         event_filter = aggregations + await self.create_filter({"event": True}, ctx)
         shiny_filter = aggregations + await self.create_filter({"shiny": True}, ctx)
+        gmax_filter = aggregations + await self.create_filter({"gmax": True}, ctx)
 
         HIGHEST_IV_THRESHOLD = 90
         highest_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGHEST_IV_THRESHOLD}"]]}, ctx)
@@ -991,6 +992,7 @@ class Pokemon(commands.Cog):
 
         filters = {
             "✨ Shiny Pokémon": shiny_filter,
+            f"{self.bot.sprites.gmax} Gigantamax Pokémon": gmax_filter,
             "Event Pokémon": event_filter,
             "Rare Pokémon (Legendaries, Mythicals and Ultra Beasts)": rares_filter,
             "Regional Form Pokémon (Alolans, Galarians, Hisuians and Paldeans)": regionals_filter,
