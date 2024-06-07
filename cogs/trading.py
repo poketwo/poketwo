@@ -36,8 +36,8 @@ class Trading(commands.Cog):
 
     @process_cancel_trades.before_loop
     async def before_process_cancel_trades(self):
-        await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
+        await self.bot.get_cog("Redis").wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -60,8 +60,8 @@ class Trading(commands.Cog):
                 )
 
     async def clear_trades(self):
-        await self.bot.get_cog("Redis").wait_until_ready()
         await self.bot.wait_until_ready()
+        await self.bot.get_cog("Redis").wait_until_ready()
 
         todel = []
         async for key, val in self.bot.redis.ihscan("trade"):
