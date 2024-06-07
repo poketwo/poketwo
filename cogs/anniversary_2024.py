@@ -1012,6 +1012,8 @@ class Anniversary(commands.Cog):
 
         inventory_text = dedent(
             f"""
+            **The event has now ended. You can still progress existing orders and donate existing ingredients, but you will no longer receive new ingredients or orders. Good work!**
+
             You will earn ingredients as you catch pokémon in the wild. Use them to cook dishes and fulfil orders for hungry customers to earn various rewards and pokémon!
             """
         )
