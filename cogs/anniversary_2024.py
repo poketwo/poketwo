@@ -967,6 +967,7 @@ class Anniversary(commands.Cog):
 
         embed = self.make_embed(ctx, member)
         view.message = await ctx.reply(embed=embed, view=view, mention_author=False)
+        await self.check_completion(ctx)
 
     @checks.has_started()
     @anniversary.command(name="togglenotification", aliases=("notify",))
