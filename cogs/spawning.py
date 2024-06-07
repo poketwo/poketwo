@@ -340,7 +340,9 @@ class Spawning(commands.Cog):
 
             self.caught_users[ctx.channel.id].add(ctx.author.id)
         else:
-            await self.bot.redis.hdel("wild", ctx.channel.id)
+            current_species_id = await self.bot.redis.hget("wild", ctx.channel.id)
+            if current_species_id is not None and current_species_id == species_id:
+                await self.bot.redis.hdel("wild", ctx.channel.id)
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
