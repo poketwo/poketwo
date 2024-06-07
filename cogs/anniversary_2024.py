@@ -502,6 +502,7 @@ EMBED_COLOR = 0xF4D790
 TITLE_FLAVORS = ["is craving some", "would like one serving of", "ordered one serving of"]
 
 INGREDIENT_DROP_CHANCE = 0.50
+INGREDIENT_EXCHANGE_RATIO = 3
 EVENT_SHINY_BOOST = 5
 DONATION_REWARDS = [
     Reward(item=RewardItem.POKECOINS, chance=0.47, amounts=range(1000, 2001)),
@@ -655,6 +656,26 @@ class IngredientConverter(commands.Converter):
             raise ValueError(f"Invalid ingredient. Valid ingredients are: {valid_ingredients}")
 
         return ingredient
+
+
+class IngredientsFlagConverter(commands.FlagConverter, case_insensitive=True):
+    """Flag converter for passing in ingredients and amounts"""
+
+    fish: int = commands.flag(default=None)
+    vegetables: int = commands.flag(default=None)
+    chocolate: int = commands.flag(default=None)
+    cheese: int = commands.flag(default=None)
+    milk: int = commands.flag(default=None)
+    salt: int = commands.flag(default=None)
+    fruit: int = commands.flag(default=None)
+    water: int = commands.flag(default=None)
+    cream: int = commands.flag(default=None)
+    sugar: int = commands.flag(default=None)
+    egg: int = commands.flag(default=None)
+    herbs: int = commands.flag(default=None)
+    rice: int = commands.flag(default=None)
+    flour: int = commands.flag(default=None)
+    butter: int = commands.flag(default=None)
 
 
 class Anniversary(commands.Cog):
@@ -931,7 +952,8 @@ class Anniversary(commands.Cog):
                 footer.append(f"Next {difficulty.id} order in: {clock} {converters.strfdelta(period.next_in)}")
 
         embed.set_footer(
-            text="   —   ".join(footer) + "\nTip: Orders with 🌟 can reward a specific event pokémon as opposed to a random one!"
+            text="   —   ".join(footer)
+            + "\nTip: Orders with 🌟 can reward a specific event pokémon as opposed to a random one!"
         )
         embed.set_image(url=self.bot.data.asset("assets/anniversary_2024/cafe.png"))
 
@@ -1029,6 +1051,19 @@ class Anniversary(commands.Cog):
                 `{ctx.clean_prefix}{self.donate_ingredients.qualified_name} [times=1]`
                 """
             ),
+            inline=False,
+        )
+
+        embed.add_field(
+            name="Exchange Ingredients 🔁",
+            value=dedent(
+                f"""
+                As the café nears closing time, specific ingredients are scarce. If you need a specific ingredient, you can now exchange some of your other ingredients for it, in a {INGREDIENT_EXCHANGE_RATIO}:1 ratio!
+
+                `{ctx.clean_prefix}{self.exchange_ingredients.qualified_name} {self.exchange_ingredients.signature}`
+                """
+            ),
+            inline=False,
         )
 
         await ctx.reply(embed=embed, mention_author=False)
@@ -1123,7 +1158,9 @@ class Anniversary(commands.Cog):
             inc[f"{ANNIVERSARY_PREFIX}_ingredients.{ing.name}"] = -qty
             inc[f"{ANNIVERSARY_PREFIX}_orders.{order.difficulty.name}.progress.{ing.name}"] = qty
 
-            ingredients_text.append(f"- {qty}x {ing} ({progress.count + qty}/{progress.goal}, {in_stock - qty} in stock)")
+            ingredients_text.append(
+                f"- {qty}x {ing} ({progress.count + qty}/{progress.goal}, {in_stock - qty} in stock)"
+            )
 
         if not_enough:
             return await ctx.send(
@@ -1231,6 +1268,90 @@ class Anniversary(commands.Cog):
             )
 
         await ctx.reply(embed=embed, mention_author=False)
+
+    @anniversary.command(name="exchange")
+    async def exchange_ingredients(
+        self,
+        ctx: PoketwoContext,
+        desired_ingredient: IngredientConverter,
+        *,
+        from_ingredients: IngredientsFlagConverter,
+    ):
+        """Exchange excess ingredients for an ingredient you need, in a 3:1 ratio.
+
+        For example, `@Pokétwo anniversary exchange chocolate butter: 2 cheese: 4 water: 3` will give you (2 + 4 + 3) / 3 = 3 Chocolate"""
+
+        if all((v is None for i, v in from_ingredients)):
+            return await ctx.send(
+                f"You must specify which ingredients to exchange. E.g. `{ctx.clean_prefix}{self.exchange_ingredients.qualified_name} chocolate butter: 2 cheese: 4 water: 3`"
+            )
+
+        member: Member = await self.bot.mongo.fetch_member_info(ctx.author)
+        inventory = member.anniversary_2024_ingredients
+
+        ingredients = {}
+        for iname, amount in from_ingredients:
+            if amount is None:
+                continue
+
+            ingredient = Ingredient.dict()[iname.casefold().strip()]
+            if ingredient == desired_ingredient:
+                return await ctx.send(f"Can't exchange {ingredient:!e} for {desired_ingredient:!e}!")
+
+            if amount < 0:
+                return await ctx.send("Ingredient amount cannot be negative!")
+
+            if amount > inventory.get(ingredient.name, 0):
+                return await ctx.send(f"You don't have enough {ingredient:b!e}!")
+
+            if amount:
+                ingredients[ingredient] = amount
+
+        exchange_total = sum(ingredients.values())
+        if exchange_total < INGREDIENT_EXCHANGE_RATIO:
+            return await ctx.send(
+                f"You need to exchange a total of at least {INGREDIENT_EXCHANGE_RATIO} ingredients ({INGREDIENT_EXCHANGE_RATIO}:1 ratio)!"
+            )
+
+        ingredient_yield, remainder = divmod(exchange_total, INGREDIENT_EXCHANGE_RATIO)
+        exchange_total -= remainder
+        if not remainder:
+            exchange = ingredients
+        else:
+            exchange = {}
+            for ingredient, amount in ingredients.items():
+                current_total = sum(exchange.values())
+                amount = min(exchange_total, current_total + amount) - current_total
+                if amount > 0:
+                    exchange[ingredient] = amount
+
+        yield_text = f"**{ingredient_yield}x {desired_ingredient}**"
+        exchange_text = comma_formatted([f"{amount}x {ingredient:!e}" for ingredient, amount in exchange.items()])
+        confirm = await ctx.confirm(
+            f"Are you sure you want to exchange {exchange_text} for {yield_text} ({INGREDIENT_EXCHANGE_RATIO}:1 ratio)?"
+        )
+        if not confirm:
+            return await ctx.send("Aborted.")
+
+        member: Member = await self.bot.mongo.fetch_member_info(ctx.author)
+        inventory = member.anniversary_2024_ingredients
+
+        for ingredient, amount in exchange.items():
+            if amount > inventory.get(ingredient.name, 0):
+                return await ctx.send(f"You don't have enough {ingredient:b!e}!")
+
+        await self.bot.mongo.update_member(
+            ctx.author,
+            {
+                "$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{desired_ingredient.name}": ingredient_yield}
+                | {
+                    f"{ANNIVERSARY_PREFIX}_ingredients.{ingredient.name}": -amount
+                    for ingredient, amount in exchange.items()
+                }
+            },
+        )
+
+        await ctx.reply(f"You exchanged {exchange_text} for {yield_text} ({INGREDIENT_EXCHANGE_RATIO}:1 ratio)!")
 
     # region Debug
     @checks.is_developer()
