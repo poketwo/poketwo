@@ -704,55 +704,57 @@ class Anniversary(commands.Cog):
         ingredient = random.choices(population, weights, k=1)[0]
         return ingredient
 
-    # region On Catch
-    @commands.Cog.listener(name="on_catch")
-    async def drop_ingredient(self, ctx: PoketwoContext, species: Species, _id: int):
-        if random.random() < INGREDIENT_DROP_CHANCE:
-            random_ingredient = self.weighted_random_ingredient()
-            amount = random_ingredient.amount
-            await self.bot.mongo.update_member(
-                ctx.author, {"$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{random_ingredient.name}": amount}}
-            )
-            await ctx.send(f"You've received a new ingredient: {amount}x {random_ingredient}!")
+    # # region On Catch
+    # @commands.Cog.listener(name="on_catch")
+    # async def drop_ingredient(self, ctx: PoketwoContext, species: Species, _id: int):
+    #     if random.random() < INGREDIENT_DROP_CHANCE:
+    #         random_ingredient = self.weighted_random_ingredient()
+    #         amount = random_ingredient.amount
+    #         await self.bot.mongo.update_member(
+    #             ctx.author, {"$inc": {f"{ANNIVERSARY_PREFIX}_ingredients.{random_ingredient.name}": amount}}
+    #         )
+    #         await ctx.send(f"You've received a new ingredient: {amount}x {random_ingredient}!")
 
-    @commands.Cog.listener("on_command_completion")
-    async def new_orders_notification(self, ctx: PoketwoContext):
-        if ctx.command.cog == self:
-            return
+    # @commands.Cog.listener("on_command_completion")
+    # async def new_orders_notification(self, ctx: PoketwoContext):
+    #     if ctx.command.cog == self:
+    #         return
 
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if not member:
-            return
+    #     member = await self.bot.mongo.fetch_member_info(ctx.author)
+    #     if not member:
+    #         return
 
-        new, first_time = await self.check_new_orders(member)
+    #     new, first_time = await self.check_new_orders(member)
 
-        if new:
-            if first_time:
-                embed = self.bot.Embed(
-                    title="Happy 4th Anniversary, Pokétwo! 🎂",
-                    description=dedent(
-                        f"""
-                        Happy 4th Anniversary, Pokétwo 🎂! It's {FlavorStrings.poke2cafe}'s grand opening, and customers are pouring in! Cook up and serve dishes to hungry customers and earn various rewards and exclusive Pokémon! 🧑‍🍳
-                        - Use `{ctx.clean_prefix}{self.anniversary.qualified_name}` to learn more!"""
-                    ),
-                )
-                return await ctx.reply(embed=embed)
-            else:
-                if member.anniversary_2024_notify:
-                    return await ctx.reply(
-                        dedent(
-                            f"""
-                            You have new {FlavorStrings.poke2cafe} orders available! Use `{ctx.clean_prefix}{self.anniversary.qualified_name}` to view and accept them!
+    #     if new:
+    #         if first_time:
+    #             embed = self.bot.Embed(
+    #                 title="Happy 4th Anniversary, Pokétwo! 🎂",
+    #                 description=dedent(
+    #                     f"""
+    #                     Happy 4th Anniversary, Pokétwo 🎂! It's {FlavorStrings.poke2cafe}'s grand opening, and customers are pouring in! Cook up and serve dishes to hungry customers and earn various rewards and exclusive Pokémon! 🧑‍🍳
+    #                     - Use `{ctx.clean_prefix}{self.anniversary.qualified_name}` to learn more!"""
+    #                 ),
+    #             )
+    #             return await ctx.reply(embed=embed)
+    #         else:
+    #             if member.anniversary_2024_notify:
+    #                 return await ctx.reply(
+    #                     dedent(
+    #                         f"""
+    #                         You have new {FlavorStrings.poke2cafe} orders available! Use `{ctx.clean_prefix}{self.anniversary.qualified_name}` to view and accept them!
 
-                            You can turn this notification off using `{ctx.clean_prefix}{self.toggle_notification.qualified_name}`."""
-                        )
-                    )
+    #                         You can turn this notification off using `{ctx.clean_prefix}{self.toggle_notification.qualified_name}`."""
+    #                     )
+    #                 )
 
     def new_customer_name(self) -> str:
         return random.choice(list(self.bot.data.all_pokemon())).name
 
     async def check_new_orders(self, member: Member) -> Tuple[bool, bool]:
         """Check if member has any new orders. Returns if new orders are available and if it's user's first time."""
+
+        return False, False  # Event ended
 
         member_orders = member.anniversary_2024_orders
 
@@ -920,7 +922,8 @@ class Anniversary(commands.Cog):
                 f"""
                 Happy Anni4sary, Pokétwo 🎂! It's {FlavorStrings.poke2cafe}'s grand opening, and customers are pouring in! Cook up and serve dishes to hungry customers and earn various rewards and exclusive Pokémon! 🧑‍🍳
 
-                Ingredients can be obtained through catching wild Pokémon, and are used to fulfil orders. New orders will arrive regularly, and you'll be rewarded as you complete them with special rewards at certain milestones. Good luck!
+                **The event has now ended, and the café has stopped taking new orders after a very successful grand opening! You can still progress existing orders and donate existing ingredients, but you will no longer receive new ingredients or orders. Good work!**
+
                 - Use `{ctx.clean_prefix}{self.use_ingredient.qualified_name} <ingredient names>...` to progress orders!
                 - You can donate excess ingredients for rewards using `{ctx.clean_prefix}{self.donate_ingredients.qualified_name}`, while you wait for new orders!
                 """
@@ -941,15 +944,12 @@ class Anniversary(commands.Cog):
                 if stacked:
                     value = f"*New orders available, accept one using the select menu!*"
                 else:
-                    value = f"*No pending orders, good work! Next one {format_dt(period.next_at, 'R')} {clock}*"
+                    value = f"*No more orders left, good work!*"
 
             embed.add_field(
                 name=f"Pending {difficulty} Order #{idx} — {stacked} queued",
                 value=value,
             )
-
-            if stacked < difficulty.max_stack:
-                footer.append(f"Next {difficulty.id} order in: {clock} {converters.strfdelta(period.next_in)}")
 
         embed.set_footer(
             text="   —   ".join(footer)
