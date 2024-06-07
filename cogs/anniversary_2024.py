@@ -1089,7 +1089,9 @@ class Anniversary(commands.Cog):
         not_enough = [ingredient for ingredient in ingredients if inventory.get(ingredient.name, 0) <= 0]
         ingredients = [ingredient for ingredient in ingredients if ingredient not in not_enough]
         if not_enough:
-            await ctx.send(f"You don't have enough {comma_formatted([f'{ing:b!e}' for ing in not_enough])}.")
+            await ctx.send(
+                f"You don't have enough {comma_formatted([f'{ing:b!e}' for ing in not_enough])}.\n\nYou can exchange ingredients now using `{ctx.clean_prefix}{self.exchange_ingredients.qualified_name}` if you need to!"
+            )
             if not ingredients:
                 return
 
@@ -1201,7 +1203,7 @@ class Anniversary(commands.Cog):
         s = "" if times == 1 else "s"
         if not_enough:
             return await ctx.send(
-                f"You need at least {qty} of every ingredient in your inventory in order to donate {times} time{s}! Currently need {comma_formatted(not_enough)}"
+                f"You need at least {qty} of every ingredient in your inventory in order to donate {times} time{s}! Currently need {comma_formatted(not_enough)}.\n\nYou can exchange ingredients now using `{ctx.clean_prefix}{self.exchange_ingredients.qualified_name}` if you need to!"
             )
 
         result = await ctx.confirm(
