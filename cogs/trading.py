@@ -44,18 +44,19 @@ class Trading(commands.Cog):
         if (
             message.author.bot
             and message.author != self.bot.user
-            and deaccent(message.author.display_name) == "Poketwo"
+            and deaccent(message.author.display_name).casefold() == "poketwo"
         ):
             try:
                 await message.delete()
             except discord.HTTPException:
                 await message.channel.send(
-                    "**Warning:** A message by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                    "# Fake Bot Warning!\nA message by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to.\n\nPokétwo has left this server for player safety."
                 )
             else:
                 await message.channel.send(
-                    "**Warning:** A message by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                    "# Fake Bot Warning!\nA message by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to.\n\nPokétwo has left this server for player safety."
                 )
+            await message.guild.leave()
 
     async def clear_trades(self):
         await self.bot.wait_until_ready()
@@ -340,7 +341,9 @@ class Trading(commands.Cog):
         if member.suspended or datetime.utcnow() < member.suspended_until:
             return await ctx.send(f"**{user}** is suspended from the bot!")
 
-        result = await ctx.request(user, f"Requesting a trade with {user.mention}. Click the accept button to accept!", timeout=30)
+        result = await ctx.request(
+            user, f"Requesting a trade with {user.mention}. Click the accept button to accept!", timeout=30
+        )
         if result is None:
             return await ctx.send("The request to trade has timed out.")
         if result is False:
