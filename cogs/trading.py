@@ -45,18 +45,16 @@ class Trading(commands.Cog):
             message.author.bot
             and message.author != self.bot.user
             and deaccent(message.author.display_name) == "Poketwo"
-            and len(message.embeds) > 0
-            and "Trade between" in message.embeds[0].title
         ):
             try:
                 await message.delete()
             except discord.HTTPException:
                 await message.channel.send(
-                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                    "**Warning:** A message by a bot pretending to be Pokétwo was identified. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
                 )
             else:
                 await message.channel.send(
-                    "**Warning:** A trading embed by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
+                    "**Warning:** A message by a bot pretending to be Pokétwo was identified and deleted for safety. Unattentive players are scammed using fake bots every day. Please make sure you are trading what you intended to."
                 )
 
     async def clear_trades(self):
