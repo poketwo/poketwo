@@ -2148,6 +2148,7 @@ other = {
     "item_purple_nectar": 725820018004066324,
     "item_rusted_sword": 1244926772915601428,
     "item_rusted_shield": 1244926769501569024,
+    "item_rotom_catalog": 1251985266718015541,
     "item_ice_reins_of_unity": 1245061286971310092,
     "item_shadow_reins_of_unity": 1245061284878225439,
     "item_black_dna_splicer": 1245068753444667402,
