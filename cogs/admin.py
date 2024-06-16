@@ -12,7 +12,7 @@ from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
 
 
 class PokemonFlagConverter(commands.FlagConverter, case_insensitive=True):
-    species: str = commands.flag(max_args=1)
+    species: str = commands.flag(max_args=1, positional=True)
     nature: Optional[str] = None
     gender: Optional[str] = None
     level: Optional[int] = None
