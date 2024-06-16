@@ -372,12 +372,13 @@ class Bot(commands.Cog):
 
         embed.set_footer(text="You will automatically receive your rewards when you vote.")
 
-        if ctx.guild and ctx.guild.id == 716390832034414685:
-            embed.add_field(
-                name="Server Voting",
-                value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
-                inline=False,
-            )
+        # TODO: Possibly use discordbotlist?
+        # if ctx.guild and ctx.guild.id == 716390832034414685:
+        #     embed.add_field(
+        #         name="Server Voting",
+        #         value="You can also vote for our server [here](https://top.gg/servers/716390832034414685/vote) to receive a colored role.",
+        #         inline=False,
+        #     )
 
         await ctx.send(embed=embed, view=view)
 
