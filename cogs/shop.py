@@ -1,5 +1,6 @@
 import math
 import random
+import textwrap
 import typing
 from datetime import datetime, timedelta
 
@@ -10,6 +11,7 @@ from discord.ext import commands, tasks
 from cogs import mongo
 from data import models
 from helpers import checks, constants, converters, pagination
+from helpers.context import PoketwoContext
 from helpers.views import CommandInvocation, CommandInvokeView
 
 
@@ -361,7 +363,7 @@ class Shop(commands.Cog):
     @commands.guild_only()
     @commands.command()
     @checks.is_not_in_trade()
-    async def buy(self, ctx, *args: str):
+    async def buy(self, ctx: PoketwoContext, *args: str):
         """Purchase an item from the shop."""
 
         if len(args) == 0:
@@ -476,8 +478,12 @@ class Shop(commands.Cog):
 
         if item.action == "form_item":
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
+            possible_forms = []
             for form in forms:
-                if pokemon.species.id == form.id:
+                # This will allow inter-form transformations more clear in the select menu by including current
+                if pokemon.species.id == form.id and not (
+                    pokemon.species.form_item is not None and pokemon.species.form_item == item.id
+                ):
                     continue
 
                 if item.id == 20000 and (
@@ -486,8 +492,33 @@ class Shop(commands.Cog):
                     continue
 
                 if form.form_item is not None and form.form_item == item.id:
-                    break
-            else:
+                    possible_forms.append(form)
+
+            match len(possible_forms):
+                case 0:
+                    selected_form = None
+                case 1:
+                    selected_form = possible_forms[0]
+                case _:
+                    form_ids = await ctx.select(
+                        "Your pokémon can transform into multiple forms using this item. Please select a form to transform it into.",
+                        options=[
+                            discord.SelectOption(
+                                label=form.name,
+                                value=str(form.id),
+                                description=textwrap.shorten(form.description, 100) if form.description else None,
+                                emoji=self.bot.sprites.get(form),
+                                default=form.id == pokemon.species.id,
+                            )
+                            for form in possible_forms
+                        ],
+                    )
+                    if form_ids is None:
+                        return await ctx.send("Time's up. Aborted.")
+
+                    selected_form = discord.utils.get(possible_forms, id=int(form_ids[0]))
+
+            if selected_form is None or selected_form == pokemon.species:
                 return await ctx.send(
                     f"This item can't be used on your selected pokémon! Please select a different pokémon using "
                     f"`{ctx.clean_prefix}select` and try again. If you want to reverse transformation, try `{ctx.clean_prefix}untransform`."
@@ -545,6 +576,10 @@ class Shop(commands.Cog):
         # OK to buy, go ahead
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
+        pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, member.selected_id)
+
+        if pokemon is None:
+            return await ctx.send("You must have a pokémon selected!")
 
         if (member.premium_balance if item.shard else member.balance) < item.cost * qty:
             return await ctx.send(f"You don't have enough {'shards' if item.shard else 'Pokécoins'} for that!")
@@ -674,27 +709,18 @@ class Shop(commands.Cog):
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"held_item": item.id}})
 
         if item.action == "form_item":
-            forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
-            for form in forms:
-                if form.id != pokemon.species.id and form.form_item is not None and form.form_item == item.id:
-                    embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
+            embed = self.bot.Embed(title=f"Congratulations {ctx.author.display_name}!")
 
-                    name = str(pokemon.species)
+            name = format(pokemon, "n")
+            embed.add_field(
+                name=f"Your {name} is changing forms!",
+                value=f"Your {name} has turned into a {selected_form}!",
+            )
+            embed.set_thumbnail(url=selected_form.get_image_url(pokemon.shiny, pokemon.gender))
 
-                    if pokemon.nickname is not None:
-                        name += f' "{pokemon.nickname}"'
+            await self.bot.mongo.update_pokemon(pokemon, {"$set": {f"species_id": selected_form.id}})
 
-                    embed.add_field(
-                        name=f"Your {name} is changing forms!",
-                        value=f"Your {name} has turned into a {form}!",
-                    )
-                    embed.set_thumbnail(url=form.get_image_url(pokemon.shiny, pokemon.gender))
-
-                    await self.bot.mongo.update_pokemon(pokemon, {"$set": {f"species_id": form.id}})
-
-                    await ctx.send(embed=embed)
-
-                    break
+            await ctx.send(embed=embed)
 
     @checks.has_started()
     @commands.command(aliases=("ec",))
