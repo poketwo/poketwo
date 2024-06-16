@@ -4,6 +4,7 @@ import math
 import random
 from datetime import datetime, timedelta
 from itertools import zip_longest
+from typing import Optional, Tuple
 
 import discord
 from discord.ext import commands, tasks
@@ -11,7 +12,10 @@ from discord.ext import commands, tasks
 from data.models import deaccent
 from helpers import checks, flags, pagination
 from helpers.utils import add_moves_field
-from helpers.context import PoketwoContext
+from helpers.context import ConfirmationButton, PoketwoContext
+
+
+CONFIRM_TIMEOUT = 40
 
 
 def chunks(lst, n):
@@ -90,22 +94,10 @@ class Trading(commands.Cog):
             await self.bot.redis.rpush(f"cancel_trade:{cluster_id}", user_id)
             return False
 
-    async def send_trade(self, ctx: PoketwoContext, user: discord.Member, mention_author=False):
-        # TODO this code is pretty shit. although it does work
-
-        trade = self.bot.trades[user.id]
+    def get_embed_builder(self, trade: dict, *, done: bool, confirming: Optional[bool] = False):
         a, b = trade["users"]
-
-        done = False
-
-        if trade[a.id] and trade[b.id] and not trade["executing"]:
-            done = True
-            trade["executing"] = True
-
-        num_pages = max(math.ceil(len(x) / 20) for x in trade["pokemon"].values())
-
-        if done:
-            execmsg = await ctx.send("Executing trade...")
+        PER_PAGE = 20
+        num_pages = max(math.ceil(len(x) / PER_PAGE) for x in trade["pokemon"].values())
 
         users = {k: [("p", x) for x in v] for k, v in trade["pokemon"].items()}
         for x in users:
@@ -114,13 +106,17 @@ class Trading(commands.Cog):
             if trade["pokecoins"][x] > 0:
                 users[x].insert(0, ("c", trade["pokecoins"][x]))
 
-        embed_pages = list(zip_longest(*[list(chunks(x, 20)) for x in users.values()]))
+        embed_pages = list(zip_longest(*[list(chunks(x, PER_PAGE)) for x in users.values()]))
 
         if len(embed_pages) == 0:
             embed_pages = [[[], []]]
 
         async def get_page(source, menu, pidx):
             embed = self.bot.Embed(title=f"Trade between {a.display_name} and {b.display_name}.")
+            if confirming:
+                embed.set_author(
+                    name=f"Are you sure you want to confirm this trade? Please make sure that you are trading what you intended to."
+                )
 
             if done:
                 embed.title = f"✅ Completed trade between {a.display_name} and {b.display_name}."
@@ -160,6 +156,22 @@ class Trading(commands.Cog):
             )
 
             return embed
+
+        return num_pages, get_page
+
+    async def send_trade(self, ctx: PoketwoContext, user: discord.Member, mention_author=False):
+        # TODO this code is pretty shit. although it does work
+
+        trade = self.bot.trades[user.id]
+        a, b = trade["users"]
+        done = False
+
+        if trade[a.id] and trade[b.id] and not trade["executing"]:
+            done = True
+            trade["executing"] = True
+
+        if done:
+            execmsg = await ctx.send("Executing trade...")
 
         # Check if done
 
@@ -295,6 +307,7 @@ class Trading(commands.Cog):
 
         # Send msg
 
+        num_pages, get_page = self.get_embed_builder(trade, done=done)
         pages = pagination.ContinuablePages(
             pagination.FunctionPageSource(num_pages, get_page), mention_author=mention_author
         )
@@ -400,14 +413,66 @@ class Trading(commands.Cog):
         if not await self.is_in_trade(ctx.author):
             return await ctx.send("You're not in a trade!")
 
-        if self.bot.trades[ctx.author.id]["executing"]:
+        trade = self.bot.trades[ctx.author.id]
+
+        if trade["executing"]:
             return await ctx.send("The trade is currently loading...")
 
-        last_updated = self.bot.trades[ctx.author.id]["last_updated"]
+        before_confirm = datetime.utcnow()
+        last_updated = trade["last_updated"]
+        if before_confirm - last_updated < timedelta(seconds=3):
+            return await ctx.reply("The trade was recently modified. Please wait a few seconds, and then try again.")
+
+        if not trade[ctx.author.id]:  # Show confirmation only when not already confirmed by user
+            member = await self.bot.mongo.fetch_member_info(ctx.author)
+            done = False
+
+            num_pages, get_page = self.get_embed_builder(trade, done=done, confirming=True)
+            pages = pagination.ContinuablePages(
+                pagination.FunctionPageSource(num_pages, get_page),
+                mention_author=member.confirm_mention,
+                timeout=CONFIRM_TIMEOUT,
+            )
+
+            # Injecting the confirmation buttons into the paginator's view
+            view = pages.build_view()
+            if not view:
+                # View will be None if not paginating, but we still need it for the confirmation
+                view = pages.view = discord.ui.View(timeout=CONFIRM_TIMEOUT)
+
+            view.result = None
+            view.delete_after = False
+            view.add_item(ConfirmationButton(label="Confirm", result=True, style=discord.ButtonStyle.green, row=1))
+            view.add_item(ConfirmationButton(label="Abort", result=False, style=discord.ButtonStyle.red, row=1))
+
+            await pages.start(ctx)
+
+            view.message = pages.message
+            await view.wait()
+            result = view.result
+            if result is None:
+                return await ctx.send("The trade confirmation has timed out.")
+            if result is False:
+                return await ctx.send("Aborted.")
+
+            if not await self.is_in_trade(ctx.author):
+                return await ctx.send("You're not in a trade!")
+
+        if trade != self.bot.trades[ctx.author.id]:
+            return await ctx.send("Couldn't find the trade.")
+
+        last_updated = trade["last_updated"]
+        if last_updated > before_confirm:
+            return await ctx.send("The items in the trade have changed, please try again.")
+
+        if trade["executing"]:
+            return await ctx.send("The trade is currently loading...")
+
+        last_updated = trade["last_updated"]
         if datetime.utcnow() - last_updated < timedelta(seconds=3):
             return await ctx.reply("The trade was recently modified. Please wait a few seconds, and then try again.")
 
-        self.bot.trades[ctx.author.id][ctx.author.id] = not self.bot.trades[ctx.author.id][ctx.author.id]
+        trade[ctx.author.id] = not trade[ctx.author.id]
 
         await self.send_trade(ctx, ctx.author)
 
@@ -520,6 +585,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -551,6 +617,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -602,6 +669,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -632,6 +700,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     @checks.has_started()
@@ -662,6 +731,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author)
 
     # Filter
@@ -798,6 +868,7 @@ class Trading(commands.Cog):
             if type(k) == int:
                 self.bot.trades[ctx.author.id][k] = False
 
+        self.bot.trades[ctx.author.id]["last_updated"] = datetime.utcnow()
         await self.send_trade(ctx, ctx.author, mention_author=mention_author)
 
     @checks.has_started()

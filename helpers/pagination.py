@@ -85,14 +85,19 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
 
 class ContinuablePages(ViewMenuPages):
-    def __init__(self, source, allow_last=True, allow_go=True, loop_pages=True, mention_author=False, **kwargs):
-        super().__init__(source, **kwargs, timeout=120)
+    def __init__(self, source, allow_last=True, allow_go=True, loop_pages=True, mention_author=False, timeout=120, **kwargs):
+        super().__init__(source, **kwargs, timeout=timeout)
         self.allow_last = allow_last
         self.allow_go = allow_go
         self.loop_pages = loop_pages
         self.mention_author = mention_author
         for x in REMOVE_BUTTONS:
             self.remove_button(x)
+
+    def build_view(self):
+        if getattr(self, "view"):  # Not using default because view can be None
+            return self.view
+        return super().build_view()
 
     async def _get_kwargs_from_page(self, page):
         value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)

@@ -47,9 +47,9 @@ class SelectView(discord.ui.View):
 
 
 class ConfirmationButton(discord.ui.Button):
-    def __init__(self, *, label: str, result: bool, style: discord.ButtonStyle):
+    def __init__(self, *, result: bool, **kwargs):
         self.result = result
-        super().__init__(label=label, style=style)
+        super().__init__(**kwargs)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
