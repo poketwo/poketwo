@@ -24,7 +24,7 @@ discord-ext-menus-views = { git = "https://github.com/oliver-ni/discord-ext-menu
 expiringdict = "^1.2.1"
 structlog = "^22.3.0"
 python-json-logger = "^2.0.4"
-"discord.py" = { git = "https://github.com/poketwo/discord.py.git" }
+discord-py = {git = "https://github.com/poketwo/discord.py", rev = "a72ef40d284f03ba0a3afb80a664384d6c993d3e"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.12.0"
