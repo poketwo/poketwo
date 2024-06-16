@@ -551,7 +551,7 @@ class Shop(commands.Cog):
         elif item.action == "shiny_charm":
             if member.shiny_charm_active:
                 return await ctx.send(
-                    "You already have a shiny charm active! Please wait for it to expire before purchasing another one."
+                    f"You already have a shiny charm active until {discord.utils.format_dt(member.shiny_charm_expires)}! Please wait for it to expire before purchasing another one."
                 )
 
             await ctx.send(
