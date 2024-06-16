@@ -11,6 +11,7 @@ import discord
 import humanfriendly
 from discord.channel import TextChannel
 from discord.ext import commands, flags, tasks
+from discord.utils import format_dt
 
 from cogs.quests import DEFAULT_BADGES
 from helpers import checks, constants, converters
@@ -340,7 +341,7 @@ class Bot(commands.Cog):
             else:
                 timespan = next_vote - datetime.utcnow()
                 formatted = humanfriendly.format_timespan(timespan.total_seconds())
-                message = f"You can vote again in **{formatted}**."
+                message = f"You can vote again in **{formatted}** ({format_dt(next_vote)})."
 
             embed.add_field(name=f"{provider['name']} Timer", value=message, inline=True)
             view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
