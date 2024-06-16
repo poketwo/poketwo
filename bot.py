@@ -46,7 +46,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "select",
     "unfavorite",
     "unfavoriteall",
-    "unmega",
+    "untransform",
     "buy",
     "dropitem",
     "embedcolor",
