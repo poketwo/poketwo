@@ -162,7 +162,7 @@ class ClusterBot(commands.AutoShardedBot):
 
     async def is_owner(self, user):
         if isinstance(user, discord.Member):
-            if any(x.id in (718006431231508481, 930346842586218607) for x in user.roles):
+            if any(x.id in (718006431231508481, 930346842586218607, 1120600250474827856) for x in user.roles):
                 return True
         return await super().is_owner(user)
 
