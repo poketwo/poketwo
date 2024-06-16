@@ -568,6 +568,7 @@ class Incenses(commands.Cog):
         channels = await self.bot.mongo.Channel.find(
             {"guild_id": ctx.guild.id, "incense.spawns_remaining": {"$gt": 0}, "incense.paused": {"$ne": True}}
         ).to_list(None)
+        channels = [channel for channel in channels if ctx.guild.get_channel_or_thread(channel.id)]
 
         num_incenses = len(channels)
         if num_incenses == 0:
@@ -617,6 +618,7 @@ class Incenses(commands.Cog):
         channels = await self.bot.mongo.Channel.find(
             {"guild_id": ctx.guild.id, "incense.spawns_remaining": {"$gt": 0}, "incense.paused": True}
         ).to_list(None)
+        channels = [channel for channel in channels if ctx.guild.get_channel_or_thread(channel.id)]
 
         num_incenses = len(channels)
         if num_incenses == 0:
