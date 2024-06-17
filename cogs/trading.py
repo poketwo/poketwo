@@ -441,7 +441,7 @@ class Trading(commands.Cog):
                 view = pages.view = discord.ui.View(timeout=CONFIRM_TIMEOUT)
 
             view.result = None
-            view.delete_after = False
+            view.delete_after = True
             view.add_item(ConfirmationButton(label="Confirm", result=True, style=discord.ButtonStyle.green, row=1))
             view.add_item(ConfirmationButton(label="Abort", result=False, style=discord.ButtonStyle.red, row=1))
 
