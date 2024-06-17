@@ -237,7 +237,11 @@ class IncenseConfirmationView(discord.ui.View):
                 self.confirmation_message(), view=self, allowed_mentions=allowed_mentions
             )
 
-    async def start(self) -> None:
+    async def start(self, *, skip: Optional[bool] = False) -> None:
+        if skip:
+            self.result = True
+            return
+
         await self.update_message()
         await self.wait()
 
@@ -481,19 +485,15 @@ class Incenses(commands.Cog):
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if not flags.get("confirm"):
-            view = IncenseConfirmationView(ctx, member, initial_duration=duration, initial_interval=interval)
-            await view.start()
-            if view.result is None:
-                return await ctx.send("Time's up. Aborted.")
-            if view.result is False:
-                return await ctx.send("Aborted.")
-            incense = view.incense.new()
-        else:
-            incense = Incense(
-                channel_id=ctx.channel.id, spawns_remaining=int(duration / interval), interval=interval
-            ).new()
+        view = IncenseConfirmationView(ctx, member, initial_duration=duration, initial_interval=interval)
 
+        await view.start(skip=flags.get("confirm"))
+        if view.result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if view.result is False:
+            return await ctx.send("Aborted.")
+
+        incense = view.incense.new()
         price = incense.calculate_price()
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if member.premium_balance < price:
@@ -577,14 +577,14 @@ class Incenses(commands.Cog):
             return await ctx.send(f"There are no currently unpaused incenses in this server.")
 
         incense_text = f"incense{'' if num_incenses == 1 else 's'}"
-        if not flags.get("confirm"):
-            result = await ctx.confirm(
-                f"Are you sure you want to pause the {num_incenses} running {incense_text} in this server?"
-            )
-            if result is None:
-                return await ctx.send("Time's up. Aborted.")
-            if result is False:
-                return await ctx.send("Aborted.")
+        result = await ctx.confirm(
+            f"Are you sure you want to pause the {num_incenses} running {incense_text} in this server?",
+            skip=flags.get("confirm"),
+        )
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.update_incense_status(IncenseStatus.PAUSE, channels)
         await ctx.send(
@@ -629,14 +629,14 @@ class Incenses(commands.Cog):
             return await ctx.send("There are no paused incenses in this server.")
 
         incense_text = f"incense{'' if num_incenses == 1 else 's'}"
-        if not flags.get("confirm"):
-            result = await ctx.confirm(
-                f"Are you sure you want to resume the {num_incenses} paused {incense_text} in this server?"
-            )
-            if result is None:
-                return await ctx.send("Time's up. Aborted.")
-            if result is False:
-                return await ctx.send("Aborted.")
+        result = await ctx.confirm(
+            f"Are you sure you want to resume the {num_incenses} paused {incense_text} in this server?",
+            skip=flags.get("confirm"),
+        )
+        if result is None:
+            return await ctx.send("Time's up. Aborted.")
+        if result is False:
+            return await ctx.send("Aborted.")
 
         await self.update_incense_status(IncenseStatus.RESUME, channels)
         await ctx.send(f"Resumed {num_incenses} paused {incense_text} in this server.")

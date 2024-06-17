@@ -179,7 +179,12 @@ class PoketwoContext(commands.Context):
         delete_after: Optional[bool] = False,
         delete_after_timeout: Optional[bool] = True,
         cls: Optional[ConfirmationView] = ConfirmationView,
+        skip: Optional[bool] = False,  # This allows easier implementation of -y flags
     ) -> bool | None:
+
+        if skip:
+            return True
+
         member = await self.bot.mongo.fetch_member_info(self.author)
         mention_author = getattr(member, "confirm_mention", True)  # using getattr in case member is None
 
