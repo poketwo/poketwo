@@ -85,7 +85,9 @@ class AsyncListPageSource(menus.AsyncIteratorPageSource):
 
 
 class ContinuablePages(ViewMenuPages):
-    def __init__(self, source, allow_last=True, allow_go=True, loop_pages=True, mention_author=False, timeout=120, **kwargs):
+    def __init__(
+        self, source, allow_last=True, allow_go=True, loop_pages=True, mention_author=False, timeout=120, **kwargs
+    ):
         super().__init__(source, **kwargs, timeout=timeout)
         self.allow_last = allow_last
         self.allow_go = allow_go
@@ -97,7 +99,19 @@ class ContinuablePages(ViewMenuPages):
     def build_view(self):
         if getattr(self, "view"):  # Not using default because view can be None
             return self.view
-        return super().build_view()
+
+        view = super().build_view()
+        if view:
+
+            async def interaction_check(interaction):
+                if interaction.user.id not in {self.ctx.bot.owner_id, self.ctx.author.id, *self.ctx.bot.owner_ids}:
+                    await interaction.response.send_message("You can't use this!", ephemeral=True)
+                    return False
+                return True
+
+            view.interaction_check = interaction_check
+
+        return view
 
     async def _get_kwargs_from_page(self, page):
         value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
