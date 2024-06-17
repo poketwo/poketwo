@@ -13,12 +13,12 @@ from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
 
 class PokemonFlagConverter(commands.FlagConverter, case_insensitive=True):
     species: str = commands.flag(max_args=1, positional=True)
+    shiny: Optional[bool] = False
+    level: Optional[int] = None
+    xp: Optional[int] = 0
     nature: Optional[str] = None
     gender: Optional[str] = None
-    level: Optional[int] = None
-    xp: Optional[int] = None
-    shiny: Optional[bool] = None
-    has_color: Optional[bool] = commands.flag(aliases=("embedcolor",))
+    has_color: Optional[bool] = commands.flag(aliases=("embedcolor",), default=False)
 
     iv_total: Optional[int] = commands.flag(aliases=("iv",))
     iv_hp: Optional[int] = commands.flag(aliases=("hpiv", "hp"))
@@ -27,6 +27,16 @@ class PokemonFlagConverter(commands.FlagConverter, case_insensitive=True):
     iv_satk: Optional[int] = commands.flag(aliases=("satkiv", "satk"))
     iv_sdef: Optional[int] = commands.flag(aliases=("sdefiv", "sdef"))
     iv_spd: Optional[int] = commands.flag(aliases=("spdiv", "spd"))
+
+    @classmethod
+    def signature(self) -> str:
+        return " ".join(
+            ("<{}>" if flag.required else "[{}]").format(
+                f"{name}: {name.upper()}"
+                + (f"={flag.default if flag.default is not None else 'random'}" if not flag.required else "")
+            )
+            for name, flag in PokemonFlagConverter.get_flags().items()
+        )
 
 
 class Administration(commands.Cog):
@@ -161,7 +171,7 @@ class Administration(commands.Cog):
             await ctx.send(f"Gave **{user}** {amt:,} {box_type} boxes.")
 
     @commands.is_owner()
-    @admin.command(aliases=("g",), usage="[user=<you>] species: <species> [flags]")
+    @admin.command(aliases=("g",), usage=f"[user=<you>] {PokemonFlagConverter.signature()}")
     async def give(self, ctx, user: Optional[FetchUserConverter] = commands.Author, *, flags: PokemonFlagConverter):
         """Give a pokémon."""
 
