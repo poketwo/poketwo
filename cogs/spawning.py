@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 
 import discord
 from discord.ext import commands
+import humanfriendly
 
 from cogs.mongo import Incense
 from data import models
@@ -461,6 +462,11 @@ class Spawning(commands.Cog):
 
             if member.shiny_hunt:
                 embed.add_field(name=f"Chain", value=str(member.shiny_streak))
+
+            if member.shiny_charm_active:
+                timespan = member.shiny_charm_expires - datetime.utcnow()
+                timespan = humanfriendly.format_timespan(timespan.total_seconds())
+                embed.set_footer(text=f"You have a shiny charm active that expires in {timespan}.")
 
             return await ctx.send(embed=embed)
 
