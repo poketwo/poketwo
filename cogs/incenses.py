@@ -212,7 +212,9 @@ class IncenseConfirmationView(discord.ui.View):
             **Interval**: {INTERVALS[self.interval]}
             **Price**: {self.incense.calculate_price()} Shards {discount_msg}
 
-            The incense will instantly be activated in this channel. Are you sure?"""
+            **The incense will instantly be activated in this channel. Are you sure?**
+            *You can skip this confirmation using the `--confirm/-y` flag (be careful!)*
+            """
         )
 
     def update_default(self, select_menu: discord.ui.Select, default_value: str) -> None:
