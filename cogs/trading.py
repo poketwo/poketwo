@@ -12,7 +12,7 @@ from discord.ext import commands, tasks
 from data.models import deaccent
 from helpers import checks, flags, pagination
 from helpers.utils import add_moves_field
-from helpers.context import ConfirmationButton, PoketwoContext
+from helpers.context import ConfirmationButton, ConfirmationView, PoketwoContext
 
 
 CONFIRM_TIMEOUT = 40
@@ -21,6 +21,15 @@ CONFIRM_TIMEOUT = 40
 def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i : i + n]
+
+
+class TradeConfirmationView(ConfirmationView):
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, cancel_label="Abort", **kwargs)
 
 
 class Trading(commands.Cog):
@@ -428,30 +437,34 @@ class Trading(commands.Cog):
             done = False
 
             num_pages, get_page = self.get_embed_builder(trade, done=done, confirming=True)
+            source = pagination.FunctionPageSource(num_pages, get_page)
             pages = pagination.ContinuablePages(
-                pagination.FunctionPageSource(num_pages, get_page),
+                source,
                 mention_author=member.confirm_mention,
                 timeout=CONFIRM_TIMEOUT,
             )
-
-            # Injecting the confirmation buttons into the paginator's view
+            delete_after = True
             view = pages.build_view()
-            if not view:
-                # View will be None if not paginating, but we still need it for the confirmation
-                view = pages.view = discord.ui.View(timeout=CONFIRM_TIMEOUT)
+            if view:
+                # Injecting the confirmation buttons into the paginator's view
+                view.result = None
+                view.delete_after = delete_after
+                view.add_item(ConfirmationButton(label="Confirm", result=True, style=discord.ButtonStyle.green, row=1))
+                view.add_item(ConfirmationButton(label="Abort", result=False, style=discord.ButtonStyle.red, row=1))
 
-            view.result = None
-            view.delete_after = True
-            view.add_item(ConfirmationButton(label="Confirm", result=True, style=discord.ButtonStyle.green, row=1))
-            view.add_item(ConfirmationButton(label="Abort", result=False, style=discord.ButtonStyle.red, row=1))
+                await pages.start(ctx)
+                view.message = pages.message
+                await view.wait()
+                result = view.result
+            else:
+                result = await ctx.confirm(
+                    embed=await get_page(source, pages, 0), delete_after=delete_after, cls=TradeConfirmationView
+                )
 
-            await pages.start(ctx)
-
-            view.message = pages.message
-            await view.wait()
-            result = view.result
             if result is None:
-                return await ctx.send("The trade confirmation has timed out.")
+                if view:
+                    await view.message.delete()
+                return await ctx.send("Time's up. Aborted.")
             if result is False:
                 return await ctx.send("Aborted.")
 
