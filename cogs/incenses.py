@@ -383,8 +383,8 @@ class Incenses(commands.Cog):
         for interval, loop in self.interval_loops.items():
             loop.cancel()
 
-    @commands.group(aliases=("incenses", "inc"), invoke_without_command=True)
     @commands.guild_only()
+    @commands.group(aliases=("incenses", "inc"), invoke_without_command=True)
     async def incense(self, ctx: PoketwoContext):
         """See the list of all active incenses in the server"""
 
@@ -460,16 +460,17 @@ class Incenses(commands.Cog):
         except:
             pass
 
-    @incense.command(usage="[duration=1hour] [interval=20seconds] [skip_confirm=No]")
+    @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
+    @incense.command(usage="[duration=1hour] [interval=20seconds]", cls=flags.FlagCommand)
     async def buy(
         self,
         ctx: PoketwoContext,
         duration: Optional[DurationConverter] = DEFAULT_DURATION,
         interval: Optional[IntervalConverter] = DEFAULT_INTERVAL,
-        skip_confirm: Optional[bool] = False,
+        **flags,
     ):
         """Buy an Incense that spawns Pokémon at given intervals for a given duration."""
 
@@ -480,7 +481,7 @@ class Incenses(commands.Cog):
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if not skip_confirm:
+        if not flags.get("confirm"):
             view = IncenseConfirmationView(ctx, member, initial_duration=duration, initial_interval=interval)
             await view.start()
             if view.result is None:
@@ -534,9 +535,9 @@ class Incenses(commands.Cog):
             {"$set": {"incense.paused": pause}},
         )
 
-    @incense.group(invoke_without_command=True)
     @commands.guild_only()
     @checks.has_incense_role()
+    @incense.group(aliases=("p",), invoke_without_command=True)
     async def pause(
         self,
         ctx: commands.Context,
@@ -559,10 +560,11 @@ class Incenses(commands.Cog):
         await self.update_incense_status(IncenseStatus.PAUSE, [channel])
         await ctx.send(f"Incense has been paused. Use `{ctx.clean_prefix}incense resume` to resume it again.")
 
-    @pause.command(name="all")
+    @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
     @checks.is_admin()
-    async def pause_all(self, ctx: PoketwoContext):
+    @pause.command(name="all", aliases=("a",), cls=flags.FlagCommand)
+    async def pause_all(self, ctx: PoketwoContext, **flags):
         """Pause all active incenses in the server"""
 
         channels = await self.bot.mongo.Channel.find(
@@ -575,23 +577,24 @@ class Incenses(commands.Cog):
             return await ctx.send(f"There are no currently unpaused incenses in this server.")
 
         incense_text = f"incense{'' if num_incenses == 1 else 's'}"
-        result = await ctx.confirm(
-            f"Are you sure you want to pause the {num_incenses} running {incense_text} in this server?"
-        )
-        if result is None:
-            return await ctx.send("Time's up. Aborted.")
-        if result is False:
-            return await ctx.send("Aborted.")
+        if not flags.get("confirm"):
+            result = await ctx.confirm(
+                f"Are you sure you want to pause the {num_incenses} running {incense_text} in this server?"
+            )
+            if result is None:
+                return await ctx.send("Time's up. Aborted.")
+            if result is False:
+                return await ctx.send("Aborted.")
 
         await self.update_incense_status(IncenseStatus.PAUSE, channels)
         await ctx.send(
             f"Paused {num_incenses} running {incense_text} in this server. Use `{ctx.clean_prefix}incense resume [all]` to resume them again."
         )
 
-    @incense.group(invoke_without_command=True)
     @commands.guild_only()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
+    @incense.group(aliases=("r",), invoke_without_command=True)
     async def resume(
         self,
         ctx: commands.Context,
@@ -608,11 +611,12 @@ class Incenses(commands.Cog):
         await self.update_incense_status(IncenseStatus.RESUME, [channel])
         await ctx.send(f"Incense has been resumed.")
 
-    @resume.command(name="all")
+    @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
     @checks.is_admin()
     @checks.incenses_not_disabled()
-    async def resume_all(self, ctx: PoketwoContext):
+    @resume.command(name="all", aliases=("a",), cls=flags.FlagCommand)
+    async def resume_all(self, ctx: PoketwoContext, **flags):
         """Resume all paused incenses in the server"""
 
         channels = await self.bot.mongo.Channel.find(
@@ -625,20 +629,21 @@ class Incenses(commands.Cog):
             return await ctx.send("There are no paused incenses in this server.")
 
         incense_text = f"incense{'' if num_incenses == 1 else 's'}"
-        result = await ctx.confirm(
-            f"Are you sure you want to resume the {num_incenses} paused {incense_text} in this server?"
-        )
-        if result is None:
-            return await ctx.send("Time's up. Aborted.")
-        if result is False:
-            return await ctx.send("Aborted.")
+        if not flags.get("confirm"):
+            result = await ctx.confirm(
+                f"Are you sure you want to resume the {num_incenses} paused {incense_text} in this server?"
+            )
+            if result is None:
+                return await ctx.send("Time's up. Aborted.")
+            if result is False:
+                return await ctx.send("Aborted.")
 
         await self.update_incense_status(IncenseStatus.RESUME, channels)
         await ctx.send(f"Resumed {num_incenses} paused {incense_text} in this server.")
 
-    @incense.command()
     @commands.guild_only()
     @checks.is_admin()
+    @incense.command()
     async def stop(self, ctx: PoketwoContext):
         """Permanently stop incense in current channel. Does not refund remaining spawns."""
 
@@ -685,17 +690,17 @@ class Incenses(commands.Cog):
         )
         await ctx.send("Incense has been stopped.")
 
-    @commands.command()
     @commands.guild_only()
     @checks.is_admin()
+    @commands.command()
     async def stopincense(self, ctx: PoketwoContext):
         """Alias for `incense stop`."""
 
         await ctx.invoke(self.stop)
 
-    @incense.command()
     @commands.guild_only()
     @commands.is_owner()
+    @incense.command()
     async def adminbuy(self, ctx: PoketwoContext, spawns: int = DEFAULT_TOTAL_SPAWNS, interval: int = DEFAULT_INTERVAL):
         """Admin command to buy an incense with any spawns or intervals. -1 spawns will start an infinite incense."""
 
@@ -731,9 +736,9 @@ class Incenses(commands.Cog):
         )
         await ctx.send(f"You purchased an Incense!")
 
-    @incense.command()
     @commands.guild_only()
     @checks.is_developer()
+    @incense.command()
     async def disable(self, ctx: PoketwoContext, *, message: str):
         """Admin command to disable buying and resuming incenses globally in case of instability, maintenance or other issues."""
 
@@ -761,9 +766,9 @@ class Incenses(commands.Cog):
             f"Disabled purchasing and resuming incenses globally. You can re-enable them using `{ctx.clean_prefix}{self.enable.qualified_name}`."
         )
 
-    @incense.command(aliases=("reenable",))
     @commands.guild_only()
     @checks.is_developer()
+    @incense.command(aliases=("reenable",))
     async def enable(self, ctx: PoketwoContext):
         """Admin command to re-enable purchasing and resuming incenses globally."""
 
@@ -784,8 +789,8 @@ class Incenses(commands.Cog):
         await self.bot.redis.delete("incense_disabled")
         return await ctx.send(f"Re-enabled purchasing and resuming incenses globally.")
 
-    @incense.command(name="migrate-old")
     @checks.is_developer()
+    @incense.command(name="migrate-old")
     async def migrate_old(self, ctx: PoketwoContext):
         """Developer-only command to migrate old incenses to the new system"""
 

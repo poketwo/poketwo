@@ -41,6 +41,44 @@ class FlagCommand(flags.FlagCommand):
 
         return " ".join(result)
 
+    async def _parse_arguments(self, ctx):
+        ctx.args = [ctx] if self.cog is None else [self.cog, ctx]
+        ctx.kwargs = {}
+        args = ctx.args
+        kwargs = ctx.kwargs
+        attachments = commands.core._AttachmentIterator(ctx.message.attachments)
+
+        view = ctx.view
+        iterator = iter(self.params.items())
+
+        for name, param in iterator:
+            if param.kind == param.POSITIONAL_OR_KEYWORD:
+                transformed = await self.transform(ctx, param, attachments)
+                args.append(transformed)
+            elif param.kind == param.KEYWORD_ONLY:
+                # kwarg only param denotes "consume rest" semantics
+                if self.rest_is_raw:
+                    converter = self._get_converter(param)
+                    argument = view.read_rest()
+                    kwargs[name] = await self.do_conversion(ctx, converter, argument, param)
+                else:
+                    kwargs[name] = await self.transform(ctx, param, attachments)
+                break
+            elif param.kind == param.VAR_POSITIONAL:
+                while not view.eof:
+                    try:
+                        transformed = await self.transform(ctx, param, attachments)
+                        args.append(transformed)
+                    except RuntimeError:
+                        break
+            elif param.kind == param.VAR_KEYWORD:
+                await self._parse_flag_arguments(ctx)
+                break
+
+        if not self.ignore_extra:
+            if not view.eof:
+                raise commands.TooManyArguments('Too many arguments passed to ' + self.qualified_name)
+
 
 class FlagGroup(FlagCommand, commands.Group):
     pass
