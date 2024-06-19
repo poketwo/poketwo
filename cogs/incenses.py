@@ -340,20 +340,24 @@ class Incenses(commands.Cog):
     def make_loop(self, interval_seconds: int) -> tasks.Loop:
         @tasks.loop(seconds=interval_seconds)
         async def spawn_incense():
-            channels = self.bot.mongo.Channel.find(
-                {
-                    "incense.spawns_remaining": {"$gt": 0},
-                    "incense.interval": interval_seconds,
-                    "incense.paused": {"$ne": True},
-                }
-            )
-            async for result in channels:
-                guild = self.bot.get_guild(result.guild_id)
-                channel = None if guild is None else guild.get_channel_or_thread(result.id)
+            try:
+                channels = self.bot.mongo.Channel.find(
+                    {
+                        "incense.spawns_remaining": {"$gt": 0},
+                        "incense.interval": interval_seconds,
+                        "incense.paused": {"$ne": True},
+                    }
+                )
+                async for result in channels:
+                    guild = self.bot.get_guild(result.guild_id)
+                    channel = None if guild is None else guild.get_channel_or_thread(result.id)
 
-                if channel is not None:
-                    self.bot.loop.create_task(self.spawn_pokemon(channel, incense=result.incense))
-                    await self.bot.mongo.update_channel(channel, {"$inc": {"incense.spawns_remaining": -1}})
+                    if channel is not None:
+                        self.bot.loop.create_task(self.spawn_pokemon(channel, incense=result.incense))
+                        await self.bot.mongo.update_channel(channel, {"$inc": {"incense.spawns_remaining": -1}})
+            except Exception as error:
+                print(error)
+                self.bot.log.exception("spawn_incense.error")
 
         @spawn_incense.before_loop
         async def before_spawn_incense():
