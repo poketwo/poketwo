@@ -42,6 +42,14 @@ def is_developer():
     return commands.check_any(commands.is_owner(), commands.has_role(1120600250474827856))
 
 
+def is_bot_manager():
+    return commands.check_any(commands.is_owner(), commands.has_role(1219501453240959006))
+
+
+def is_server_manager():
+    return commands.check_any(commands.is_owner(), commands.has_role(1219500880534179892))
+
+
 def has_incense_role():
     async def predicate(ctx):
         permissions = ctx.channel.permissions_for(ctx.author)

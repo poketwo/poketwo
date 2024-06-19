@@ -5,7 +5,7 @@ from typing import Optional
 
 from discord.ext import commands
 
-from helpers import flags
+from helpers import checks, flags
 from helpers.constants import FILTER_BY_NUMERICAL
 from helpers.context import PoketwoContext
 from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
@@ -50,7 +50,7 @@ class Administration(commands.Cog):
     async def admin(self, ctx):
         pass
 
-    @commands.is_owner()
+    @checks.is_bot_manager()
     @admin.command(aliases=("sp",))
     async def suspend(self, ctx, users: commands.Greedy[FetchUserConverter], *, reason: str = None):
         """Suspend one or more users."""
@@ -66,7 +66,7 @@ class Administration(commands.Cog):
             await ctx.message.reference.resolved.add_reaction("✅")
         await ctx.send(f"Suspended {users_msg}.")
 
-    @commands.is_owner()
+    @checks.is_bot_manager()
     @admin.command(aliases=("tsp",))
     async def tempsuspend(
         self,
@@ -92,7 +92,7 @@ class Administration(commands.Cog):
             await ctx.message.reference.resolved.add_reaction("✅")
         await ctx.send(f"Suspended {users_msg} for {strfdelta(duration)}.")
 
-    @commands.is_owner()
+    @checks.is_bot_manager()
     @admin.command(aliases=("usp",))
     async def unsuspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
         """Unuspend one or more users."""
