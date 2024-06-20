@@ -480,15 +480,23 @@ class Shop(commands.Cog):
             forms = self.bot.data.all_species_by_number(pokemon.species.dex_number)
             possible_forms = []
             for form in forms:
+                # Shouldn't be able to transform event pokemon
+                if pokemon.species.event:
+                    break
+
+                # Shouldn't be able to transform to an event version
+                if form.species.event:
+                    continue
+
                 # This will allow inter-form transformations more clear in the select menu by including current
                 if pokemon.species.id == form.id and not (
                     pokemon.species.form_item is not None and pokemon.species.form_item == item.id
                 ):
                     continue
 
-                if item.id == 20000 and (
-                    pokemon.species.is_form or pokemon.species.event or pokemon.species.form_item == item.id
-                ):
+                # If the item is Transformation, continue to next form if current pokemon is also a form or
+                # if current pokemon has a form_item field that is also Transformation
+                if item.id == 20000 and (pokemon.species.is_form or pokemon.species.form_item == item.id):
                     continue
 
                 if form.form_item is not None and form.form_item == item.id:
