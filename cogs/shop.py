@@ -485,7 +485,7 @@ class Shop(commands.Cog):
                     break
 
                 # Shouldn't be able to transform to an event version
-                if form.species.event:
+                if form.event:
                     continue
 
                 # This will allow inter-form transformations more clear in the select menu by including current
