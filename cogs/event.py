@@ -1,26 +1,30 @@
+from collections import defaultdict
+import itertools
 from textwrap import dedent
 
 from discord.ext import commands
+from discord import Color
 
 from helpers import checks
 
 
 # For future events, add this cog to cogs/__init__.py and just change these
 
-TITLE = "Spring Overgrown 🌱"
+TITLE = "Happy Pride Month! 🏳️‍🌈"
 DESCRIPTION = dedent(
     f"""
-    Spring came earlier than expected, which seems to be affecting many Pokémon. Three Pokémon in particular show these overgrown symptoms, catch them before they flee!
+    Happy pride month! Some Pokémon wanted to express their support by showing all colours of the rainbow! 🌈
 
-    The following Pokémon will appear in the wild to be caught for a week!
-    - Overgrown Mawile
-    - Blossom Cherrim
-    - Overgrown Carnivine
+    From June 23 to June 30 you can catch the following Pokémon in the wild:
+    - Pride Ampharos
+    - Rainbow Minior
+    - Painted Acorn Skwovet
+    - Gradient Chi-Yu
 
-    Happy catching! 🌿
+    ❤️🧡💛 Happy Catching 💚💙💜
     """
 )
-COLOR = 0xB1D99C
+COLORS = [Color.red(), Color.orange(), Color.yellow(), Color.green(), Color.blue(), Color.purple()]
 
 
 class Event(commands.Cog):
@@ -28,6 +32,7 @@ class Event(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.colors = defaultdict(lambda: itertools.cycle(COLORS))
 
     @checks.has_started()
     @commands.command(aliases=("ev",))
@@ -37,7 +42,7 @@ class Event(commands.Cog):
         embed = self.bot.Embed(
             title=TITLE,
             description=DESCRIPTION,
-            color=COLOR,
+            color=next(self.colors[ctx.author.id]),
         )
         await ctx.send(embed=embed)
 
