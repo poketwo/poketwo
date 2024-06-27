@@ -130,7 +130,7 @@ class Spawning(commands.Cog):
         self.bot.cooldown_users[message.author.id] = current
 
         member = await self.bot.mongo.fetch_member_info(message.author)
-        if member.suspended or datetime.utcnow() < member.suspended_until:
+        if member is not None and (member.suspended or datetime.utcnow() < member.suspended_until):
             return
 
         # Increase XP on selected pokemon
