@@ -3,12 +3,16 @@ import typing
 from datetime import datetime
 from typing import Optional
 
+import discord
 from discord.ext import commands
 
 from helpers import checks, flags
 from helpers.constants import FILTER_BY_NUMERICAL
 from helpers.context import PoketwoContext
 from helpers.converters import FetchUserConverter, TimeDelta, strfdelta
+
+
+USERS_CHUNK_SIZE = 50
 
 
 class PokemonFlagConverter(commands.FlagConverter, case_insensitive=True):
@@ -55,16 +59,22 @@ class Administration(commands.Cog):
     async def suspend(self, ctx, users: commands.Greedy[FetchUserConverter], *, reason: str = None):
         """Suspend one or more users."""
 
+        if not users:
+            return await ctx.send("Couldn't find that user!")
+
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
             {"$set": {"suspended": True, "suspension_reason": reason}, "$unset": {"suspended_until": 1}},
+            upsert=True,
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
-        users_msg = ", ".join(f"**{x}**" for x in users)
 
         if ctx.message.reference:
             await ctx.message.reference.resolved.add_reaction("✅")
-        await ctx.send(f"Suspended {users_msg}.")
+
+        for chunk in discord.utils.as_chunks(users, USERS_CHUNK_SIZE):
+            users_msg = ", ".join(f"**{x}**" for x in chunk)
+            await ctx.send(f"Suspended {users_msg}.")
 
     @checks.is_bot_manager()
     @admin.command(aliases=("tsp",))
@@ -78,32 +88,43 @@ class Administration(commands.Cog):
     ):
         """Temporarily suspend one or more users."""
 
+        if not users:
+            return await ctx.send("Couldn't find that user!")
+
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
             {
                 "$set": {"suspended_until": datetime.utcnow() + duration, "suspension_reason": reason},
                 "$unset": {"suspended": 1},
             },
+            upsert=True,
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
-        users_msg = ", ".join(f"**{x}**" for x in users)
 
         if ctx.message.reference:
             await ctx.message.reference.resolved.add_reaction("✅")
-        await ctx.send(f"Suspended {users_msg} for {strfdelta(duration)}.")
+
+        for chunk in discord.utils.as_chunks(users, USERS_CHUNK_SIZE):
+            users_msg = ", ".join(f"**{x}**" for x in chunk)
+            await ctx.send(f"Suspended {users_msg} for {strfdelta(duration)}.")
 
     @checks.is_bot_manager()
     @admin.command(aliases=("usp",))
     async def unsuspend(self, ctx, users: commands.Greedy[FetchUserConverter]):
         """Unuspend one or more users."""
 
+        if not users:
+            return await ctx.send("Couldn't find that user!")
+
         await self.bot.mongo.db.member.update_many(
             {"_id": {"$in": [x.id for x in users]}},
             {"$unset": {"suspended": 1, "suspended_until": 1, "suspension_reason": 1}},
         )
         await self.bot.redis.hdel("db:member", *[int(x.id) for x in users])
-        users_msg = ", ".join(f"**{x}**" for x in users)
-        await ctx.send(f"Unsuspended {users_msg}.")
+
+        for chunk in discord.utils.as_chunks(users, USERS_CHUNK_SIZE):
+            users_msg = ", ".join(f"**{x}**" for x in chunk)
+            await ctx.send(f"Unsuspended {users_msg}.")
 
     @commands.is_owner()
     @admin.command(aliases=("spawn",))
@@ -171,7 +192,7 @@ class Administration(commands.Cog):
             await ctx.send(f"Gave **{user}** {amt:,} {box_type} boxes.")
 
     @commands.is_owner()
-    @admin.command(aliases=("g",), usage=f"[user=<you>] {PokemonFlagConverter.signature()}")
+    @admin.command(aliases=("g",), description=f"### Flags\n{PokemonFlagConverter.signature()}")
     async def give(self, ctx, user: Optional[FetchUserConverter] = commands.Author, *, flags: PokemonFlagConverter):
         """Give a pokémon."""
 

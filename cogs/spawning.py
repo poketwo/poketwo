@@ -34,13 +34,8 @@ class Spawning(commands.Cog):
         if not hasattr(self.bot, "guild_counter"):
             self.bot.guild_counter = {}
 
-    async def increase_xp(self, message):
-        member = await self.bot.mongo.fetch_member_info(message.author)
-
+    async def increase_xp(self, message, member):
         if member is not None:
-            if member.suspended or datetime.utcnow() < member.suspended_until:
-                return
-
             silence = member.silence
             if message.guild:
                 guild = await self.bot.mongo.fetch_guild(message.guild)
@@ -131,11 +126,16 @@ class Spawning(commands.Cog):
         # Spamcheck, every one second
         if current - self.bot.cooldown_users.get(message.author.id, 0) < 1.5:
             return
+
         self.bot.cooldown_users[message.author.id] = current
+
+        member = await self.bot.mongo.fetch_member_info(message.author)
+        if member.suspended or datetime.utcnow() < member.suspended_until:
+            return
 
         # Increase XP on selected pokemon
 
-        await self.increase_xp(message)
+        await self.increase_xp(message, member)
 
         # Increment guild activity counter
 

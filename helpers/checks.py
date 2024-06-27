@@ -39,15 +39,23 @@ def is_admin():
 
 
 def is_developer():
-    return commands.check_any(commands.is_owner(), commands.has_role(1120600250474827856))
+    return commands.check_any(commands.is_owner(), commands.has_role(constants.DEVELOPER_ROLE))
 
 
 def is_bot_manager():
-    return commands.check_any(commands.is_owner(), commands.has_role(1219501453240959006))
+    return commands.check_any(commands.is_owner(), commands.has_any_role(*constants.BOT_MANAGER_ROLES))
 
 
 def is_server_manager():
-    return commands.check_any(commands.is_owner(), commands.has_role(1219500880534179892))
+    return commands.check_any(commands.is_owner(), commands.has_any_role(*constants.SERVER_MANAGER_ROLES))
+
+
+def is_moderator():
+    return commands.check_any(commands.is_owner(), commands.has_any_role(*constants.MODERATOR_ROLES))
+
+
+def is_trial_moderator():
+    return commands.check_any(commands.is_owner(), commands.has_any_role(*constants.TRIAL_MODERATOR_ROLES))
 
 
 def has_incense_role():
@@ -124,10 +132,13 @@ def general_check():
         if member is None:
             return True
 
-        if member.suspended:
-            raise Suspended(member.suspension_reason, until=None)
-        if datetime.utcnow() < member.suspended_until:
-            raise Suspended(member.suspension_reason, until=member.suspended_until)
+        try:
+            await commands.is_owner().predicate(ctx)
+        except commands.NotOwner:
+            if member.suspended:
+                raise Suspended(member.suspension_reason, until=None)
+            if datetime.utcnow() < member.suspended_until:
+                raise Suspended(member.suspension_reason, until=member.suspended_until)
 
         if member.tos is None:
             embed = ctx.bot.Embed(

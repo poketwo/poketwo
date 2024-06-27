@@ -148,7 +148,7 @@ def build_channels_message(
     """
 
     message = base_text.format_map(dict(channels=", ".join(f"<#{x.id}>" for x in channels)))
-    if len(message) > CharacterLimits.MESSAGE_CONTENT.value or len(channels) == 0:
+    if len(message) > CharacterLimits.MESSAGE_CONTENT or len(channels) == 0:
         message = base_text.format_map(dict(channels=f"{len(channels)} channel{'' if len(channels) == 1 else 's'}"))
         if see_all_tip:
             message += f" {see_all_tip}"
