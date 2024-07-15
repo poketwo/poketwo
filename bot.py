@@ -107,6 +107,10 @@ class ClusterBot(commands.AutoShardedBot):
         self.setup_logging()
         self.run(kwargs["token"], log_handler=None)
 
+    async def _async_setup_hook(self):
+        await super()._async_setup_hook()
+        self.http.connector = aiohttp.TCPConnector(limit=0)
+
     def setup_logging(self):
         self.log: structlog.BoundLogger = structlog.get_logger()
 
