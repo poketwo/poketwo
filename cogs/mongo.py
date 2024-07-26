@@ -430,12 +430,22 @@ class Member(Document):
 
     anniversary_2024_orders = fields.DictField(fields.StringField(), fields.DictField(), default=dict)
     anniversary_2024_order_periods = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
-    anniversary_2024_order_lists = fields.DictField(fields.StringField(), fields.ListField(fields.DictField()), default=dict)
+    anniversary_2024_order_lists = fields.DictField(
+        fields.StringField(), fields.ListField(fields.DictField()), default=dict
+    )
     anniversary_2024_available_orders = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     anniversary_2024_completed_orders = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     anniversary_2024_donated = fields.IntegerField(default=0)
     anniversary_2024_ingredients = fields.DictField(default=dict)
     anniversary_2024_notify = fields.BooleanField(default=True)
+
+    summer_2024_team = fields.StringField(default=None)
+    summer_2024_tickets = fields.IntegerField(default=0)
+    summer_2024_tickets_total = fields.IntegerField(default=0)
+    summer_2024_current_minisport = fields.DictField(allow_none=True, default=dict)
+    summer_2024_minisports_played = fields.IntegerField(default=0)
+    summer_2024_points = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    summer_2024_boxes = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
 
     @property
     def selected_pokemon(self):
@@ -550,7 +560,12 @@ class Channel(Document):
     @property
     def incense(self):
         if self.spawns_remaining > 0:
-            return Incense(channel_id=int(self.id), spawns_remaining=self.spawns_remaining, interval=DEFAULT_INTERVAL, old_system=True)
+            return Incense(
+                channel_id=int(self.id),
+                spawns_remaining=self.spawns_remaining,
+                interval=DEFAULT_INTERVAL,
+                old_system=True,
+            )
         return Incense(channel_id=int(self.id), **self._incense)
 
     @property

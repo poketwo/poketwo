@@ -189,12 +189,14 @@ class Milestone:
         status_emoji = self.status_emoji()
 
         meta = self.meta
+        i = list(PokedexMilestone).index(meta) + 1
+        prefix = "-# " if not self.unlocked else ""
         progress = f"`{completed}/{meta.total_entries}`" if self.unlocked else "Locked"
-        reward_text = f"> **Reward**: {self.reward_text()}" if not self.claimed else f""
+        reward_text = f"┗ **Reward**: {self.reward_text()}" if not self.claimed else f""
         return textwrap.dedent(
             f"""
-            **• {status_emoji} {meta.title}** (#{meta.from_id}-#{meta.to_id}) ― {progress}
-            {reward_text}
+            {prefix}{i}. **{status_emoji} {meta.title}** (#{meta.from_id}-#{meta.to_id}) ― {progress}
+            {prefix}{reward_text}
             """
         ).strip("\n")
 
@@ -985,7 +987,9 @@ class Pokemon(commands.Cog):
         highest_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGHEST_IV_THRESHOLD}"]]}, ctx)
 
         HIGH_IV_THRESHOLD = 80
-        high_iv_filter = aggregations + await self.create_filter({"iv": [[f">{HIGH_IV_THRESHOLD}"], [f"<{HIGHEST_IV_THRESHOLD}"]]}, ctx)
+        high_iv_filter = aggregations + await self.create_filter(
+            {"iv": [[f">{HIGH_IV_THRESHOLD}"], [f"<{HIGHEST_IV_THRESHOLD}"]]}, ctx
+        )
 
         LOW_IV_THRESHOLD = 10
         low_iv_filter = aggregations + await self.create_filter({"iv": [[f"<{LOW_IV_THRESHOLD}"]]}, ctx)
@@ -1635,7 +1639,7 @@ class Pokemon(commands.Cog):
                 )
 
                 self.bot.dispatch("evolve", ctx.author, pokemon, evo)
-
+            self.bot.dispatch("mass_evolve", ctx.author, evolved)
             await ctx.send(embed=embed)
 
     @checks.has_started()

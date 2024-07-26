@@ -55,14 +55,7 @@ CONCURRENCY_LIMITED_COMMANDS = {
     "redeemspawn",
     "trade",
     "learn",
-    "halloween",
-    "valentine",
-    "spring",
-    "pride",
-    "summer",
-    "expedition",
-    "christmas",
-    "anniversary",
+    "event",
 }
 
 
