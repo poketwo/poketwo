@@ -811,11 +811,11 @@ class Pentathlon(BaseMinisport):
     help_msg = (
         dedent(
             f"""
-        In Pentathlon, you have to complete {CATCHING_TASK_COUNT + OTHER_TASK_COUNT} tasks of varying difficulties in sequence: **Catching, Trading, Battling, Evolving and Releasing**.
+        In Pentathlon, you have to complete {CATCHING_TASK_COUNT + OTHER_TASK_COUNT} tasks of varying difficulties in sequence: **Catching, Trading, Battling, Evolving and Releasing**. (Bonus boxes due to difficulty)
 
         **Check mark** means the task has been completed, **Gray** means the task is in progress and **Locked** means you must first complete the prior tasks before you can do that one. **Tasks must be completed in sequence**.
 
-        The lower the time you can complete all your tasks in, the more points, pokécoins and better rewards you will receive! **You will receive extra boxes for {name} since it is a harder minisport.**
+        The lower the time you can complete all your tasks in, the more points, pokécoins and better rewards you will receive! **You will receive extra boxes for {name} since it is a harder minisport**.
         """
         )
         + "\n".join(
