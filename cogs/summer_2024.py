@@ -1328,7 +1328,7 @@ def has_joined_team():
 
 
 TOP_3_TEXT = f"The top 3 teams with the highest points in each {FlavorStrings.minisport} at the end will receive special rewards, including lots of boxes and a **surprise exclusive pokémon**!"
-MAIN_MENU_TEXT = f"""{FlavorStrings.olympics} has kicked off, and the competition for 1st position has begun! Join a team, earn points by playing unique {FlavorStrings.minisport:s}, along with rewards and **an exclusive badge** at the end! ❤️‍🔥
+MAIN_MENU_TEXT = f"""{FlavorStrings.olympics} has kicked off, and the competition for 1st position has begun! Join a team, earn points by playing {FlavorStrings.minisport:s}, along with rewards and **an exclusive badge** at the end! ❤️‍🔥
 
 As you catch pokémon, you will earn {FlavorStrings.ticket:sb}. Use these to play {FlavorStrings.minisport:s} to earn points for your team, along with {FlavorStrings.pokecoins:b!e} and {FlavorStrings.box:sb} containing various rewards and exclusive pokémon!
 
