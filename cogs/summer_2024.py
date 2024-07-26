@@ -1757,7 +1757,7 @@ class Summer(commands.Cog):
         if qty > boxes.get(box.name, 0):
             return await ctx.send(f"You don't have enough {box} boxes!")
 
-        await self.bot.mongo.update_member(ctx.author, {"$inc": {f"{SUMMER_PREFIX}_boxes.{box.name}": -1}})
+        await self.bot.mongo.update_member(ctx.author, {"$inc": {f"{SUMMER_PREFIX}_boxes.{box.name}": -qty}})
 
         embed = self.bot.Embed(
             title=f"You open {qty} {box} Box{'' if qty == 1 else 'es'}...",
