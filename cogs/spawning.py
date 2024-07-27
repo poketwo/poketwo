@@ -81,6 +81,7 @@ class Spawning(commands.Cog):
                         update["$set"][f"species_id"] = evo.id
 
                         self.bot.dispatch("evolve", message.author, pokemon, evo)
+                        self.bot.dispatch("mass_evolve", message.author, [(pokemon, evo)])
 
                     else:
                         c = 0

@@ -637,6 +637,7 @@ class Shop(commands.Cog):
             embed.set_thumbnail(url=evoto.get_image_url(pokemon.shiny, pokemon.gender))
 
             self.bot.dispatch("evolve", ctx.author, pokemon, evoto)
+            self.bot.dispatch("mass_evolve", ctx.author, [(pokemon, evoto)])
 
             await self.bot.mongo.update_pokemon(pokemon, {"$set": {"species_id": evoto.id}})
 
@@ -681,6 +682,7 @@ class Shop(commands.Cog):
                 update["$set"]["species_id"] = evo.id
 
                 self.bot.dispatch("evolve", ctx.author, pokemon, evo)
+                self.bot.dispatch("mass_evolve", ctx.author, [(pokemon, evo)])
 
             else:
                 c = 0

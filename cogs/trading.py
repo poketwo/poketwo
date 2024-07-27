@@ -233,6 +233,7 @@ class Trading(commands.Cog):
                                 "The trade could not be executed as one user does not have enough redeems."
                             )
 
+                evolved = []
                 for idx, (i, side) in bothsides:
                     _, (oi, _) = bothsides[(idx + 1) % 2]
 
@@ -272,6 +273,7 @@ class Trading(commands.Cog):
 
                                 self.bot.dispatch("evolve", mem, pokemon, evo.target)
                                 self.bot.dispatch("evolve", omem, pokemon, evo.target)
+                                evolved.append((pokemon, evo.target))
 
                                 update["$set"]["species_id"] = evo.target.id
                                 evolutions[omem][format(pokemon, "Pgnx")] = evo.target
@@ -280,6 +282,9 @@ class Trading(commands.Cog):
                             pokemon,
                             update,
                         )
+
+                self.bot.dispatch("mass_evolve", mem, evolved)
+                self.bot.dispatch("mass_evolve", omem, evolved)
 
             except:
                 await self.end_trade(a.id)
