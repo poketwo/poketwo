@@ -213,7 +213,7 @@ class IncenseConfirmationView(discord.ui.View):
             **Price**: {self.incense.calculate_price()} Shards {discount_msg}
 
             **The incense will instantly be activated in this channel. Are you sure?**
-            *You can skip this confirmation using the `--confirm/-y` flag (be careful!)*
+            -# You can skip this confirmation using the `--confirm/-y` flag (be careful!)
             """
         )
 
