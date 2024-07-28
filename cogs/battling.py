@@ -206,6 +206,7 @@ class Battle:
         )
         embed.set_footer(text="The next round will begin in 5 seconds.")
 
+        winner = None
         for action, trainer, opponent in sorted(iterl, key=lambda x: x[0]["priority"], reverse=True):
             title = None
             text = None
@@ -282,11 +283,8 @@ class Battle:
                     opponent.selected_idx = next(idx for idx, x in enumerate(opponent.pokemon) if x.hp > 0)
                 except StopIteration:
                     # battle's over
-                    self.end()
                     opponent.selected_idx = -1
-                    self.bot.dispatch("battle_win", self, trainer.user)
-                    await self.channel.send(f"{trainer.user.mention} won the battle!")
-                    return
+                    winner = trainer
 
                 break_loop = True
 
@@ -298,11 +296,8 @@ class Battle:
                     trainer.selected_idx = next(idx for idx, x in enumerate(trainer.pokemon) if x.hp > 0)
                 except StopIteration:
                     # battle's over
-                    self.end()
                     trainer.selected_idx = -1
-                    self.bot.dispatch("battle_win", self, opponent.user)
-                    await self.channel.send(f"{opponent.user.mention} won the battle!")
-                    return
+                    winner = opponent
 
                 break_loop = True
 
@@ -312,7 +307,15 @@ class Battle:
             if break_loop:
                 break
 
+        if winner:
+            embed.set_footer(text="The battle has ended.")
+
         await self.channel.send(embed=embed)
+
+        if winner:
+            self.end()
+            self.bot.dispatch("battle_win", self, winner.user)
+            await self.channel.send(f"{winner.user.mention} won the battle!")
 
     async def send_battle(self):
         embed = self.bot.Embed(
@@ -593,7 +596,7 @@ class Battling(commands.Cog):
             match a["type"]:
                 case "move":
                     move = self.bot.data.move_by_number(a["value"])
-                    sprite = f'{self.bot.sprites.get_type_sprite(move.type)} '
+                    sprite = f"{self.bot.sprites.get_type_sprite(move.type)} "
                     available_moves.append(f"{sprite}{move.name}".strip())
 
                 case "switch":
@@ -843,6 +846,7 @@ class Battling(commands.Cog):
             return True
 
         moves = [move for move in species.moves if include(move.move)]
+
         async def get_page(source, menu, pidx):
             pgstart = pidx * 20
             pgend = min(pgstart + 20, len(moves))
