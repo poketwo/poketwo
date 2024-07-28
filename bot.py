@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from functools import cached_property
 import logging
 from typing import TYPE_CHECKING
 
@@ -208,13 +209,18 @@ class ClusterBot(commands.AutoShardedBot):
         message.content = message.content.replace("—", "--").replace("'", "′").replace("‘", "′").replace("’", "′")
         await self.process_commands(message)
 
+    @cached_property
+    def concurrency_limited_commands(self) -> list:
+        return [self.get_command(command_name) for command_name in CONCURRENCY_LIMITED_COMMANDS]
+
     async def invoke(self, ctx):
         if ctx.command is None:
             return
 
+        concurrency_limited_command_names = [command.name for command in self.concurrency_limited_commands]
         if not (
-            ctx.command.name in CONCURRENCY_LIMITED_COMMANDS
-            or (ctx.command.root_parent and ctx.command.root_parent.name in CONCURRENCY_LIMITED_COMMANDS)
+            ctx.command.name in concurrency_limited_command_names
+            or (ctx.command.root_parent and ctx.command.root_parent.name in concurrency_limited_command_names)
         ):
             return await super().invoke(ctx)
 
