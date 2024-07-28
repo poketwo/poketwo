@@ -319,6 +319,8 @@ class Battle:
             title=f"Battle between {self.trainers[0].user.display_name} and {self.trainers[1].user.display_name}."
         )
 
+        pkm_format_spec = "iLpg"
+
         if self.stage == Stage.PROGRESS:
             embed.description = "Choose your moves in DMs. After both players have chosen, the move will be executed."
             t0 = self.trainers[1]  # switched on purpose because API is like that
@@ -344,14 +346,15 @@ class Battle:
                 embed.set_image(url=url)
         else:
             embed.description = "The battle has ended."
+            pkm_format_spec += "X"
 
         for trainer in self.trainers:
             embed.add_field(
                 name=trainer.user.display_name,
                 value="\n".join(
-                    f"**{x:iLpg}** • {x.hp}/{x.max_hp} HP"
+                    f"**{x:{pkm_format_spec}}** • {x.hp}/{x.max_hp} HP"
                     if trainer.selected == x
-                    else f"{x:iLpg} • {x.hp}/{x.max_hp} HP"
+                    else f"{x:{pkm_format_spec}} • {x.hp}/{x.max_hp} HP"
                     for x in trainer.pokemon
                 ),
             )
