@@ -9,6 +9,7 @@ import random
 import string
 from textwrap import dedent
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from urllib.parse import urljoin
 
 import discord
 from discord.ext import commands
@@ -20,7 +21,7 @@ from data.models import Species
 from data.utils import comma_formatted
 from helpers import checks
 from helpers.context import ConfirmationYesNoView, PoketwoContext
-from helpers.utils import FlavorString, unwind
+from helpers.utils import FlavorString, unwind, write_fp
 from discord.ext.commands import check
 
 from lib.box_rewards import Reward, RewardItem, give_rewards, simulate_rewards
@@ -318,23 +319,36 @@ class Archery(BaseMinisport):
 
         embed = ctx.bot.Embed(
             title=f"Your {self} Game Targets",
-            description=dedent(
-                f"""
-                {self.generate_board(show_targets=True)}
-                """
-            ),
         )
+
+        # Board image generation
+
+        board_file = None
+        url = urljoin(ctx.bot.config.SERVER_URL, f"summer_2024/archery")
+        params = {"targets": ",".join([f"{string.ascii_lowercase[row]}{col + 1}" for row, col in self.data["targets"]])}
+        async with ctx.bot.http_session.get(url, params=params) as resp:
+            if resp.status == 200:
+                arr = await ctx.bot.loop.run_in_executor(None, write_fp, await resp.read())
+                board_file = discord.File(arr, filename="board.png")
+                embed.set_image(url=f"attachment://{board_file.filename}")
+            else:
+                embed.description = self.generate_board(show_targets=True)
+
+        # Sending the hint image
+
         dt_fmt = discord.utils.format_dt(datetime.utcnow() + timedelta(seconds=self.HINT_SECONDS), "R")
         message = await ctx.reply(
             f"Deleting {dt_fmt}, try your best to remember the coordinates (a1, b1, etc) of the targets!",
             embed=embed,
+            file=board_file,
         )
-        await asyncio.sleep(self.HINT_SECONDS)
+        await asyncio.sleep(self.HINT_SECONDS + 1)  # +1 to give time for the image to load
 
         input_cmd = ctx.bot.get_cog("Summer").input
         await message.edit(
             content=f"Time's up, good luck! Use `{ctx.clean_prefix}{input_cmd.qualified_name} a1 b1 ...` with the correct target locations from memory!",
             embed=None,
+            attachments=[],
         )
 
     @classmethod
