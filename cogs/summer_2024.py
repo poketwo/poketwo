@@ -1608,26 +1608,6 @@ class Summer(commands.Cog):
 
         await current_minisport.check(self.bot, ctx, input)
 
-    @commands.Cog.listener(name="on_catch")
-    async def relay_race_on_catch(self, ctx: PoketwoContext, species: Species, _id: int):
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        current_minisport = BaseMinisport.from_dict(member[f"{SUMMER_PREFIX}_current_minisport"])
-
-        if not current_minisport:
-            return
-
-        await current_minisport.check(self.bot, ctx, species)
-
-    @commands.Cog.listener(name="on_catch")
-    async def pentathlon_on_catch(self, ctx: PoketwoContext, species: Species, _id: int):
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        current_minisport = BaseMinisport.from_dict(member[f"{SUMMER_PREFIX}_current_minisport"])
-
-        if not current_minisport:
-            return
-
-        await current_minisport.check(self.bot, ctx, (Pentathlon.TaskEvent.CATCH, (species, _id)))
-
     @commands.Cog.listener()
     async def on_trade(self, trade):
         a, b = trade["users"]
@@ -1772,7 +1752,9 @@ class Summer(commands.Cog):
 
     # region Gaining Olympic Tickets
     @commands.Cog.listener(name="on_catch")
-    async def drop_ticket(self, ctx: PoketwoContext, species: Species, _id: int):
+    async def on_catch(self, ctx: PoketwoContext, species: Species, _id: int):
+        # Ticket drops
+
         count = await self.bot.redis.hincrby(f"{SUMMER_PREFIX}_catch_count", ctx.author.id, 1)
         if count >= REQUIRED_CATCHES:
             await self.bot.mongo.update_member(
@@ -1783,6 +1765,14 @@ class Summer(commands.Cog):
             await ctx.send(
                 f"You've earned an {FlavorStrings.ticket:b}! Use `{ctx.clean_prefix}{self.play.qualified_name}` or the event menu to play a {FlavorStrings.minisport}."
             )
+
+        # Minisport catch event triggers
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        current_minisport = BaseMinisport.from_dict(member[f"{SUMMER_PREFIX}_current_minisport"])
+        if current_minisport:
+            await current_minisport.check(self.bot, ctx, species)
+            await current_minisport.check(self.bot, ctx, (Pentathlon.TaskEvent.CATCH, (species, _id)))
 
     # region Debug
     @checks.is_developer()
