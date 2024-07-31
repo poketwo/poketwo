@@ -387,7 +387,7 @@ class Archery(BaseMinisport):
             x = string.ascii_lowercase.index(row.lower())
             y = int(col) - 1
 
-            if (x < 0 or x > self.WIDTH) or (y < 0 or y > self.HEIGHT):
+            if (x < 0 or x >= self.WIDTH) or (y < 0 or y >= self.HEIGHT):
                 texts[cell] = "Out of bounds"
                 continue
 
