@@ -2217,12 +2217,16 @@ class Summer(commands.Cog):
         self,
         ctx: PoketwoContext,
         user: Optional[discord.Member] = commands.Author,
+        box: EnumConverter(Box) = None,
         qty: Optional[int] = 1,
     ):
         """Dev-only command to give boxes for debugging purposes"""
 
-        await self.bot.mongo.update_member(user, {"$inc": {f"{SUMMER_PREFIX}_boxes.{box.name}": qty for box in Box}})
-        await ctx.send(f"Gave {qty}x of all boxes to **{user}**.")
+        if not box:
+            return await ctx.send("Please input a box.")
+
+        await self.bot.mongo.update_member(user, {"$inc": {f"{SUMMER_PREFIX}_boxes.{box.name}": qty}})
+        await ctx.send(f"Gave {qty}x {box} to **{user}**.")
 
     @checks.is_developer()
     @give.command(name="points", aliases=("point",))
