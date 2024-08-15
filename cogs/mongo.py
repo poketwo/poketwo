@@ -446,6 +446,7 @@ class Member(Document):
     summer_2024_minisports_played = fields.IntegerField(default=0)
     summer_2024_points = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     summer_2024_boxes = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    summer_2024_prizes_claimed = fields.BooleanField(default=False)
 
     @property
     def selected_pokemon(self):

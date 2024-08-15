@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import asyncio
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -16,25 +17,21 @@ from discord.ext import commands
 from discord.utils import get
 import humanfriendly
 
+from cogs.mongo import Member
+from lib import radio
+
 from .sprites import other
 from data.models import Species
 from data.utils import comma_formatted
 from helpers import checks
 from helpers.context import ConfirmationYesNoView, PoketwoContext
-from helpers.utils import FlavorString, unwind, write_fp
+from helpers.utils import FlavorString, ordinal_indicator, unwind, write_fp
 from discord.ext.commands import check
 
 from lib.box_rewards import Reward, RewardItem, give_rewards, simulate_rewards
 
 if TYPE_CHECKING:
     from bot import ClusterBot
-
-
-# TODO: Event End TODOs
-# TODO: - Show results on main menu
-# TODO:   - Custom result banner
-# TODO: - Command to claim rewards (Top 3 teams: moltres and boxes. Everyone: team badge)
-# TODO:   - Enable moltres
 
 
 # region CONSTANTS
@@ -46,6 +43,11 @@ REQUIRED_CATCHES = 10
 EVENT_SHINY_BOOST = 5
 
 POINTS_PC_RANGE = range(300, 501)
+
+NO_MORE_POINTS = (
+    f"The event has ended, you can't earn any more points for your team. Points earned are only for determining boxes."
+)
+MEDAL_EMOJIS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 
 class FlavorStrings:
@@ -212,7 +214,7 @@ class BaseMinisport(abc.ABC):
         inc = {}
         rewards = []
 
-        points = self.progress.points
+        points = 0  # Event ended
         if points:
             inc[f"{SUMMER_PREFIX}_points.{self.id}"] = points
 
@@ -221,7 +223,7 @@ class BaseMinisport(abc.ABC):
             inc[f"{SUMMER_PREFIX}_boxes.{box.name}"] = qty
             rewards.append(f"- **{box.emoji} {qty} {box:!e} Box**")
 
-        pc = self.determine_pc()
+        pc = 0  # Event ended
         if pc:
             inc["balance"] = pc
             rewards.append(f"- {FlavorStrings.pokecoins.emoji} {pc:,} {FlavorStrings.pokecoins:!e}")
@@ -236,8 +238,8 @@ class BaseMinisport(abc.ABC):
             )
 
         embed = bot.Embed(
-            title=f"{self} game completed, {'good game' if points else 'better luck next time'}!",
-            description=f"**Total points earned for your team**: {self.progress.points}",
+            title=f"{self} game completed, {'good game' if self.progress.points else 'better luck next time'}!",
+            description="The event has ended, you can't earn any more points for your team.",
         )
         embed.set_author(name=str(user), icon_url=user.display_avatar.url)
 
@@ -474,6 +476,7 @@ class Archery(BaseMinisport):
                 f"\n**Tries left**: {self.progress.remaining}/{self.MAX_TRIES}",
                 f"**Targets hit**: {self.hits}/{self.TARGET_COUNT}",
                 f"**Points earned**: {self.progress.points}",
+                f"{NO_MORE_POINTS}",
             ]
         )
 
@@ -676,6 +679,7 @@ class RelayRace(BaseMinisport):
                 f"\n**Letters done**: {self.progress.count}/{self.progress.goal}",
                 f"**Total catches**: {self.data['catches']}",
                 f"**Potential earnable points**: {self.progress.points}",
+                f"{NO_MORE_POINTS}",
             ]
         )
 
@@ -965,6 +969,7 @@ class Pentathlon(BaseMinisport):
                 f"\n**Total progress**: {self.progress.count}/{self.progress.goal}",
                 f"**Elapsed time**: {humanfriendly.format_timespan(self.elapsed.total_seconds())}",
                 f"**Potential earnable points**: {self.progress.points}",
+                f"{NO_MORE_POINTS}",
             ]
         )
 
@@ -987,6 +992,10 @@ class EventSpecies(Enum):
 
     def get_species(self, bot: ClusterBot) -> Species:
         return bot.data.species_by_number(self.value)
+
+    def text(self, bot: ClusterBot, *, amount: Optional[int] = None) -> str:
+        species = self.get_species(bot)
+        return f"""{bot.sprites.get(species)} {f"{amount}x " if amount is not None else ""}{species.name}"""
 
     @classmethod
     def all_ids(cls) -> List[int]:
@@ -1272,7 +1281,7 @@ class OlympicView(discord.ui.View):
         await interaction.response.defer()
         await self.ctx.invoke(self.cog.inventory)
 
-    @discord.ui.button(label="Standings", style=discord.ButtonStyle.grey)
+    @discord.ui.button(label="Results", emoji="🏆", style=discord.ButtonStyle.grey)
     async def standings(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         await self.ctx.invoke(self.cog.standings)
@@ -1329,6 +1338,269 @@ class MinisportView(discord.ui.View):
             await self.message.edit(view=self)
 
 
+@dataclass
+class ResultPage:
+    title: str
+    description: str
+
+    emoji: Optional[str] = None
+    label: Optional[str] = None
+    image_url: Optional[str] = None
+    embed_color: Optional[int] = None
+
+
+class ResultsRadioGroup(radio.RadioGroup):
+    def __init__(self, view: ResultsView, pages: List[ResultPage]):
+        super().__init__()
+        self.view = view
+
+        for i, page in enumerate(pages):
+            self.add_option(
+                page.label if page.label is not None else page.title, value=str(i), is_selected=i == 0, emoji=page.emoji
+            )
+
+    async def callback(self, interaction, button):
+        super().callback(interaction, button)
+        await self.view.update_embed(interaction)
+
+
+class ResultsView(discord.ui.View):
+    def __init__(self, ctx: PoketwoContext, member: Member, all_standings):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+        self.bot: ClusterBot = self.ctx.bot
+        self.cog: Summer = self.bot.get_cog("Summer")
+
+        self.member = member
+        self.all_standings = all_standings
+
+        self.pages = [
+            ResultPage(
+                title=str(FlavorStrings.olympics),
+                label="Results",
+                description=dedent(
+                    f"""
+                    As {FlavorStrings.olympics} come to a close, we celebrate the incredible efforts, dedication and the spirit of unity that brought the Pokétwo community together! From surprising feats to the heat of competition, thank you for helping create a joyful and exciting experience!
+
+                    You've worked hard as a team, and it's time to enjoy the prizes you've truly earned;
+
+                    A team badge to signify your unity as a team, lots of boxes for various rewards and, finally, the exclusive pokémon **{EventSpecies.MOLTRES.text(self.bot)}**!
+
+                    Thank you for playing 🐦‍🔥
+                    """
+                ),
+                image_url=self.bot.data.asset("/assets/summer_2024/banner.png"),
+                embed_color=0xF3B04E,
+            ),
+            ResultPage(
+                title=Minisport.ARCHERY.qname,
+                label="",
+                emoji=Minisport.ARCHERY.emoji,
+                description=dedent(
+                    """
+                    *A show of persistence*
+                    """
+                ),
+                image_url=self.bot.data.asset(f"/assets/summer_2024/{Minisport.ARCHERY.name.lower()}_results.png"),
+                embed_color=0xEFDD89,
+            ),
+            ResultPage(
+                title=f"{Minisport.RELAY_RACE.qname}",
+                label="",
+                emoji=Minisport.RELAY_RACE.emoji,
+                description=dedent(
+                    """
+                    *A show of patience*
+                    """
+                ),
+                image_url=self.bot.data.asset(f"/assets/summer_2024/{Minisport.RELAY_RACE.name.lower()}_results.png"),
+                embed_color=0xB278D9,
+            ),
+            ResultPage(
+                title=f"{Minisport.PENTATHLON.qname}",
+                label="",
+                emoji=Minisport.PENTATHLON.emoji,
+                description=dedent(
+                    """
+                    *A show of courage*
+                    """
+                ),
+                image_url=self.bot.data.asset(f"/assets/summer_2024/{Minisport.PENTATHLON.name.lower()}_results.png"),
+                embed_color=0x94CE82,
+            ),
+            ResultPage(
+                title="All",
+                emoji="📊",
+                description=dedent(
+                    f"""
+                    **The event has now ended, thanks for playing! For 1 more week, you can still use your remaining tickets to play minisports and open your boxes. You can no longer earn points for your team or pokécoins per point from playing minisports, only boxes!**
+
+                    ~~Points you earn by playing {FlavorStrings.minisport:s} will directly affect your team's standings~~. The more points you earn in a {FlavorStrings.minisport:s} game, the ~~more pokécoins and~~ better rewards you will receive.
+
+                    {TOP_3_TEXT}
+
+                    May the best teams win!
+                    """
+                ),
+            ),
+        ]
+        self.clear_items()
+        self.page_select = ResultsRadioGroup(self, self.pages)
+        self.page_select.add_to_view(self)
+
+        self.message = None
+
+    async def interaction_check(self, interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("You can't use this!", ephemeral=True)
+            return False
+        return True
+
+    async def on_timeout(self):
+        if self.message:
+            for child in self.children:
+                child.disabled = True
+            await self.message.edit(view=self)
+
+    @discord.ui.button(label="Claim Prizes", style=discord.ButtonStyle.green)
+    async def claim(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        await self.ctx.invoke(self.cog.claim)
+
+    def get_embed(self) -> discord.Embed:
+        """Base embed based on current attributes and return it."""
+
+        if self.claim in self.children:
+            self.remove_item(self.claim)
+
+        page_num = int(self.page_select.selected)
+        page = self.pages[page_num]
+
+        member = self.member
+        member_team = Team[member[f"{SUMMER_PREFIX}_team"]]
+        member_points = self.cog.sorted_standings(
+            {minisport: member[f"{SUMMER_PREFIX}_points"].get(minisport.name, 0) for minisport in Minisport}
+        )
+
+        embed = self.bot.Embed(
+            title=f"{page.title} Results",
+            description=page.description,
+        )
+        embed.color = page.embed_color or embed.color
+
+        if page.title in [m.qname for m in Minisport]:
+            self.add_item(self.claim)
+            if member.summer_2024_prizes_claimed:
+                self.claim.label = "Prizes Claimed"
+                self.claim.disabled = True
+
+            embed.description = page.description + "\n" + self.cog.member_text(member, tickets=False)
+
+            minisport = Minisport.from_name(page.title)
+            standings = self.all_standings[minisport]
+
+            embed.add_field(
+                name=f"Earned Points",
+                value=dedent(
+                    f"""
+                    - Your Points: {member_points[minisport]:,}
+                    - Your Team's Points: {standings[member_team]:,}
+                    - Global Points: {sum(standings.values()):,}
+                    """
+                ),
+                inline=False,
+            )
+
+            TOP = 3
+            team_standing = list(standings).index(member_team) + 1
+            for standing, (team, points) in list(enumerate(standings.items(), 1))[:TOP]:
+                standings = self.all_standings[minisport]
+                place = f"{standing}{ordinal_indicator(standing)}"
+                medal = MEDAL_EMOJIS.get(standing, "🏅")
+
+                if team == member_team:
+                    value = f"**{team} ({points:,})**"
+                else:
+                    value = f"{team} ({points:,})"
+
+                embed.add_field(
+                    name=f"{medal} {place} Place",
+                    value=value,
+                )
+
+            if sum(member_points.values()) >= PRIZE_POINT_THRESHOLD:
+                prizes = PRIZES[team_standing]
+                prize_texts = [f"- **{member_team.emoji} Team {member_team.qname} Badge**"]
+                for item, amount in prizes.items():
+                    if not amount:
+                        continue
+
+                    if isinstance(item, EventSpecies):
+                        item = item.text(self.bot, amount=amount)
+                    elif isinstance(item, Box):
+                        item = f"{item.emoji} {amount} {item:!e} Boxes"
+
+                    prize_texts.append(f"- **{item}**")
+
+                placed = team_standing <= TOP
+                team_place = f"{team_standing}{ordinal_indicator(team_standing)}"
+                prize_text = (
+                    (
+                        f"Well done, your team earned **{team_place} place**! 🎉"
+                        if placed
+                        else "Your team didn't place, but your effort was truly commendable ❤️"
+                    )
+                    + "\n"
+                    + "\n".join(prize_texts)
+                    + "\n-# "
+                    + (
+                        f"Use `{self.ctx.clean_prefix}{self.cog.claim.qualified_name}` to claim all minisport prizes!"
+                        if not member.summer_2024_prizes_claimed
+                        else f"{self.bot.sprites.check} Prizes claimed"
+                    )
+                )
+            else:
+                prize_text = f"Sorry, you didn't meet the minimum points contribution threshold ({PRIZE_POINT_THRESHOLD}) for prizes :("
+
+            embed.add_field(
+                name=f"Your {minisport:!e} Prizes",
+                value=prize_text,
+                inline=False,
+            )
+
+        elif page.title.lower() == "all":
+            embed.description = (
+                page.description + "\n" + self.cog.member_text(member, tickets=False, points_earned=True)
+            )
+
+            embed.add_field(
+                name="Your Earned Points",
+                value=f"-# **Total Points: {sum(member_points.values()):,}**\n"
+                + "\n".join(
+                    f"{i}. {minisport} — {points:,}" for i, (minisport, points) in enumerate(member_points.items(), 1)
+                ),
+                inline=False,
+            )
+
+            for minisport in Minisport:
+                standings = self.all_standings[minisport]
+                value = f"-# **Total Points: {sum(standings.values()):,}**\n" + "\n".join(
+                    f"{standing}. **{team} ({points:,})**"
+                    if team == member_team
+                    else f"{standing}. {team} ({points:,})"
+                    for standing, (team, points) in enumerate(standings.items(), 1)
+                )
+                embed.add_field(name=f"{minisport} Results", value=value)
+
+        embed.set_image(url=page.image_url)
+        embed.set_footer(text="Click through the buttons to see the results and claim your prizes!")
+
+        return embed
+
+    async def update_embed(self, interaction):
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+
 def has_joined_team():
     async def predicate(ctx):
         member = await ctx.bot.mongo.fetch_member_info(ctx.author)
@@ -1341,10 +1613,24 @@ def has_joined_team():
     return check(predicate)
 
 
-TOP_3_TEXT = f"The top 3 teams with the highest points in each {FlavorStrings.minisport} at the end will receive special rewards, including lots of boxes and a **surprise exclusive pokémon**!"
-MAIN_MENU_TEXT = f"""{FlavorStrings.olympics} has kicked off, and the competition for 1st position has begun! Join a team, earn points by playing {FlavorStrings.minisport:s}, along with rewards and **an exclusive badge** at the end! ❤️‍🔥
+PRIZE_POINT_THRESHOLD = 10
+PRIZES = unwind(
+    {
+        (1,): {Box.GOLD: 30, EventSpecies.MOLTRES: 5},
+        (2,): {Box.SILVER: 30, EventSpecies.MOLTRES: 3},
+        (3,): {Box.BRONZE: 30, EventSpecies.MOLTRES: 2},
+        (4, 5, 6): {Box.BRONZE: 15, EventSpecies.MOLTRES: 0},
+    }
+)
+MOLTRES_SHINY_BOOST = 2
 
-As you catch pokémon, you will earn {FlavorStrings.ticket:sb}. Use these to play {FlavorStrings.minisport:s} to earn points for your team, along with {FlavorStrings.pokecoins:b!e} and {FlavorStrings.box:sb} containing various rewards and exclusive pokémon!
+
+TOP_3_TEXT = f"The top 3 teams with the highest points in each {FlavorStrings.minisport} at the end will receive special rewards, including lots of boxes and a **surprise exclusive pokémon**!"
+MAIN_MENU_TEXT = f"""**The event has now ended, thanks for playing! For 1 more week, you can still use your remaining tickets to play minisports and open your boxes. You can no longer earn points for your team or pokécoins per point from playing minisports, only boxes! Make sure to open your boxes by the end of the week!**
+
+{FlavorStrings.olympics} has kicked off, and the competition for 1st position has begun! ~~Join a team, earn points by playing {FlavorStrings.minisport:s}~~, along with rewards and **an exclusive badge** at the end! ❤️‍🔥
+
+~~As you catch pokémon, you will earn {FlavorStrings.ticket:sb}~~. Use these to play {FlavorStrings.minisport:s} to earn ~~points for your team, along with {FlavorStrings.pokecoins:b!e} and~~ {FlavorStrings.box:sb} containing various rewards and exclusive pokémon!
 
 {TOP_3_TEXT} Good luck and have fun! 👀"""
 
@@ -1425,7 +1711,7 @@ class Summer(commands.Cog):
                 f"{standing}. **{team} — {points:,}**" if team == member_team else f"{standing}. {team} — {points:,}"
                 for standing, (team, points) in enumerate(standings[minisport].items(), 1)
             )
-            embed.add_field(name=f"{minisport} Standings", value=value)
+            embed.add_field(name=f"{minisport} Results", value=value)
 
         embed.set_image(url=self.bot.data.asset("/assets/summer_2024/banner.png"))
 
@@ -1455,6 +1741,8 @@ class Summer(commands.Cog):
         if member[f"{SUMMER_PREFIX}_team"]:
             await ctx.reply(f"You've already joined a team!", mention_author=False)
         else:
+            return await ctx.reply("The event has ended, you can no longer join a team :(")
+
             view = OlympicsJoinView(ctx)
             embed = self.bot.Embed(
                 title=f"Welcome to {FlavorStrings.olympics}!",
@@ -1472,66 +1760,89 @@ class Summer(commands.Cog):
             view.message = await ctx.reply(embed=embed, view=view, mention_author=False)
 
     @checks.has_started()
-    @olympics.command(aliases=("points", "scores", "rankings", "ranks", "rank", "positions", "position"))
+    @olympics.command(
+        aliases=("points", "scores", "rankings", "ranks", "rank", "positions", "position", "results", "result")
+    )
     async def standings(self, ctx: PoketwoContext):
         """View total earned points and team standings"""
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        member_team = Team[member[f"{SUMMER_PREFIX}_team"]]
-
-        embed = self.bot.Embed(
-            title=f"Team Points & Standings",
-            description=dedent(
-                f"""
-                Points you earn by playing {FlavorStrings.minisport:s} will directly affect your team's standings. The more points you earn in a {FlavorStrings.minisport:s} game, the more pokécoins and better rewards you will receive.
-
-                {TOP_3_TEXT}
-
-                May the best teams win!
-
-                """
-            )
-            + self.member_text(member, tickets=False),
-        )
-
-        member_points = self.sorted_standings(
-            {minisport: member[f"{SUMMER_PREFIX}_points"].get(minisport.name, 0) for minisport in Minisport}
-        )
-        embed.add_field(
-            name="Your Earned Points",
-            value=f"-# **Total Points: {sum(member_points.values()):,}**\n"
-            + "\n".join(
-                f"{i}. {minisport} — {points:,}" for i, (minisport, points) in enumerate(member_points.items(), 1)
-            ),
-            inline=False,
-        )
-
         all_standings = await self.fetch_standings()
 
-        # team_standings = self.sorted_standings(
-        #     {team: sum([s.get(team) for s in all_standings.values()]) for team in Team}
-        # )
+        view = ResultsView(ctx, member, all_standings)
+        view.message = await ctx.reply(embed=view.get_embed(), view=view, mention_author=False)
 
-        # embed.add_field(
-        #     name="Total Standings",
-        #     value=f"-# **Total Points: {sum(team_standings.values()):,}**\n"
-        #     + "\n".join(
-        #         f"{standing}. **{team} — {points:,}**" if team == member_team else f"{standing}. {team} — {points:,}"
-        #         for standing, (team, points) in enumerate(team_standings.items(), 1)
-        #     ),
-        # )
+    @checks.has_started()
+    @olympics.command(name="claim", aliases=("prizes", "prize", "rewards", "reward", "redeem"))
+    async def claim(self, ctx: PoketwoContext):
+        """Claim your prizes!"""
 
-        # embed.add_field(name="", value="")
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        member_team = Team[member[f"{SUMMER_PREFIX}_team"]]
 
-        for minisport in Minisport:
-            standings = all_standings[minisport]
-            value = f"-# **Total Points: {sum(standings.values()):,}**\n" + "\n".join(
-                f"{standing}. **{team} — {points:,}**" if team == member_team else f"{standing}. {team} — {points:,}"
-                for standing, (team, points) in enumerate(standings.items(), 1)
+        if member.summer_2024_prizes_claimed:
+            return await ctx.reply("You've already claimed your Summer Olympics prizes!")
+
+        if sum(member.summer_2024_points.values()) < PRIZE_POINT_THRESHOLD:
+            return await ctx.reply(
+                f"Sorry, you didn't meet the minimum points contribution threshold ({PRIZE_POINT_THRESHOLD}) for prizes :("
             )
-            embed.add_field(name=f"{minisport} Standings", value=value)
 
-        await ctx.reply(embed=embed, mention_author=False)
+        embed = self.bot.Embed(
+            title=f"Claiming {FlavorStrings.olympics} Prizes...",
+            description=f"- **{member_team.emoji} Team {member_team.qname} Badge**",
+        )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+
+        standings = await self.fetch_standings()
+
+        update = {
+            "$inc": defaultdict(int),
+            "$set": {
+                f"{SUMMER_PREFIX}_prizes_claimed": True,
+                f"badges.{SUMMER_PREFIX}_{member_team.qname.lower()}": True,
+            },
+        }
+        inserts = []
+        for minisport in Minisport:
+            team_standing = list(standings[minisport]).index(member_team) + 1
+            prizes = PRIZES[team_standing]
+            prize_texts = []
+            for item, amount in prizes.items():
+                if not amount:
+                    continue
+
+                if isinstance(item, Box):
+                    update["$inc"][f"{SUMMER_PREFIX}_boxes.{item.name}"] += amount
+                    prize_texts.append(f"- **{item.emoji} {amount} {item:!e} Boxes**")
+                elif isinstance(item, EventSpecies):
+                    pokemons = [
+                        await self.bot.mongo.make_pokemon(
+                            ctx.author, item.get_species(self.bot), shiny_boost=MOLTRES_SHINY_BOOST
+                        )
+                        for _ in range(amount)
+                    ]
+                    for p in pokemons:
+                        pokemon = self.bot.mongo.Pokemon.build_from_mongo(p)
+                        prize_texts.append(f"- **{pokemon:liPg}**")
+                        inserts.append(p)
+
+            embed.add_field(
+                name=f"{minisport} Prizes",
+                value="\n".join(prize_texts),
+                inline=False,
+            )
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        if member.summer_2024_prizes_claimed:
+            return await ctx.reply("You've already claimed your Summer Olympics prizes!")
+
+        await self.bot.mongo.update_member(ctx.author, update)
+        if inserts:
+            await self.bot.mongo.db.pokemon.insert_many(inserts)
+
+        await ctx.reply(embed=embed)
 
     # region Start minisport
     @has_joined_team()
@@ -1586,10 +1897,11 @@ class Summer(commands.Cog):
                 title=f"Minisports",
                 description=dedent(
                     f"""
-                    As you catch pokémon in the wild, you will earn {FlavorStrings.ticket:sb}. You can use these tickets to play {FlavorStrings.minisport:s} and earn points for your team, {FlavorStrings.pokecoins:!e} and {FlavorStrings.box:s} containing various rewards!
+                    **The event has now ended, thanks for playing! For 1 more week, you can still use your remaining tickets to play minisports and open your boxes. You can no longer earn points for your team or pokécoins per point from playing minisports, only boxes! Make sure to open your boxes by the end of the week!**
 
-                    The higher you score in a {FlavorStrings.minisport:s} game, the more points, {FlavorStrings.pokecoins:!e} and better {FlavorStrings.box:s} you will earn. You can see instructions on how to play a {FlavorStrings.minisport} and how to earn points once you start a game!
+                    ~~As you catch pokémon in the wild, you will earn {FlavorStrings.ticket:sb}~~. You can use these tickets to play {FlavorStrings.minisport:s} and earn ~~points for your team, {FlavorStrings.pokecoins:!e} and~~ {FlavorStrings.box:s} containing various rewards!
 
+                    The higher you score in a {FlavorStrings.minisport:s} game, the ~~more points, {FlavorStrings.pokecoins:!e} and~~ better {FlavorStrings.box:s} you will earn. You can see instructions on how to play a {FlavorStrings.minisport} and how to earn points once you start a game!
                     """
                 )
                 + self.member_text(member, points_earned=True),
@@ -1703,9 +2015,11 @@ class Summer(commands.Cog):
             title=f"Your Inventory",
             description=dedent(
                 f"""
-                As you catch pokémon in the wild, you will earn {FlavorStrings.ticket:sb}. You can use these tickets to play {FlavorStrings.minisport:s} and earn points for your team, {FlavorStrings.pokecoins:!e} and {FlavorStrings.box:s} containing various rewards!
+                **The event has now ended, thanks for playing! For 1 more week, you can still use your remaining tickets to play minisports and open your boxes. You can no longer earn points for your team or pokécoins per point from playing minisports, only boxes! Make sure to open your boxes by the end of the week!**
 
-                The more points you earn in a {FlavorStrings.minisport} game, the more {FlavorStrings.pokecoins:!e} and higher tier boxes with better rewards you will earn!
+                ~~As you catch pokémon in the wild, you will earn {FlavorStrings.ticket:sb}~~. You can use these tickets to play {FlavorStrings.minisport:s} and earn ~~points for your team, {FlavorStrings.pokecoins:!e} and~~ {FlavorStrings.box:s} containing various rewards!
+
+                The more points you earn in a {FlavorStrings.minisport} game, the ~~more {FlavorStrings.pokecoins:!e} and~~ higher tier boxes with better rewards you will earn!
                 """
             ),
         )
@@ -1769,16 +2083,16 @@ class Summer(commands.Cog):
     async def on_catch(self, ctx: PoketwoContext, species: Species, _id: int):
         # Ticket drops
 
-        count = await self.bot.redis.hincrby(f"{SUMMER_PREFIX}_catch_count", ctx.author.id, 1)
-        if count >= REQUIRED_CATCHES:
-            await self.bot.mongo.update_member(
-                ctx.author, {"$inc": {f"{SUMMER_PREFIX}_tickets": 1, f"{SUMMER_PREFIX}_tickets_total": 1}}
-            )
-            await self.bot.redis.hdel(f"{SUMMER_PREFIX}_catch_count", ctx.author.id)
+        # count = await self.bot.redis.hincrby(f"{SUMMER_PREFIX}_catch_count", ctx.author.id, 1)
+        # if count >= REQUIRED_CATCHES:
+        #     await self.bot.mongo.update_member(
+        #         ctx.author, {"$inc": {f"{SUMMER_PREFIX}_tickets": 1, f"{SUMMER_PREFIX}_tickets_total": 1}}
+        #     )
+        #     await self.bot.redis.hdel(f"{SUMMER_PREFIX}_catch_count", ctx.author.id)
 
-            await ctx.send(
-                f"You've earned an {FlavorStrings.ticket:b}! Use `{ctx.clean_prefix}{self.play.qualified_name}` or the event menu to play a {FlavorStrings.minisport}."
-            )
+        #     await ctx.send(
+        #         f"You've earned an {FlavorStrings.ticket:b}! Use `{ctx.clean_prefix}{self.play.qualified_name}` or the event menu to play a {FlavorStrings.minisport}."
+        #     )
 
         # Minisport catch event triggers
 
