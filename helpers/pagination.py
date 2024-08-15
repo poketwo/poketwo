@@ -291,7 +291,7 @@ class DexView(discord.ui.View):
         image_url = self.species.get_image_url(
             self.shiny_select.selected, None if not self.gender_select else self.gender_select.selected
         )
-        embed.set_image(url=image_url + "?a")  # TODO: Temporary to bypass discord caching issue for the new summer moltres
+        embed.set_image(url=image_url)
 
         return embed
 
