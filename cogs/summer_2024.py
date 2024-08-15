@@ -1281,7 +1281,7 @@ class OlympicView(discord.ui.View):
         await interaction.response.defer()
         await self.ctx.invoke(self.cog.inventory)
 
-    @discord.ui.button(label="Results", emoji="🏆", style=discord.ButtonStyle.grey)
+    @discord.ui.button(label="Results & Prizes", emoji="🏆", style=discord.ButtonStyle.grey)
     async def standings(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         await self.ctx.invoke(self.cog.standings)
@@ -1384,9 +1384,10 @@ class ResultsView(discord.ui.View):
 
                     You've worked hard as a team, and it's time to enjoy the prizes you've truly earned;
 
-                    A team badge to signify your unity as a team, lots of boxes for various rewards and, finally, the exclusive pokémon **{EventSpecies.MOLTRES.text(self.bot)}**!
+                    A team badge to signify your unity as a team, lots of boxes for various rewards and, finally, the exclusive legendary pokémon:
+                    > **{EventSpecies.MOLTRES.text(self.bot)}**!
 
-                    Thank you for playing 🐦‍🔥
+                    Thank you for playing in {FlavorStrings.olympics} 🐦‍🔥
                     """
                 ),
                 image_url=self.bot.data.asset("/assets/summer_2024/banner.png"),
@@ -1483,7 +1484,7 @@ class ResultsView(discord.ui.View):
         )
 
         embed = self.bot.Embed(
-            title=f"{page.title} Results",
+            title=f"{page.title} Results & Prizes",
             description=page.description,
         )
         embed.color = page.embed_color or embed.color
@@ -1843,6 +1844,57 @@ class Summer(commands.Cog):
             await self.bot.mongo.db.pokemon.insert_many(inserts)
 
         await ctx.reply(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_command_completion(self, ctx: PoketwoContext):
+        """Notify about olympic prizes"""
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if not member:
+            return
+
+        if not member.summer_2024_team:
+            return
+
+        if sum(member.summer_2024_points.values()) < PRIZE_POINT_THRESHOLD:
+            return
+
+        if member.summer_2024_prizes_claimed:
+            return
+
+        if member.summer_2024_prizes_notified:
+            return
+
+        embed = self.bot.Embed(
+            title=f"{FlavorStrings.olympics} Results & Prizes 🏆",
+            description=dedent(
+                f"""
+                As The Summer Olympics come to a close, we celebrate the incredible efforts, dedication and the spirit of unity that brought the Pokétwo community together!
+
+                You've worked hard as a team, and it's time to enjoy the prizes you've truly earned;
+                - A team badge to signify your teamwork to victory 🏅
+                - Lots of boxes for various rewards 🎁 and
+                - Finally, **the new exclusive legendary event pokémon** 🐦‍🔥
+
+                Use `{ctx.clean_prefix}{self.standings.qualified_name}` to learn more, view the minisport results and claim your prizes!
+                """
+            ),
+        )
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+
+        await self.bot.mongo.update_member(
+            ctx.author,
+            {
+                "$set": {
+                    f"{SUMMER_PREFIX}_prizes_notified": True,
+                },
+            },
+        )
+
+        view = OlympicView(ctx)
+        view.clear_items()
+        view.add_item(view.standings)
+        await ctx.reply(embed=embed, view=view)
 
     # region Start minisport
     @has_joined_team()
