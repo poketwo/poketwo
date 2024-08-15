@@ -1384,7 +1384,7 @@ class ResultsView(discord.ui.View):
 
                     You've worked hard as a team, and it's time to enjoy the prizes you've truly earned;
 
-                    A team badge to signify your unity as a team, lots of boxes for various rewards and, finally, the exclusive legendary pokémon:
+                    A team badge to signify your unity as a team, lots of boxes for various rewards and, finally, the exclusive legendary pokémon (*prizes depend on team placements*):
                     > **{EventSpecies.MOLTRES.text(self.bot)}**!
 
                     Thank you for playing in {FlavorStrings.olympics} 🐦‍🔥
@@ -1871,7 +1871,7 @@ class Summer(commands.Cog):
                 f"""
                 As The Summer Olympics come to a close, we celebrate the incredible efforts, dedication and the spirit of unity that brought the Pokétwo community together!
 
-                You've worked hard as a team, and it's time to enjoy the prizes you've truly earned;
+                You've worked hard as a team, and it's time to enjoy the prizes you've truly earned! *Potential prizes depending on team placements*:
                 - A team badge to signify your teamwork to victory 🏅
                 - Lots of boxes for various rewards 🎁 and
                 - Finally, **the new exclusive legendary event pokémon** 🐦‍🔥
