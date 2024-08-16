@@ -451,6 +451,10 @@ class Member(Document):
     summer_2024_prizes_notified = fields.BooleanField(default=False)
 
     @property
+    def is_suspended(self) -> bool:
+        return self.suspended or datetime.utcnow() < self.suspended_until
+
+    @property
     def selected_pokemon(self):
         try:
             return next(filter(lambda x: x.number == int(self.selected), self.pokemon))
