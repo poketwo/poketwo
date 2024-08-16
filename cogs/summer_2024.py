@@ -218,6 +218,10 @@ class BaseMinisport(abc.ABC):
         if points:
             inc[f"{SUMMER_PREFIX}_points.{self.id}"] = points
 
+        inc[f"{SUMMER_PREFIX}_end_points.{self.id}"] = self.progress.points
+        if member.summer_2024_end_points.get(self.id) is None:
+            inc[f"{SUMMER_PREFIX}_end_points.{self.id}"] += member.summer_2024_points.get(self.id, 0)
+
         boxes = self.determine_boxes()
         for box, qty in boxes.items():
             inc[f"{SUMMER_PREFIX}_boxes.{box.name}"] = qty
