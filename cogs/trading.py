@@ -351,7 +351,7 @@ class Trading(commands.Cog):
     async def trade(self, ctx: PoketwoContext, *, user: discord.Member):
         """Trade pokémon with another trainer."""
 
-        if user == ctx.author:
+        if user == ctx.author or user.bot:
             return await ctx.send("Nice try...")
 
         if await self.is_in_trade(ctx.author):
