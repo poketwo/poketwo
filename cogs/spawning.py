@@ -282,7 +282,7 @@ class Spawning(commands.Cog):
                 f"Whoa there. Please tell us you're human! https://verify.poketwo.net/captcha/{ctx.author.id}"
             )
 
-        count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
+        count = await self.bot.redis.incrby(f"catches:{ctx.author.id}", 1)
         if count == 1:
             await self.bot.redis.expire(f"catches:{ctx.author.id}", 86400)
         elif count >= 1000:
@@ -314,7 +314,7 @@ class Spawning(commands.Cog):
         if await self.bot.redis.hexists("captcha", ctx.author.id):
             return await ctx.send(captcha_message)
 
-        count = await self.bot.redis.hincrby(f"catches:{ctx.author.id}", 1)
+        count = await self.bot.redis.incrby(f"catches:{ctx.author.id}", 1)
         captcha_set = False
         if count == 1:
             await self.bot.redis.expire(f"catches:{ctx.author.id}", 86400)
