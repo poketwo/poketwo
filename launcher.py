@@ -86,7 +86,7 @@ if __name__ == "__main__":
         DEBUG=os.getenv("DEBUG") in ("1", "True", "true"),
         DATABASE_URI=uri,
         DATABASE_NAME=os.environ["DATABASE_NAME"],
-        BOT_TOKEN=os.environ["BOT_TOKEN"],
+        BOT_TOKEN=os.getenv("TOKEN") or os.environ["BOT_TOKEN"],
         REDIS_CONF={
             "address": os.environ["REDIS_URI"],
             "password": os.getenv("REDIS_PASSWORD"),
