@@ -1052,14 +1052,43 @@ class Pokemon(commands.Cog):
 
         pc = len(release) * 2
 
+        pages = None
         if len(release) == 1:
             message = f"Are you sure you want to **release** your **{release[0]:Dx}** for {pc:,} pc?"
         else:
             message = f"Are you sure you want to release the following pokémon for {pc:,} pc?\n\n" + "\n".join(
                 f"- **{x:Dnx}**" for x in release
             )
+            if len(message) > constants.CharacterLimits.MESSAGE_CONTENT:
+                message = f"Are you sure you want to release the above {len(release):,} pokémon for {pc:,} pc?"
+
+                PER_PAGE = 15
+                num_pages = math.ceil(len(release) / PER_PAGE)
+
+                async def get_page(source, menu, pidx):
+                    pgstart = pidx * PER_PAGE
+                    pgend = min(pgstart + PER_PAGE, len(release))
+
+                    page_pokemon = release[pgstart:pgend]
+                    lines = [f"{release.index(p) + 1}. **{p:Dnx}**" for p in page_pokemon]
+
+                    return (
+                        f"Pokémon to release (page {pidx + 1}/{num_pages}):\n"
+                        + "\n".join(lines)
+                        + f"\n\n-# It is recommended to release {PER_PAGE} at a time to avoid pagination and retain a log of pokémon being released"
+                    )
+
+                pages = pagination.ContinuablePages(
+                    pagination.FunctionPageSource(num_pages, get_page),
+                    mention_author=member.confirm_mention,
+                )
+                await pages.start(ctx)
 
         result = await ctx.confirm(message)
+
+        if pages:
+            await pages.message.edit(view=None)
+
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
