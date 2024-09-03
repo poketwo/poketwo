@@ -2149,6 +2149,8 @@ other = {
     "item_scroll_of_waters": 1245229001736196176,
     "item_cracked_pot": 1245251367799492690,
     "item_metal_alloy": 1244621770753970279,
+    "item_black_augurite": 1280602459852771348,
+    "item_peat_block": 1280596470327939212,
     # Shop 3 - Form Change Items
     "item_griseous_orb": 725820017853071552,
     "item_adamant_crystal": 1244907479683432502,
