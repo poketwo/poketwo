@@ -116,14 +116,19 @@ class ContinuablePages(ViewMenuPages):
     async def _get_kwargs_from_page(self, page):
         value = await discord.utils.maybe_coroutine(self._source.format_page, self, page)
         if isinstance(value, dict):
-            return value
+            kwargs = value
         elif isinstance(value, str):
-            return {"content": value, "embed": None}
+            kwargs = {"content": value, "embed": None}
         elif isinstance(value, discord.Embed):
-            return {"embed": value, "content": None}
+            kwargs = {"embed": value, "content": None}
         elif isinstance(value, list):
             if all([isinstance(i, discord.Embed) for i in value]):
-                return {"embeds": value, "content": None}
+                kwargs = {"embeds": value, "content": None}
+
+        kwargs["allowed_mentions"] = discord.AllowedMentions(
+            everyone=False, users=False, roles=False, replied_user=self.mention_author
+        )
+        return kwargs
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(self.current_page)
