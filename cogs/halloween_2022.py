@@ -163,7 +163,7 @@ class Halloween(commands.Cog):
     @flags.add_flag("--legendary", action="store_true")
     @flags.add_flag("--ub", action="store_true")
     @flags.add_flag("--rare", action="store_true")
-    @flags.add_flag("--event", action="store_true")
+    @flags.add_flag("--event", "--ev", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
