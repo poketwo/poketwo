@@ -873,18 +873,21 @@ class Pokemon(commands.Cog):
         if "shiny" in flags and flags["shiny"]:
             aggregations.append({"$match": {map_field("shiny"): True}})
 
+        if "evolutions" in flags and flags["evolutions"] is not None:
+            if "name" in flags and flags["name"] is None:
+                flags["name"] = []
+
+            flags["name"].extend(
+                [
+                    e.name.split()
+                    for x in flags["evolutions"]
+                    for i in set(self.bot.data.find_all_matches(" ".join(x)))
+                    for e in self.bot.data.species_by_number(i).evolution_line
+                ]
+            )
+
         if "name" in flags and flags["name"] is not None:
             all_species = [i for x in flags["name"] for i in self.bot.data.find_all_matches(" ".join(x))]
-
-            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
-
-        if "evolutions" in flags and flags["evolutions"] is not None:
-            all_species = [
-                e
-                for x in flags["evolutions"]
-                for i in self.bot.data.find_all_matches(" ".join(x))
-                for e in self.bot.data.species_by_number(i).evolution_line
-            ]
 
             aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 

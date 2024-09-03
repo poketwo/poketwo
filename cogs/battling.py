@@ -910,6 +910,19 @@ class Battling(commands.Cog):
             for regional in ("alolan", "galarian", "hisuian", "paldean"):
                 flags[regional] = True
 
+        if flags.get("evolutions"):
+            if "name" in flags and flags["name"] is None:
+                flags["name"] = []
+
+            flags["name"].extend(
+                [
+                    e.name.split()
+                    for x in flags["evolutions"]
+                    for i in set(self.bot.data.find_all_matches(" ".join(x)))
+                    for e in self.bot.data.species_by_number(i).evolution_line
+                ]
+            )
+
         forms = [
             s
             for form in ("alolan", "galarian", "hisuian", "paldean", "mega", "event")
@@ -953,13 +966,6 @@ class Battling(commands.Cog):
 
             if flags["learns"] and key not in [
                 i for x in flags["learns"] for i in self.bot.data.list_move(" ".join(x))
-            ]:
-                return False
-            if flags["evolutions"] and key not in [
-                e
-                for x in flags["evolutions"]
-                for i in self.bot.data.find_all_matches(" ".join(x))
-                for e in self.bot.data.species_by_number(i).evolution_line
             ]:
                 return False
 
