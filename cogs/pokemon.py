@@ -1075,7 +1075,7 @@ class Pokemon(commands.Cog):
                     return (
                         f"Pokémon to release (page {pidx + 1}/{num_pages}):\n"
                         + "\n".join(lines)
-                        + f"\n\n-# It is recommended to release {PER_PAGE} at a time to avoid pagination and retain a log of pokémon being released"
+                        + f"\n\n-# It is recommended to release {PER_PAGE} at a time to avoid pagination and retain a log of all the pokémon being released"
                     )
 
                 pages = pagination.ContinuablePages(
