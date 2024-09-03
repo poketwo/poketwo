@@ -290,6 +290,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
@@ -452,6 +453,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
@@ -560,6 +562,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
@@ -875,6 +878,16 @@ class Pokemon(commands.Cog):
 
             aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
 
+        if "evolutions" in flags and flags["evolutions"] is not None:
+            all_species = [
+                e
+                for x in flags["evolutions"]
+                for i in self.bot.data.find_all_matches(" ".join(x))
+                for e in self.bot.data.species_by_number(i).evolution_line
+            ]
+
+            aggregations.append({"$match": {map_field("species_id"): {"$in": all_species}}})
+
         if "move" in flags and flags["move"] is not None:
             move_ids = [m.id for x in flags["move"] if (m := self.bot.data.move_by_name(" ".join(x))) is not None]
 
@@ -1131,6 +1144,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
@@ -1254,6 +1268,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--favorite", action="store_true")
     @flags.add_flag("--embedcolor", "--ec", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--nickname", nargs="*", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
@@ -1367,6 +1382,7 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--orderd", action="store_true")
     @flags.add_flag("--ordera", action="store_true")
     @flags.add_flag("--type", "--t", type=str)
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--region", "--r", type=str)
     @flags.add_flag("--learns", nargs="*", action="append")
     @checks.has_started()
@@ -1428,6 +1444,13 @@ class Pokemon(commands.Cog):
                     return False
                 if flags["learns"] and key not in [
                     i for x in flags["learns"] for i in self.bot.data.list_move(" ".join(x))
+                ]:
+                    return False
+                if flags["evolutions"] and key not in [
+                    e
+                    for x in flags["evolutions"]
+                    for i in self.bot.data.find_all_matches(" ".join(x))
+                    for e in self.bot.data.species_by_number(i).evolution_line
                 ]:
                     return False
 

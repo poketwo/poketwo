@@ -888,6 +888,7 @@ class Battling(commands.Cog):
     @flags.add_flag("--event", action="store_true")
     @flags.add_flag("--mega", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
+    @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
     @flags.add_flag("--region", "--r", type=str, action="append")
     @flags.add_flag("--learns", nargs="*", action="append")
@@ -952,6 +953,13 @@ class Battling(commands.Cog):
 
             if flags["learns"] and key not in [
                 i for x in flags["learns"] for i in self.bot.data.list_move(" ".join(x))
+            ]:
+                return False
+            if flags["evolutions"] and key not in [
+                e
+                for x in flags["evolutions"]
+                for i in self.bot.data.find_all_matches(" ".join(x))
+                for e in self.bot.data.species_by_number(i).evolution_line
             ]:
                 return False
 
