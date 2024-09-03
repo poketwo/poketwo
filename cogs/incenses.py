@@ -394,7 +394,7 @@ class Incenses(commands.Cog):
             loop.cancel()
 
     @commands.guild_only()
-    @commands.group(aliases=("incenses", "inc"), invoke_without_command=True)
+    @commands.group(aliases=("incenses", "inc"), invoke_without_command=True, case_insensitive=True)
     async def incense(self, ctx: PoketwoContext):
         """See the list of all active incenses in the server"""
 
@@ -543,7 +543,7 @@ class Incenses(commands.Cog):
 
     @commands.guild_only()
     @checks.has_incense_role()
-    @incense.group(aliases=("p",), invoke_without_command=True)
+    @incense.group(aliases=("p",), invoke_without_command=True, case_insensitive=True)
     async def pause(
         self,
         ctx: commands.Context,
@@ -600,7 +600,7 @@ class Incenses(commands.Cog):
     @commands.guild_only()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
-    @incense.group(aliases=("r",), invoke_without_command=True)
+    @incense.group(aliases=("r",), invoke_without_command=True, case_insensitive=True)
     async def resume(
         self,
         ctx: commands.Context,
