@@ -16,6 +16,5 @@ default = (
     "incenses",
     "sprites",
     "trading",
-    # "noevent",  # Comment this line before adding new event cogs, and add it back when ending events.
-    "summer_2024",
+    "noevent",  # Comment this line before adding new event cogs, and add it back when ending events.
 )
