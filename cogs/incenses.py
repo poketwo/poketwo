@@ -710,6 +710,9 @@ class Incenses(commands.Cog):
     async def adminbuy(self, ctx: PoketwoContext, spawns: int = DEFAULT_TOTAL_SPAWNS, interval: int = DEFAULT_INTERVAL):
         """Admin command to buy an incense with any spawns or intervals. -1 spawns will start an infinite incense."""
 
+        if interval <= 0:
+            return await ctx.send("Invalid interval, it can't be less than or equal to 0")
+
         if spawns == -1:
             spawns = float("inf")
 
