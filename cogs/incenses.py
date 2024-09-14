@@ -107,6 +107,7 @@ class Incense:
     interval: Optional[int] = DEFAULT_INTERVAL
     paused: Optional[bool] = False
     old_system: Optional[bool] = False
+    failing: Optional[bool] = False
     _id: Optional[ObjectId] = None
 
     @property
@@ -156,6 +157,10 @@ class Incense:
                 other_sprites["green"] if self.spawns_remaining > YELLOW_STATUS_THRESHOLD else other_sprites["yellow"]
             )
             duration_text = f"Ends {discord.utils.format_dt(self.ends_at, 'R')}"
+
+        if self.failing:
+            emoji_id = other_sprites["red"]
+            duration_text = "Failing to spawn"
 
         if self.paused:
             emoji_id = other_sprites["invisible"]
@@ -393,18 +398,35 @@ class Incenses(commands.Cog):
         for interval, loop in self.interval_loops.items():
             loop.cancel()
 
+    async def find_channels(self, guild: discord.Guild, filter: dict) -> List[Channel]:
+        channels = []
+        async for channel in self.bot.mongo.Channel.find(
+            {
+                "guild_id": guild.id,
+                **filter,
+            }
+        ):
+            if guild.get_channel_or_thread(channel.id):
+                channels.append(channel)
+            else:
+                try:
+                    await guild.fetch_channel(channel.id)
+                except discord.HTTPException:
+                    continue
+                else:
+                    channel["_incense"]["failing"] = True
+                    channels.append(channel)
+
+        return channels
+
     @commands.guild_only()
     @commands.group(aliases=("incenses", "inc"), invoke_without_command=True, case_insensitive=True)
     async def incense(self, ctx: PoketwoContext):
         """See the list of all active incenses in the server"""
 
-        incense_channels = await self.bot.mongo.Channel.find(
-            {
-                "guild_id": ctx.guild.id,
-                "$or": [{"incense.spawns_remaining": {"$gt": 0}}, {"spawns_remaining": {"$gt": 0}}],
-            }
-        ).to_list(None)
-        incense_channels = [channel for channel in incense_channels if ctx.guild.get_channel_or_thread(channel.id)]
+        incense_channels = await self.find_channels(
+            ctx.guild, {"$or": [{"incense.spawns_remaining": {"$gt": 0}}, {"spawns_remaining": {"$gt": 0}}]}
+        )
 
         paginated_fields = [
             PaginatedField(
@@ -573,10 +595,9 @@ class Incenses(commands.Cog):
     async def pause_all(self, ctx: PoketwoContext, **flags):
         """Pause all active incenses in the server"""
 
-        channels = await self.bot.mongo.Channel.find(
-            {"guild_id": ctx.guild.id, "incense.spawns_remaining": {"$gt": 0}, "incense.paused": {"$ne": True}}
-        ).to_list(None)
-        channels = [channel for channel in channels if ctx.guild.get_channel_or_thread(channel.id)]
+        channels = await self.find_channels(
+            ctx.guild, {"incense.spawns_remaining": {"$gt": 0}, "incense.paused": {"$ne": True}}
+        )
 
         num_incenses = len(channels)
         if num_incenses == 0:
@@ -625,10 +646,7 @@ class Incenses(commands.Cog):
     async def resume_all(self, ctx: PoketwoContext, **flags):
         """Resume all paused incenses in the server"""
 
-        channels = await self.bot.mongo.Channel.find(
-            {"guild_id": ctx.guild.id, "incense.spawns_remaining": {"$gt": 0}, "incense.paused": True}
-        ).to_list(None)
-        channels = [channel for channel in channels if ctx.guild.get_channel_or_thread(channel.id)]
+        channels = await self.find_channels(ctx.guild, {"incense.spawns_remaining": {"$gt": 0}, "incense.paused": True})
 
         num_incenses = len(channels)
         if num_incenses == 0:
