@@ -192,11 +192,11 @@ class Trading(commands.Cog):
 
                 for u in trade["users"]:
                     member = await self.bot.mongo.fetch_member_info(u)
-                    if member.balance < trade["pokecoins"][u.id]:
+                    if max(member.balance, 0) < trade["pokecoins"][u.id]:
                         await ctx.send("The trade could not be executed as one user does not have enough Pokécoins.")
                         await self.end_trade(a.id)
                         return
-                    if member.redeems < trade["redeems"][u.id]:
+                    if max(member.redeems, 0) < trade["redeems"][u.id]:
                         await ctx.send("The trade could not be executed as one user does not have enough redeems.")
                         await self.end_trade(a.id)
                         return
@@ -212,7 +212,7 @@ class Trading(commands.Cog):
                             {"_id": mem.id}, {"$inc": {"balance": -trade["pokecoins"][i]}}
                         )
                         await self.bot.redis.hdel("db:member", mem.id)
-                        if res["balance"] >= trade["pokecoins"][i]:
+                        if max(res["balance"], 0) >= trade["pokecoins"][i]:
                             await self.bot.mongo.update_member(omem, {"$inc": {"balance": trade["pokecoins"][i]}})
                         else:
                             await self.bot.mongo.update_member(mem, {"$inc": {"balance": trade["pokecoins"][i]}})
@@ -225,7 +225,7 @@ class Trading(commands.Cog):
                             {"_id": mem.id}, {"$inc": {"redeems": -trade["redeems"][i]}}
                         )
                         await self.bot.redis.hdel("db:member", mem.id)
-                        if res["redeems"] >= trade["redeems"][i]:
+                        if max(res["redeems"], 0) >= trade["redeems"][i]:
                             await self.bot.mongo.update_member(omem, {"$inc": {"redeems": trade["redeems"][i]}})
                         else:
                             await self.bot.mongo.update_member(mem, {"$inc": {"redeems": trade["redeems"][i]}})
