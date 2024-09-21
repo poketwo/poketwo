@@ -351,7 +351,7 @@ class Spawning(commands.Cog):
         pokemon = await self.bot.mongo.make_pokemon(member, species, gender=gender)
         pokemon_obj = self.bot.mongo.Pokemon.build_from_mongo(pokemon)
 
-        gmax = species.id == species.dex_number and species.gmax and random.random() < GMAX_CHANCE
+        gmax = species.gmax and random.random() < GMAX_CHANCE
         if gmax:
             pokemon["species_id"] = species.gmax.id
 
