@@ -10,21 +10,21 @@ from helpers import checks
 
 # For future events, add this cog to cogs/__init__.py and just change these
 
-TITLE = "Happy Pride Month! 🏳️‍🌈"
+TITLE = "Catching Fairies 🦋"
 DESCRIPTION = dedent(
     f"""
-    Happy pride month! Some Pokémon wanted to express their support by showing all colours of the rainbow! 🌈
+    When Autumn comes and the leaves turn red, yellow and brown, the world looks magical. This is also the time that various fairies are seen, preparing for the Winter to come.
+    During this week, you will be able to catch three fairies before they hide until Spring!
 
-    From June 23 to June 30 you can catch the following Pokémon in the wild:
-    - Pride Ampharos
-    - Rainbow Minior
-    - Painted Acorn Skwovet
-    - Gradient Chi-Yu
+    The following Fairy Pokémon have been sighted in the wild:
+    - 🌙 **Moon Fairy Mudkip**
+    - 🥀 **Flower Fairy Flabébé**
+    - 🔥 **Fire Fairy Salandit**
 
-    ❤️🧡💛 Happy Catching 💚💙💜
+    Happy catching! 🦋
     """
 )
-COLORS = [Color.red(), Color.orange(), Color.yellow(), Color.green(), Color.blue(), Color.purple()]
+COLORS = [0xEED25D, 0x4B4069]
 
 
 class Event(commands.Cog):
@@ -43,6 +43,9 @@ class Event(commands.Cog):
             title=TITLE,
             description=DESCRIPTION,
             color=next(self.colors[ctx.author.id]),
+        )
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/1122578987919605870/1287367322197295146/IMG_5333.png"
         )
         await ctx.send(embed=embed)
 
