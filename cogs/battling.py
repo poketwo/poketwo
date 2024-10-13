@@ -550,6 +550,9 @@ class Battling(commands.Cog):
 
     @tasks.loop(seconds=0.1)
     async def process_move_requests(self):
+        if not self.bot.redis:
+            return
+
         with await self.bot.redis as r:
             req = await r.blpop("move_request")
             data = pickle.loads(req[1])
@@ -564,10 +567,12 @@ class Battling(commands.Cog):
     @process_move_requests.before_loop
     async def before_process_move_requests(self):
         await self.bot.wait_until_ready()
-        await self.bot.get_cog("Redis").wait_until_ready()
 
     @tasks.loop(seconds=0.1)
     async def process_move_decisions(self):
+        if not self.bot.redis:
+            return
+
         with await self.bot.redis as r:
             req = await r.blpop(f"move_decide:{self.bot.cluster_idx}")
             data = pickle.loads(req[1])
@@ -580,7 +585,6 @@ class Battling(commands.Cog):
     @process_move_decisions.before_loop
     async def before_process_move_decisions(self):
         await self.bot.wait_until_ready()
-        await self.bot.get_cog("Redis").wait_until_ready()
 
     @commands.Cog.listener()
     async def on_move_request(self, cluster_idx: int, trainer_data: dict, species_id: int, actions: dict):

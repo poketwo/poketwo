@@ -43,6 +43,9 @@ class Trading(commands.Cog):
 
     @tasks.loop(seconds=0.1)
     async def process_cancel_trades(self):
+        if not self.bot.redis:
+            return
+
         with await self.bot.redis as r:
             req = await r.blpop(f"cancel_trade:{self.bot.cluster_idx}")
             await self.end_trade(int(req[1]))
@@ -50,7 +53,6 @@ class Trading(commands.Cog):
     @process_cancel_trades.before_loop
     async def before_process_cancel_trades(self):
         await self.bot.wait_until_ready()
-        await self.bot.get_cog("Redis").wait_until_ready()
 
     @commands.Cog.listener()
     async def on_message(self, message):
