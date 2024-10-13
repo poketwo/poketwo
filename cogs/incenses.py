@@ -477,9 +477,9 @@ class Incenses(commands.Cog):
         insert = {
             "_id": incense._id,
             "event": "incense",
-            "user_id": ctx.author.id,
-            "channel_id": ctx.channel.id,
-            "guild_id": ctx.guild.id,
+            "user": ctx.author.id,
+            "channel": ctx.channel.id,
+            "guild": ctx.guild.id,
             "total_spawns": incense.spawns_remaining,
             "interval": incense.interval,
             "price": incense.calculate_price(),
