@@ -1,4 +1,5 @@
 import random
+import asyncio
 import textwrap
 import time
 from collections import defaultdict
@@ -173,6 +174,13 @@ class Spawning(commands.Cog):
         incense: Optional[Incense] = None,
         redeem: Optional[bool] = False,
     ):
+        if incense:
+            # Add a sleep to spread out incense spawns, generate this
+            # deterministically based on the channel ID so the interval stays
+            # constant in a given channel
+            ms_to_wait = incense.channel_id % (incense.interval * 1000)
+            await asyncio.sleep(ms_to_wait / 1000)
+
         prev_species = None
         prev_species_id = await self.bot.redis.hget("wild", channel.id)
         if prev_species_id is not None:
