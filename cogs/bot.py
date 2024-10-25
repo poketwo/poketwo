@@ -170,8 +170,9 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
-            print(error)
             ctx.log.exception("command.error")
+            raise error
+            print(error)
 
     @commands.Cog.listener()
     async def on_error(self, event, *args, **kwargs):
@@ -528,7 +529,7 @@ class Bot(commands.Cog):
         pokedex_total = self.bot.data.total_pokedex_count
         pokedex_percent = int(pokedex_completed / pokedex_total * 100)
 
-        embed = self.bot.Embed(title="Trainer Profile")
+        embed = self.bot.Embed(title="Trainer Profile", description=f"Started at {discord.utils.format_dt(member.joined_at)} ({discord.utils.format_dt(member.joined_at, 'R')})!")
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
         pokemon_caught = []
