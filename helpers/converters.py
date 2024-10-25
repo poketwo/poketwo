@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 from durations_nlp import Duration
 
-from data.utils import isnumber
+from data.utils import comma_formatted, isnumber
 
 from .context import PoketwoContext
 from .utils import FakeUser
@@ -158,3 +158,48 @@ def strfdelta(duration, long=False, max_len=None):
         strings.append("now")
 
     return " ".join(strings)
+
+
+class EnumConverter(commands.Converter):
+    """Converter to convert string to an enum from the given enum class. The enum class must have the from_name method implemented."""
+
+    def __init__(self, enum_class):
+        self.enum_class = enum_class
+
+    async def convert(self, ctx: PoketwoContext, argument: str):
+        return self.enum_class.from_name(argument)
+
+
+class GreedyEnumConverter(commands.Converter):
+    """Greedy converter to convert strings to enum from the given enum class. The enum class must have the from_name method implemented.
+    This converter takes into account enums with names with spaces in them, unlike commands.Greedy."""
+
+    def __init__(self, enum_class):
+        self.enum_class = enum_class
+
+    async def convert(self, ctx: PoketwoContext, argument: str):
+        words = argument.split()
+
+        items = []
+        start = 0
+        end = 1
+        while start < len(words):
+            name = " ".join(words[start:end])
+            item = self.enum_class.from_name(name, raise_error=False)
+            if item:
+                items.append(item)
+                start = end
+                end += 1
+            else:
+                if end >= len(words):
+                    start += 1
+                    end = start + 1
+                else:
+                    end += 1
+
+        if not items:
+            raise commands.UserInputError(
+                f"Invalid {self.enum_class.__name__}(s). Valid {self.enum_class.__name__}s are: {comma_formatted([f'{e:b!e}' for e in self.enum_class])}"
+            )
+
+        return items

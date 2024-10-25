@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from enum import Enum
 import io
 import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 
 import discord
+from discord.ext import commands
 
+from data.utils import comma_formatted
 from helpers.constants import CharacterLimits
 
 if TYPE_CHECKING:
@@ -154,3 +157,45 @@ def build_channels_message(
             message += f" {see_all_tip}"
 
     return message
+
+
+class BaseItemEnum(Enum):
+    """Base Enum for things like items with name and emoji"""
+
+    def __init__(self, id: int, qname: str, emoji: str, aliases: Optional[str] = None):
+        self.id = id
+        self.qname = qname
+        self.emoji = emoji
+        self.aliases = aliases or []
+
+    def __format__(self, format_spec: str) -> str:
+        val = self.qname
+        emoji = self.emoji
+
+        # Whether to not show emoji
+        if "!e" not in format_spec and emoji is not None:
+            val = f"{emoji} {val}"
+
+        # Whether to bold
+        if "b" in format_spec:
+            val = f"**{val}**"
+
+        return val
+
+    def __str__(self) -> str:
+        return f"{self}"
+
+    @classmethod
+    def from_name(cls, name: str, *, raise_error: Optional[bool] = True) -> BaseItemEnum | None:
+        name = name.casefold().strip()
+        for enum in cls:
+            names = [enum.name, enum.qname, *enum.aliases]
+            if name in map(lambda n: n.casefold().strip(), names):
+                return enum
+        else:
+            if raise_error:
+                raise commands.UserInputError(
+                    f"Invalid {cls.__name__}. Valid {cls.__name__}s are: {comma_formatted([f'{e:b!e}' for e in cls])}"
+                )
+            else:
+                return None

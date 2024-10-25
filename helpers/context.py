@@ -109,6 +109,11 @@ class ConfirmationYesNoView(ConfirmationView):
         super().__init__(*args, confirm_label="Yes", cancel_label="No", **kwargs)
 
 
+class ConfirmationAcceptDeclineView(ConfirmationView):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, confirm_label="Accept", cancel_label="Decline", **kwargs)
+
+
 class RequestView(ConfirmationView):
     def __init__(self, *args, requestee: discord.User | discord.Member, **kwargs) -> None:
         self.requestee = requestee

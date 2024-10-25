@@ -450,6 +450,13 @@ class Member(Document):
     summer_2024_prizes_claimed = fields.BooleanField(default=False)
     summer_2024_prizes_notified = fields.BooleanField(default=False)
 
+    day_of_the_dead_2024_boxes = fields.IntegerField(default=0)
+    day_of_the_dead_2024_quests_metadata = fields.DictField(fields.StringField(), fields.StringField(), default=dict)
+    day_of_the_dead_2024_quests = fields.ListField(fields.DictField(), default=list)
+    day_of_the_dead_2024_items = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
+    day_of_the_dead_2024_ofrenda_offerings = fields.ListField(fields.IntegerField(), default=list)
+    day_of_the_dead_2024_ofrendas_completed = fields.IntField(default=0)
+
     @property
     def is_suspended(self) -> bool:
         return self.suspended or datetime.utcnow() < self.suspended_until
@@ -621,7 +628,7 @@ class Mongo(commands.Cog):
             setattr(self, x, instance.register(g[x]))
             getattr(self, x).bot = bot
 
-    async def fetch_member_info(self, member: discord.Member | Member):
+    async def fetch_member_info(self, member: discord.Member | Member) -> Member:
         val = await self.bot.redis.hget(f"db:member", int(int(member.id)))
         if val is None:
             val = await self.Member.find_one({"id": int(member.id)}, {"pokemon": 0, "pokedex": 0})

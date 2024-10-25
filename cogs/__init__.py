@@ -16,6 +16,7 @@ default = (
     "incenses",
     "sprites",
     "trading",
+    # "noevent",  # Comment this line before adding new event cogs, and add it back when ending events.
     # "event",  # Cog for simple events, remove when bigger event cogs are added.
-    "noevent",  # Comment this line before adding new event cogs, and add it back when ending events.
+    "day_of_the_dead_2024",
 )
