@@ -170,9 +170,8 @@ class Bot(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
-            ctx.log.exception("command.error")
-            raise error
             print(error)
+            ctx.log.exception("command.error")
 
     @commands.Cog.listener()
     async def on_error(self, event, *args, **kwargs):
