@@ -180,6 +180,9 @@ class Spawning(commands.Cog):
             # constant in a given channel
             ms_to_wait = incense.channel_id % (incense.interval * 1000)
             await asyncio.sleep(ms_to_wait / 1000)
+            channel_doc = await self.bot.mongo.fetch_channel(channel)
+            if not channel_doc.incense_active or channel_doc.incense.paused:
+                return
 
         prev_species = None
         prev_species_id = await self.bot.redis.hget("wild", channel.id)
@@ -272,6 +275,9 @@ class Spawning(commands.Cog):
             file=image,
             embed=embed,
         )
+
+        if incense:
+            await self.bot.mongo.update_channel(channel, {"$inc": {"incense.spawns_remaining": -1}})
 
         return True
 

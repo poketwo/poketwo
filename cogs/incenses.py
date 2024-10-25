@@ -358,8 +358,10 @@ class Incenses(commands.Cog):
                     channel = None if guild is None else guild.get_channel_or_thread(result.id)
 
                     if channel is not None:
+                        # The incense spawns decrement is inside spawn_pokemon so that it doesn't decrement
+                        # if the incense is paused after the wait or if it encounters an error
                         self.bot.loop.create_task(self.spawn_pokemon(channel, incense=result.incense))
-                        await self.bot.mongo.update_channel(channel, {"$inc": {"incense.spawns_remaining": -1}})
+
             except Exception as error:
                 print(error)
                 self.bot.log.exception("spawn_incense.error")
@@ -477,9 +479,9 @@ class Incenses(commands.Cog):
         insert = {
             "_id": incense._id,
             "event": "incense",
-            "user": ctx.author.id,
-            "channel": ctx.channel.id,
-            "guild": ctx.guild.id,
+            "user_id": ctx.author.id,
+            "channel_id": ctx.channel.id,
+            "guild_id": ctx.guild.id,
             "total_spawns": incense.spawns_remaining,
             "interval": incense.interval,
             "price": incense.calculate_price(),
