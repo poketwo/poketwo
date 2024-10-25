@@ -638,6 +638,7 @@ class DOTD(commands.Cog):
         )
         embed.set_image(url=self.bot.data.asset(flavour["image"]))
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+        embed.set_footer(text=f"If you want, you can cancel your current set of quests using `{ctx.clean_prefix}{self.cancel.qualified_name}`")
 
         await ctx.reply(embed=embed, mention_author=False)
 
