@@ -321,7 +321,12 @@ class DOTD(commands.Cog):
         if messages:
             if context:
                 for message in messages:
-                    await context.send(f"Congratulations {user.mention}! {message}")
+                    await context.send(
+                        f"Congratulations {user.mention}! {message}",
+                        allowed_mentions=discord.AllowedMentions(users=True)
+                        if member["catch_mention"]
+                        else discord.AllowedMentions.none(),
+                    )
             else:
                 await self.send_chunked_lines(user, messages)
 
@@ -378,7 +383,11 @@ class DOTD(commands.Cog):
 
     # region main embed
     @checks.has_started()
-    @commands.group(aliases=("dia-de-muertos", "day-of-the-dead", "ddm", "event", "ev", "ofrenda"), invoke_without_command=True, case_insensitive=True)
+    @commands.group(
+        aliases=("dia-de-muertos", "day-of-the-dead", "ddm", "event", "ev", "ofrenda"),
+        invoke_without_command=True,
+        case_insensitive=True,
+    )
     async def dotd(self, ctx: PoketwoContext):
         """Open Day of the Dead 2024 menu"""
 
@@ -638,7 +647,9 @@ class DOTD(commands.Cog):
         )
         embed.set_image(url=self.bot.data.asset(flavour["image"]))
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-        embed.set_footer(text=f"If you want, you can cancel your current set of quests using `{ctx.clean_prefix}{self.cancel.qualified_name}`")
+        embed.set_footer(
+            text=f"If you want, you can cancel your current set of quests using `{ctx.clean_prefix}{self.cancel.qualified_name}`"
+        )
 
         await ctx.reply(embed=embed, mention_author=False)
 
@@ -819,9 +830,7 @@ class DOTD(commands.Cog):
     ):
         """Dev-only command to give items for debugging purposes"""
 
-        await self.bot.mongo.update_member(
-            user, {"$inc": {f"{EVENT_PREFIX}_items.{item.name}": qty for item in Item}}
-        )
+        await self.bot.mongo.update_member(user, {"$inc": {f"{EVENT_PREFIX}_items.{item.name}": qty for item in Item}})
         await ctx.send(f"Gave {qty}x {FlavorStrings.items} to **{user}**.")
 
     @checks.is_developer()
