@@ -528,7 +528,13 @@ class Bot(commands.Cog):
         pokedex_total = self.bot.data.total_pokedex_count
         pokedex_percent = int(pokedex_completed / pokedex_total * 100)
 
-        embed = self.bot.Embed(title="Trainer Profile", description=f"Started at {discord.utils.format_dt(member.joined_at)} ({discord.utils.format_dt(member.joined_at, 'R')})!")
+        if member.joined_at:
+            ts = f"{discord.utils.format_dt(member.joined_at)} ({discord.utils.format_dt(member.joined_at, 'R')})"
+            start_txt = f"Started at {ts}!"
+        else:
+            start_txt = "Start date unknown, please contact a Developer."
+
+        embed = self.bot.Embed(title="Trainer Profile", description=start_txt)
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
 
         pokemon_caught = []
