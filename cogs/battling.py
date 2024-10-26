@@ -329,8 +329,12 @@ class Battle:
             t0 = self.trainers[1]  # switched on purpose because API is like that
             t1 = self.trainers[0]
             image_query = {
+                "base0": t0.selected.species.dex_number,
+                "base1": t1.selected.species.dex_number,
                 "text0": t0.selected.species.name,
                 "text1": t1.selected.species.name,
+                "level0": t0.selected.level,
+                "level1": t1.selected.level,
                 "hp0": t0.selected.hp / t0.selected.max_hp,
                 "hp1": t1.selected.hp / t1.selected.max_hp,
                 "shiny0": 1 if t0.selected.shiny else 0,
