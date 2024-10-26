@@ -324,7 +324,7 @@ class DOTD(commands.Cog):
                     await context.send(
                         f"Congratulations {user.mention}! {message}",
                         allowed_mentions=discord.AllowedMentions(users=True)
-                        if member["catch_mention"]
+                        if member.get("catch_mention", True)
                         else discord.AllowedMentions.none(),
                     )
             else:
