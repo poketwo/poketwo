@@ -123,7 +123,7 @@ class Item(BaseItemEnum):
         2,
         "Cempasúchiles",
         "<:flowers:1297191792449425418>",
-        ["flowers", "flower", "marigolds", "cempasúchil", "f"],
+        ["cempasuchiles", "cempasúchil", "cempasuchil", "flowers", "flower", "marigolds", "f"],
     )
     PAN_DE_MUERTO = 3, "Pan de muerto", "<:pan_de_muerto:1298716081095053393>", ["bread", "pan", "p"]
     CALAVERA = 4, "Calavera", "<:calavera:1297191946225319948>", ["skull", "candy", "s"]
