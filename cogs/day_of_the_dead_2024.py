@@ -617,7 +617,7 @@ class DOTD(commands.Cog):
     async def quests(self, ctx: PoketwoContext):
         """See the active quests"""
 
-        await self.all_quests_complete(ctx.author, ctx)
+        # await self.all_quests_complete(ctx.author, ctx)
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         quests = member[f"{EVENT_PREFIX}_quests"]
         if not quests:
