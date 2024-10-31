@@ -895,6 +895,7 @@ class Battling(commands.Cog):
     @flags.add_flag("--rare", action="store_true")
     @flags.add_flag("--event", "--ev", action="store_true")
     @flags.add_flag("--mega", action="store_true")
+    @flags.add_flag("--gmax", "--gigantamax", action="store_true")
     @flags.add_flag("--name", "--n", nargs="+", action="append")
     @flags.add_flag("--evolutions", "--evoline", "--evo", nargs="+", action="append")
     @flags.add_flag("--type", "--t", type=str, action="append")
@@ -933,7 +934,7 @@ class Battling(commands.Cog):
 
         forms = [
             s
-            for form in ("alolan", "galarian", "hisuian", "paldean", "mega", "event")
+            for form in ("alolan", "galarian", "hisuian", "paldean", "mega", "event", "gmax")
             for s in getattr(self.bot.data, f"list_{form}")
             if flags[form]
         ]
