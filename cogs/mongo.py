@@ -338,6 +338,7 @@ class Member(Document):
     catch_mention = fields.BooleanField(default=True)
     confirm_mention = fields.BooleanField(default=True)
     catch_ivs = fields.BooleanField(default=True)
+    bold_ids = fields.BooleanField(default=False)
 
     # Quests
     badges = fields.DictField(fields.StringField(), fields.BooleanField(), default=dict)
@@ -650,6 +651,9 @@ class Mongo(commands.Cog):
                 val.username = member.name
 
         return val
+
+    async def fetch_member_setting(self, member: discord.Member | Member, setting: str):
+        return (await self.Member.find_one({"id": int(member.id)}, {setting: 1}))[setting]
 
     async def fetch_next_idx(self, member: discord.Member | Member, reserve=1):
         result = await self.db.member.find_one_and_update(

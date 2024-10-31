@@ -1333,8 +1333,11 @@ class Pokemon(commands.Cog):
         def prepare_page(menu, items):
             menu.maxn = max(x.idx for x in items)
 
+        bold_ids = member.bold_ids
+        b = "**" if bold_ids else ""
+
         def format_item(menu, p):
-            return f"`{padn(p, menu.maxn)}`　**{p:nifg}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
+            return f"{b}`{padn(p, menu.maxn)}`{b}　**{p:nifg}**　•　Lvl. {p.level}　•　{p.iv_total / 186:.2%}"
 
         try:
             count = await self.bot.mongo.fetch_pokemon_count(

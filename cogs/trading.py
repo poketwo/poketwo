@@ -141,12 +141,11 @@ class Trading(commands.Cog):
                 def padn(idx, n):
                     return " " * (len(str(n)) - len(str(idx))) + str(idx)
 
+                bold_ids = await self.bot.mongo.fetch_member_setting(mem, "bold_ids")
+                bo = "**" if bold_ids else ""
+
                 def txt(p):
-                    val = f"`{padn(p.idx, maxn)}`　**{p.species}**"
-                    if p.shiny:
-                        val = f"`{padn(p.idx, maxn)}`　**✨ {p.species}**"
-                    val += f"　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
-                    return val
+                    return f"{bo}`{padn(p.idx, maxn)}`{bo}　**{p:n}**　•　Lvl. {p.level}　•　{p.iv_percentage:.2%}"
 
                 val = "\n".join(
                     f"{x:,} Pokécoins" if t == "c" else f"{x:,} redeems" if t == "r" else txt(x) for t, x in page or []

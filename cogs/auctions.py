@@ -562,18 +562,21 @@ class Auctions(commands.Cog):
         def prepare_page(menu, items):
             menu.maxn = max(auction["auction_data"]["_id"] for auction in items)
 
+        bold_ids = await self.bot.mongo.fetch_member_setting(ctx.author, "bold_ids")
+        b = "**" if bold_ids else ""
+
         def format_item(menu, auction):
             auction_data = AuctionData(**auction["auction_data"])
             pokemon = self.bot.mongo.Pokemon.build_from_mongo(auction)
             if auction_data.bidder_id is not None:
                 return (
-                    f"`{padn(auction_data._id, menu.maxn)}`　**{pokemon:Lig}**　•　"
+                    f"{b}`{padn(auction_data._id, menu.maxn)}`{b}　**{pokemon:Lig}**　•　"
                     f"{pokemon.iv_total / 186:.2%}　•　CB: {auction_data.current_bid:,}　•　"
                     f"BI: {auction_data.bid_increment:,} pc　•　{converters.strfdelta(auction_data.ends - now, max_len=1)}"
                 )
             else:
                 return (
-                    f"`{padn(auction_data._id, menu.maxn)}`　**{pokemon:Lig}**　•　"
+                    f"{b}`{padn(auction_data._id, menu.maxn)}`{b}　**{pokemon:Lig}**　•　"
                     f"{pokemon.iv_total / 186:.2%}　•　SB: {auction_data.current_bid + auction_data.bid_increment:,} pc　•　"
                     f"{converters.strfdelta(auction_data.ends - now, max_len=1)}"
                 )

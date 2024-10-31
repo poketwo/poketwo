@@ -40,7 +40,8 @@ class Configuration(commands.Cog):
 
         paginated_fields = [
             PaginatedField(
-                name="Spawning Channels", entries=[f"{i}. <#{x}>" for i, x in enumerate(guild.channels, 1)] or ["All Channels"]
+                name="Spawning Channels",
+                entries=[f"{i}. <#{x}>" for i, x in enumerate(guild.channels, 1)] or ["All Channels"],
             ),
         ]
 
@@ -70,15 +71,18 @@ class Configuration(commands.Cog):
 
                 embed.add_field(
                     name=f"{field} {commands.get(field.name, '')}",
-                    value="\n".join(entries) + (f"\n**Showing page {min(total_pages, current_page + 1)}/{total_pages}**" if total_pages > 1 else ""),
+                    value="\n".join(entries)
+                    + (
+                        f"\n**Showing page {min(total_pages, current_page + 1)}/{total_pages}**"
+                        if total_pages > 1
+                        else ""
+                    ),
                     inline=False,
                 )
 
             return embed
 
-        pages = pagination.ContinuablePages(
-            MultiFieldPageSource(paginated_fields, make_config_embed, per_page=5)
-        )
+        pages = pagination.ContinuablePages(MultiFieldPageSource(paginated_fields, make_config_embed, per_page=5))
         self.bot.menus[ctx.author.id] = pages
         await pages.start(ctx)
 
@@ -124,6 +128,19 @@ class Configuration(commands.Cog):
             await ctx.send(f"You will no longer see the pokémon IV in catch messages.")
         else:
             await ctx.send("You will now see the pokémon IV in catch messages.")
+
+    @checks.has_started()
+    @toggle.group(name="bold-ids", aliases=("bold-id", "boldids", "bold"), invoke_without_command=True)
+    async def toggle_bold_ids(self, ctx):
+        """Toggle bolding of IDs in inventory commands (pokemon, market, auctions, etc)."""
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+
+        await self.bot.mongo.update_member(ctx.author, {"$set": {"bold_ids": not member.bold_ids}})
+
+        if member.bold_ids:
+            await ctx.send("IDs will no longer be bold in inventories.")
+        else:
+            await ctx.send("IDs will now be bold in inventories.")
 
     @checks.has_started()
     @toggle.group(name="mention", invoke_without_command=True)
@@ -203,7 +220,9 @@ class Configuration(commands.Cog):
         await self.bot.mongo.update_guild(ctx.guild, {"$set": {"channels": [x.id for x in channels]}})
 
         content = build_channels_message(
-            "Now redirecting spawns to {channels}.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
+            "Now redirecting spawns to {channels}.",
+            channels,
+            see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all.",
         )
         await ctx.send(content)
 
@@ -227,7 +246,9 @@ class Configuration(commands.Cog):
         )
 
         content = build_channels_message(
-            "Added {channels} to redirected channels.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
+            "Added {channels} to redirected channels.",
+            channels,
+            see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all.",
         )
         await ctx.send(content)
 
@@ -249,7 +270,9 @@ class Configuration(commands.Cog):
         await self.bot.mongo.update_guild(ctx.guild, {"$pull": {"channels": {"$in": [x.id for x in channels]}}})
 
         content = build_channels_message(
-            "Removed {channels} from redirected channels.", channels, see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all."
+            "Removed {channels} from redirected channels.",
+            channels,
+            see_all_tip=f"Use `{ctx.clean_prefix}config` to see them all.",
         )
         await ctx.send(content)
 

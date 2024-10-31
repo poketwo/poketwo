@@ -102,9 +102,12 @@ class Market(commands.Cog):
         def prepare_page(menu, items):
             menu.maxn = max(x["market_data"]["_id"] for x in items)
 
+        bold_ids = await self.bot.mongo.fetch_member_setting(ctx.author, "bold_ids")
+        b = "**" if bold_ids else ""
+
         def format_item(menu, x):
             pokemon = self.bot.mongo.Pokemon.build_from_mongo(x)
-            return f"`{padn(x['market_data']['_id'], menu.maxn)}`　**{pokemon:lig}**　•　{pokemon.iv_total / 186:.2%}　•　{x['market_data']['price']:,} pc"
+            return f"{b}`{padn(x['market_data']['_id'], menu.maxn)}`{b}　**{pokemon:lig}**　•　{pokemon.iv_total / 186:.2%}　•　{x['market_data']['price']:,} pc"
 
         pokemon = self.bot.mongo.fetch_market_list(aggregations)
 
