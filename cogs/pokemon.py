@@ -38,6 +38,8 @@ def isfloat(x):
         return True
 
 
+ENABLE_AFTER = 5
+
 POKEDEX_REWARD_SHINY_BOOST = 15
 
 
@@ -362,7 +364,9 @@ class Pokemon(commands.Cog):
         else:
             message = f"Are you sure you want to rename {num:,} pokémon to `{nicknameall}`?"
 
-        result = await ctx.confirm(message + await self.valuable_pokemon_details(ctx, aggregations))
+        result = await ctx.confirm(
+            message + await self.valuable_pokemon_details(ctx, aggregations), enable_after=ENABLE_AFTER
+        )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
@@ -1216,7 +1220,8 @@ class Pokemon(commands.Cog):
 
         result = await ctx.confirm(
             f"Are you sure you want to release **{num:,} pokémon** for {num*2:,} pc? Favorited and selected pokémon won't be removed."
-            + await self.valuable_pokemon_details(ctx, aggregations)
+            + await self.valuable_pokemon_details(ctx, aggregations),
+            enable_after=ENABLE_AFTER,
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")

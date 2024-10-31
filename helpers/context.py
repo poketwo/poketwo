@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import typing
 from typing import List, Optional, Sequence, Union, overload
 
@@ -181,6 +182,7 @@ class PoketwoContext(commands.Context):
         file: Optional[discord.File] = None,
         embed: Optional[ClusterBot.Embed] = None,
         timeout: Optional[int] = 40,
+        enable_after: Optional[float | int] = 0,
         delete_after: Optional[bool] = False,
         delete_after_timeout: Optional[bool] = True,
         cls: Optional[ConfirmationView] = ConfirmationView,
@@ -194,6 +196,13 @@ class PoketwoContext(commands.Context):
         mention_author = getattr(member, "confirm_mention", True)  # using getattr in case member is None
 
         view = cls(self, timeout=timeout, delete_after=delete_after, delete_after_timeout=delete_after_timeout)
+
+        if enable_after:
+            label_suffix = f" ({enable_after}s)"
+            confirm_button = discord.utils.get(view.children, result=True)
+            confirm_button.label += label_suffix
+            confirm_button.disabled = True
+
         view.message = await self.reply(
             message,
             file=file,
@@ -203,7 +212,23 @@ class PoketwoContext(commands.Context):
                 everyone=False, users=False, roles=False, replied_user=mention_author
             ),
         )
+
+        if enable_after:
+
+            async def reenable():
+                await asyncio.sleep(enable_after)
+                cancel_button = discord.utils.get(view.children, result=False)
+                confirm_button.label = confirm_button.label.replace(label_suffix, "")
+                confirm_button.disabled = cancel_button.disabled
+                await view.message.edit(view=view)
+
+            reenable_task = asyncio.create_task(reenable())
+
         await view.wait()
+
+        if enable_after:
+            reenable_task.cancel()
+
         return view.result
 
     async def request(
