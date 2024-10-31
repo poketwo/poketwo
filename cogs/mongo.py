@@ -452,6 +452,7 @@ class Member(Document):
 
     day_of_the_dead_2024_boxes = fields.IntegerField(default=0)
     day_of_the_dead_2024_quests_metadata = fields.DictField(fields.StringField(), fields.StringField(), default=dict)
+    day_of_the_dead_2024_encounters = fields.ListField(fields.DictField(), default=list)
     day_of_the_dead_2024_quests = fields.ListField(fields.DictField(), default=list)
     day_of_the_dead_2024_items = fields.DictField(fields.StringField(), fields.IntegerField(), default=dict)
     day_of_the_dead_2024_ofrenda_offerings = fields.ListField(fields.IntegerField(), default=list)

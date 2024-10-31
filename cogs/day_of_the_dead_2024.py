@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
 from enum import Enum
-import io
 import random
 import contextlib
 from textwrap import dedent
@@ -14,12 +12,11 @@ import discord
 from discord.ext import commands
 
 
-from cogs.mongo import Member
 from data.models import Species
 from data.utils import comma_formatted
-from helpers import checks
+from helpers import checks, pagination
 from helpers.context import ConfirmationAcceptDeclineView, PoketwoContext
-from helpers.converters import EnumConverter, GreedyEnumConverter
+from helpers.converters import GreedyEnumConverter
 from helpers.utils import BaseItemEnum, FlavorString
 
 from lib.box_rewards import Reward, RewardItem, give_rewards, simulate_rewards
@@ -37,6 +34,7 @@ EVENT_SHINY_BOOST = 5
 SET_COMPLETION_BOXES = 1
 OFRENDA_COMPLETION_BOXES = 5
 
+MAX_ENCOUNTERS = 5
 MAX_ITEMS = 5
 EMPTY_ITEM_ID = 0
 
@@ -103,13 +101,13 @@ QUEST_FLAVOUR = {
         "name": "Alebrije Pyroar",
         "image": "/assets/day_of_the_dead_2024/encounter_pyroar.png",
         "encounter": "You've come across an Alebrije Pyroar!",
-        "description": f"The ethereal pokémon accompanies you as you complete your quests, each one rewarding pokécoins. Upon completing all, you'll be rewarded a {FlavorStrings.box:!e} and an item to decorate your ofrendas.\n\nYou may only have one pokémon accompanying you at a time. Once you've completed its quests, it will depart to allow you a new encounter.",
+        "description": f"An ethereal pokémon",
     },
     "pidgey": {
         "name": "Papel Picado Pidgey",
         "image": "/assets/day_of_the_dead_2024/encounter_pidgey.png",
         "encounter": "You've come across an Papel Picado Pidgey!",
-        "description": f"The joyful little bird accompanies you as you complete your quests, each one rewarding pokécoins. Upon completing all, you'll be rewarded a {FlavorStrings.box:!e} and an item to decorate your ofrendas.\n\nYou may only have one pokémon accompanying you at a time. Once you've completed its quests, it will fly off to allow you a new encounter.",
+        "description": f"A joyful little bird",
     },
 }
 
@@ -168,10 +166,10 @@ class DOTDView(discord.ui.View):
         self.cog: DOTD = self.ctx.bot.get_cog("DOTD")
         super().__init__(timeout=120)
 
-    @discord.ui.button(label="Quests", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="Encounters", style=discord.ButtonStyle.blurple)
     async def quests(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        await self.ctx.invoke(self.cog.quests)
+        await self.ctx.invoke(self.cog.encounters)
 
     @discord.ui.button(label="Inventory", style=discord.ButtonStyle.grey)
     async def inventory(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -264,9 +262,9 @@ class DOTD(commands.Cog):
         ]
         return [{**x, "progress": 0, "complete": False} for x in quests]
 
-    async def get_quests(self, user):
+    async def fetch_encounters(self, user) -> List[Dict]:
         member = await self.bot.mongo.fetch_member_info(user)
-        return member[f"{EVENT_PREFIX}_quests"]
+        return self.member_encounters(member)
 
     async def send_chunked_lines(self, user: discord.Member, lines: List[str]):
         max_lines = 10
@@ -292,31 +290,38 @@ class DOTD(commands.Cog):
 
     async def check_quests(self, user, context=None):
         member = await self.bot.mongo.fetch_member_info(user)
-        quests = member[f"{EVENT_PREFIX}_quests"]
-        if quests is None:
+        encounters = self.member_encounters(member)
+        if not encounters:
             return
 
         messages = []
-        for i, q in enumerate(quests):
-            if q["progress"] >= q["count"] and not q.get("complete"):
-                member = await self.bot.mongo.db.member.find_one_and_update(
-                    {
-                        "_id": user.id,
-                        f"{EVENT_PREFIX}_quests.{i}.progress": {"$gte": q["count"]},
-                        f"{EVENT_PREFIX}_quests.{i}.complete": {"$ne": True},
-                    },
-                    {"$set": {f"{EVENT_PREFIX}_quests.{i}.complete": True}, "$inc": {"balance": QUEST_PC_REWARD}},
-                )
-                if member is not None:
-                    await self.bot.redis.hdel("db:member", user.id)
-                    messages.append(
-                        dedent(
-                            f"""
-                            You have completed the event quest "{q['description']}" and earned **{QUEST_PC_REWARD:,} Pokécoins**!
-                            -# Use `@Pokétwo#8236 {self.quests.qualified_name}` to see all your quests.
-                            """
-                        ).strip("\n")
+        for e in encounters:
+            quests = e["quests"]
+            i = e["idx"]
+            key = f"{EVENT_PREFIX}_encounters.{i}." if i is not None else f"{EVENT_PREFIX}_"
+            for j, q in enumerate(quests):
+                if q["progress"] >= q["count"] and not q.get("complete"):
+                    member = await self.bot.mongo.db.member.find_one_and_update(
+                        {
+                            "_id": user.id,
+                            f"{key}quests.{j}.progress": {"$gte": q["count"]},
+                            f"{key}quests.{j}.complete": {"$ne": True},
+                        },
+                        {
+                            "$set": {f"{key}quests.{j}.complete": True},
+                            "$inc": {"balance": QUEST_PC_REWARD},
+                        },
                     )
+                    if member is not None:
+                        await self.bot.redis.hdel("db:member", user.id)
+                        messages.append(
+                            dedent(
+                                f"""
+                                You have completed the event quest "{q['description']}" and earned **{QUEST_PC_REWARD:,} Pokécoins**!
+                                -# Use `@Pokétwo#8236 {self.encounters.qualified_name}` to see all your quests.
+                                """
+                            ).strip("\n")
+                        )
 
         if messages:
             if context:
@@ -334,33 +339,38 @@ class DOTD(commands.Cog):
 
     async def all_quests_complete(self, user, context=None):
         member = await self.bot.mongo.fetch_member_info(user)
-        quests = member[f"{EVENT_PREFIX}_quests"]
-        if not quests:
+        encounters = self.member_encounters(member)
+        if not encounters:
             return
 
-        if all(q.get("complete") for q in member[f"{EVENT_PREFIX}_quests"]):
-            quests_metadata = member[f"{EVENT_PREFIX}_quests_metadata"]
-            item = Item[quests_metadata["item"]]
-            flavour = QUEST_FLAVOUR[quests_metadata["flavour"]]
-            await self.bot.mongo.update_member(
-                user,
-                {
-                    "$unset": {f"{EVENT_PREFIX}_quests": 1},
-                    "$inc": {
-                        f"{EVENT_PREFIX}_items.{item.name}": 1,
-                        f"{EVENT_PREFIX}_boxes": SET_COMPLETION_BOXES,
+        for encounter in encounters:
+            quests = encounter["quests"]
+            item = Item[encounter["item"]]
+            flavour = QUEST_FLAVOUR[encounter["flavour"]]
+            i = encounter["idx"]
+            key = f"{EVENT_PREFIX}_encounters.{i}" if i is not None else f"{EVENT_PREFIX}_quests"
+            if all(q.get("complete") for q in quests):
+                await self.bot.mongo.update_member(
+                    user,
+                    {
+                        "$unset": {key: 1},
+                        "$inc": {
+                            f"{EVENT_PREFIX}_items.{item.name}": 1,
+                            f"{EVENT_PREFIX}_boxes": SET_COMPLETION_BOXES,
+                        },
                     },
-                },
-            )
-            await (context if context else user).send(
-                dedent(
-                    f"""
-                    Congratulations{' ' + user.mention if context else ''}! You've completed all your quests for {flavour['name']} and earned **{SET_COMPLETION_BOXES} {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}** and **1 x {item}**!
-                    -# Use `@Pokétwo#8236 {self.open.qualified_name} {self.open.signature}` to open your {FlavorStrings.box:s!e}!
-                    -# Use `@Pokétwo#8236 {self.offer.qualified_name} {self.offer.signature}` to decorate your ofrenda with items!
-                    """
                 )
-            )
+                await self.bot.mongo.update_member(user, {"$pull": {f"{EVENT_PREFIX}_encounters": None}})
+
+                await (context if context else user).send(
+                    dedent(
+                        f"""
+                        Congratulations{' ' + user.mention if context else ''}! You've completed all your quests for {flavour['name']} and earned **{SET_COMPLETION_BOXES} {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}** and **1 x {item}**!
+                        -# Use `@Pokétwo#8236 {self.open.qualified_name} {self.open.signature}` to open your {FlavorStrings.box:s!e}!
+                        -# Use `@Pokétwo#8236 {self.offer.qualified_name} {self.offer.signature}` to decorate your ofrenda with items!
+                        """
+                    )
+                )
 
     async def cog_load(self):
         self.bot.Embed.CUSTOM_COLOR = EMBED_COLOR  # Set custom embed color for this event
@@ -380,6 +390,23 @@ class DOTD(commands.Cog):
             + "?"
             + urlencode({"items": ",".join(map(str, offerings))})
         )
+
+    def member_encounters(self, member) -> List[Dict]:
+        encounters = [{"idx": i, **e} for i, e in enumerate(member[f"{EVENT_PREFIX}_encounters"])]
+
+        old_metadata = member[f"{EVENT_PREFIX}_quests_metadata"]
+        old_quests = member[f"{EVENT_PREFIX}_quests"]
+        if old_quests:
+            encounters.insert(
+                0,
+                {
+                    "idx": None,
+                    **old_metadata,
+                    "quests": old_quests,
+                }
+            )
+
+        return encounters
 
     # region main embed
     @checks.has_started()
@@ -403,12 +430,14 @@ class DOTD(commands.Cog):
                 Ofrendas are traditional Mexican altars decorated for this celebration to honor deceased loved ones. During this event, you'll encounter alebrijes and pokémon with quests as you catch pokémon. Alebrijes are colorful, whimsical spirit animals believed to connect the living and spirit realms.
 
                 As you complete their quests, you'll be rewarded with pokécoins, {FlavorStrings.box:s!e} and items to decorate your ofrendas with, and as you complete ofrendas, you'll receive more {FlavorStrings.box:sb} that contain various gifts!
-                -# Use `{ctx.clean_prefix}{self.quests.qualified_name}` to view your active quests
+                -# Use `{ctx.clean_prefix}{self.encounters.qualified_name}` to view your active encounters and quests
                 """
             ),
         )
         embed.set_image(url=self.ofrenda_image_url(self.get_ofrenda_offerings(member)))
-        embed.set_footer(text="Día de Muertos (Day of the Dead) is a distinct holiday, celebrated separately from Halloween.")
+        embed.set_footer(
+            text="Día de Muertos (Day of the Dead) is a distinct holiday, celebrated separately from Halloween!"
+        )
 
         value = ", ".join([f"{discord.utils.get(Item, id=i):b}" if i else "—" for i in member_offerings])
         embed.add_field(
@@ -425,7 +454,7 @@ class DOTD(commands.Cog):
         )
 
         view = DOTDView(ctx)
-        if not member[f"{EVENT_PREFIX}_quests"]:
+        if not self.member_encounters(member):
             view.quests.style = discord.ButtonStyle.gray
 
         view.message = await ctx.send(embed=embed, view=view)
@@ -614,65 +643,90 @@ class DOTD(commands.Cog):
 
     # region Quests
     @checks.has_started()
-    @dotd.command(name="quests", aliases=("quest", "q"))
-    async def quests(self, ctx: PoketwoContext):
-        """See the active quests"""
+    @dotd.command(aliases=("quests", "quest", "q"))
+    async def encounters(self, ctx: PoketwoContext, page: Optional[int] = 1):
+        """See the active encounters and quests"""
 
         # await self.all_quests_complete(ctx.author, ctx)
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        quests = member[f"{EVENT_PREFIX}_quests"]
-        if not quests:
+        encounters = self.member_encounters(member)
+        if not encounters:
             return await ctx.send(
-                "You don't have any active quests. Catch wild pokémon to encounter pokémon in need of assistance!"
+                "You don't have any active encounters. Catch wild pokémon to encounter pokémon in need of assistance!"
             )
 
-        quests_metadata = member[f"{EVENT_PREFIX}_quests_metadata"]
-        flavour = QUEST_FLAVOUR[quests_metadata["flavour"]]
-        item = Item[quests_metadata["item"]]
+        if page < 1 or page > len(encounters):
+            return await ctx.send(f"That's not a valid page number, you only have encounters 1-{len(encounters)}!")
 
-        description = f"{flavour['description']}\n\n"
-        for quest in quests:
-            if quest.get("complete"):
-                description += f"- ~~{quest['description']} ({quest['progress']}/{quest['count']})~~\n"
-            else:
-                description += f"- {quest['description']} ({quest['progress']}/{quest['count']})\n"
+        total_count = len(encounters)
+        async def get_page(source, menu, pidx):
 
-        embed = self.bot.Embed(
-            title=f"{flavour['name']}'s Quests",
-            description=dedent(f"""{description}"""),
-        )
-        embed.add_field(
-            name="Rewards",
-            value=f"1 x {item} *(Decoration item)*\n{SET_COMPLETION_BOXES} x {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}",
-            inline=False,
-        )
-        embed.set_image(url=self.bot.data.asset(flavour["image"]))
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-        embed.set_footer(
-            text=f"If you want, you can cancel your current set of quests using `{ctx.clean_prefix}{self.cancel.qualified_name}`"
-        )
+            # Send embed
+            encounter = encounters[pidx]
+            quests = encounter["quests"]
+            item = Item[encounter["item"]]
+            flavour = QUEST_FLAVOUR[encounter["flavour"]]
 
-        await ctx.reply(embed=embed, mention_author=False)
+            description = f"{flavour['description']} accompanies you as you complete your quests. Each one will reward pokécoins, and completing all will reward a {FlavorStrings.box:!e} and an item to decorate your ofrendas.\n\nYou can have **{MAX_ENCOUNTERS} pokémon** accompanying you at a time.\n"
+
+            for quest in quests:
+                if quest.get("complete"):
+                    description += f"- ~~{quest['description']} ({quest['progress']}/{quest['count']})~~\n"
+                else:
+                    description += f"- {quest['description']} ({quest['progress']}/{quest['count']})\n"
+
+            embed = self.bot.Embed(
+                title=f"Encounter #{pidx + 1}: {flavour['name']}'s Quests",
+                description=dedent(f"""{description}"""),
+            )
+            embed.add_field(
+                name="Rewards",
+                value=f"1 x {item} *(Decoration item)*\n{SET_COMPLETION_BOXES} x {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}",
+                inline=False,
+            )
+            embed.set_image(url=self.bot.data.asset(flavour["image"]))
+            embed.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
+            embed.set_footer(
+                text=f"Encounter {pidx+1}/{total_count}\nIf you want, you can cancel an encounter using `{ctx.clean_prefix}{self.cancel.qualified_name} {self.cancel.signature}`"
+            )
+
+            return embed
+
+        pages = pagination.ContinuablePages(pagination.FunctionPageSource(total_count, get_page))
+        pages.current_page = page - 1
+        self.bot.menus[ctx.author.id] = pages
+        await pages.start(ctx)
 
     @checks.has_started()
     @dotd.command(name="cancel", aliases=("quit", "c", "x"))
-    async def cancel(self, ctx: PoketwoContext):
-        """Cancel current set of quests"""
+    async def cancel(self, ctx: PoketwoContext, encounter_id: int):
+        """Cancel an encounter"""
 
-        quests = await self.get_quests(ctx.author)
-        if not quests:
+        encounters = await self.fetch_encounters(ctx.author)
+        if not encounters:
             return await ctx.send(
-                f"You don't have any active quests. Catch wild pokémon to encounter pokémon in need of assistance!"
+                f"You don't have any active encounters. Catch wild pokémon to encounter pokémon in need of assistance!"
             )
 
-        result = await ctx.confirm("Are you sure you want to cancel your quests? This action is irreversible.")
+        if encounter_id < 1 or encounter_id > len(encounters):
+            return await ctx.send(
+                f"That's not a valid encounter ID, you only have encounters 1-{len(encounters)}!"
+            )
+        encounter_id -= 1
+        encounter = encounters[encounter_id]
+        i = encounter["idx"]
+        key = f"{EVENT_PREFIX}_encounters.{i}" if i is not None else f"{EVENT_PREFIX}_quests"
+
+        result = await ctx.confirm(f"Are you sure you want to cancel encounter #{encounter_id + 1}? This action is irreversible.")
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
             return await ctx.send("Aborted.")
 
-        await self.bot.mongo.update_member(ctx.author, {"$set": {f"{EVENT_PREFIX}_quests": []}})
-        await ctx.send("Your quests have been removed.")
+        await self.bot.mongo.update_member(ctx.author, {"$unset": {key: 1}})
+        await self.bot.mongo.update_member(ctx.author, {"$pull": {f"{EVENT_PREFIX}_encounters": None}})
+
+        await ctx.send(f"Encounter #{encounter_id + 1} has been cancelled.")
 
     async def on_quest_event(
         self,
@@ -683,20 +737,28 @@ class DOTD(commands.Cog):
         count: Optional[int] = 1,
         context: Optional[PoketwoContext] = None,
     ):
-        quests = await self.get_quests(user)
-        if quests is None:
+        encounters = await self.fetch_encounters(user)
+        if encounters is None:
             return
 
         incs = defaultdict(lambda: 0)
-        for i, q in enumerate(quests):
-            if q["event"] != event or q.get("complete"):
-                continue
+        for e in encounters:
+            if count <= 0:
+                break
 
-            if not to_verify or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
-                inc = (
-                    min((q["progress"] + count, q["count"])) - q["progress"]
-                )  # So that progress doesn't go over the goal
-                incs[f"{EVENT_PREFIX}_quests.{i}.progress"] += inc
+            quests = e["quests"]
+            i = e["idx"]
+            key = f"{EVENT_PREFIX}_encounters.{i}." if i is not None else f"{EVENT_PREFIX}_"
+            for j, q in enumerate(quests):
+                if q["event"] != event or q.get("complete"):
+                    continue
+
+                if not to_verify or any(self.verify_condition(q.get("condition"), x) for x in to_verify):
+                    inc = (
+                        min((q["progress"] + count, q["count"])) - q["progress"]
+                    )  # So that progress doesn't go over the goal
+                    incs[f"{key}quests.{j}.progress"] += inc
+                    count -= inc
 
         if len(incs) > 0:
             await self.bot.mongo.update_member(user, {"$inc": incs})
@@ -710,8 +772,8 @@ class DOTD(commands.Cog):
         await self.on_quest_event(ctx.author, "catch", [pokemon], context=ctx)
 
         if random.random() < QUEST_ENCOUNTER_CHANCE:
-            quests = await self.get_quests(ctx.author)
-            if not quests:
+            encounters = await self.fetch_encounters(ctx.author)
+            if len(encounters) < MAX_ENCOUNTERS:
                 chosen_flavour = self.choose_flavour()
                 chosen_quests = self.make_random_quests()
                 chosen_item = random.choice(list(Item))
@@ -732,20 +794,24 @@ class DOTD(commands.Cog):
                 if result is False:
                     return await ctx.send("You have declined the quest.")
 
+                encounters = await self.fetch_encounters(ctx.author)
+                if len(encounters) >= MAX_ENCOUNTERS:
+                    return await ctx.send("You already have the max number of encounters active!")
+
                 await self.bot.mongo.update_member(
                     ctx.author,
                     {
-                        "$set": {
-                            f"{EVENT_PREFIX}_quests": chosen_quests,
-                            f"{EVENT_PREFIX}_quests_metadata": {
+                        "$push": {
+                            f"{EVENT_PREFIX}_encounters": {
                                 "flavour": chosen_flavour,
                                 "item": chosen_item.name,
+                                "quests": chosen_quests,
                             },
                         },
                     },
                 )
                 await ctx.send(
-                    f"You have accepted {flavour['name']}'s request! Use `{ctx.clean_prefix}{self.quests.qualified_name}` to see your active quests."
+                    f"You have accepted {flavour['name']}'s request! Use `{ctx.clean_prefix}{self.encounters.qualified_name}` to see your active encounters and quests."
                 )
 
     # region on_trade
