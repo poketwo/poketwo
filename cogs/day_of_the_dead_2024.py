@@ -404,7 +404,7 @@ class DOTD(commands.Cog):
                     "idx": None,
                     **old_metadata,
                     "quests": old_quests,
-                }
+                },
             )
 
         return encounters
@@ -660,6 +660,7 @@ class DOTD(commands.Cog):
             return await ctx.send(f"That's not a valid page number, you only have encounters 1-{len(encounters)}!")
 
         total_count = len(encounters)
+
         async def get_page(source, menu, pidx):
 
             # Send embed
@@ -710,15 +711,16 @@ class DOTD(commands.Cog):
             )
 
         if encounter_id < 1 or encounter_id > len(encounters):
-            return await ctx.send(
-                f"That's not a valid encounter ID, you only have encounters 1-{len(encounters)}!"
-            )
+            return await ctx.send(f"That's not a valid encounter ID, you only have encounters 1-{len(encounters)}!")
+
         encounter_id -= 1
         encounter = encounters[encounter_id]
         i = encounter["idx"]
         key = f"{EVENT_PREFIX}_encounters.{i}" if i is not None else f"{EVENT_PREFIX}_quests"
 
-        result = await ctx.confirm(f"Are you sure you want to cancel encounter #{encounter_id + 1}? This action is irreversible.")
+        result = await ctx.confirm(
+            f"Are you sure you want to cancel encounter #{encounter_id + 1}? This action is irreversible."
+        )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
