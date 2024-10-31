@@ -362,15 +362,16 @@ class DOTD(commands.Cog):
                 )
                 await self.bot.mongo.update_member(user, {"$pull": {f"{EVENT_PREFIX}_encounters": None}})
 
-                await (context if context else user).send(
-                    dedent(
-                        f"""
-                        Congratulations{' ' + user.mention if context else ''}! You've completed all your quests for {flavour['name']} and earned **{SET_COMPLETION_BOXES} {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}** and **1 x {item}**!
-                        -# Use `@Pokétwo#8236 {self.open.qualified_name} {self.open.signature}` to open your {FlavorStrings.box:s!e}!
-                        -# Use `@Pokétwo#8236 {self.offer.qualified_name} {self.offer.signature}` to decorate your ofrenda with items!
-                        """
+                with contextlib.suppress(discord.HTTPException):
+                    await (context if context else user).send(
+                        dedent(
+                            f"""
+                            Congratulations{' ' + user.mention if context else ''}! You've completed all your quests for {flavour['name']} and earned **{SET_COMPLETION_BOXES} {FlavorStrings.box:{'' if SET_COMPLETION_BOXES == 1 else 's'}}** and **1 x {item}**!
+                            -# Use `@Pokétwo#8236 {self.open.qualified_name} {self.open.signature}` to open your {FlavorStrings.box:s!e}!
+                            -# Use `@Pokétwo#8236 {self.offer.qualified_name} {self.offer.signature}` to decorate your ofrenda with items!
+                            """
+                        )
                     )
-                )
 
     async def cog_load(self):
         self.bot.Embed.CUSTOM_COLOR = EMBED_COLOR  # Set custom embed color for this event
