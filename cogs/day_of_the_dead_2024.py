@@ -408,6 +408,7 @@ class DOTD(commands.Cog):
             ),
         )
         embed.set_image(url=self.ofrenda_image_url(self.get_ofrenda_offerings(member)))
+        embed.set_footer(text="Día de Muertos (Day of the Dead) is a distinct holiday, celebrated separately from Halloween.")
 
         value = ", ".join([f"{discord.utils.get(Item, id=i):b}" if i else "—" for i in member_offerings])
         embed.add_field(
