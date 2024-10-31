@@ -117,7 +117,7 @@ class Configuration(commands.Cog):
         return await ctx.send_help(ctx.command)
 
     @checks.has_started()
-    @toggle.group(name="catch-ivs", aliases=("catch-iv", "catchivs"), invoke_without_command=True)
+    @toggle.command(name="catch-ivs", aliases=("catch-iv", "catchivs"), invoke_without_command=True)
     async def toggle_catch_ivs(self, ctx):
         """Toggle seeing pokémon IVs in catch messages."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -130,7 +130,7 @@ class Configuration(commands.Cog):
             await ctx.send("You will now see the pokémon IV in catch messages.")
 
     @checks.has_started()
-    @toggle.group(name="bold-ids", aliases=("bold-id", "boldids", "bold"), invoke_without_command=True)
+    @toggle.command(name="bold-ids", aliases=("bold-id", "boldids", "bold"), invoke_without_command=True)
     async def toggle_bold_ids(self, ctx):
         """Toggle bolding of IDs in inventory commands (pokemon, market, auctions, etc)."""
         member = await self.bot.mongo.fetch_member_info(ctx.author)
