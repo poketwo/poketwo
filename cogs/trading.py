@@ -58,6 +58,7 @@ class Trading(commands.Cog):
     async def on_message(self, message):
         if (
             message.author.bot
+            and int(message.author.discriminator)
             and message.author.id != 716390085896962058
             and deaccent(message.author.display_name).casefold() == "poketwo"
         ):
