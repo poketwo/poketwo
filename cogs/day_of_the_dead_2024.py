@@ -343,24 +343,20 @@ class DOTD(commands.Cog):
         if not encounters:
             return
 
+        incs = defaultdict(lambda: 0)
+        unsets = []
         for encounter in encounters:
             quests = encounter["quests"]
             item = Item[encounter["item"]]
             flavour = QUEST_FLAVOUR[encounter["flavour"]]
+
             i = encounter["idx"]
             key = f"{EVENT_PREFIX}_encounters.{i}" if i is not None else f"{EVENT_PREFIX}_quests"
+
             if all(q.get("complete") for q in quests):
-                await self.bot.mongo.update_member(
-                    user,
-                    {
-                        "$unset": {key: 1},
-                        "$inc": {
-                            f"{EVENT_PREFIX}_items.{item.name}": 1,
-                            f"{EVENT_PREFIX}_boxes": SET_COMPLETION_BOXES,
-                        },
-                    },
-                )
-                await self.bot.mongo.update_member(user, {"$pull": {f"{EVENT_PREFIX}_encounters": None}})
+                unsets.append(key)
+                incs[f"{EVENT_PREFIX}_items.{item.name}"] += 1
+                incs[f"{EVENT_PREFIX}_boxes"] += SET_COMPLETION_BOXES
 
                 with contextlib.suppress(discord.HTTPException):
                     await (context if context else user).send(
@@ -372,6 +368,16 @@ class DOTD(commands.Cog):
                             """
                         )
                     )
+
+        if incs:
+            await self.bot.mongo.update_member(
+                user,
+                {
+                    "$unset": {key: 1 for key in unsets},
+                    "$inc": incs,
+                },
+            )
+            await self.bot.mongo.update_member(user, {"$pull": {f"{EVENT_PREFIX}_encounters": None}})
 
     async def cog_load(self):
         self.bot.Embed.CUSTOM_COLOR = EMBED_COLOR  # Set custom embed color for this event
@@ -763,7 +769,7 @@ class DOTD(commands.Cog):
                     incs[f"{key}quests.{j}.progress"] += inc
                     count -= inc
 
-        if len(incs) > 0:
+        if incs:
             await self.bot.mongo.update_member(user, {"$inc": incs})
 
         await self.check_quests(user, context=context)
