@@ -1218,10 +1218,11 @@ class Pokemon(commands.Cog):
 
         # confirm
 
+        valuables_text = await self.valuable_pokemon_details(ctx, aggregations)
         result = await ctx.confirm(
             f"Are you sure you want to release **{num:,} pokémon** for {num*2:,} pc? Favorited and selected pokémon won't be removed."
-            + await self.valuable_pokemon_details(ctx, aggregations),
-            enable_after=ENABLE_AFTER,
+            + valuables_text,
+            enable_after=ENABLE_AFTER if valuables_text else None,
         )
         if result is None:
             return await ctx.send("Time's up. Aborted.")
