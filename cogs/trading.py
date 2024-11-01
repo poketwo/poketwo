@@ -277,7 +277,7 @@ class Trading(commands.Cog):
                                 evolved.append((pokemon, evo.target))
 
                                 update["$set"]["species_id"] = evo.target.id
-                                evolutions[omem][format(pokemon, "Pgnx")] = evo.target
+                                evolutions[omem][format(pokemon, "n")] = evo.target
 
                         await self.bot.mongo.update_pokemon(
                             pokemon,

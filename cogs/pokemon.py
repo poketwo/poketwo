@@ -1672,7 +1672,7 @@ class Pokemon(commands.Cog):
 
         failed_msgs = []
         for pokemon in args:
-            name = format(pokemon, "Pgnx")
+            name = format(pokemon, "n")
 
             if (evo := pokemon.get_next_evolution(guild.time)) is None:
                 failed_msgs.append(f"- Your **{name}** can't be evolved!")
