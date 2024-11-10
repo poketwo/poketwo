@@ -788,14 +788,14 @@ class Shop(commands.Cog):
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command(aliases=("rs",))
-    async def redeemspawn(self, ctx, *, species: str = None):
+    async def redeemspawn(self, ctx, *, species_name: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
 
         # TODO I should really merge this and redeem into one function.
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        if species is None:
+        if species_name is None:
             embed = self.bot.Embed(
                 title=f"Your Redeems: {member.redeems}",
                 description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
@@ -811,10 +811,10 @@ class Shop(commands.Cog):
         if member.redeems <= 0:
             return await ctx.send("You don't have any redeems!")
 
-        species = self.bot.data.species_by_name(species)
+        species = self.bot.data.species_by_name(species_name)
 
         if species is None:
-            return await ctx.send(f"Could not find a pokemon matching `{species}`.")
+            return await ctx.send(f"Could not find a pokemon matching `{species_name}`.")
 
         if not species.catchable:
             return await ctx.send("You can't redeem this pokémon!")
