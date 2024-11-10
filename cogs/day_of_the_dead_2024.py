@@ -780,48 +780,48 @@ class DOTD(commands.Cog):
         pokemon = await self.bot.mongo.fetch_pokemon(ctx.author, idx)
         await self.on_quest_event(ctx.author, "catch", [pokemon], context=ctx)
 
-        if random.random() < QUEST_ENCOUNTER_CHANCE:
-            encounters = await self.fetch_encounters(ctx.author)
-            if len(encounters) < MAX_ENCOUNTERS:
-                chosen_flavour = self.choose_flavour()
-                chosen_quests = self.make_random_quests()
-                chosen_item = random.choice(list(Item))
+        # if random.random() < QUEST_ENCOUNTER_CHANCE:
+        #     encounters = await self.fetch_encounters(ctx.author)
+        #     if len(encounters) < MAX_ENCOUNTERS:
+        #         chosen_flavour = self.choose_flavour()
+        #         chosen_quests = self.make_random_quests()
+        #         chosen_item = random.choice(list(Item))
 
-                flavour = QUEST_FLAVOUR[chosen_flavour]
-                embed = self.bot.Embed(
-                    title=f"A mysterious pokémon is in need of your assistance!",
-                    description=f"{flavour['name']} needs you to complete the following quests, in return for 1 x {chosen_item:b}:\n"
-                    + "\n".join([f"- {q['description']}" for q in chosen_quests])
-                    + f"\nWill you accept?",
-                )
-                embed.set_image(url=self.bot.data.asset(flavour["image"]))
-                embed.set_footer(text=f"Items are used to decorate ofrendas for various rewards!")
+        #         flavour = QUEST_FLAVOUR[chosen_flavour]
+        #         embed = self.bot.Embed(
+        #             title=f"A mysterious pokémon is in need of your assistance!",
+        #             description=f"{flavour['name']} needs you to complete the following quests, in return for 1 x {chosen_item:b}:\n"
+        #             + "\n".join([f"- {q['description']}" for q in chosen_quests])
+        #             + f"\nWill you accept?",
+        #         )
+        #         embed.set_image(url=self.bot.data.asset(flavour["image"]))
+        #         embed.set_footer(text=f"Items are used to decorate ofrendas for various rewards!")
 
-                result = await ctx.confirm(embed=embed, cls=ConfirmationAcceptDeclineView)
-                if result is None:
-                    return await ctx.send("Time's up. Aborted.")
-                if result is False:
-                    return await ctx.send("You have declined the quest.")
+        #         result = await ctx.confirm(embed=embed, cls=ConfirmationAcceptDeclineView)
+        #         if result is None:
+        #             return await ctx.send("Time's up. Aborted.")
+        #         if result is False:
+        #             return await ctx.send("You have declined the quest.")
 
-                encounters = await self.fetch_encounters(ctx.author)
-                if len(encounters) >= MAX_ENCOUNTERS:
-                    return await ctx.send("You already have the max number of encounters active!")
+        #         encounters = await self.fetch_encounters(ctx.author)
+        #         if len(encounters) >= MAX_ENCOUNTERS:
+        #             return await ctx.send("You already have the max number of encounters active!")
 
-                await self.bot.mongo.update_member(
-                    ctx.author,
-                    {
-                        "$push": {
-                            f"{EVENT_PREFIX}_encounters": {
-                                "flavour": chosen_flavour,
-                                "item": chosen_item.name,
-                                "quests": chosen_quests,
-                            },
-                        },
-                    },
-                )
-                await ctx.send(
-                    f"You have accepted {flavour['name']}'s request! Use `{ctx.clean_prefix}{self.encounters.qualified_name}` to see your active encounters and quests."
-                )
+        #         await self.bot.mongo.update_member(
+        #             ctx.author,
+        #             {
+        #                 "$push": {
+        #                     f"{EVENT_PREFIX}_encounters": {
+        #                         "flavour": chosen_flavour,
+        #                         "item": chosen_item.name,
+        #                         "quests": chosen_quests,
+        #                     },
+        #                 },
+        #             },
+        #         )
+        #         await ctx.send(
+        #             f"You have accepted {flavour['name']}'s request! Use `{ctx.clean_prefix}{self.encounters.qualified_name}` to see your active encounters and quests."
+        #         )
 
     # region on_trade
     @commands.Cog.listener()
