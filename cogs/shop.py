@@ -765,33 +765,12 @@ class Shop(commands.Cog):
         await ctx.send(f"Changed embed color to **#{color.value:06x}** for your **{pokemon}**.")
 
     @checks.has_started()
-    @commands.command()
-    async def redeem(self, ctx):
-        """Use a redeem to receive a pokémon of your choice."""
-
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-
-        embed = self.bot.Embed(
-            title=f"Your Redeems: {member.redeems}",
-            description="You can use redeems to receive any pokémon of your choice. You can receive redeems by purchasing them with shards or through voting rewards.",
-        )
-
-        embed.add_field(
-            name=f"{ctx.clean_prefix}redeemspawn <pokémon>",
-            value="Use a redeem to spawn a pokémon of your choice in the current channel (careful, if something else spawns, it'll be overridden).",
-        )
-
-        await ctx.send(embed=embed)
-
-    @checks.has_started()
     @checks.is_not_in_trade()
     @commands.guild_only()
     @commands.max_concurrency(1, commands.BucketType.user)
-    @commands.command(aliases=("rs",))
+    @commands.command(aliases=("rs", "redeem"))
     async def redeemspawn(self, ctx, *, species_name: str = None):
         """Use a redeem to spawn a pokémon of your choice."""
-
-        # TODO I should really merge this and redeem into one function.
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
