@@ -213,6 +213,9 @@ class Auctions(commands.Cog):
         if duration > timedelta(weeks=1):
             return await ctx.send("The max duration is 1 week.")
 
+        if duration < timedelta(minutes=5):
+            return await ctx.send("The duration cannot be less than 5 minutes.")
+
         guild = await self.bot.mongo.fetch_guild(ctx.guild)
         if guild.auction_channel is None or (auction_channel := ctx.guild.get_channel(guild.auction_channel)) is None:
             return await ctx.send(
