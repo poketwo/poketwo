@@ -23,7 +23,7 @@ DESCRIPTION = dedent(
     Happy catching! ☕
     """
 )
-IMAGE_URL = ""
+EMBED_IMAGE_URL = "https://cdn.discordapp.com/attachments/1122578987919605870/1310178525546020884/Untitled_Artwork.png?ex=67444656&is=6742f4d6&hm=bb6d046c09993152d4f70fb3d57b68d2133c541b8c5bf3f607e3b98ec2a4e553&"
 COLORS = [0xA7573C, 0x69763A, 0x323D55]
 
 
@@ -45,9 +45,9 @@ class Event(commands.Cog):
             color=next(self.colors[ctx.author.id]),
         )
 
-        if IMAGE_URL:
+        if EMBED_IMAGE_URL:
             embed.set_image(
-                url=IMAGE_URL,
+                url=EMBED_IMAGE_URL,
             )
         await ctx.send(embed=embed)
 
