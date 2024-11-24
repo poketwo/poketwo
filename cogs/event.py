@@ -10,21 +10,21 @@ from helpers import checks
 
 # For future events, add this cog to cogs/__init__.py and just change these
 
-TITLE = "Catching Fairies 🦋"
+TITLE = "Sweater Weather ☕"
 DESCRIPTION = dedent(
     f"""
-    When Autumn comes and the leaves turn red, yellow and brown, the world looks magical. This is also the time that various fairies are seen, preparing for the Winter to come.
-    During this week, you will be able to catch three fairies before they hide until Spring!
+    The days are getting colder, rain is falling and winter is coming. For a week, you are able to catch three Pokémon looking for warmth and comfort during these colder times.
 
-    The following Fairy Pokémon have been sighted in the wild:
-    - 🌙 **Moon Fairy Mudkip**
-    - 🥀 **Flower Fairy Flabébé**
-    - 🔥 **Fire Fairy Salandit**
+    The following Pokémon will be catchable for a week:
+    - Sweater Teddiursa
+    - Leafy Baltoy
+    - Cosy Perrserker
 
-    Happy catching! 🦋
+    Happy catching! ☕
     """
 )
-COLORS = [0xEED25D, 0x4B4069]
+IMAGE_URL = ""
+COLORS = [0xA7573C, 0x69763A, 0x323D55]
 
 
 class Event(commands.Cog):
@@ -44,9 +44,11 @@ class Event(commands.Cog):
             description=DESCRIPTION,
             color=next(self.colors[ctx.author.id]),
         )
-        embed.set_image(
-            url="https://cdn.discordapp.com/attachments/1122578987919605870/1287367322197295146/IMG_5333.png"
-        )
+
+        if IMAGE_URL:
+            embed.set_image(
+                url=IMAGE_URL,
+            )
         await ctx.send(embed=embed)
 
 
