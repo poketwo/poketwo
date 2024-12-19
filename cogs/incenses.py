@@ -496,6 +496,7 @@ class Incenses(commands.Cog):
 
     @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
+    @checks.has_started()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
     @incense.command(usage="[duration=1hour] [interval=20seconds]", cls=flags.FlagCommand)
@@ -566,6 +567,7 @@ class Incenses(commands.Cog):
         )
 
     @commands.guild_only()
+    @checks.has_started()
     @checks.has_incense_role()
     @incense.group(aliases=("p",), invoke_without_command=True, case_insensitive=True)
     async def pause(
@@ -592,6 +594,7 @@ class Incenses(commands.Cog):
 
     @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
+    @checks.has_started()
     @checks.is_admin()
     @pause.command(name="all", aliases=("a",), cls=flags.FlagCommand)
     async def pause_all(self, ctx: PoketwoContext, **flags):
@@ -621,6 +624,7 @@ class Incenses(commands.Cog):
         )
 
     @commands.guild_only()
+    @checks.has_started()
     @checks.has_incense_role()
     @checks.incenses_not_disabled()
     @incense.group(aliases=("r",), invoke_without_command=True, case_insensitive=True)
@@ -642,6 +646,7 @@ class Incenses(commands.Cog):
 
     @flags.add_flag("--confirm", "-y", action="store_true", default=False)
     @commands.guild_only()
+    @checks.has_started()
     @checks.is_admin()
     @checks.incenses_not_disabled()
     @resume.command(name="all", aliases=("a",), cls=flags.FlagCommand)
@@ -668,6 +673,7 @@ class Incenses(commands.Cog):
         await ctx.send(f"Resumed {num_incenses} paused {incense_text} in this server.")
 
     @commands.guild_only()
+    @checks.has_started()
     @checks.is_admin()
     @incense.command()
     async def stop(self, ctx: PoketwoContext):
@@ -717,6 +723,7 @@ class Incenses(commands.Cog):
         await ctx.send("Incense has been stopped.")
 
     @commands.guild_only()
+    @checks.has_started()
     @checks.is_admin()
     @commands.command()
     async def stopincense(self, ctx: PoketwoContext):
