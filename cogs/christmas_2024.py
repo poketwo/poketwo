@@ -582,7 +582,7 @@ class Christmas(commands.Cog):
             name=f"{FlavorStrings.blueprint.emoji} Your {FlavorStrings.blueprint.string} #{member[f'{EVENT_PREFIX}_blueprints_completed'] + 1}",
             value=dedent(
                 f"""
-                Complete tasks to craft toys part-by-part. Craft correct parts in a row to craft up streaks and earn increasingly better streak rewards! Beware though, one wrong move and it goes down to zero!
+                Complete tasks to craft toys part-by-part. Craft correct parts in a row to build up streaks and earn increasingly better streak rewards! Beware though, one wrong move and it goes down to zero!
 
                 Parts Left: {parts_left}
                 **Current Streak: {streak:,}**
