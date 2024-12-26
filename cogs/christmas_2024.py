@@ -91,7 +91,7 @@ BOX_REWARDS = [
         shiny_boost=EVENT_SHINY_BOOST,
     ),
     Reward(item=RewardItem.RARE_POKEMON, chance=10, amounts=[1]),
-    Reward(item=RewardItem.POKEMON, chance=8, amounts=[1], shiny_boost=300, min_iv_percent=75),
+    Reward(item=RewardItem.POKEMON, chance=8, amounts=[1], min_iv_percent=75),
     Reward(item=RewardItem.POKEMON, chance=0.05, amounts=[1], shiny_boost=4096),
     Reward(item=RewardItem.REDEEM, chance=1.95, amounts=[1]),
 ]
