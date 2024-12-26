@@ -54,16 +54,31 @@ def write_fp(data):
     return arr
 
 
-def make_slider(bot, progress: float, length: Optional[int] = 10, return_list: Optional[bool] = False) -> str | List[str]:
+def make_slider(
+    bot,
+    progress: float,
+    length: Optional[int] = 10,
+    return_list: Optional[bool] = False,
+    left_ending: Optional[bool] = True,
+    right_ending: Optional[bool] = True,
+) -> str | List[str]:
     func = math.ceil if progress < 0.5 else math.floor
     bars = min(func(progress * length), length)
     first, last = bars > 0, bars == length
     mid = bars - (1 if last else 0) - (1 if first else 0)
 
-    ret = [bot.sprites.slider_start_full if first else bot.sprites.slider_start_empty]
+    ret = [
+        (bot.sprites.slider_start_full if first else bot.sprites.slider_start_empty)
+        if left_ending
+        else (bot.sprites.slider_mid_full if first else bot.sprites.slider_mid_empty)
+    ]
     ret.extend(mid * [bot.sprites.slider_mid_full])
     ret.extend((length - 2 - mid) * [bot.sprites.slider_mid_empty])
-    ret.append(bot.sprites.slider_end_full if last else bot.sprites.slider_end_empty)
+    ret.append(
+        (bot.sprites.slider_end_full if last else bot.sprites.slider_end_empty)
+        if right_ending
+        else (bot.sprites.slider_mid_full if last else bot.sprites.slider_mid_empty)
+    )
 
     return ret if return_list else "".join(ret)
 

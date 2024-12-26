@@ -459,6 +459,14 @@ class Member(Document):
     day_of_the_dead_2024_ofrenda_offerings = fields.ListField(fields.IntegerField(), default=list)
     day_of_the_dead_2024_ofrendas_completed = fields.IntField(default=0)
 
+    christmas_2024_blueprint = fields.IntegerField(default=None)
+    christmas_2024_blueprints_completed = fields.IntegerField(default=0)
+    christmas_2024_quests = fields.ListField(fields.DictField(), default=list)
+    christmas_2024_streak = fields.IntegerField(default=0)
+    christmas_2024_board = fields.ListField(fields.ListField(fields.IntegerField()), default=list)
+    christmas_2024_boxes = fields.IntegerField(default=0)
+    christmas_2024_boxes_total = fields.IntegerField(default=0)
+
     @property
     def is_suspended(self) -> bool:
         return self.suspended or datetime.utcnow() < self.suspended_until

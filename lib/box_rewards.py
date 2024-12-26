@@ -335,6 +335,7 @@ def simulate_rewards(
                 if reward.species_ids:
                     if isinstance(reward.species_ids, list):
                         population = reward.species_ids
+                        pokemon_weights = None
                     elif isinstance(reward.species_ids, dict):
                         population = list(reward.species_ids)
                         pokemon_weights = list(reward.species_ids.values())

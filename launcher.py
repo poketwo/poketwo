@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from collections import namedtuple
@@ -118,4 +119,5 @@ if __name__ == "__main__":
         allowed_mentions=discord.AllowedMentions(everyone=False, roles=False),
         intents=intents,
         config=config,
+        owner_ids=[267550284979503104, 398686833153933313],
     )
