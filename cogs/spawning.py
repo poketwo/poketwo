@@ -178,9 +178,14 @@ class Spawning(commands.Cog):
             # Add a sleep to spread out incense spawns, generate this
             # deterministically based on when the incense was started so the interval stays
             # constant in a given channel and the spawns occur in order
-            ts = incense._id.generation_time.timestamp()
-            mult = 456  # This is arbitrary, it allows control over how big the delays will be
-            ms_to_wait = (ts * mult) % (incense.interval * 1000)
+            if incense._id:
+                ts = incense._id.generation_time.timestamp()
+                mult = 456  # This is arbitrary, it allows control over how big the delays will be
+                key = ts * mult
+            else:
+                key = incense.channel.id
+
+            ms_to_wait = key % (incense.interval * 1000)
 
             await asyncio.sleep(ms_to_wait / 1000)
             channel_doc = await self.bot.mongo.fetch_channel(channel)
