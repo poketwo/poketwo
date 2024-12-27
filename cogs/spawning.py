@@ -19,7 +19,7 @@ from helpers import genders
 from helpers.utils import write_fp
 
 
-GMAX_CHANCE = 1/100
+GMAX_CHANCE = 1 / 100
 
 
 class Spawning(commands.Cog):
@@ -176,9 +176,12 @@ class Spawning(commands.Cog):
     ):
         if incense:
             # Add a sleep to spread out incense spawns, generate this
-            # deterministically based on the channel ID so the interval stays
-            # constant in a given channel
-            ms_to_wait = incense.channel_id % (incense.interval * 1000)
+            # deterministically based on when the incense was started so the interval stays
+            # constant in a given channel and the spawns occur in order
+            ts = incense._id.generation_time.timestamp()
+            mult = 456  # This is arbitrary, it allows control over how big the delays will be
+            ms_to_wait = (ts * mult) % (incense.interval * 1000)
+
             await asyncio.sleep(ms_to_wait / 1000)
             channel_doc = await self.bot.mongo.fetch_channel(channel)
             if not channel_doc.incense_active or channel_doc.incense.paused:
@@ -258,9 +261,7 @@ class Spawning(commands.Cog):
                 footer += f"\nEnds in {converters.strfdelta(incense.ends_in)} at"
                 embed.timestamp = incense.ends_at
 
-            embed.set_footer(
-                text=footer
-            )
+            embed.set_footer(text=footer)
 
         self.caught_users[channel.id] = set()
 
