@@ -183,7 +183,7 @@ class Spawning(commands.Cog):
                 mult = 456  # This is arbitrary, it allows control over how big the delays will be
                 key = ts * mult
             else:
-                key = incense.channel.id
+                key = channel.id
 
             ms_to_wait = key % (incense.interval * 1000)
 
