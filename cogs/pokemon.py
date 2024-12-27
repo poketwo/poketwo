@@ -1559,7 +1559,8 @@ class Pokemon(commands.Cog):
             pokemon = await converters.PokemonConverter(raise_errors=False).convert(ctx, search_or_page)
             if pokemon is not None:
                 shiny = pokemon.shiny
-                searched_gender = pokemon.gender
+                if pokemon.gender.lower() != "unknown":
+                    searched_gender = pokemon.gender
                 species = pokemon.species
             elif search_or_page[0].lower() in "n#" and search_or_page[1:].isdigit():
                 species_id = int(search_or_page[1:])
@@ -1577,7 +1578,7 @@ class Pokemon(commands.Cog):
 
                 # Check if a specific gender is queried
                 first_part = search_parts[0].capitalize()
-                if first_part in GENDER_TYPES.values() and first_part != "Unknown":
+                if first_part in GENDER_TYPES.values() and first_part.lower() != "unknown":
                     searched_gender = first_part
                     search_parts.pop(0)
 
