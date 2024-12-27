@@ -1426,7 +1426,7 @@ class Pokemon(commands.Cog):
             search_or_page = "p1"
 
         total_count = self.bot.data.total_pokedex_count
-        if search_or_page[0].lower() == "p":
+        if search_or_page[0].lower() in "p" and search_or_page[1:].isdigit():
             page = int(search_or_page[1:]) - 1
             pgstart = page * 20
 
