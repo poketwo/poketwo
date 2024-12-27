@@ -358,7 +358,7 @@ class Christmas(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(user)
         if (
             not member[f"{EVENT_PREFIX}_quests"]
-            or not member[f"{EVENT_PREFIX}_blueprint"]
+            or member[f"{EVENT_PREFIX}_blueprint"] is None
             or not member[f"{EVENT_PREFIX}_board"]
         ):
             await self.choose_blueprint(user)
