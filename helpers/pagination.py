@@ -288,7 +288,7 @@ class DexView(discord.ui.View):
             text = f"You've caught {self.member.pokedex[str(species.dex_number)]} of this pokémon!"
 
         if species.art_credit:
-            text = f"Artwork by {species.art_credit}.\nMay be derivative of artwork © The Pokémon Company.\n" + text
+            text = f"{species.art_credit}\nMay be derivative of artwork © The Pokémon Company.\n" + text
 
         embed.set_footer(text=text)
 
