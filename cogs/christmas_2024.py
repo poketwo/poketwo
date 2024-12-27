@@ -72,7 +72,6 @@ class EventSpecies(Enum):
 
 EVENT_SHINY_BOOST = 5
 
-# TODO
 BOX_REWARDS = [
     Reward(item=RewardItem.POKECOINS, chance=26, amounts=range(1500, 2501)),
     Reward(item=RewardItem.SHARDS, chance=18, amounts=range(8, 16)),
@@ -307,8 +306,10 @@ class Christmas(commands.Cog):
             pokemon = self.bot.mongo.Pokemon.build_from_mongo(pokemon_data)
             await self.bot.mongo.db.pokemon.insert_one(pokemon_data)
 
+            image = discord.File(f"data/assets/christmas_2024/blueprints/upscaled/blueprint_{blueprint_id}.png", filename="toy.png")
             await (ctx or user).send(
-                f"You completed crafting a christmas gift! You've earned **{GOOD_QUEST_BOXES} {FlavorStrings.box}** and a **{pokemon:i}**."
+                f"{user.mention if ctx else ''} You completed crafting the christmas gift! You've earned **{GOOD_QUEST_BOXES} {FlavorStrings.box}** and a **{pokemon:i}**.",
+                file=image
             )
             await self.choose_blueprint(user)
 
