@@ -24,7 +24,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
             embed.add_field(
                 name=signature,
-                value=command.help or "No help found...",
+                value=command.brief or command.help or "No help found...",
                 inline=False,
             )
 

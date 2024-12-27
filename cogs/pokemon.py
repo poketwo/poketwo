@@ -1383,7 +1383,7 @@ class Pokemon(commands.Cog):
         )
         return await ctx.reply(message)
 
-    @flags.add_flag("page", nargs="*", type=str, default="1")
+    @flags.add_flag("search", nargs="*", type=str, default="p1")
     @flags.add_flag("--caught", action="store_true")
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
@@ -1398,11 +1398,23 @@ class Pokemon(commands.Cog):
     @flags.add_flag("--region", "--r", type=str)
     @flags.add_flag("--learns", nargs="*", action="append")
     @checks.has_started()
-    @commands.group(aliases=("d", "dex"), invoke_without_command=True, cls=flags.FlagGroup)
+    @commands.group(
+        aliases=("d", "dex"),
+        brief="View your pokédex, or search for a pokémon species by name, pokédex number or ID (see help for more info).",
+        invoke_without_command=True,
+        cls=flags.FlagGroup,
+    )
     async def pokedex(self, ctx, **flags):
-        """View your pokédex, or search for a pokémon species."""
+        """
+        View your pokédex, or search for a pokémon species.
 
-        search_or_page = " ".join(flags["page"])
+        Input:
+        - <number> - Show pokédex entry of the pokémon in your inventory at this number index
+        - p<number> - Show pokédex entries at a specific page. This is the default if nothing is given.
+        - n/N/#<number> - Show pokédex entry of the pokémon with this pokédex number / species ID
+        """
+
+        search_or_page = " ".join(flags["search"])
 
         if flags["orderd"] and flags["ordera"]:
             return await ctx.send("You can use either --orderd or --ordera, but not both.")
@@ -1411,11 +1423,12 @@ class Pokemon(commands.Cog):
             return await ctx.send("You can use either --caught or --uncaught, but not both.")
 
         if search_or_page is None:
-            search_or_page = "1"
+            search_or_page = "p1"
 
         total_count = self.bot.data.total_pokedex_count
-        if search_or_page.isdigit():
-            pgstart = (int(search_or_page) - 1) * 20
+        if search_or_page[0].lower() == "p":
+            page = int(search_or_page[1:]) - 1
+            pgstart = page * 20
 
             if pgstart >= total_count or pgstart < 0:
                 return await ctx.send("There are no pokémon on this page.")
@@ -1536,20 +1549,23 @@ class Pokemon(commands.Cog):
                 return embed
 
             pages = pagination.ContinuablePages(pagination.FunctionPageSource(math.ceil(len(pokedex) / 20), get_page))
-            pages.current_page = int(search_or_page) - 1
+            pages.current_page = page
             self.bot.menus[ctx.author.id] = pages
             await pages.start(ctx)
-
         else:
             shiny = False
             searched_gender = None
 
-            if search_or_page[0] in "Nn#" and search_or_page[1:].isdigit():
+            pokemon = await converters.PokemonConverter(raise_errors=False).convert(ctx, search_or_page)
+            if pokemon is not None:
+                shiny = pokemon.shiny
+                searched_gender = pokemon.gender
+                species = pokemon.species
+            elif search_or_page[0].lower() in "n#" and search_or_page[1:].isdigit():
                 species_id = int(search_or_page[1:])
                 species = self.bot.data.species_by_number(species_id)
                 if species is None:
                     return await ctx.send(f"Could not find a pokémon with id `{species_id}`.")
-
             else:
                 # Parse search string
                 search_parts = search_or_page.lower().split()

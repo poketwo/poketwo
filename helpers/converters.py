@@ -46,9 +46,8 @@ class PokemonConverter(commands.Converter):
     async def convert(self, ctx, arg):
         arg = arg.strip()
 
-        member = await ctx.bot.mongo.fetch_member_info(ctx.author)
-
         if arg == "" and self.accept_blank:
+            member = await ctx.bot.mongo.fetch_member_info(ctx.author)
             number = member.selected_id
         elif arg.isdigit() and arg != "0":
             number = int(arg)
