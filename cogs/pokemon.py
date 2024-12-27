@@ -1383,7 +1383,7 @@ class Pokemon(commands.Cog):
         )
         return await ctx.reply(message)
 
-    @flags.add_flag("search", nargs="*", type=str, default="p1")
+    @flags.add_flag("search", nargs="*", type=str, default="")
     @flags.add_flag("--caught", action="store_true")
     @flags.add_flag("--uncaught", action="store_true")
     @flags.add_flag("--legendary", action="store_true")
@@ -1422,7 +1422,7 @@ class Pokemon(commands.Cog):
         if flags["caught"] and flags["uncaught"]:
             return await ctx.send("You can use either --caught or --uncaught, but not both.")
 
-        if search_or_page is None:
+        if not search_or_page:
             search_or_page = "p1"
 
         total_count = self.bot.data.total_pokedex_count
