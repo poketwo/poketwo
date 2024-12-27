@@ -263,18 +263,17 @@ class Spawning(commands.Cog):
             )
 
         self.caught_users[channel.id] = set()
-        await self.bot.redis.hset("wild", channel.id, species.id)
 
         if redeem:
             await self.bot.redis.set(f"redeem:{channel.id}", 1)
             await self.bot.redis.expire(f"redeem:{channel.id}", 30)
 
-        await self.bot.redis.hset("gender", channel.id, gender)
-
         await channel.send(
             file=image,
             embed=embed,
         )
+        await self.bot.redis.hset("wild", channel.id, species.id)
+        await self.bot.redis.hset("gender", channel.id, gender)
 
         if incense:
             await self.bot.mongo.update_channel(channel, {"$inc": {"incense.spawns_remaining": -1}})
