@@ -183,6 +183,7 @@ GUARANTEED_QUESTS = [
         "event": "market_sell",
         "count": (count := random.randint(200, 400)),
         "description": f"Earn {count} Pokécoins from the market",
+        "good_guaranteed": True,
     },
 ]
 
