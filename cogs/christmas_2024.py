@@ -339,10 +339,9 @@ class Christmas(commands.Cog):
 
             idx = [i for i in empty_indices if i in good_cell_indices][0]
             quest_indices[idx] = good_quest
-            quests.remove(good_quest)
 
         # Put the rest of the quests in
-        for quest in quests:
+        for quest in filter(lambda q: not q.get("good_guaranteed"), quests):
             empty_indices = [i for i, v in quest_indices.items() if v is None]
 
             idx = empty_indices[0]
