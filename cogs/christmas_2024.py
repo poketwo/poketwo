@@ -16,6 +16,9 @@ from urllib.parse import urlencode, urljoin
 import discord
 from discord.ext import commands
 
+from cogs.mongo import Member
+from lib import radio
+
 from .sprites import other
 from data.models import Species
 from helpers import checks, constants
@@ -232,22 +235,18 @@ def coords_to_cell(x: int, y: int) -> str:
 
 
 class EventView(discord.ui.View):
-    def __init__(self, ctx: PoketwoContext):
+    def __init__(self, ctx: PoketwoContext, member: Member):
+        super().__init__()
         self.ctx = ctx
-        self.cog: Christmas = self.ctx.bot.get_cog("Christmas")
-        super().__init__(timeout=120)
+        self.bot = self.ctx.bot
+        self.member = member
+        self.cog: Christmas = self.bot.get_cog("Christmas")
 
-    @discord.ui.button(label="Inventory", style=discord.ButtonStyle.grey)
-    async def inventory(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-        await self.ctx.invoke(self.cog.inventory)
+        self.page = EmbedRadioGroup(self, ctx.command.name)
+        self.page.add_to_view(self)
 
     async def interaction_check(self, interaction):
-        if interaction.user.id not in {
-            self.ctx.bot.owner_id,
-            self.ctx.author.id,
-            *self.ctx.bot.owner_ids,
-        }:
+        if interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message("You can't use this!", ephemeral=True)
             return False
         return True
@@ -257,6 +256,115 @@ class EventView(discord.ui.View):
             for child in self.children:
                 child.disabled = True
             await self.message.edit(view=self)
+
+    async def get_embed(self) -> dict:
+        member = self.member
+
+        event_information = dedent(
+            f"""
+            It's Christmas, and it's time for {FlavorStrings.santa} to set out with presents. But alas, he finds his workshop completely empty! All the elves are nowhere to be found, and {FlavorStrings.santa} is in a pickle.
+            """
+        )
+        quests_information = f"Help {FlavorStrings.santa} make toys and gifts by completing various tasks, and earn {FlavorStrings.pokecoins}, shards, redeems, special event Pokémon and more along the way!"
+
+        embed = self.bot.Embed(
+            title="",
+            description="",
+            color=EMBED_COLOR,
+        )
+        embed.set_image(url="attachment://blueprint.png")
+
+        if self.page.selected == "main":
+            embed.title = f"Christmas 2024 — Workshop Mystery"
+            embed.description = f"{event_information}\n{quests_information}"
+
+            embed.add_field(
+                name="⭐ Your Tasks",
+                value=f"Tasks have moved to a different page. Use `{self.ctx.clean_prefix}{self.cog.tasks.qualified_name}` or the button below to see your tasks!",
+                inline=False,
+            )
+
+            gifts_crafted = await self.cog.fetch_gift_count()
+            elf = EventSpecies.AUDINO.get_species(self.bot)
+            embed.add_field(
+                name="📜 Story",
+                # TODO: Update as event progresses
+                value=dedent(
+                    f"""
+                    - {self.bot.sprites['invisible']} `25th Dec` {FlavorStrings.santa} and the community are hard at work to craft as many gifts as possible within the short time they have...
+                    - {self.bot.sprites['blue']} `30th Dec` As {FlavorStrings.santa} races to deliver the whopping 30,000 gifts that the community has prepared, he stumbles upon {elf.name}, scared and hiding away. As its fear subsides, it shares the tale of what happened to his fellow elves... ***{elf.name} can now be found in the wild.***
+
+                    *Total gifts crafted globally: `{gifts_crafted:,}`*
+                    -# As the community crafts gifts and the event progresses, new parts of the story will unlock at random. **One more event Pokémon is yet to be revealed.**
+                    """
+                ),
+                inline=False,
+            )
+
+        elif self.page.selected == "quests":
+            embed.title = f"Christmas 2024 — Tasks & Inventory"
+
+            quests = member[f"{EVENT_PREFIX}_quests"]
+            quests_text = "\n".join(
+                f"""**{coords_to_cell(i // CELLS_PER_ROW + 1, i % CELLS_PER_ROW)}.** {q['description']} `{q['progress']}/{q['count']}`"""
+                for i, q in enumerate(quests)
+                if not q.get("complete")
+            )
+            embed.description = f"{quests_information}\n\n{quests_text}"
+
+            boxes = member[f"{EVENT_PREFIX}_boxes"]
+            embed.add_field(
+                name=f"{FlavorStrings.box:s} — {boxes:,}",
+                value=f"Help {FlavorStrings.santa} craft toys and gifts by completing {FlavorStrings.blueprint:sb} through tasks, and earn {FlavorStrings.box:s!e} that contain various rewards and gifts for you!\n-# Use `{self.ctx.clean_prefix}{self.cog.open.qualified_name} {self.cog.open.signature}` to open them!",
+                inline=False,
+            )
+
+        streak = member[f"{EVENT_PREFIX}_streak"]
+        board = member[f"{EVENT_PREFIX}_board"]
+        blueprint_id = member[f"{EVENT_PREFIX}_blueprint"]
+        blueprint = BLUEPRINTS[blueprint_id]
+
+        parts_left = sum((value for row in blueprint for value in row if value)) - sum(
+            (value for i, row in enumerate(board) for j, value in enumerate(row) if value and blueprint[i][j])
+        )
+        embed.add_field(
+            name=f"{FlavorStrings.blueprint.emoji} Your {FlavorStrings.blueprint.string} #{member[f'{EVENT_PREFIX}_blueprints_completed'] + 1}",
+            value=dedent(
+                f"""
+                Complete tasks to craft toys part-by-part. Craft correct parts in a row to build up streaks and earn increasingly better streak rewards! Beware though, one wrong move and it goes down to zero!
+
+                Parts Left: {parts_left}
+                **Current Streak: {streak:,}**
+                """
+            ),
+            inline=False,
+        )
+
+        return embed
+
+    async def update_embed(self, interaction):
+        embed = await self.get_embed()
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def send(self, ctx):
+        blueprint_id = self.member[f"{EVENT_PREFIX}_blueprint"]
+        board = self.member[f"{EVENT_PREFIX}_board"]
+
+        image = await self.cog.fetch_image(blueprint_id, board)
+        embed = await self.get_embed()
+        self.message = await ctx.send(embed=embed, file=image, view=self)
+
+
+class EmbedRadioGroup(radio.RadioGroup):
+    def __init__(self, view: EventView, command: str):
+        super().__init__()
+        self.view = view
+        self.add_option("Main Page", "main", is_selected=command == "christmas")
+        self.add_option("Tasks & Inventory", "quests", is_selected=command == "tasks")
+
+    async def callback(self, interaction, button):
+        super().callback(interaction, button)
+        await self.view.update_embed(interaction)
 
 
 # region MAIN COG
@@ -307,10 +415,12 @@ class Christmas(commands.Cog):
             pokemon = self.bot.mongo.Pokemon.build_from_mongo(pokemon_data)
             await self.bot.mongo.db.pokemon.insert_one(pokemon_data)
 
-            image = discord.File(f"data/assets/christmas_2024/blueprints/upscaled/blueprint_{blueprint_id}.png", filename="toy.png")
+            image = discord.File(
+                f"data/assets/christmas_2024/blueprints/upscaled/blueprint_{blueprint_id}.png", filename="toy.png"
+            )
             await (ctx or user).send(
                 f"{user.mention if ctx else ''} You completed crafting the christmas gift! You've earned **{GOOD_QUEST_BOXES} {FlavorStrings.box}** and a **{pokemon:i}**.",
-                file=image
+                file=image,
             )
             await self.choose_blueprint(user)
 
@@ -334,14 +444,16 @@ class Christmas(commands.Cog):
         quest_indices = {i: None for i in range(len(quests))}
 
         # Put the good cell guaranteed quests in first
-        for good_quest in filter(lambda q: q.get("good_guaranteed"), quests):
+        good_quests = filter(lambda q: q.get("good_guaranteed"), quests)
+        for good_quest in good_quests:
             empty_indices = [i for i, v in quest_indices.items() if v is None]
 
             idx = [i for i in empty_indices if i in good_cell_indices][0]
             quest_indices[idx] = good_quest
 
         # Put the rest of the quests in
-        for quest in filter(lambda q: not q.get("good_guaranteed"), quests):
+        not_good_quests = filter(lambda q: not q.get("good_guaranteed"), quests)
+        for quest in not_good_quests:
             empty_indices = [i for i, v in quest_indices.items() if v is None]
 
             idx = empty_indices[0]
@@ -530,91 +642,39 @@ class Christmas(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
         if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
             await self.choose_blueprint(ctx.author)
+            member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        # The embed
-
-        member = await self.bot.mongo.fetch_member_info(ctx.author)
-        quests = member[f"{EVENT_PREFIX}_quests"]
-        streak = member[f"{EVENT_PREFIX}_streak"]
-
-        board = member[f"{EVENT_PREFIX}_board"]
-        blueprint_id = member[f"{EVENT_PREFIX}_blueprint"]
-        blueprint = BLUEPRINTS[blueprint_id]
-
-        quests_text = "\n".join(
-            f"""**{coords_to_cell(i // CELLS_PER_ROW + 1, i % CELLS_PER_ROW)}.** {q['description']} `{q['progress']}/{q['count']}`"""
-            for i, q in enumerate(quests)
-            if not q.get("complete")
-        )
-        event_information = dedent(
-            f"""
-            It's Christmas, and it's time for {FlavorStrings.santa} to set out with presents. But alas, he finds his workshop completely empty! All the elves are nowhere to be found, and {FlavorStrings.santa} is in a pickle.
-
-            Help {FlavorStrings.santa} make toys and gifts by completing various tasks, and earn {FlavorStrings.pokecoins}, shards, redeems, special event Pokémon and more along the way!
-            """
-        )
-        embed = self.bot.Embed(
-            title=f"Christmas 2024 — Workshop Mystery",
-            description=f"{event_information}\n{quests_text}",
-            color=EMBED_COLOR,
-        )
-
-        image = await self.fetch_image(blueprint_id, board)
-        if image:
-            embed.set_image(url="attachment://blueprint.png")
-
-        gifts_crafted = await self.fetch_gift_count()
-        embed.add_field(
-            name="📜 Story",
-            # TODO: Update as event progresses
-            value=dedent(
-                f"""
-                {FlavorStrings.santa} and the community are hard at work to craft as many gifts as possible within the short time they have...
-                **Total gifts crafted globally**: `{gifts_crafted:,}`
-
-                As the community crafts gifts and the event progresses, new parts of the story will unlock at random. **Two more event Pokémon are yet to be unlocked.**
-                """
-            ),
-            inline=False,
-        )
-
-        parts_left = sum((value for row in blueprint for value in row if value)) - sum(
-            (value for i, row in enumerate(board) for j, value in enumerate(row) if value and blueprint[i][j])
-        )
-        embed.add_field(
-            name=f"{FlavorStrings.blueprint.emoji} Your {FlavorStrings.blueprint.string} #{member[f'{EVENT_PREFIX}_blueprints_completed'] + 1}",
-            value=dedent(
-                f"""
-                Complete tasks to craft toys part-by-part. Craft correct parts in a row to build up streaks and earn increasingly better streak rewards! Beware though, one wrong move and it goes down to zero!
-
-                Parts Left: {parts_left}
-                **Current Streak: {streak:,}**
-                """
-            ),
-            inline=False,
-        )
-
-        view = EventView(ctx)
-        view.message = await ctx.send(embed=embed, file=image, view=view)
+        view = EventView(ctx, member)
+        await view.send(ctx)
 
     @checks.has_started()
-    @christmas.group(name="inventory", aliases=("inv",), invoke_without_command=True)
-    async def inventory(
+    @christmas.group(
+        name="tasks",
+        aliases=(
+            "task",
+            "t",
+            "quests",
+            "quest",
+            "q",
+            "inventory",
+            "inv",
+        ),
+        invoke_without_command=True,
+    )
+    async def tasks(
         self,
         ctx: PoketwoContext,
     ):
-        """See how many presents you have"""
+        """See your tasks and how many presents you have"""
 
+        # Check if user doesnt have a starting blueprint
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        boxes = member[f"{EVENT_PREFIX}_boxes"]
+        if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
+            await self.choose_blueprint(ctx.author)
+            member = await self.bot.mongo.fetch_member_info(ctx.author)
 
-        embed = self.bot.Embed(title=f"Christmas Inventory", description="", color=EMBED_COLOR)
-        embed.add_field(
-            name=f"{FlavorStrings.box:s} — {boxes:,}",
-            value=f"Help {FlavorStrings.santa} craft toys and gifts by completing {FlavorStrings.blueprint:sb} through tasks, and earn {FlavorStrings.box:s!e} that contain various rewards and gifts for you!\n-# Use `{ctx.clean_prefix}{self.open.qualified_name} {self.open.signature}` to open them!",
-            inline=False,
-        )
-        await ctx.send(embed=embed)
+        view = EventView(ctx, member)
+        await view.send(ctx)
 
     # region on_catch
     @commands.Cog.listener(name="on_catch")
