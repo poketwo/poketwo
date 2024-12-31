@@ -466,6 +466,7 @@ class Member(Document):
     christmas_2024_board = fields.ListField(fields.ListField(fields.IntegerField()), default=list)
     christmas_2024_boxes = fields.IntegerField(default=0)
     christmas_2024_boxes_total = fields.IntegerField(default=0)
+    christmas_2024_story_update = fields.StringField(default=None)
 
     @property
     def is_suspended(self) -> bool:
