@@ -47,7 +47,7 @@ class FlavorStrings:
 class EventSpecies(Enum):
     """Enum for all event pokemon for this event"""
 
-    AUDINO = 50206  # TODO, make catchable on 28th
+    AUDINO = 50206
     WIGLETT = 50208
 
     SNORLAX = 50202, "special"
@@ -225,6 +225,12 @@ CELLS_PER_ROW = 5
 # COMMUNITY GOALS
 GIFT_COUNT_ID = f"{EVENT_PREFIX}_gifts_crafted"
 
+# TODO: Update as event progresses
+STORIES = {
+    "25th Dec": f"{FlavorStrings.santa} and the community are hard at work to craft as many gifts as possible within the short time they have...",
+    "30th Dec": f"As {FlavorStrings.santa} races to deliver the whopping 30,000 gifts that the community has prepared, he stumbles upon one of his elves, scared and hiding away. As its fear subsides, it shares the tale of what happened to his fellow elves... ***Elf Audino can now be found in the wild.***",
+}
+
 
 def cell_to_coords(cell: str) -> Tuple[int, int]:
     return (int(cell[1:]) - 1, string.ascii_lowercase.index(cell[0].lower()))
@@ -285,14 +291,16 @@ class EventView(discord.ui.View):
             )
 
             gifts_crafted = await self.cog.fetch_gift_count()
-            elf = EventSpecies.AUDINO.get_species(self.bot)
+
+            stories = "\n".join(
+                f"- {self.bot.sprites['invisible'] if i != len(STORIES) else self.bot.sprites['blue']} `{k}` {v}"
+                for i, (k, v) in enumerate(STORIES.items(), 1)
+            )
             embed.add_field(
                 name="📜 Story",
-                # TODO: Update as event progresses
-                value=dedent(
+                value=stories
+                + dedent(
                     f"""
-                    - {self.bot.sprites['invisible']} `25th Dec` {FlavorStrings.santa} and the community are hard at work to craft as many gifts as possible within the short time they have...
-                    - {self.bot.sprites['blue']} `30th Dec` As {FlavorStrings.santa} races to deliver the whopping 30,000 gifts that the community has prepared, he stumbles upon {elf.name}, scared and hiding away. As its fear subsides, it shares the tale of what happened to his fellow elves... ***{elf.name} can now be found in the wild.***
 
                     *Total gifts crafted globally: `{gifts_crafted:,}`*
                     -# As the community crafts gifts and the event progresses, new parts of the story will unlock at random. **One more event Pokémon is yet to be revealed.**
@@ -632,6 +640,35 @@ class Christmas(commands.Cog):
     async def fetch_gift_count(self) -> int:
         counter = await self.bot.mongo.Counter.find_one({"_id": GIFT_COUNT_ID})
         return counter.next if counter else 0
+
+    @commands.Cog.listener("on_command_completion")
+    async def new_orders_notification(self, ctx: PoketwoContext):
+        if ctx.command.cog == self:
+            return
+
+        member = await self.bot.mongo.fetch_member_info(ctx.author)
+        if not member:
+            return
+
+        story = member[f"{EVENT_PREFIX}_story_update"]
+
+        current_story = list(STORIES)[-1]
+        if story != current_story:
+            await self.bot.mongo.update_member(ctx.author, {"$set": {f"{EVENT_PREFIX}_story_update": current_story}})
+
+            embed = self.bot.Embed(
+                title="🎄 Christmas 2024 — Story Update",
+                description=dedent(
+                    f"""
+                    ### `{current_story}`
+                    {STORIES[current_story]}
+                    """
+                ),
+            )
+            embed.set_footer(
+                text=f"Use `{ctx.clean_prefix}{self.christmas.qualified_name}` to see the full story and other event information."
+            )
+            await ctx.reply(embed=embed)
 
     @checks.has_started()
     @commands.group(aliases=("event", "ev"), invoke_without_command=True, case_insensitive=True)
