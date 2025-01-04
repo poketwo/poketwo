@@ -51,7 +51,7 @@ class EventSpecies(Enum):
     WIGLETT = 50208
 
     SNORLAX = 50202, "special"
-    # GRIMMSNARL = 50207, "special"  # TODO, make boxable on 3rd
+    GRIMMSNARL = 50207, "special"
     GLACEON = 50205, "box"
     BELLOSSOM = 50203, "box"
     LOPUNNY = 50204, "box"
@@ -229,6 +229,7 @@ GIFT_COUNT_ID = f"{EVENT_PREFIX}_gifts_crafted"
 STORIES = {
     "25th Dec": f"{FlavorStrings.santa} and the community are hard at work to craft as many gifts as possible within the short time they have...",
     "30th Dec": f"As {FlavorStrings.santa} races to deliver the whopping 30,000 gifts that the community has prepared, he stumbles upon one of his elves, scared and hiding away. As its fear subsides, it shares the tale of what happened to his fellow elves... ***Elf Audino can now be found in the wild.***",
+    "3rd Jan": f"As the community presses on, Elf Audino reveals the truth: someone has taken the elves, to sabotage Christmas. His motive was clear—without the elves, {FlavorStrings.santa}'s operation would grind to a halt. But what he did not anticipate, was everyone's unwavering determination to save Christmas. ***Grinch Grimmsnarl (Grinchsnarl) can now be found in presents.***",
 }
 
 
@@ -293,7 +294,7 @@ class EventView(discord.ui.View):
             gifts_crafted = await self.cog.fetch_gift_count()
 
             stories = "\n".join(
-                f"- {self.bot.sprites['invisible'] if i != len(STORIES) else self.bot.sprites['blue']} `{k}` {v}"
+                f"- `{'⚫' if i != len(STORIES) else '🟢'}` `{k}` {v}"
                 for i, (k, v) in enumerate(STORIES.items(), 1)
             )
             embed.add_field(
@@ -302,8 +303,9 @@ class EventView(discord.ui.View):
                 + dedent(
                     f"""
 
+                    {FlavorStrings.santa} is happy Christmas can go on thanks to your efforts, but the elves remain missing, and it's time for a rescue. **This is the end of the story**, for now...
+
                     *Total gifts crafted globally: `{gifts_crafted:,}`*
-                    -# As the community crafts gifts and the event progresses, new parts of the story will unlock at random. **One more event Pokémon is yet to be revealed.**
                     """
                 ),
                 inline=False,
