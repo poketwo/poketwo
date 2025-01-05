@@ -410,7 +410,7 @@ class Christmas(commands.Cog):
 
         if self.check_done(board, blueprint):
             await self.bot.mongo.update_member(
-                user, {"$inc": {f"{EVENT_PREFIX}_blueprints_completed": 1}, "$set": {f"{EVENT_PREFIX}_streak": 0}}
+                user, {"$inc": {f"{EVENT_PREFIX}_blueprints_completed": 1, f"{EVENT_PREFIX}_boxes": GOOD_QUEST_BOXES}, "$set": {f"{EVENT_PREFIX}_streak": 0}}
             )
             await self.bot.mongo.db.counter.update_one(
                 {"_id": GIFT_COUNT_ID},
