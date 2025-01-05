@@ -536,7 +536,7 @@ class Christmas(commands.Cog):
         incs = defaultdict(lambda: 0)
         for j, q in sorted(
             enumerate(quests),
-            key=lambda iq: not self.is_good_quest(blueprint, quests.index(iq[-1])),  # sort the good quests to the first
+            key=lambda iq: not self.is_good_quest(blueprint, iq[0]),  # sort the good quests to the first
         ):
             if q["progress"] >= q["count"] and not q.get("complete"):
                 member = await self.bot.mongo.db.member.find_one_and_update(
