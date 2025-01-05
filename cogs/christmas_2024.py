@@ -294,8 +294,7 @@ class EventView(discord.ui.View):
             gifts_crafted = await self.cog.fetch_gift_count()
 
             stories = "\n".join(
-                f"- `{'⚫' if i != len(STORIES) else '🟢'}` `{k}` {v}"
-                for i, (k, v) in enumerate(STORIES.items(), 1)
+                f"- `{'⚫' if i != len(STORIES) else '🟢'}` `{k}` {v}" for i, (k, v) in enumerate(STORIES.items(), 1)
             )
             embed.add_field(
                 name="📜 Story",
@@ -410,7 +409,11 @@ class Christmas(commands.Cog):
 
         if self.check_done(board, blueprint):
             await self.bot.mongo.update_member(
-                user, {"$inc": {f"{EVENT_PREFIX}_blueprints_completed": 1, f"{EVENT_PREFIX}_boxes": GOOD_QUEST_BOXES}, "$set": {f"{EVENT_PREFIX}_streak": 0}}
+                user,
+                {
+                    "$inc": {f"{EVENT_PREFIX}_blueprints_completed": 1, f"{EVENT_PREFIX}_boxes": GOOD_QUEST_BOXES},
+                    "$set": {f"{EVENT_PREFIX}_streak": 0},
+                },
             )
             await self.bot.mongo.db.counter.update_one(
                 {"_id": GIFT_COUNT_ID},
@@ -531,11 +534,9 @@ class Christmas(commands.Cog):
         blueprint = BLUEPRINTS[member[f"{EVENT_PREFIX}_blueprint"]]
 
         incs = defaultdict(lambda: 0)
-        for j, q in enumerate(
-            sorted(
-                quests,
-                key=lambda q: not self.is_good_quest(blueprint, quests.index(q))  # sort the good quests to the first
-            )
+        for j, q in sorted(
+            enumerate(quests),
+            key=lambda iq: not self.is_good_quest(blueprint, quests.index(iq[-1])),  # sort the good quests to the first
         ):
             if q["progress"] >= q["count"] and not q.get("complete"):
                 member = await self.bot.mongo.db.member.find_one_and_update(
