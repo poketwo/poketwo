@@ -271,7 +271,7 @@ class EventView(discord.ui.View):
             f"""
             It's Christmas, and it's time for {FlavorStrings.santa} to set out with presents. But alas, he finds his workshop completely empty! All the elves are nowhere to be found, and {FlavorStrings.santa} is in a pickle.
             """
-        )
+        ).lstrip("\n")
         quests_information = f"Help {FlavorStrings.santa} make toys and gifts by completing various tasks, and earn {FlavorStrings.pokecoins}, shards, redeems, special event Pokémon and more along the way!"
 
         embed = self.bot.Embed(
@@ -279,7 +279,9 @@ class EventView(discord.ui.View):
             description="",
             color=EMBED_COLOR,
         )
-        embed.set_image(url="attachment://blueprint.png")
+
+        if not (not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None):
+            embed.set_image(url="attachment://blueprint.png")
 
         if self.page.selected == "main":
             embed.title = f"Christmas 2024 — Workshop Mystery"
@@ -331,23 +333,29 @@ class EventView(discord.ui.View):
         streak = member[f"{EVENT_PREFIX}_streak"]
         board = member[f"{EVENT_PREFIX}_board"]
         blueprint_id = member[f"{EVENT_PREFIX}_blueprint"]
-        blueprint = BLUEPRINTS[blueprint_id]
 
-        parts_left = sum((value for row in blueprint for value in row if value)) - sum(
-            (value for i, row in enumerate(board) for j, value in enumerate(row) if value and blueprint[i][j])
-        )
+        blueprint_info = ""
+        if not (not board or blueprint_id is None):
+            blueprint = BLUEPRINTS[blueprint_id]
+            parts_left = sum((value for row in blueprint for value in row if value)) - sum(
+                (value for i, row in enumerate(board) for j, value in enumerate(row) if value and blueprint[i][j])
+            )
+            blueprint_info = f"Parts Left: {parts_left}\n**Current Streak: {streak:,}**"
+
         embed.add_field(
             name=f"{FlavorStrings.blueprint.emoji} Your {FlavorStrings.blueprint.string} #{member[f'{EVENT_PREFIX}_blueprints_completed'] + 1}",
             value=dedent(
                 f"""
                 Complete tasks to craft toys part-by-part. Craft correct parts in a row to build up streaks and earn increasingly better streak rewards! Beware though, one wrong move and it goes down to zero!
 
-                Parts Left: {parts_left}
-                **Current Streak: {streak:,}**
+                **The event has ended.**
+                {blueprint_info}
                 """
             ),
             inline=False,
         )
+
+        embed.description = f"**The event has now ended. You will no longer get new blueprints or find event Pokémon in the wild, but you can still complete your current blueprint and open your {FlavorStrings.box:s}. Thank you for playing!**\n\n{embed.description}"
 
         return embed
 
@@ -359,7 +367,10 @@ class EventView(discord.ui.View):
         blueprint_id = self.member[f"{EVENT_PREFIX}_blueprint"]
         board = self.member[f"{EVENT_PREFIX}_board"]
 
-        image = await self.cog.fetch_image(blueprint_id, board)
+        image = None
+        if not (not board or blueprint_id is None):
+            image = await self.cog.fetch_image(blueprint_id, board)
+
         embed = await self.get_embed()
         self.message = await ctx.send(embed=embed, file=image, view=self)
 
@@ -392,14 +403,22 @@ class Christmas(commands.Cog):
     # region Functions
     # region board
     async def choose_blueprint(self, user):
-        blueprint_id = random.choice(list(BLUEPRINTS.keys()))
-        quests = await self.generate_quests(BLUEPRINTS[blueprint_id])
+        # blueprint_id = random.choice(list(BLUEPRINTS.keys()))
+        # quests = await self.generate_quests(BLUEPRINTS[blueprint_id])
+        # updates = {
+        #     f"{EVENT_PREFIX}_blueprint": blueprint_id,
+        #     f"{EVENT_PREFIX}_board": EMPTY_BOARD,
+        #     f"{EVENT_PREFIX}_quests": quests,
+        # }
+        # await self.bot.mongo.update_member(user, {"$set": updates})
+
+        # Event ended
         updates = {
-            f"{EVENT_PREFIX}_blueprint": blueprint_id,
-            f"{EVENT_PREFIX}_board": EMPTY_BOARD,
-            f"{EVENT_PREFIX}_quests": quests,
+            f"{EVENT_PREFIX}_blueprint": 1,
+            f"{EVENT_PREFIX}_board": 1,
+            f"{EVENT_PREFIX}_quests": 1,
         }
-        await self.bot.mongo.update_member(user, {"$set": updates})
+        await self.bot.mongo.update_member(user, {"$unset": updates})
 
     async def check_completion(self, user: discord.User, *, ctx: Optional[commands.Context] = None):
         member = await self.bot.mongo.fetch_member_info(user)
@@ -489,8 +508,9 @@ class Christmas(commands.Cog):
             or member[f"{EVENT_PREFIX}_blueprint"] is None
             or not member[f"{EVENT_PREFIX}_board"]
         ):
-            await self.choose_blueprint(user)
-            member = await self.bot.mongo.fetch_member_info(user)
+            return
+        #     await self.choose_blueprint(user)
+        #     member = await self.bot.mongo.fetch_member_info(user)
 
         incs = defaultdict(lambda: 0)
 
@@ -681,11 +701,11 @@ class Christmas(commands.Cog):
     async def christmas(self, ctx: PoketwoContext):
         """View christmas event main menu."""
 
-        # Check if user doesnt have a starting blueprint
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
-            await self.choose_blueprint(ctx.author)
-            member = await self.bot.mongo.fetch_member_info(ctx.author)
+        # # Check if user doesnt have a starting blueprint
+        # if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
+        #     await self.choose_blueprint(ctx.author)
+        #     member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         view = EventView(ctx, member)
         await view.send(ctx)
@@ -710,11 +730,11 @@ class Christmas(commands.Cog):
     ):
         """See your tasks and how many presents you have"""
 
-        # Check if user doesnt have a starting blueprint
         member = await self.bot.mongo.fetch_member_info(ctx.author)
-        if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
-            await self.choose_blueprint(ctx.author)
-            member = await self.bot.mongo.fetch_member_info(ctx.author)
+        # # Check if user doesnt have a starting blueprint
+        # if not member[f"{EVENT_PREFIX}_board"] or member[f"{EVENT_PREFIX}_blueprint"] is None:
+        #     await self.choose_blueprint(ctx.author)
+        #     member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         view = EventView(ctx, member)
         await view.send(ctx)
