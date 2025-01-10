@@ -189,6 +189,7 @@ class Spawning(commands.Cog):
 
             await asyncio.sleep(ms_to_wait / 1000)
             channel_doc = await self.bot.mongo.fetch_channel(channel)
+            incense = channel_doc.incense
             if not channel_doc.incense_active or channel_doc.incense.paused:
                 return
 
