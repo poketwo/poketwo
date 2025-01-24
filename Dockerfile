@@ -8,7 +8,7 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false
 
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --without dev
+RUN poetry install --no-root
 
 COPY . .
 CMD ["python", "launcher.py"]
