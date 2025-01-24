@@ -10,21 +10,21 @@ from helpers import checks
 
 # For future events, add this cog to cogs/__init__.py and just change these
 
-TITLE = "Sweater Weather ☕"
+TITLE = "Lunar New Year 🏮"
 DESCRIPTION = dedent(
     f"""
-    The days are getting colder, rain is falling and winter is coming. For a week, you are able to catch three Pokémon looking for warmth and comfort during these colder times.
+    It is the Lunar New Year, and some Pokémon have joined the festive celebrations for 2025, the Year of the Wood Snake, and the mark of new beginnings!
 
     The following Pokémon will be catchable for a week:
-    - Sweater Teddiursa
-    - Leafy Baltoy
-    - Cosy Perrserker
+    - Wooden Serperior
+    - Paper Lantern Lampent
+    - Dragon Dancer Litleo
 
-    Happy catching! ☕
+    Happy Lunar New Year, and happy catching! 🧧
     """
 )
-EMBED_IMAGE_URL = "https://cdn.discordapp.com/attachments/1122578987919605870/1310178525546020884/Untitled_Artwork.png?ex=67444656&is=6742f4d6&hm=bb6d046c09993152d4f70fb3d57b68d2133c541b8c5bf3f607e3b98ec2a4e553&"
-COLORS = [0xA7573C, 0x69763A, 0x323D55]
+EMBED_IMAGE_URL = "https://cdn.discordapp.com/attachments/1122578987919605870/1332491925097283624/Lunar_2025_server_banner.png?ex=6795734f&is=679421cf&hm=4dec5f9e1959bbd7d3b0b627c1228ea1884cfdc81a465a8b7a3f8d318913b09b&"
+COLORS = [0xDB662D, 0xF2A32D]
 
 
 class Event(commands.Cog):
