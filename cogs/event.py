@@ -18,7 +18,7 @@ DESCRIPTION = dedent(
     The following Pokémon will be catchable for a week:
     - Wooden Serperior
     - Paper Lantern Lampent
-    - Dragon Dancer Litleo
+    - Lion Dancer Litleo
 
     Happy Lunar New Year, and happy catching! 🧧
     """
