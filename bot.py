@@ -197,6 +197,10 @@ class ClusterBot(commands.AutoShardedBot):
         await self.load_extension("jishaku")
         for i in cogs.default:
             await self.load_extension(f"cogs.{i}")
+
+        if not self.get_command("event"):
+            await self.load_extension(f"cogs.noevent")
+
         self.log.info(f"init", shard_ids=self.shard_ids, shard_count=self.shard_count)
 
     async def on_ready(self):
