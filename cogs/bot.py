@@ -259,7 +259,7 @@ class Bot(commands.Cog):
 
         return result
 
-    @tasks.loop(minutes=5, reconnect=True)
+    @tasks.loop(minutes=5)
     async def post_dbl(self):
         result = await self.get_stats()
         data = {"server_count": result["servers"], "shard_count": result["shards"]}
@@ -275,7 +275,7 @@ class Bot(commands.Cog):
         view.add_item(discord.ui.Button(label=f"Visit {provider['name']}", url=provider["url"]))
         await self.bot.send_dm(uid, message, view=view)
 
-    @tasks.loop(seconds=15, reconnect=True)
+    @tasks.loop(seconds=15)
     async def remind_votes(self):
         for pid, provider in VOTING_PROVIDERS.items():
             query = {
@@ -299,7 +299,7 @@ class Bot(commands.Cog):
     async def before_remind_votes(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=1, reconnect=True)
+    @tasks.loop(minutes=1)
     async def post_count(self):
         await self.bot.mongo.db.stats.update_one(
             {"_id": self.bot.cluster_name},

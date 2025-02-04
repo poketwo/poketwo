@@ -14,7 +14,7 @@ class Redis(commands.Cog):
     async def connect(self):
         self.pool = await aioredis.create_redis_pool(**self.bot.config.REDIS_CONF)
 
-    @tasks.loop(seconds=0.1, reconnect=True)
+    @tasks.loop(seconds=0.1)
     async def attempt_reconnect(self):
         if self.pool:
             return

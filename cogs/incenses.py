@@ -343,7 +343,7 @@ class Incenses(commands.Cog):
         )
 
     def make_loop(self, interval_seconds: int) -> tasks.Loop:
-        @tasks.loop(seconds=interval_seconds, reconnect=True)
+        @tasks.loop(seconds=interval_seconds)
         async def spawn_incense():
             try:
                 channels = self.bot.mongo.Channel.find(
@@ -372,7 +372,7 @@ class Incenses(commands.Cog):
 
         return spawn_incense
 
-    @tasks.loop(seconds=10, reconnect=True)
+    @tasks.loop(seconds=10)
     async def register_intervals(self):
         new_intervals = await self.bot.mongo.db.channel.distinct(
             "incense.interval",
