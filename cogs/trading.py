@@ -48,7 +48,8 @@ class Trading(commands.Cog):
 
         with await self.bot.redis as r:
             req = await r.blpop(f"cancel_trade:{self.bot.cluster_idx}")
-            await self.end_trade(int(req[1]))
+            if req and req[1] is not None:
+                await self.end_trade(int(req[1]))
 
     @process_cancel_trades.before_loop
     async def before_process_cancel_trades(self):
