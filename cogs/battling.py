@@ -552,7 +552,7 @@ class Battling(commands.Cog):
             battle.stage = Stage.END
         self.bot.battles = BattleManager()
 
-    @tasks.loop(seconds=0.1)
+    @tasks.loop(seconds=0.1, reconnect=True)
     async def process_move_requests(self):
         if not self.bot.redis:
             return
@@ -572,7 +572,7 @@ class Battling(commands.Cog):
     async def before_process_move_requests(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(seconds=0.1)
+    @tasks.loop(seconds=0.1, reconnect=True)
     async def process_move_decisions(self):
         if not self.bot.redis:
             return

@@ -41,7 +41,7 @@ class Trading(commands.Cog):
             self.bot.loop.create_task(self.clear_trades())
         self.process_cancel_trades.start()
 
-    @tasks.loop(seconds=0.1)
+    @tasks.loop(seconds=0.1, reconnect=True)
     async def process_cancel_trades(self):
         if not self.bot.redis:
             return

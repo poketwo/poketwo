@@ -46,7 +46,7 @@ class Auctions(commands.Cog):
         self.bot = bot
         self.check_auctions.start()
 
-    @tasks.loop(seconds=20)
+    @tasks.loop(seconds=20, reconnect=True)
     async def check_auctions(self):
         auctions = self.bot.mongo.db.pokemon.find(
             {"owned_by": "auction", "auction_data.ends": {"$lt": datetime.utcnow()}}
