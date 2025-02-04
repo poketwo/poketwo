@@ -16,5 +16,5 @@ default = (
     "incenses",
     "sprites",
     "trading",
-    "event",  # Cog for simple events, remove when bigger event cogs are added.
+    # "event",  # Cog for simple events, remove when bigger event cogs are added.
 )
