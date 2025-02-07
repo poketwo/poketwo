@@ -513,7 +513,7 @@ class Bot(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
-        await ctx.send(
+        await ctx.reply(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
         )
 
