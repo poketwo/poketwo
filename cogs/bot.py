@@ -166,7 +166,7 @@ class Bot(commands.Cog):
         elif isinstance(error, checks.AcceptTermsOfService):
             ctx.log.info("command.error.AcceptTermsOfService")
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
-            await ctx.send(error)
+            await ctx.reply(error)
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
