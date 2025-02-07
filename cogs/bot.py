@@ -85,12 +85,12 @@ class Bot(commands.Cog):
             else:
                 msg = ctx._("error-command-concurrency-bucketed", bucket=bucket_name, rate=error.number)
 
-            await ctx.send(msg)
+            await ctx.reply(msg)
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send(ctx._("error-command-no-private-messages"))
+            await ctx.reply(ctx._("error-command-no-private-messages"))
         elif isinstance(error, commands.DisabledCommand):
             ctx.log.info("command.error.DisabledCommand")
-            await ctx.send(ctx._("error-command-disabled"))
+            await ctx.reply(ctx._("error-command-disabled"))
         elif isinstance(error, commands.BotMissingPermissions):
             ctx.log.info("command.error.BotMissingPermissions")
             missing = [
@@ -116,11 +116,11 @@ class Bot(commands.Cog):
                 droppable_fields=["expires"],
                 block_fields=["expires", "reason"],
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
         elif isinstance(error, checks.AcceptTermsOfService):
             ctx.log.info("command.error.AcceptTermsOfService")
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
-            await ctx.send(error)
+            await ctx.reply(error)
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
