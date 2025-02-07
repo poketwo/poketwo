@@ -162,7 +162,7 @@ class Bot(commands.Cog):
                 value="If, after reading and understanding the reason provided above, you believe your account was suspended in error, and that you did not violate the Terms of Service, you may submit a [Bot Suspension Appeal](https://forms.poketwo.net/a/suspension-appeal) to request a re-review of your case.",
                 inline=False,
             )
-            await ctx.reply(embed=embed)
+            await ctx.reply(embed=embed, mention_author=False)
         elif isinstance(error, checks.AcceptTermsOfService):
             ctx.log.info("command.error.AcceptTermsOfService")
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
