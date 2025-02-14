@@ -162,11 +162,11 @@ class Bot(commands.Cog):
                 value="If, after reading and understanding the reason provided above, you believe your account was suspended in error, and that you did not violate the Terms of Service, you may submit a [Bot Suspension Appeal](https://forms.poketwo.net/a/suspension-appeal) to request a re-review of your case.",
                 inline=False,
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed, mention_author=False)
         elif isinstance(error, checks.AcceptTermsOfService):
             ctx.log.info("command.error.AcceptTermsOfService")
         elif isinstance(error, (commands.CheckFailure, commands.UserInputError, flags.ArgumentParsingError)):
-            await ctx.send(error)
+            await ctx.reply(error, mention_author=False)
         elif isinstance(error, commands.CommandNotFound):
             return
         else:
@@ -442,7 +442,7 @@ class Bot(commands.Cog):
 
             embed.add_field(name=gen, value=" \u200b · \u200b ".join(pokemon_texts), inline=False)
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
     @commands.command()
     async def pick(self, ctx, *, name: str):
@@ -451,15 +451,15 @@ class Bot(commands.Cog):
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member is not None:
-            return await ctx.send(
-                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
+            return await ctx.reply(
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`.", mention_author=False
             )
 
         species = self.bot.data.species_by_name(name)
 
         if species is None or species.name.lower() not in constants.STARTER_POKEMON:
-            return await ctx.send(
-                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix}start`."
+            return await ctx.reply(
+                f"Please select one of the starter pokémon. To view them, type `{ctx.clean_prefix}start`.", mention_author=False
             )
 
         # ToS
@@ -478,16 +478,16 @@ class Bot(commands.Cog):
         if result is None:
             return await ctx.send("Time's up. Aborted.")
         if result is False:
-            return await ctx.send(
+            return await ctx.reply(
                 "Since you chose not to accept the new user terms, we are unable to grant you access to Pokétwo.\n"
-                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue.",
+                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue."
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
 
         if member is not None:
-            return await ctx.send(
-                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`."
+            return await ctx.reply(
+                f"You have already chosen a starter pokémon! View your pokémon with `{ctx.clean_prefix}pokemon`.", mention_author=False
             )
 
         # Go
@@ -513,7 +513,7 @@ class Bot(commands.Cog):
         )
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
-        await ctx.send(
+        await ctx.reply(
             f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
         )
 
@@ -588,7 +588,7 @@ class Bot(commands.Cog):
                 inline=False,
             )
 
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
 
     def cog_unload(self):
         self.post_count.cancel()
