@@ -480,7 +480,7 @@ class Bot(commands.Cog):
         if result is False:
             return await ctx.reply(
                 "Since you chose not to accept the new user terms, we are unable to grant you access to Pokétwo.\n"
-                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue.", mention_author=False
+                "If you wish to continue, please re-run the command and agree to our Terms of Service to continue."
             )
 
         member = await self.bot.mongo.fetch_member_info(ctx.author)
@@ -514,7 +514,7 @@ class Bot(commands.Cog):
         await self.bot.redis.hdel("db:member", ctx.author.id)
 
         await ctx.reply(
-            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!", mention_author=False
+            f"Congratulations on entering the world of pokémon! {species} is your first pokémon. Type `{ctx.clean_prefix}info` to view it!"
         )
 
     @checks.has_started()
