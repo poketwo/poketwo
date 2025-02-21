@@ -124,12 +124,12 @@ class Quests(commands.Cog):
                 continue
             if m["quest_progress"][q["_id"]] == q["next_count"]:
                 await self.bot.mongo.update_member(ctx.author, {"$inc": {"balance": q["next_reward"]}})
-                await ctx.send(
+                await ctx.reply(
                     f"You have completed the quest **{q['description']}** and received **{q['next_reward']:,}** Pokécoins!", mention_author=False
                 )
                 if q["next_is_last"]:
                     await self.bot.mongo.update_member(ctx.author, {"$set": {f"badges.{q['final_reward']}": True}})
-                    await ctx.send(
+                    await ctx.reply(
                         f"You have completed this quest track and received the **{q['final_reward'].title()}** badge!"
                     )
 
